@@ -1,0 +1,12 @@
+torch
+lightning
+git+https://github.com/discovery-unicamp/hiaac-librep.git@0.0.4-dev
+scipy
+plotly
+numpy
+pandas
+PyYAML
+statsmodels
+jsonargparse[all]
+zarr
+rich
