@@ -1,0 +1,37 @@
+[build-system]
+build-backend = "setuptools.build_meta"
+requires = ["setuptools>=64.0.0"]
+
+[project]
+authors = [{ name = "Gabriel Gutierrez", email = "gabriel.bgs00@gmail.com" }]
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+]
+description = "Self supervised learning tools"
+keywords = ["ssl tools", "self supervised learning", "machine learning"]
+license = { file = "LICENSE" }
+name = "sslt"
+readme = "README.md"
+requires-python = ">=3.8"
+version = "0.0.1-dev"
+
+dependencies = [
+    "torch",
+    "lightning",
+    "scipy",
+    "plotly",
+    "numpy",
+    "pandas",
+    "PyYAML",
+    "statsmodels",
+]
+
+[project.optional-dependencies]
+dev = ["mock", "pytest", "black", "isort"]
+
+[project.urls]
+
+"Bug Tracker" = "https://github.com/GabrielBG0/Framework-SSL/issues"
+"Homepage" = "https://github.com/GabrielBG0/Framework-SSL"
