@@ -1,4 +1,3 @@
-from pathlib import Path
 from typing import Union
 import numpy as np
 
@@ -15,7 +14,7 @@ class _Reader:
 
     """
 
-    def __init__(self, path: Union[str, Path]):
+    def __init__(self):
         raise NotImplementedError()
 
     def __getitem__(self, index: Union[int, slice]) -> np.ndarray:
