@@ -3,48 +3,58 @@ import torch
 import lightning as L
 
 
-class SimpleReconstructionNet(L.LightningModule):
-    """Simple autoencoder pipeline for reconstruction tasks
+class SimpleSupervisedModel(L.LightningModule):
+    """Simple pipeline for supervised models.
 
-    This class implements a very common pipeline for autoencoder models, which
-    are used to reconstruct the input data. It consists in:
+    This class implements a very common deep learning pipeline, which is
+    composed by the following steps:
 
     1. Make a forward pass with the input data on the backbone model;
-    2. Compute the loss between the output and the input data;
-    3. Optimize the model parameters with respect to the loss.
+    2. Make a forward pass with the input data on the fc model;
+    3. Compute the loss between the output and the label data;
+    4. Optimize the model (backbone and FC) parameters with respect to the loss.
 
     This reduces the code duplication for autoencoder models, and makes it
     easier to implement new models by only changing the backbone model. More
     complex models, that does not follow this pipeline, should not inherit from
     this class.
-
-    Note that this class assumes that input data is a single tensor and not a
-    tuple of tensors (e.g., data and label).
+    
+    Note that, for this class the input data is a tuple of tensors, where the
+    first tensor is the input data and the second tensor is the mask, with the 
+    same shape as the input data.
     """
 
     def __init__(
         self,
         backbone: torch.nn.Module,
+        fc: torch.nn.Module,
+        loss_fn: torch.nn.Module,
         learning_rate: float = 1e-3,
-        loss_fn: torch.nn.Module = None,
+        flatten: bool = True,
     ):
-        """Simple autoencoder pipeline for reconstruction tasks.
+        """Initialize the model.
 
         Parameters
         ----------
         backbone : torch.nn.Module
-            The backbone model that will be used to make the forward pass and
-            will be optimized with respect to the loss.
+            The backbone model. Usually the encoder/decoder part of the model.
+        fc : torch.nn.Module
+            The fully connected model, usually used to classification tasks. 
+            Use `torch.nn.Identity()` if no FC model is needed.
+        loss_fn : torch.nn.Module
+            The function used to compute the loss.
         learning_rate : float, optional
             The learning rate to Adam optimizer, by default 1e-3
-        loss_fn : torch.nn.Module, optional
-            The function used to compute the loss. If `None`, it will be used
-            the MSELoss, by default None.
+        flatten : bool, optional
+            If `True` the input data will be flattened before passing through
+            the fc model, by default True
         """
         super().__init__()
         self.backbone = backbone
+        self.fc = fc
+        self.loss_fn = loss_fn
         self.learning_rate = learning_rate
-        self.loss_fn = loss_fn or torch.nn.MSELoss()
+        self.flatten = flatten
 
     def _loss_func(self, y_hat: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
         """Calculate the loss between the output and the input data.
@@ -77,7 +87,11 @@ class SimpleReconstructionNet(L.LightningModule):
         torch.Tensor
             The output data from the forward pass.
         """
-        return self.backbone(x)
+        x = self.backbone(x)
+        if self.flatten:
+            x = x.view(x.size(0), -1)
+        x = self.fc(x)
+        return x
 
     def _single_step(
         self, batch: torch.Tensor, batch_idx: int, step_name: str
@@ -89,8 +103,8 @@ class SimpleReconstructionNet(L.LightningModule):
         Parameters
         ----------
         batch : torch.Tensor
-            The input data. It must be a single tensor and not a tuple of
-            tensors (e.g., data and label).
+            The input data. It must be a 2-element tuple of tensors, where the
+            first tensor is the input data and the second tensor is the mask.
         batch_idx : int
             The index of the batch.
         step_name : str
@@ -101,9 +115,9 @@ class SimpleReconstructionNet(L.LightningModule):
         torch.Tensor
             A tensor with the loss value.
         """
-        x = batch
+        x, y = batch
         y_hat = self.forward(x)
-        loss = self._loss_func(y_hat, x)
+        loss = self._loss_func(y_hat, y)
         self.log(
             f"{step_name}_loss",
             loss,
@@ -124,7 +138,7 @@ class SimpleReconstructionNet(L.LightningModule):
         return self._single_step(batch, batch_idx, step_name="test")
 
     def predict_step(self, batch, batch_idx, dataloader_idx=None):
-        x, y = batch
+        x, _ = batch
         y_hat = self.forward(x)
         return y_hat
 
