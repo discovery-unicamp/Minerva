@@ -20,8 +20,7 @@ class SimpleSupervisedModel(L.LightningModule):
     this class.
     
     Note that, for this class the input data is a tuple of tensors, where the
-    first tensor is the input data and the second tensor is the mask, with the 
-    same shape as the input data.
+    first tensor is the input data and the second tensor is the mask or label.
     """
 
     def __init__(
@@ -108,7 +107,9 @@ class SimpleSupervisedModel(L.LightningModule):
         batch_idx : int
             The index of the batch.
         step_name : str
-            The name of the step. It will be used to log the loss.
+            The name of the step. It will be used to log the loss. The possible
+            values are: "train", "val" and "test". The loss will be logged as
+            "{step_name}_loss".
 
         Returns
         -------
