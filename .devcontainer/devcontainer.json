@@ -1,0 +1,35 @@
+{
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
+    "runArgs": [
+        "--gpus",
+        "all",
+        "--shm-size",
+        "1g",
+        "--ipc",
+        "host",
+        "--ulimit",
+        "memlock=-1",
+        "--ulimit",
+        "stack=67108864"
+    ],
+    "postStartCommand": ".devcontainer/post_start.sh",
+    "containerUser": "vscode",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-python.python",
+                "ms-python.black-formatter",
+                "ms-toolsai.jupyter",
+                "ms-toolsai.vscode-jupyter-powertoys",
+                "github.copilot",
+                "donjayamanne.git-extension-pack",
+                "akamud.vscode-theme-onedark",
+                "njpwerner.autodocstring",
+                "grapecity.gc-excelviewer",
+                "yzhang.markdown-all-in-one"
+            ]
+        }
+    }
+}
