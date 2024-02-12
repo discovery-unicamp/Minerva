@@ -92,40 +92,6 @@ class _WiseNet(torch.nn.Module):
         x = self.conv8(x)
         return x
 
-    # def _common_step(self, batch, batch_idx):
-    #     x, y = batch
-    #     y_hat = self.forward(x)
-
-    #     # Get the central panel of the y prediction
-    #     y = y.view(y.size(0), y.size(1), y.size(2), y.size(3), y.size(4))[
-    #         :, :, 9:10, 0:500, 0:500
-    #     ].squeeze(1)
-    #     y_hat = y_hat.view(
-    #         y_hat.size(0), y_hat.size(1), y_hat.size(2), y_hat.size(3)
-    #     )[:, :, 0:500, 0:500]
-
-    #     loss = torch.nn.MSELoss()(y_hat, y)
-
-    #     return loss, y_hat, y
-
-    # def predict_step(self, batch, batch_idx):
-    #     x, y = batch
-    #     y_hat = self.forward(x)
-
-    #     # Get the central panel of the y prediction
-    #     y = y.view(y.size(0), y.size(1), y.size(2), y.size(3), y.size(4))[
-    #         :, :, 9:10, 0:500, 0:500
-    #     ].squeeze(1)
-    #     y_hat = y_hat.view(
-    #         y_hat.size(0), y_hat.size(1), y_hat.size(2), y_hat.size(3)
-    #     )[:, :, 0:500, 0:500]
-    #     preds = torch.argmax(y_hat, dim=1)
-
-    #     return preds
-
-    # def configure_optimizers(self):
-    #     return torch.optim.Adam(self.parameters(), lr=self.lr)
-
 
 class WiseNet(SimpleSupervisedModel):
     def __init__(
