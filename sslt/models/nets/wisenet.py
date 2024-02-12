@@ -98,6 +98,7 @@ class WiseNet(SimpleSupervisedModel):
         self,
         in_channels: int = 1,
         out_channels: int = 1,
+        loss_fn: torch.nn.Module = None,
         learning_rate: float = 1e-3,
     ):
         super().__init__(
@@ -105,7 +106,7 @@ class WiseNet(SimpleSupervisedModel):
                 in_channels=in_channels, out_channels=out_channels
             ),
             fc=torch.nn.Identity(),
-            loss_fn=torch.nn.MSELoss(),
+            loss_fn=loss_fn or torch.nn.MSELoss(),
             learning_rate=learning_rate,
             flatten=False,
         )
@@ -116,8 +117,6 @@ class WiseNet(SimpleSupervisedModel):
         x, y = batch
         y_hat = self.forward(x)
         y_hat = y_hat[:, :, : y.size(2), : y.size(3)]
-        
-        print(f"y_hat.shape: {y_hat.shape}, x.shape: {x.shape}, y.shape: {y.shape}")
 
         loss = self._loss_func(y_hat, y)
         self.log(
