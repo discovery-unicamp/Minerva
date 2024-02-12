@@ -1,4 +1,4 @@
-from typing import List, Optional, Any, Iterable, Union
+from typing import List, Optional, Any, Iterable, Tuple, Union
 from torch.utils.data import Dataset
 from sslt.transforms.transform import _Transform
 from sslt.data.readers.reader import _Reader
@@ -16,11 +16,11 @@ class SimpleDataset(Dataset):
         1. Read the data from the reader R at the index idx.
         2. Apply the transforms T to the data.
         3. Append the transformed data to the list of data.
-    Return the list of transformed data.    
+    Return the tuple of transformed data.    
     """
     def __init__(
         self,
-        readers: List[_Reader],
+        readers: Union[_Reader, List[_Reader]],
         transforms: Optional[Union[_Transform, List[_Transform]]] = None,
         return_single: bool = False
     ):
@@ -28,8 +28,9 @@ class SimpleDataset(Dataset):
 
         Parameters
         ----------
-        readers : List[_Reader]
-            The list of readers to load data from.
+        readers : Union[_Reader, List[_Reader]]
+            The list of readers to load data from. It can be a single reader or
+            a list of readers.
         transforms : Optional[Union[_Transform, List[_Transform]]], optional
             The list of transforms to apply to each sample. This can be:
             -   None, in which case no transform is applied.
@@ -43,7 +44,7 @@ class SimpleDataset(Dataset):
             If True, the __getitem__ method will return a single sample  when 
             a single reader is used. This is useful for unsupervised datasets,
             where we usually have a single reader. If False, the __getitem__
-            method will return a list of samples, where each sample is from a
+            method will return a tuple of samples, where each sample is from a
             different reader, from same index. This is useful for supervised
             datasets, where the data from different readers are related and
             should be returned together. The default is False.
@@ -102,19 +103,25 @@ class SimpleDataset(Dataset):
         self.transforms = transforms
         self.return_single = return_single
         
+        # ---------------- Parsing readers ----------------
+        if not isinstance(self.readers, Iterable):
+            self.readers = [self.readers]
+        
+        # ---------------- Parsing transforms ----------------
         # If no transform is provided, use the identity transform.
-        # It will generate a list of identity transforms with the same length
+        # It will generate a list of None transforms with the same length
         # as the number of readers.
         if self.transforms is None:
-            self.transforms = [lambda x: x] * len(self.readers)
+            self.transforms = [None] * len(self.readers)
         
         # If a single transform is provided, use the same transform for all
         # readers, that is, generate a list of the same transform with the same
         # length as the number of readers.
-        if isinstance(self.transforms, Iterable):
+        if not isinstance(self.transforms, Iterable):
             self.transforms = [self.transforms] * len(self.readers)
             
-        # Checks
+
+        # ---------------- Validating objects ----------------
         assert len(self.readers) == len(self.transforms), \
             "The number of readers and transforms must be the same."
             
@@ -132,7 +139,7 @@ class SimpleDataset(Dataset):
         """
         return len(self.readers[0])
 
-    def __getitem__(self, idx: int) -> List[Any]:
+    def __getitem__(self, idx: int) -> Union[Any, Tuple[Any, ...]]:
         """Load data from multiple sources and apply specified transforms.
 
         Parameters
@@ -151,6 +158,7 @@ class SimpleDataset(Dataset):
         # Then, append the transformed data to the list of data.
         for reader, transform in zip(self.readers, self.transforms):
             sample = reader[idx]
+            # Apply the transform if it is not None
             if transform is not None:
                 sample = transform(sample)
             data.append(sample)
@@ -160,6 +168,6 @@ class SimpleDataset(Dataset):
         if self.return_single:
             return data[0]
         else:
-            return data
+            return tuple(data)
 
 
