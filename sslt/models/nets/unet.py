@@ -10,10 +10,12 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from sslt.models.nets.base import SimpleReconstructionNet
+from sslt.models.nets.base import SimpleSupervisedModel
 
 
 """ -------------- Parts of the U-Net model --------------"""
+
+
 class _DoubleConv(nn.Module):
     """(convolution => [BN] => ReLU) * 2"""
 
@@ -116,9 +118,12 @@ class _OutConv(nn.Module):
         return self.conv(x)
 
 
+""" -------------- The U-Net model --------------"""
+
+
 class _UNet(torch.nn.Module):
-    """Implementation of U-Net model.
-    """
+    """Implementation of U-Net model."""
+
     def __init__(
         self,
         n_channels: int = 1,
@@ -131,7 +136,7 @@ class _UNet(torch.nn.Module):
         n_channels : int, optional
             Number of input channels, by default 1
         bilinear : bool, optional
-            If `True` use bilinear interpolation for upsampling, by default 
+            If `True` use bilinear interpolation for upsampling, by default
             False.
         """
         super().__init__()
@@ -166,8 +171,8 @@ class _UNet(torch.nn.Module):
         return logits
 
 
-class UNet(SimpleReconstructionNet):
-    """   This class is a simple implementation of the U-Net model, which is a
+class UNet(SimpleSupervisedModel):
+    """This class is a simple implementation of the U-Net model, which is a
     convolutional neural network used for image segmentation. The model consists
     of a contracting path (encoder) and an expansive path (decoder). The
     contracting path follows the typical architecture of a convolutional neural
@@ -177,28 +182,28 @@ class UNet(SimpleReconstructionNet):
     allows the expansive path to use information from the contracting path at
     multiple resolutions. The U-Net model was originally proposed by
     Ronneberger, Fischer, and Brox in 2015.
-    
+
     This architecture, handles arbitrary input sizes, and returns an output of
     the same size as the input. The expected input size is (N, C, H, W), where N
     is the batch size, C is the number of channels, H is the height of the input
-    image, and W is the width of the input image. 
-    
+    image, and W is the width of the input image.
+
     Note that, for this implementation, the input batch is a single tensor and
     not a tuple of tensors (e.g., data and label).
-    
+
     Note that this class wrappers the `_UNet` class, which is the actual
     implementation of the U-Net model, into a `SimpleReconstructionNet` class,
     which is a simple autoencoder pipeline for reconstruction tasks.
-    
+
     References
     ----------
-    Ronneberger, Olaf, Philipp Fischer, and Thomas Brox. "U-net: Convolutional 
-    networks for biomedical image segmentation." Medical Image Computing and 
-    Computer-Assisted Intervention-MICCAI 2015: 18th International Conference, 
-    Munich, Germany, October 5-9, 2015, Proceedings, Part III 18. Springer 
+    Ronneberger, Olaf, Philipp Fischer, and Thomas Brox. "U-net: Convolutional
+    networks for biomedical image segmentation." Medical Image Computing and
+    Computer-Assisted Intervention-MICCAI 2015: 18th International Conference,
+    Munich, Germany, October 5-9, 2015, Proceedings, Part III 18. Springer
     International Publishing, 2015.
     """
-    
+
     def __init__(
         self,
         n_channels: int = 1,
@@ -213,7 +218,7 @@ class UNet(SimpleReconstructionNet):
         n_channels : int, optional
             The number of channels of the input, by default 1
         bilinear : bool, optional
-            If `True` use bilinear interpolation for upsampling, by default 
+            If `True` use bilinear interpolation for upsampling, by default
             False.
         learning_rate : float, optional
             The learning rate to Adam optimizer, by default 1e-3
@@ -223,6 +228,8 @@ class UNet(SimpleReconstructionNet):
         """
         super().__init__(
             backbone=_UNet(n_channels=n_channels, bilinear=bilinear),
+            fc=torch.nn.Identity(),
+            loss_fn=loss_fn or torch.nn.MSELoss(),
             learning_rate=learning_rate,
-            loss_fn=loss_fn,
+            flatten=False
         )
