@@ -1,15 +1,17 @@
+from pathlib import Path
 from typing import Union
-from sslt.data.readers.reader import _Reader
+
 import numpy as np
 import tifffile as tiff
-from pathlib import Path
+
+from sslt.data.readers.reader import _Reader
 
 
 class TiffReader(_Reader):
-    """This class loads a TIFF file from a directory. It assumes that the TIFF 
-    files are named with a number as the filename, starting from 0. This is 
-    shown below. 
-    
+    """This class loads a TIFF file from a directory. It assumes that the TIFF
+    files are named with a number as the filename, starting from 0. This is
+    shown below.
+
     ```
     /path/
     ├── 0.tiff
@@ -17,9 +19,10 @@ class TiffReader(_Reader):
     ├── 2.tiff
     └── ...
     ```
-    
+
     Thus, the element at index `i` will be the file `i.tiff`.
     """
+
     def __init__(self, path: str):
         self.path = Path(path)
         if not self.path.is_dir():
@@ -27,7 +30,7 @@ class TiffReader(_Reader):
         self.len = len(list(self.path.glob("*.tif")))
 
     def __getitem__(self, index: Union[int, slice]) -> np.ndarray:
-        """Retrieve the TIFF file at the specified index. The index will be 
+        """Retrieve the TIFF file at the specified index. The index will be
         used as the filename of the TIFF file.
 
         Parameters
@@ -58,4 +61,4 @@ class TiffReader(_Reader):
         int
             The number of TIFF files in the directory.
         """
-        return len(self.files)
+        return self.len
