@@ -4,17 +4,15 @@ import numpy as np
 from base import SimpleDataset
 
 from sslt.data.readers.reader import _Reader
-from sslt.transforms.transform import TransformPipeline
+from sslt.transforms.transform import _Transform
 
 
-class SupervisedSemanticSegmentationDataset(SimpleDataset):
+class SupervisedReconstructionDataset(SimpleDataset):
     """
     A dataset class for supervised semantic segmentation tasks.
     """
 
-    def __init__(
-        self, readers: List[_Reader], transforms: TransformPipeline | None = None
-    ):
+    def __init__(self, readers: List[_Reader], transforms: _Transform | None = None):
         """
         Initializes a SupervisedSemanticSegmentationDataset object.
 
@@ -31,12 +29,19 @@ class SupervisedSemanticSegmentationDataset(SimpleDataset):
         """
         super().__init__(readers, transforms)
 
-        self.readers = readers
-        self.transforms = transforms
-
         assert (
             len(self.readers) == 2
         ), "SupervisedSemanticSegmentationDataset requires exactly 2 readers"
+
+    def __len__(self) -> int:
+        """
+        Returns the length of the dataset.
+
+        Returns:
+            int: Length of the dataset.
+
+        """
+        return len(self.readers[0])
 
     def __getitem__(self, index: int) -> Tuple[np.ndarray, np.ndarray]:
         """
@@ -53,9 +58,6 @@ class SupervisedSemanticSegmentationDataset(SimpleDataset):
             A tuple containing two numpy arrays representing the data.
 
         """
-        data = [reader[index] for reader in self.readers]
-
-        if self.transforms is not None:
-            data = [self.transforms(data[i]) for i in range(2)]
+        data = super().__getitem__(index)
 
         return (data[0], data[1])
