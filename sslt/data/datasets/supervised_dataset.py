@@ -38,16 +38,6 @@ class SupervisedSemanticSegmentationDataset(SimpleDataset):
             len(self.readers) == 2
         ), "SupervisedSemanticSegmentationDataset requires exactly 2 readers"
 
-    def __len__(self) -> int:
-        """
-        Returns the length of the dataset.
-
-        Returns:
-            int: Length of the dataset.
-
-        """
-        return len(self.readers[0])
-
     def __getitem__(self, index: int) -> Tuple[np.ndarray, np.ndarray]:
         """
         Load data from sources and apply specified transforms.
