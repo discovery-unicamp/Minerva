@@ -1,15 +1,16 @@
 from pathlib import Path
 from typing import Union
-from reader import _Reader
+
 import numpy as np
 from PIL import Image
+from reader import _Reader
 
 
 class PNGReader(_Reader):
-    """This class loads a PNG file from a directory. It assumes that the PNG 
-    files are named with a number as the filename, starting from 0. This is 
-    shown below. 
-    
+    """This class loads a PNG file from a directory. It assumes that the PNG
+    files are named with a number as the filename, starting from 0. This is
+    shown below.
+
     ```
     /path/
     ├── 0.png
@@ -17,7 +18,7 @@ class PNGReader(_Reader):
     ├── 2.png
     └── ...
     ```
-    
+
     Thus, the element at index `i` will be the file `i.png`.
     """
 
@@ -35,7 +36,7 @@ class PNGReader(_Reader):
         self.len = len(list(self.path.glob("*.png")))
 
     def __getitem__(self, index: int) -> np.ndarray:
-        """Retrieve the PNG file at the specified index. The index will be 
+        """Retrieve the PNG file at the specified index. The index will be
         used as the filename of the PNG file.
 
         Parameters
@@ -66,4 +67,4 @@ class PNGReader(_Reader):
         int
             The number of PNG files in the directory.
         """
-        return len(self.files)
+        return self.len
