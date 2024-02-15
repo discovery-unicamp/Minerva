@@ -9,7 +9,7 @@ class PixelAccuracy(Metric):
 
         Parameters
         ----------
-            dist_sync_on_step: bool | None
+            dist_sync_on_step: bool, optional
                 Whether to synchronize metric state across processes at each step.
                 Defaults to False.
         """
