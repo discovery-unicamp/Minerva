@@ -1,3 +1,4 @@
+import pytest
 from typing import Sequence
 
 import numpy as np
@@ -56,16 +57,5 @@ def test_flip_invalid_axes():
     flip_transform = Flip(axis=[0, 1, 2])
 
     # Check if an AssertionError is raised when applying the transform
-    try:
+    with pytest.raises(AssertionError):
         flipped_x = flip_transform(x)
-    except AssertionError:
-        pass
-    else:
-        assert False, "Expected an AssertionError, but no exception was raised."
-
-
-# Run the tests
-test_transform_pipeline()
-test_flip_single_axis()
-test_flip_multiple_axes()
-test_flip_invalid_axes()
