@@ -1,4 +1,6 @@
-from typing import Any, List
+from typing import Any, List, Sequence
+
+import numpy as np
 
 
 class _Transform:
@@ -22,7 +24,7 @@ class TransformPipeline(_Transform):
     transformed data.
     """
 
-    def __init__(self, transforms: List[_Transform]):
+    def __init__(self, transforms: Sequence[_Transform]):
         """Apply a sequence of transforms to a single sample of data and return
         the transformed data.
 
@@ -39,4 +41,38 @@ class TransformPipeline(_Transform):
         """
         for transform in self.transforms:
             x = transform(x)
+        return x
+
+
+class Flip(_Transform):
+    """Flip the input data along the specified axis."""
+
+    def __init__(self, axis: int | List[int] = 0):
+        """Flip the input data along the specified axis.
+
+        Parameters
+        ----------
+        axis : int | List[int], optional
+            One or more axis to flip the input data along, by default 0.
+            If a list of axis is provided, the input data is flipped along all the specified axis in the order they are provided.
+        """
+        self.axis = axis
+
+    def __call__(self, x: np.ndarray) -> np.ndarray:
+        """Flip the input data along the specified axis.
+        if axis is an integer, the input data is flipped along the specified axis.
+        if axis is a list of integers, the input data is flipped along all the specified axis in the order they are provided.
+        The input must have the same, or less, number of dimensions as the length of the list of axis.
+        """
+
+        if isinstance(self.axis, int):
+            return np.flip(x, axis=self.axis)
+
+        assert (
+            len(self.axis) <= x.ndim
+        ), "Axis list has more dimentions than input data. The lenth of axis needs to be less or equal to input dimentions."
+
+        for axis in self.axis:
+            x = np.flip(x, axis=axis)
+
         return x
