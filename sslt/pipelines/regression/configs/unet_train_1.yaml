@@ -1,0 +1,10 @@
+experiment_name: attribute_train
+original_path: /workspaces/seismic/data/original.zarr
+attribute_path: /workspaces/seismic/data/envelope.zarr
+batch_size: 64
+max_epochs: 1
+num_workers: null
+learning_rate: 0.001
+log_dir: /workspaces/seismic/the_mlruns
+accelerator: gpu
+devices: 1

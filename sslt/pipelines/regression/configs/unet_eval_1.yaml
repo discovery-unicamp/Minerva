@@ -1,0 +1,9 @@
+experiment_name: attribute_evaluate
+original_path: /workspaces/seismic/data/original.zarr
+attribute_path: /workspaces/seismic/data/envelope.zarr
+load_checkpoint_from: /workspaces/seismic/the_mlruns/588921896168090585/b411592ca1ea40878e5ebf0784d60809/artifacts/model/checkpoints/last/last.ckpt
+batch_size: 512
+num_workers: null
+log_dir: /workspaces/seismic/the_mlruns
+accelerator: gpu
+devices: 1
