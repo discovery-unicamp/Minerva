@@ -1,7 +1,7 @@
 from typing import List, Tuple
 
 import numpy as np
-from base import SimpleDataset
+from sslt.data.datasets.base import SimpleDataset
 
 from sslt.data.readers.reader import _Reader
 from sslt.transforms.transform import _Transform
