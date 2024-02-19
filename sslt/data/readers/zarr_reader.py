@@ -1,7 +1,10 @@
 import zarr
 
 from sslt.utils.typing import PathLike
-from sslt.data.readers.patched_array_reader import PatchedArrayReader
+from sslt.data.readers.patched_array_reader import (
+    PatchedArrayReader,
+    PatchedSubArrayReader,
+)
 
 
 class PatchedZarrReader(PatchedArrayReader):
@@ -17,27 +20,27 @@ class PatchedZarrReader(PatchedArrayReader):
     ):
         """Reads patches from a Zarr array. This class is a subclass of
         `PatchedArrayReader`. All other parameters are the same as parent class.
-        Please refer to the documentation of `PatchedArrayReader` for more 
+        Please refer to the documentation of `PatchedArrayReader` for more
         information.
-        
+
         Parameters
         ----------
         path : PathLike
             Path to the Zarr array.
-            
+
         Notes
         -----
         1.  The Zarr array is expected to be stored on disk. If the array is not
-            stored on disk, it is recommended to use the `PatchedArrayReader` 
+            stored on disk, it is recommended to use the `PatchedArrayReader`
             class instead.
-        
+
         2.  When using padding, the padding is applied to the entire array. This
             will load the entire array into memory. If the array is too large to
-            fit into memory, it is recommended to pad before. 
-            
+            fit into memory, it is recommended to pad before.
+
         Examples
         ---------
-        
+
         ```python
         >>> from pathlib import Path
         >>> data_path = Path("data.zarr")
@@ -54,3 +57,14 @@ class PatchedZarrReader(PatchedArrayReader):
         self.path = path
         data = zarr.open(path)
         super().__init__(data=data, *args, **kwargs)
+
+
+class PatchedZarrSubArrayReader(PatchedSubArrayReader):
+    def __init__(
+        self,
+        path: PathLike,
+        **kwargs,
+    ):
+        self.path = path
+        data = zarr.open(path)
+        super().__init__(data=data, **kwargs)

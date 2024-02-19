@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import Callable, Dict, List, Tuple
 import numpy as np
 from numpy.typing import ArrayLike
 
@@ -165,7 +165,87 @@ class PatchedArrayReader(_Reader):
             `data_shape`
         """
         left_upper_corner = self.indices[idx]
+        # print(f"Fetched patch {idx}")
+        # print(f"Indices: {self.indices}")
+        # print(f"Data type: {type(self.indices)}")
+        # print(f"Left upper corner: {left_upper_corner}")
+        # print(f"Data shape: {self.data_shape}")
         slice_obj = tuple(
             slice(i, i + s) for i, s in zip(left_upper_corner, self.data_shape)
         )
         return self.data[slice_obj]
+
+
+class PatchedSubArrayReader(PatchedArrayReader):
+    def __init__(
+        self,
+        data: ArrayLike,
+        data_shape: Tuple[int, ...],
+        per_axis_indices: Dict[int, List[int] | Callable[[List[int]], List[int]]],
+        stride: Tuple[int, ...] = None,
+        pad_width: Tuple[Tuple[int, int], ...] = None,
+        pad_mode: str = "constant",
+        pad_kwargs: dict = None,
+    ):
+        self.per_axis_indices = per_axis_indices
+        super().__init__(
+            data=data,
+            data_shape=data_shape,
+            stride=stride,
+            pad_width=pad_width,
+            pad_mode=pad_mode,
+            pad_kwargs=pad_kwargs,
+        )
+
+    def _get_patches(self) -> List[Tuple[int, ...]]:
+        indices = super()._get_patches()
+
+        for axis_no, axis_len in enumerate(self.data.shape):
+            if axis_no not in self.per_axis_indices:
+                continue
+
+            indices_to_keep = self.per_axis_indices[axis_no]
+            if indices_to_keep is None:
+                continue
+
+            all_axis_indices = list(range(axis_len))
+
+            if callable(indices_to_keep):
+                indices_to_keep = indices_to_keep(all_axis_indices)
+            elif isinstance(indices_to_keep, int):
+                indices_to_keep = [indices_to_keep]
+
+            if not isinstance(indices_to_keep, list):
+                raise ValueError(
+                    "axis_indices must be a list, a callable, an int, or None"
+                )
+
+            # Filter the indices to keep only the ones that are in the list
+            indices = [
+                index for index in indices if index[axis_no] in indices_to_keep
+            ]
+
+        return indices
+
+
+# class Split:
+#     def __init__(self, num_splits, split_no):
+#         self.num_splits = num_splits
+#         self.split_no = split_no
+
+#     def __call__(self, indices: List[int]) -> List[int]:
+#         num_indices = len(indices)
+#         return indices[
+#             num_indices
+#             // self.num_splits
+#             * self.split_no : num_indices
+#             // self.num_splits
+#             * (self.split_no + 1)
+#         ]
+
+# data = np.arange(100).reshape(10, 10)
+# reader = PatchedSubArrayReader(
+#     data, data_shape=(2, 2), per_axis_indices={0: Split(num_splits=2, split_no=1), 1: None}
+# )
+
+# print(reader.indices)
