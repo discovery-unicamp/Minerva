@@ -5,6 +5,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from sslt.models.nets.base import BaseDecodeHead
+
 # This implementation is based and addapted from Fudan Zhang Vision Group SETR implementation.
 # You can find the original implementation here: https://github.com/fudan-zvg/SETR/blob/main/mmseg/models/backbones/vit.py#L3
 
@@ -407,15 +409,52 @@ class VisionTransformer(nn.Module):
         return tuple(outs)
 
 
+class MLA_Aux_Head(BaseDecodeHead):
+    """Vision Transformer with support for patch or hybrid CNN input stage"""
+
+    def __init__(self, img_size=768, **kwargs):
+        super(MLA_Aux_Head, self).__init__(**kwargs)
+        self.img_size = img_size
+        if self.in_channels == 1024:
+            self.aux_0 = nn.Conv2d(self.in_channels, 256, kernel_size=1, bias=False)
+            self.aux_1 = nn.Conv2d(256, self.num_classes, kernel_size=1, bias=False)
+        elif self.in_channels == 256:
+            self.aux = nn.Conv2d(
+                self.in_channels, self.num_classes, kernel_size=1, bias=False
+            )
+
+    def to_2D(self, x):
+        n, hw, c = x.shape
+        h = w = int(math.sqrt(hw))
+        x = x.transpose(1, 2).reshape(n, c, h, w)
+        return x
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        x = self._transform_inputs(x)
+        if x.dim() == 3:
+            x = x[:, 1:]
+            x = self.to_2D(x)
+
+        if self.in_channels == 1024:
+            x = self.aux_0(x)
+            x = self.aux_1(x)
+        elif self.in_channels == 256:
+            x = self.aux(x)
+        x = F.interpolate(
+            x, size=self.img_size, mode="bilinear", align_corners=self.align_corners
+        )
+        return x
+
+
 class MLAHead(nn.Module):
 
-    def build_norm_layer(self, mlahead_channels):
+    def build_norm_layer(self, mlahead_channels: int) -> nn.SyncBatchNorm:
         layer = nn.SyncBatchNorm(mlahead_channels, eps=1e-5)
         for param in layer.parameters():
             param.requires_grad = True
         return layer
 
-    def __init__(self, mla_channels=256, mlahead_channels=128, norm_cfg=None):
+    def __init__(self, mla_channels=256, mlahead_channels=128):
         super(MLAHead, self).__init__()
         self.head2 = nn.Sequential(
             nn.Conv2d(mla_channels, mlahead_channels, 3, padding=1, bias=False),
@@ -450,7 +489,9 @@ class MLAHead(nn.Module):
             nn.ReLU(),
         )
 
-    def forward(self, x2, x3, x4, x5):
+    def forward(
+        self, x2: torch.Tensor, x3: torch.Tensor, x4: torch.Tensor, x5: torch.Tensor
+    ) -> torch.Tensor:
         x2 = F.interpolate(
             self.head2(x2),
             4 * x2.shape[-1],
