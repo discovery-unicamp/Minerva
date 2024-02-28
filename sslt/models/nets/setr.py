@@ -1,3 +1,4 @@
+import warnings
 from typing import Optional, Tuple
 
 import torch
@@ -6,7 +7,7 @@ from torch import nn
 from sslt.utils.upsample import Upsample
 
 
-class SETRUPHead(nn.Module):
+class _SETRUPHead(nn.Module):
     """Naive upsampling head and Progressive upsampling head of SETR.
 
     Naive or PUP head of `SETR  <https://arxiv.org/pdf/2012.15840.pdf>`_.
@@ -15,33 +16,60 @@ class SETRUPHead(nn.Module):
 
     def __init__(
         self,
-        norm_layer: nn.Module,
-        conv_norm: nn.Module,
-        conv_act: nn.Module,
+        channels: int,
+        norm_layer: Optional[nn.Module],
+        conv_norm: Optional[nn.Module],
+        conv_act: Optional[nn.Module],
         in_channels: int,
         out_channels: int,
-        size: Optional[Tuple[int, int]] = None,
+        num_classes: int,
         num_convs: int = 1,
         up_scale: int = 4,
         kernel_size: int = 3,
-        align_corners: bool = False,
+        align_corners: bool = True,
+        dropout: float = 0.1,
+        threshold: Optional[float] = None,
     ):
 
         assert kernel_size in [1, 3], "kernel_size must be 1 or 3."
 
         super().__init__()
 
-        self.size = size
-        self.norm = norm_layer
-        self.conv_norm = conv_norm
-        self.conv_act = conv_act
-        self.in_channels = in_channels
-        self.channels = out_channels
-        self.align_corners = align_corners
+        if out_channels is None:
+            if num_classes == 2:
+                warnings.warn(
+                    "For binary segmentation, we suggest using"
+                    "`out_channels = 1` to define the output"
+                    "channels of segmentor, and use `threshold`"
+                    "to convert `seg_logits` into a prediction"
+                    "applying a threshold"
+                )
+            out_channels = num_classes
 
+        if out_channels != num_classes and out_channels != 1:
+            raise ValueError(
+                "out_channels should be equal to num_classes,"
+                "except binary segmentation set out_channels == 1 and"
+                f"num_classes == 2, but got out_channels={out_channels}"
+                f"and num_classes={num_classes}"
+            )
+
+        if out_channels == 1 and threshold is None:
+            threshold = 0.3
+            warnings.warn("threshold is not defined for binary, and defaults" "to 0.3")
+
+        self.num_classes = num_classes
+        self.out_channels = out_channels
+        self.threshold = threshold
+        self.norm = norm_layer if norm_layer is not None else nn.SyncBatchNorm(channels)
+        conv_norm = (
+            conv_norm if conv_norm is not None else nn.SyncBatchNorm(out_channels)
+        )
+        conv_act = conv_act if conv_act is not None else nn.ReLU()
+        self.dropout = nn.Dropout2d(dropout) if dropout > 0 is not None else None
+        self.cls_seg = nn.Conv2d(channels, out_channels, 1)
         self.up_convs = nn.ModuleList()
-        in_channels = self.in_channels
-        out_channels = self.channels
+
         for _ in range(num_convs):
             self.up_convs.append(
                 nn.Sequential(
@@ -52,19 +80,18 @@ class SETRUPHead(nn.Module):
                         padding=kernel_size // 2,
                         bias=False,
                     ),
-                    self.conv_norm,
-                    self.conv_act,
+                    conv_norm,
+                    conv_act,
                     Upsample(
                         scale_factor=up_scale,
                         mode="bilinear",
-                        align_corners=self.align_corners,
+                        align_corners=align_corners,
                     ),
                 )
             )
             in_channels = out_channels
 
-    def forward(self, x):
-        x = self._transform_inputs(x)
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
 
         n, c, h, w = x.shape
         x = x.reshape(n, c, h * w).transpose(2, 1).contiguous()
@@ -73,67 +100,111 @@ class SETRUPHead(nn.Module):
 
         for up_conv in self.up_convs:
             x = up_conv(x)
+
+        if self.dropout is not None:
+            x = self.dropout(x)
         out = self.cls_seg(x)
+
         return out
 
 
-class SETRMLAHead(nn.Module):
+class _SETRMLAHead(nn.Module):
     """Multi level feature aggretation head of SETR.
 
     MLA head of `SETR  <https://arxiv.org/pdf/2012.15840.pdf>`_.
-
-    Args:
-        mlahead_channels (int): Channels of conv-conv-4x of multi-level feature
-            aggregation. Default: 128.
-        up_scale (int): The scale factor of interpolate. Default:4.
     """
 
     def __init__(
         self,
-        mla_channels=128,
-        up_scale=4,
+        channels: int,
+        conv_norm: Optional[nn.Module],
+        conv_act: Optional[nn.Module],
+        in_channels: list[int],
+        out_channels: int,
+        num_classes: int,
+        mla_channels: int = 128,
+        up_scale: int = 4,
+        kernel_size: int = 3,
+        align_corners: bool = True,
+        dropout: float = 0.1,
+        threshold: Optional[float] = None,
     ):
-        super().__init__(input_transform="multiple_select")
-        self.mla_channels = mla_channels
+        super().__init__()
+
+        conv_norm = (
+            conv_norm if conv_norm is not None else nn.SyncBatchNorm(mla_channels)
+        )
+        conv_act = conv_act if conv_act is not None else nn.ReLU()
+
+        self.dropout = nn.Dropout2d(dropout) if dropout > 0 is not None else None
+
+        self.cls_seg = nn.Conv2d(channels, out_channels, 1)
+
+        if out_channels is None:
+            if num_classes == 2:
+                warnings.warn(
+                    "For binary segmentation, we suggest using"
+                    "`out_channels = 1` to define the output"
+                    "channels of segmentor, and use `threshold`"
+                    "to convert `seg_logits` into a prediction"
+                    "applying a threshold"
+                )
+            out_channels = num_classes
+
+        if out_channels != num_classes and out_channels != 1:
+            raise ValueError(
+                "out_channels should be equal to num_classes,"
+                "except binary segmentation set out_channels == 1 and"
+                f"num_classes == 2, but got out_channels={out_channels}"
+                f"and num_classes={num_classes}"
+            )
+
+        if out_channels == 1 and threshold is None:
+            threshold = 0.3
+            warnings.warn("threshold is not defined for binary, and defaults" "to 0.3")
+
+        self.num_classes = num_classes
+        self.out_channels = out_channels
+        self.threshold = threshold
 
         num_inputs = len(self.in_channels)
-
-        # Refer to self.cls_seg settings of BaseDecodeHead
-        assert self.channels == num_inputs * mla_channels
 
         self.up_convs = nn.ModuleList()
         for i in range(num_inputs):
             self.up_convs.append(
                 nn.Sequential(
-                    ConvModule(
-                        in_channels=self.in_channels[i],
-                        out_channels=mla_channels,
-                        kernel_size=3,
-                        padding=1,
-                        norm_cfg=self.norm_cfg,
-                        act_cfg=self.act_cfg,
+                    nn.Conv2d(
+                        in_channels[i],
+                        mla_channels,
+                        kernel_size,
+                        padding=kernel_size // 2,
+                        bias=False,
                     ),
-                    ConvModule(
-                        in_channels=mla_channels,
-                        out_channels=mla_channels,
-                        kernel_size=3,
-                        padding=1,
-                        norm_cfg=self.norm_cfg,
-                        act_cfg=self.act_cfg,
+                    conv_norm,
+                    conv_act,
+                    nn.Conv2d(
+                        mla_channels,
+                        mla_channels,
+                        kernel_size,
+                        padding=kernel_size // 2,
+                        bias=False,
                     ),
+                    conv_norm,
+                    conv_act,
                     Upsample(
                         scale_factor=up_scale,
                         mode="bilinear",
-                        align_corners=self.align_corners,
+                        align_corners=align_corners,
                     ),
                 )
             )
 
-    def forward(self, inputs):
-        inputs = self._transform_inputs(inputs)
+    def forward(self, x):
         outs = []
-        for x, up_conv in zip(inputs, self.up_convs):
+        for x, up_conv in zip(x, self.up_convs):
             outs.append(up_conv(x))
         out = torch.cat(outs, dim=1)
+        if self.dropout is not None:
+            out = self.dropout(out)
         out = self.cls_seg(out)
         return out
