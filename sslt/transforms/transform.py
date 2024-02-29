@@ -80,7 +80,7 @@ class Flip(_Transform):
         return x
 
 
-class PerlinMasker:
+class PerlinMasker(_Transform):
     """Zeroes entries of a tensor according to the sign of Perlin noise. Seed for the noise generator given by torch.randint"""
 
     def __init__(self, octaves: int, scale: float = 1):
@@ -107,11 +107,11 @@ class PerlinMasker:
             The tensor whose entries to zero.
         """
 
-        mask   = np.empty_like(x)
+        mask   = np.empty_like(x, dtype=bool)
         noise  = PerlinNoise(self.octaves, torch.randint(0, 2**32, (1,)).item())
         denom = self.scale * max(x.shape)
 
         for pos in product(*[range(i) for i in mask.shape]):
             mask[pos] = (noise([i/denom for i in pos]) < 0)
         
-        return np.where(mask, np.zeros_like(x), x)
+        return x * mask
