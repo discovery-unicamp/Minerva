@@ -10,3 +10,4 @@ statsmodels
 jsonargparse[all]
 zarr
 rich
+perlin-noise
