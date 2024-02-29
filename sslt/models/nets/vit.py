@@ -5,7 +5,6 @@ from typing import Callable, List, Optional
 
 import torch
 from torch import nn
-from torch.nn import functional as F
 from torchvision.models.vision_transformer import (
     Conv2dNormActivation,
     ConvStemConfig,
@@ -14,7 +13,7 @@ from torchvision.models.vision_transformer import (
 )
 
 
-class _VisionTransformer(nn.Module):
+class _VisionTransformerBackbone(nn.Module):
     """Vision Transformer as per https://arxiv.org/abs/2010.11929."""
 
     def __init__(
@@ -25,11 +24,9 @@ class _VisionTransformer(nn.Module):
         num_heads: int,
         hidden_dim: int,
         mlp_dim: int,
-        heads: nn.Sequential,
         dropout: float = 0.0,
         attention_dropout: float = 0.0,
         num_classes: int = 1000,
-        representation_size: Optional[int] = None,
         norm_layer: Callable[..., torch.nn.Module] = partial(nn.LayerNorm, eps=1e-6),
         conv_stem_configs: Optional[List[ConvStemConfig]] = None,
     ):
@@ -45,7 +42,6 @@ class _VisionTransformer(nn.Module):
         self.attention_dropout = attention_dropout
         self.dropout = dropout
         self.num_classes = num_classes
-        self.representation_size = representation_size
         self.norm_layer = norm_layer
 
         if conv_stem_configs is not None:
@@ -98,8 +94,6 @@ class _VisionTransformer(nn.Module):
         )
         self.seq_length = seq_length
 
-        self.heads = heads
-
         if isinstance(self.conv_proj, nn.Conv2d):
             # Init the patchify stem
             fan_in = (
@@ -121,19 +115,6 @@ class _VisionTransformer(nn.Module):
             )
             if self.conv_proj.conv_last.bias is not None:
                 nn.init.zeros_(self.conv_proj.conv_last.bias)
-
-        if hasattr(self.heads, "pre_logits") and isinstance(
-            self.heads.pre_logits, nn.Linear
-        ):
-            fan_in = self.heads.pre_logits.in_features
-            nn.init.trunc_normal_(
-                self.heads.pre_logits.weight, std=math.sqrt(1 / fan_in)
-            )
-            nn.init.zeros_(self.heads.pre_logits.bias)
-
-        if isinstance(self.heads.head, nn.Linear):
-            nn.init.zeros_(self.heads.head.weight)
-            nn.init.zeros_(self.heads.head.bias)
 
     def _process_input(self, x: torch.Tensor) -> torch.Tensor:
         n, c, h, w = x.shape
@@ -175,7 +156,5 @@ class _VisionTransformer(nn.Module):
 
         # Classifier "token" as used by standard language architectures
         x = x[:, 0]
-
-        x = self.heads(x)
 
         return x
