@@ -23,7 +23,6 @@ class _SETRUPHead(nn.Module):
         conv_norm: Optional[nn.Module],
         conv_act: Optional[nn.Module],
         in_channels: int,
-        out_channels: int,
         num_classes: int,
         num_convs: int = 1,
         up_scale: int = 4,
@@ -38,25 +37,23 @@ class _SETRUPHead(nn.Module):
         super().__init__()
 
         self.num_classes = num_classes
-        self.out_channels = out_channels
+        self.out_channels = channels
         self.threshold = threshold
         self.norm = norm_layer if norm_layer is not None else nn.SyncBatchNorm(channels)
         conv_norm = (
-            conv_norm if conv_norm is not None else nn.SyncBatchNorm(out_channels)
+            conv_norm if conv_norm is not None else nn.SyncBatchNorm(self.out_channels)
         )
         conv_act = conv_act if conv_act is not None else nn.ReLU()
         self.dropout = nn.Dropout2d(dropout) if dropout > 0 is not None else None
-        self.cls_seg = nn.Conv2d(channels, out_channels, 1)
+        self.cls_seg = nn.Conv2d(channels, self.out_channels, 1)
         self.up_convs = nn.ModuleList()
-
-        out_channels = channels
 
         for _ in range(num_convs):
             self.up_convs.append(
                 nn.Sequential(
                     nn.Conv2d(
                         in_channels,
-                        out_channels,
+                        self.out_channels,
                         kernel_size,
                         padding=kernel_size // 2,
                         bias=False,
@@ -70,7 +67,7 @@ class _SETRUPHead(nn.Module):
                     ),
                 )
             )
-            in_channels = out_channels
+            in_channels = self.out_channels
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
 
@@ -219,7 +216,6 @@ class _SetR_PUP(nn.Module):
         self.aux_head1 = _SETRUPHead(
             channels=1024,
             in_channels=hidden_dim,
-            out_channels=hidden_dim,
             num_classes=6,
             num_convs=4,
             up_scale=2,
@@ -230,3 +226,53 @@ class _SetR_PUP(nn.Module):
             conv_norm=None,  # Add default value for conv_norm
             conv_act=None,  # Add default value for conv_act
         )
+
+        self.aux_head2 = _SETRUPHead(
+            channels=1024,
+            in_channels=hidden_dim,
+            num_classes=6,
+            num_convs=4,
+            up_scale=2,
+            kernel_size=3,
+            align_corners=False,
+            dropout=0,
+            norm_layer=norm_layer,
+            conv_norm=None,  # Add default value for conv_norm
+            conv_act=None,  # Add default value for conv_act
+        )
+
+        self.aux_head3 = _SETRUPHead(
+            channels=1024,
+            in_channels=hidden_dim,
+            num_classes=6,
+            num_convs=4,
+            up_scale=2,
+            kernel_size=3,
+            align_corners=False,
+            dropout=0,
+            norm_layer=norm_layer,
+            conv_norm=None,  # Add default value for conv_norm
+            conv_act=None,  # Add default value for conv_act
+        )
+
+        self.decoder = _SETRUPHead(
+            channels=1024,
+            in_channels=hidden_dim,
+            num_classes=6,
+            num_convs=4,
+            up_scale=2,
+            kernel_size=3,
+            align_corners=False,
+            dropout=0,
+            norm_layer=norm_layer,
+            conv_norm=None,  # Add default value for conv_norm
+            conv_act=None,  # Add default value for conv_act
+        )
+
+        def forward(self, x: torch.Tensor) -> torch.Tensor:
+            x = self.encoder(x)
+            # x = self.auto_head1(x)
+            # x = self.auto_head2(x)
+            # x = self.auto_head3(x)
+            # x = self.decoder(x)
+            return x
