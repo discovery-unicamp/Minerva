@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "Installing SSLT"
+echo "Installing minerva"
 pip install -e .
 
 # Add tmux options

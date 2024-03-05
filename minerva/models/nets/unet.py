@@ -10,7 +10,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from sslt.models.nets.base import SimpleSupervisedModel
+from minerva.models.nets.base import SimpleSupervisedModel
 
 
 """ -------------- Parts of the U-Net model --------------"""
