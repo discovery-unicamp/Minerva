@@ -1,5 +1,5 @@
 import numpy as np
-from sslt.data.datasets.base import SimpleDataset
+from minerva.data.datasets.base import SimpleDataset
 import pytest
 
 

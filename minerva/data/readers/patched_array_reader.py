@@ -2,7 +2,7 @@ from typing import List, Tuple
 import numpy as np
 from numpy.typing import ArrayLike
 
-from sslt.data.readers.reader import _Reader
+from minerva.data.readers.reader import _Reader
 
 
 class PatchedArrayReader(_Reader):

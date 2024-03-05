@@ -1,7 +1,7 @@
 import zarr
 
-from sslt.utils.typing import PathLike
-from sslt.data.readers.patched_array_reader import PatchedArrayReader
+from minerva.utils.typing import PathLike
+from minerva.data.readers.patched_array_reader import PatchedArrayReader
 
 
 class PatchedZarrReader(PatchedArrayReader):

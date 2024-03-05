@@ -1,5 +1,5 @@
 import torch
-from sslt.models.nets.unet import UNet
+from minerva.models.nets.unet import UNet
 
 
 def test_unet():

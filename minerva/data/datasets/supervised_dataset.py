@@ -3,8 +3,8 @@ from typing import List, Tuple
 import numpy as np
 from base import SimpleDataset
 
-from sslt.data.readers.reader import _Reader
-from sslt.transforms.transform import _Transform
+from minerva.data.readers.reader import _Reader
+from minerva.transforms.transform import _Transform
 
 
 class SupervisedReconstructionDataset(SimpleDataset):
@@ -24,9 +24,9 @@ class SupervisedReconstructionDataset(SimpleDataset):
     1. Semantic Segmentation Dataset:
 
         ```python
-        from sslt.data.readers import ImageReader
-        from sslt.transforms import ImageTransform
-        from sslt.data.datasets import SupervisedReconstructionDataset
+        from minerva.data.readers import ImageReader
+        from minerva.transforms import ImageTransform
+        from minerva.data.datasets import SupervisedReconstructionDataset
 
         # Create the readers
         image_reader = ImageReader("path/to/images")

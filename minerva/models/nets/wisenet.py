@@ -1,5 +1,5 @@
 import torch
-from sslt.models.nets.base import SimpleSupervisedModel
+from minerva.models.nets.base import SimpleSupervisedModel
 
 
 class _WiseNet(torch.nn.Module):
