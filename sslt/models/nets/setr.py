@@ -44,7 +44,7 @@ class _SETRUPHead(nn.Module):
             conv_norm if conv_norm is not None else nn.SyncBatchNorm(self.out_channels)
         )
         conv_act = conv_act if conv_act is not None else nn.ReLU()
-        self.dropout = nn.Dropout2d(dropout) if dropout > 0 is not None else None
+        self.dropout = nn.Dropout2d(dropout) if dropout > 0 != None else None
         self.cls_seg = nn.Conv2d(channels, self.out_channels, 1)
         self.up_convs = nn.ModuleList()
 
@@ -139,10 +139,10 @@ class _SETRMLAHead(nn.Module):
             conv_norm if conv_norm is not None else nn.SyncBatchNorm(mla_channels)
         )
         conv_act = conv_act if conv_act is not None else nn.ReLU()
-        self.dropout = nn.Dropout2d(dropout) if dropout > 0 is not None else None
+        self.dropout = nn.Dropout2d(dropout) if dropout > 0 != None else None
         self.cls_seg = nn.Conv2d(channels, out_channels, 1)
 
-        num_inputs = len(self.in_channels)
+        num_inputs = len(in_channels)
 
         self.up_convs = nn.ModuleList()
         for i in range(num_inputs):
@@ -269,10 +269,10 @@ class _SetR_PUP(nn.Module):
             conv_act=None,  # Add default value for conv_act
         )
 
-        def forward(self, x: torch.Tensor) -> torch.Tensor:
-            x = self.encoder(x)
-            # x = self.auto_head1(x)
-            # x = self.auto_head2(x)
-            # x = self.auto_head3(x)
-            # x = self.decoder(x)
-            return x
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        x = self.encoder(x)
+        # x = self.auto_head1(x)
+        # x = self.auto_head2(x)
+        # x = self.auto_head3(x)
+        # x = self.decoder(x)
+        return x
