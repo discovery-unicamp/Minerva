@@ -155,6 +155,10 @@ class _VisionTransformerBackbone(nn.Module):
         x = self.encoder(x)
 
         # Classifier "token" as used by standard language architectures
-        x = x[:, 0]
+        x = x[:, 1:]
+
+        x = x.permute(1, 0, 2)
+
+        print(x.shape)
 
         return x

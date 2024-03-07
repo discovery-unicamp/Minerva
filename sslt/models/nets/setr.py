@@ -6,7 +6,7 @@ from torch import nn
 
 from sslt.models.nets.base import SimpleSupervisedModel
 from sslt.models.nets.vit import _VisionTransformerBackbone
-from sslt.utils.upsample import Upsample
+from sslt.utils.upsample import Upsample, resize
 
 
 class _SETRUPHead(nn.Module):
@@ -69,12 +69,9 @@ class _SETRUPHead(nn.Module):
             )
             in_channels = self.out_channels
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
+    def forward(self, x):
 
-        n, c, h, w = x.shape
-        x = x.reshape(n, c, h * w).transpose(2, 1).contiguous()
         x = self.norm(x)
-        x = x.transpose(1, 2).reshape(n, c, h, w).contiguous()
 
         for up_conv in self.up_convs:
             x = up_conv(x)
@@ -214,7 +211,7 @@ class _SetR_PUP(nn.Module):
         )
 
         self.aux_head1 = _SETRUPHead(
-            channels=1024,
+            channels=16,
             in_channels=hidden_dim,
             num_classes=6,
             num_convs=4,
@@ -271,7 +268,7 @@ class _SetR_PUP(nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self.encoder(x)
-        # x = self.auto_head1(x)
+        x = self.aux_head1(x)
         # x = self.auto_head2(x)
         # x = self.auto_head3(x)
         # x = self.decoder(x)
