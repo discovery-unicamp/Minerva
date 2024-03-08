@@ -268,10 +268,12 @@ class _SetR_PUP(nn.Module):
             conv_act=None,  # Add default value for conv_act
         )
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
+    def forward(
+        self, x: torch.Tensor
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         x = self.encoder(x)
-        x = self.aux_head1(x)
-        x = self.auto_head2(x)
-        x = self.auto_head3(x)
+        x_aux1 = self.aux_head1(x)
+        x_aux2 = self.aux_head2(x)
+        x_aux3 = self.aux_head3(x)
         x = self.decoder(x)
-        return x
+        return x, x_aux1, x_aux2, x_aux3

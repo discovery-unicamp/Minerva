@@ -15,4 +15,4 @@ if __name__ == "__main__":
     )
     model.to(device)
     result = model.forward(torch.zeros(1, 3, 512, 512).to(device))
-    print(result.shape)
+    print(result[0].shape)
