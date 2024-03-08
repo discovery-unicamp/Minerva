@@ -39,13 +39,14 @@ class _SETRUPHead(nn.Module):
         self.num_classes = num_classes
         self.out_channels = channels
         self.threshold = threshold
-        self.norm = norm_layer if norm_layer is not None else nn.SyncBatchNorm(channels)
+        self.cls_seg = nn.Conv2d(channels, self.num_classes, 1)
+        self.norm = norm_layer if norm_layer is not None else nn.LayerNorm(in_channels)
         conv_norm = (
             conv_norm if conv_norm is not None else nn.SyncBatchNorm(self.out_channels)
         )
         conv_act = conv_act if conv_act is not None else nn.ReLU()
         self.dropout = nn.Dropout2d(dropout) if dropout > 0 != None else None
-        self.cls_seg = nn.Conv2d(channels, self.out_channels, 1)
+
         self.up_convs = nn.ModuleList()
 
         for _ in range(num_convs):
@@ -74,6 +75,7 @@ class _SETRUPHead(nn.Module):
         x = self.norm(x)
 
         for up_conv in self.up_convs:
+            print(x.shape)
             x = up_conv(x)
 
         if self.dropout is not None:
@@ -210,11 +212,25 @@ class _SetR_PUP(nn.Module):
             dropout=dropout,
         )
 
-        self.aux_head1 = _SETRUPHead(
-            channels=16,
+        self.decoder = _SETRUPHead(
+            channels=256,
             in_channels=hidden_dim,
             num_classes=6,
             num_convs=4,
+            up_scale=2,
+            kernel_size=3,
+            align_corners=False,
+            dropout=0,
+            norm_layer=norm_layer,
+            conv_norm=None,  # Add default value for conv_norm
+            conv_act=None,  # Add default value for conv_act
+        )
+
+        self.aux_head1 = _SETRUPHead(
+            channels=1024,
+            in_channels=hidden_dim,
+            num_classes=6,
+            num_convs=2,
             up_scale=2,
             kernel_size=3,
             align_corners=False,
@@ -225,10 +241,10 @@ class _SetR_PUP(nn.Module):
         )
 
         self.aux_head2 = _SETRUPHead(
-            channels=1024,
+            channels=256,
             in_channels=hidden_dim,
             num_classes=6,
-            num_convs=4,
+            num_convs=2,
             up_scale=2,
             kernel_size=3,
             align_corners=False,
@@ -239,24 +255,10 @@ class _SetR_PUP(nn.Module):
         )
 
         self.aux_head3 = _SETRUPHead(
-            channels=1024,
+            channels=256,
             in_channels=hidden_dim,
             num_classes=6,
-            num_convs=4,
-            up_scale=2,
-            kernel_size=3,
-            align_corners=False,
-            dropout=0,
-            norm_layer=norm_layer,
-            conv_norm=None,  # Add default value for conv_norm
-            conv_act=None,  # Add default value for conv_act
-        )
-
-        self.decoder = _SETRUPHead(
-            channels=1024,
-            in_channels=hidden_dim,
-            num_classes=6,
-            num_convs=4,
+            num_convs=2,
             up_scale=2,
             kernel_size=3,
             align_corners=False,
@@ -269,7 +271,7 @@ class _SetR_PUP(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self.encoder(x)
         x = self.aux_head1(x)
-        # x = self.auto_head2(x)
-        # x = self.auto_head3(x)
-        # x = self.decoder(x)
+        x = self.auto_head2(x)
+        x = self.auto_head3(x)
+        x = self.decoder(x)
         return x
