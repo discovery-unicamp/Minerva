@@ -116,7 +116,7 @@ class _VisionTransformerBackbone(nn.Module):
             if self.conv_proj.conv_last.bias is not None:
                 nn.init.zeros_(self.conv_proj.conv_last.bias)
 
-    def _process_input(self, x: torch.Tensor) -> torch.Tensor:
+    def _process_input(self, x: torch.Tensor) -> tuple[torch.Tensor, int, int]:
         n, c, h, w = x.shape
         p = self.patch_size
         torch._assert(
@@ -141,11 +141,11 @@ class _VisionTransformerBackbone(nn.Module):
         # embedding dimension
         x = x.permute(0, 2, 1)
 
-        return x
+        return x, n_h, n_w
 
     def forward(self, x: torch.Tensor):
         # Reshape and permute the input tensor
-        x = self._process_input(x)
+        x, n_h, n_w = self._process_input(x)
         n = x.shape[0]
 
         # Expand the class token to the full batch

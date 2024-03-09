@@ -213,7 +213,7 @@ class _SetR_PUP(nn.Module):
         )
 
         self.decoder = _SETRUPHead(
-            channels=256,
+            channels=1024,
             in_channels=hidden_dim,
             num_classes=6,
             num_convs=4,
@@ -272,8 +272,8 @@ class _SetR_PUP(nn.Module):
         self, x: torch.Tensor
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         x = self.encoder(x)
-        x_aux1 = self.aux_head1(x)
-        x_aux2 = self.aux_head2(x)
-        x_aux3 = self.aux_head3(x)
+        # x_aux1 = self.aux_head1(x)
+        # x_aux2 = self.aux_head2(x)
+        # x_aux3 = self.aux_head3(x)
         x = self.decoder(x)
-        return x, x_aux1, x_aux2, x_aux3
+        return x, torch.zeros(1), torch.zeros(1), torch.zeros(1)
