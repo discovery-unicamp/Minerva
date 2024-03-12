@@ -149,6 +149,8 @@ class _VisionTransformerBackbone(nn.Module):
                 w == self.image_size[1],
                 f"Wrong image width! Expected {self.image_size[1]} but got {w}!",
             )
+        else:
+            raise ValueError("Invalid image size type!")
 
         n_h = h // p
         n_w = w // p
