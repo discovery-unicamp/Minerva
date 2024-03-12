@@ -1,6 +1,7 @@
 import warnings
 from typing import Optional, Tuple
 
+import lightning as L
 import torch
 from torch import nn
 
@@ -191,7 +192,7 @@ class _SetR_PUP(nn.Module):
 
     def __init__(
         self,
-        image_size: int,
+        image_size: int | tuple[int, int],
         patch_size: int,
         num_layers: int,
         num_heads: int,
@@ -275,8 +276,39 @@ class _SetR_PUP(nn.Module):
         self, x: torch.Tensor
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         x = self.encoder(x)
-        # x_aux1 = self.aux_head1(x)
-        # x_aux2 = self.aux_head2(x)
-        # x_aux3 = self.aux_head3(x)
+        x_aux1 = self.aux_head1(x)
+        x_aux2 = self.aux_head2(x)
+        x_aux3 = self.aux_head3(x)
         x = self.decoder(x)
-        return x, torch.zeros(1), torch.zeros(1), torch.zeros(1)
+        return x, x_aux1, x_aux2, x_aux3
+
+
+class SETR_PUP(L.LightningDataModule):
+
+    def __init__(
+        self,
+        image_size: int,
+        patch_size: int,
+        num_layers: int,
+        num_heads: int,
+        hidden_dim: int,
+        mlp_dim: int,
+        num_classes: int,
+        dropout: float = 0.1,
+        attention_dropout: float = 0.1,
+        norm_layer: Optional[nn.Module] = None,
+        interpolate_mode: str = "bilinear",
+    ):
+        self.model = _SetR_PUP(
+            image_size=image_size,
+            patch_size=patch_size,
+            num_layers=num_layers,
+            num_heads=num_heads,
+            hidden_dim=hidden_dim,
+            mlp_dim=mlp_dim,
+            num_classes=num_classes,
+            dropout=dropout,
+            attention_dropout=attention_dropout,
+            norm_layer=norm_layer,
+            interpolate_mode=interpolate_mode,
+        )

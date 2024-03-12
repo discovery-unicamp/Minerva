@@ -5,7 +5,7 @@ from sslt.models.nets.setr import _SetR_PUP
 if __name__ == "__main__":
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     model = _SetR_PUP(
-        image_size=512,
+        image_size=(16, 32),
         patch_size=16,
         num_layers=24,
         num_heads=16,
@@ -14,5 +14,5 @@ if __name__ == "__main__":
         num_classes=3,
     )
     model.to(device)
-    result = model.forward(torch.zeros(1, 3, 512, 512).to(device))
+    result = model.forward(torch.zeros(1, 3, 16, 32).to(device))
     print(result[0].shape)

@@ -18,7 +18,7 @@ class _VisionTransformerBackbone(nn.Module):
 
     def __init__(
         self,
-        image_size: int,
+        image_size: int | tuple[int, int],
         patch_size: int,
         num_layers: int,
         num_heads: int,
@@ -32,9 +32,17 @@ class _VisionTransformerBackbone(nn.Module):
     ):
         super().__init__()
         _log_api_usage_once(self)
-        torch._assert(
-            image_size % patch_size == 0, "Input shape indivisible by patch size!"
-        )
+
+        if isinstance(image_size, int):
+            torch._assert(
+                image_size % patch_size == 0, "Input shape indivisible by patch size!"
+            )
+        elif isinstance(image_size, tuple):
+            torch._assert(
+                image_size[0] % patch_size == 0 and image_size[1] % patch_size == 0,
+                "Input shape indivisible by patch size!",
+            )
+
         self.image_size = image_size
         self.patch_size = patch_size
         self.hidden_dim = hidden_dim
@@ -76,7 +84,10 @@ class _VisionTransformerBackbone(nn.Module):
                 stride=patch_size,
             )
 
-        seq_length = (image_size // patch_size) ** 2
+        if isinstance(image_size, int):
+            seq_length = (image_size // patch_size) ** 2
+        elif isinstance(image_size, tuple):
+            seq_length = (image_size[0] // patch_size) * (image_size[1] // patch_size)
 
         # Add a class token
         self.class_token = nn.Parameter(torch.zeros(1, 1, hidden_dim))
@@ -119,14 +130,26 @@ class _VisionTransformerBackbone(nn.Module):
     def _process_input(self, x: torch.Tensor) -> tuple[torch.Tensor, int, int]:
         n, c, h, w = x.shape
         p = self.patch_size
-        torch._assert(
-            h == self.image_size,
-            f"Wrong image height! Expected {self.image_size} but got {h}!",
-        )
-        torch._assert(
-            w == self.image_size,
-            f"Wrong image width! Expected {self.image_size} but got {w}!",
-        )
+
+        if isinstance(self.image_size, int):
+            torch._assert(
+                h == self.image_size,
+                f"Wrong image height! Expected {self.image_size} but got {h}!",
+            )
+            torch._assert(
+                w == self.image_size,
+                f"Wrong image width! Expected {self.image_size} but got {w}!",
+            )
+        elif isinstance(self.image_size, tuple):
+            torch._assert(
+                h == self.image_size[0],
+                f"Wrong image height! Expected {self.image_size[0]} but got {h}!",
+            )
+            torch._assert(
+                w == self.image_size[1],
+                f"Wrong image width! Expected {self.image_size[1]} but got {w}!",
+            )
+
         n_h = h // p
         n_w = w // p
 
