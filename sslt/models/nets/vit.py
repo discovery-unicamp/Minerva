@@ -157,4 +157,8 @@ class _VisionTransformerBackbone(nn.Module):
         # Classifier "token" as used by standard language architectures
         x = x[:, 1:]
 
+        B, _, C = x.shape
+
+        x = x.reshape(B, n_h, n_w, C).permute(0, 3, 1, 2).contiguous()
+
         return x
