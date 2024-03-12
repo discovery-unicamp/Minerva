@@ -5,7 +5,6 @@ import lightning as L
 import torch
 from torch import nn
 
-from sslt.models.nets.base import SimpleSupervisedModel
 from sslt.models.nets.vit import _VisionTransformerBackbone
 from sslt.utils.upsample import Upsample, resize
 
@@ -20,11 +19,11 @@ class _SETRUPHead(nn.Module):
     def __init__(
         self,
         channels: int,
-        norm_layer: Optional[nn.Module],
-        conv_norm: Optional[nn.Module],
-        conv_act: Optional[nn.Module],
         in_channels: int,
         num_classes: int,
+        norm_layer: Optional[nn.Module] = None,
+        conv_norm: Optional[nn.Module] = None,
+        conv_act: Optional[nn.Module] = None,
         num_convs: int = 1,
         up_scale: int = 4,
         kernel_size: int = 3,
@@ -198,9 +197,13 @@ class _SetR_PUP(nn.Module):
         num_heads: int,
         hidden_dim: int,
         mlp_dim: int,
+        num_convs: int,
         num_classes: int,
-        dropout: float = 0.1,
-        attention_dropout: float = 0.1,
+        decoder_channels: int,
+        up_scale: int = 2,
+        encoder_dropout: float = 0.1,
+        kernel_size: int = 3,
+        decoder_dropout: float = 0.1,
         norm_layer: Optional[nn.Module] = None,
         interpolate_mode: str = "bilinear",
     ):
@@ -213,21 +216,19 @@ class _SetR_PUP(nn.Module):
             hidden_dim=hidden_dim,
             mlp_dim=mlp_dim,
             num_classes=num_classes,
-            dropout=dropout,
+            dropout=encoder_dropout,
         )
 
         self.decoder = _SETRUPHead(
-            channels=1024,
+            channels=decoder_channels,
             in_channels=hidden_dim,
-            num_classes=6,
-            num_convs=4,
-            up_scale=2,
-            kernel_size=3,
+            num_classes=num_classes,
+            num_convs=num_convs,
+            up_scale=up_scale,
+            kernel_size=kernel_size,
             align_corners=False,
-            dropout=0,
+            dropout=decoder_dropout,
             norm_layer=norm_layer,
-            conv_norm=None,  # Add default value for conv_norm
-            conv_act=None,  # Add default value for conv_act
         )
 
         self.aux_head1 = _SETRUPHead(
@@ -240,8 +241,6 @@ class _SetR_PUP(nn.Module):
             align_corners=False,
             dropout=0,
             norm_layer=norm_layer,
-            conv_norm=None,  # Add default value for conv_norm
-            conv_act=None,  # Add default value for conv_act
         )
 
         self.aux_head2 = _SETRUPHead(
@@ -254,8 +253,6 @@ class _SetR_PUP(nn.Module):
             align_corners=False,
             dropout=0,
             norm_layer=norm_layer,
-            conv_norm=None,  # Add default value for conv_norm
-            conv_act=None,  # Add default value for conv_act
         )
 
         self.aux_head3 = _SETRUPHead(
@@ -268,22 +265,20 @@ class _SetR_PUP(nn.Module):
             align_corners=False,
             dropout=0,
             norm_layer=norm_layer,
-            conv_norm=None,  # Add default value for conv_norm
-            conv_act=None,  # Add default value for conv_act
         )
 
     def forward(
         self, x: torch.Tensor
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         x = self.encoder(x)
-        x_aux1 = self.aux_head1(x)
-        x_aux2 = self.aux_head2(x)
-        x_aux3 = self.aux_head3(x)
+        # x_aux1 = self.aux_head1(x)
+        # x_aux2 = self.aux_head2(x)
+        # x_aux3 = self.aux_head3(x)
         x = self.decoder(x)
-        return x, x_aux1, x_aux2, x_aux3
+        return x, torch.zeros(1), torch.zeros(1), torch.zeros(1)
 
 
-class SETR_PUP(L.LightningDataModule):
+class SETR_PUP(L.LightningModule):
 
     def __init__(
         self,
@@ -294,11 +289,16 @@ class SETR_PUP(L.LightningDataModule):
         hidden_dim: int,
         mlp_dim: int,
         num_classes: int,
-        dropout: float = 0.1,
-        attention_dropout: float = 0.1,
+        num_convs: int,
+        encoder_dropout: float = 0.1,
+        decoder_dropout: float = 0.1,
+        decoder_channels: int = 1024,
         norm_layer: Optional[nn.Module] = None,
         interpolate_mode: str = "bilinear",
+        loss_fn: Optional[nn.Module] = None,
     ):
+        super().__init__()
+        self.loss_fn = loss_fn if loss_fn is not None else nn.CrossEntropyLoss()
         self.model = _SetR_PUP(
             image_size=image_size,
             patch_size=patch_size,
@@ -307,8 +307,79 @@ class SETR_PUP(L.LightningDataModule):
             hidden_dim=hidden_dim,
             mlp_dim=mlp_dim,
             num_classes=num_classes,
-            dropout=dropout,
-            attention_dropout=attention_dropout,
+            num_convs=num_convs,
+            decoder_channels=decoder_channels,
+            encoder_dropout=encoder_dropout,
+            decoder_dropout=decoder_dropout,
             norm_layer=norm_layer,
             interpolate_mode=interpolate_mode,
         )
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.model(x)
+
+    def _loss_func(self, y_hat: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+        """Calculate the loss between the output and the input data.
+
+        Parameters
+        ----------
+        y_hat : torch.Tensor
+            The output data from the forward pass.
+        y : torch.Tensor
+            The input data/label.
+
+        Returns
+        -------
+        torch.Tensor
+            The loss value.
+        """
+        loss = self.loss_fn(y_hat, y)
+        return loss
+
+    def _single_step(
+        self, batch: torch.Tensor, batch_idx: int, step_name: str
+    ) -> torch.Tensor:
+        """Perform a single step of the training/validation loop.
+
+        Parameters
+        ----------
+        batch : torch.Tensor
+            The input data.
+        batch_idx : int
+            The index of the batch.
+        step_name : str
+            The name of the step, either "train" or "val".
+
+        Returns
+        -------
+        torch.Tensor
+            The loss value.
+        """
+        x, y = batch
+        y_hat = self.model(x)
+        loss = self._loss_func(y_hat, y)
+        self.log(
+            f"{step_name}_loss",
+            loss,
+            on_step=True,
+            on_epoch=True,
+            prog_bar=True,
+            logger=True,
+        )
+        return loss
+
+    def training_step(self, batch: torch.Tensor, batch_idx: int):
+        return self._single_step(batch, batch_idx, "train")
+
+    def validation_step(self, batch: torch.Tensor, batch_idx: int):
+        return self._single_step(batch, batch_idx, "val")
+
+    def test_step(self, batch: torch.Tensor, batch_idx: int):
+        return self._single_step(batch, batch_idx, "test")
+
+    def predict_step(self, batch: torch.Tensor, batch_idx: int, dataloader_idx: int):
+        x, _ = batch
+        return self.model(x)
+
+    def configure_optimizers(self):
+        return torch.optim.Adam(self.model.parameters(), lr=1e-3)
