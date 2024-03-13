@@ -21,30 +21,61 @@ class _SETRUPHead(nn.Module):
         channels: int,
         in_channels: int,
         num_classes: int,
-        norm_layer: Optional[nn.Module] = None,
-        conv_norm: Optional[nn.Module] = None,
-        conv_act: Optional[nn.Module] = None,
-        num_convs: int = 1,
-        up_scale: int = 4,
-        kernel_size: int = 3,
-        align_corners: bool = True,
-        dropout: float = 0.1,
-        threshold: Optional[float] = None,
+        norm_layer: nn.Module,
+        conv_norm: nn.Module,
+        conv_act: nn.Module,
+        num_convs: int,
+        up_scale: int,
+        kernel_size: int,
+        align_corners: bool,
+        dropout: float,
+        interpolate_mode: str,
     ):
+        """
+        Initializes the SETR model.
 
+        Parameters
+        ----------
+        channels : int
+            Number of output channels.
+        in_channels : int
+            Number of input channels.
+        num_classes : int
+            Number of output classes.
+        norm_layer : nn.Module
+            Normalization layer.
+        conv_norm : nn.Module
+            Convolutional normalization layer.
+        conv_act : nn.Module
+            Convolutional activation layer.
+        num_convs : int
+            Number of convolutional layers.
+        up_scale : int
+            Upsampling scale factor.
+        kernel_size : int
+            Kernel size for convolutional layers.
+        align_corners : bool
+            Whether to align corners during upsampling.
+        dropout : float
+            Dropout rate.
+        interpolate_mode : str
+            Interpolation mode for upsampling.
+
+        Raises
+        ------
+        AssertionError
+            If kernel_size is not 1 or 3.
+        """
         assert kernel_size in [1, 3], "kernel_size must be 1 or 3."
 
         super().__init__()
 
         self.num_classes = num_classes
         self.out_channels = channels
-        self.threshold = threshold
         self.cls_seg = nn.Conv2d(channels, self.num_classes, 1)
-        self.norm = norm_layer if norm_layer is not None else nn.LayerNorm(in_channels)
-        conv_norm = (
-            conv_norm if conv_norm is not None else nn.SyncBatchNorm(self.out_channels)
-        )
-        conv_act = conv_act if conv_act is not None else nn.ReLU()
+        self.norm = norm_layer
+        conv_norm = conv_norm
+        conv_act = conv_act
         self.dropout = nn.Dropout2d(dropout) if dropout > 0 != None else None
 
         self.up_convs = nn.ModuleList()
@@ -63,7 +94,7 @@ class _SETRUPHead(nn.Module):
                     conv_act,
                     Upsample(
                         scale_factor=up_scale,
-                        mode="bilinear",
+                        mode=interpolate_mode,
                         align_corners=align_corners,
                     ),
                 )
@@ -200,13 +231,59 @@ class _SetR_PUP(nn.Module):
         num_convs: int,
         num_classes: int,
         decoder_channels: int,
-        up_scale: int = 2,
-        encoder_dropout: float = 0.1,
-        kernel_size: int = 3,
-        decoder_dropout: float = 0.1,
-        norm_layer: Optional[nn.Module] = None,
-        interpolate_mode: str = "bilinear",
+        up_scale: int,
+        encoder_dropout: float,
+        kernel_size: int,
+        decoder_dropout: float,
+        norm_layer: nn.Module,
+        interpolate_mode: str,
+        conv_norm: nn.Module,
+        conv_act: nn.Module,
+        align_corners: bool,
     ):
+        """
+        Initializes the SETR PUP model.
+
+        Parameters
+        ----------
+        image_size : int or tuple[int, int]
+            The size of the input image.
+        patch_size : int
+            The size of each patch in the input image.
+        num_layers : int
+            The number of layers in the transformer encoder.
+        num_heads : int
+            The number of attention heads in the transformer encoder.
+        hidden_dim : int
+            The hidden dimension of the transformer encoder.
+        mlp_dim : int
+            The dimension of the feed-forward network in the transformer encoder.
+        num_convs : int
+            The number of convolutional layers in the decoder.
+        num_classes : int
+            The number of output classes.
+        decoder_channels : int
+            The number of channels in the decoder.
+        up_scale : int
+            The scale factor for upsampling in the decoder.
+        encoder_dropout : float
+            The dropout rate for the transformer encoder.
+        kernel_size : int
+            The kernel size for the convolutional layers in the decoder.
+        decoder_dropout : float
+            The dropout rate for the decoder.
+        norm_layer : nn.Module
+            The normalization layer to be used.
+        interpolate_mode : str
+            The mode for interpolation during upsampling.
+        conv_norm : nn.Module
+            The normalization layer to be used in the decoder convolutional layers.
+        conv_act : nn.Module
+            The activation function to be used in the decoder convolutional layers.
+        align_corners : bool
+            Whether to align corners during upsampling.
+
+        """
         super().__init__()
         self.encoder = _VisionTransformerBackbone(
             image_size=image_size,
@@ -226,44 +303,56 @@ class _SetR_PUP(nn.Module):
             num_convs=num_convs,
             up_scale=up_scale,
             kernel_size=kernel_size,
-            align_corners=False,
+            align_corners=align_corners,
             dropout=decoder_dropout,
+            conv_norm=conv_norm,
+            conv_act=conv_act,
+            interpolate_mode=interpolate_mode,
             norm_layer=norm_layer,
         )
 
         self.aux_head1 = _SETRUPHead(
-            channels=1024,
+            channels=decoder_channels,
             in_channels=hidden_dim,
-            num_classes=6,
-            num_convs=2,
-            up_scale=2,
-            kernel_size=3,
-            align_corners=False,
-            dropout=0,
+            num_classes=num_classes,
+            num_convs=num_convs,
+            up_scale=up_scale,
+            kernel_size=kernel_size,
+            align_corners=align_corners,
+            dropout=decoder_dropout,
+            conv_norm=conv_norm,
+            conv_act=conv_act,
+            interpolate_mode=interpolate_mode,
             norm_layer=norm_layer,
         )
 
         self.aux_head2 = _SETRUPHead(
-            channels=256,
+            channels=decoder_channels,
             in_channels=hidden_dim,
-            num_classes=6,
-            num_convs=2,
-            up_scale=2,
-            kernel_size=3,
-            align_corners=False,
-            dropout=0,
+            num_classes=num_classes,
+            num_convs=num_convs,
+            up_scale=up_scale,
+            kernel_size=kernel_size,
+            align_corners=align_corners,
+            dropout=decoder_dropout,
+            conv_norm=conv_norm,
+            conv_act=conv_act,
+            interpolate_mode=interpolate_mode,
             norm_layer=norm_layer,
         )
 
         self.aux_head3 = _SETRUPHead(
-            channels=256,
+            channels=decoder_channels,
             in_channels=hidden_dim,
-            num_classes=6,
-            num_convs=2,
-            up_scale=2,
-            kernel_size=3,
-            align_corners=False,
-            dropout=0,
+            num_classes=num_classes,
+            num_convs=num_convs,
+            up_scale=up_scale,
+            kernel_size=kernel_size,
+            align_corners=align_corners,
+            dropout=decoder_dropout,
+            conv_norm=conv_norm,
+            conv_act=conv_act,
+            interpolate_mode=interpolate_mode,
             norm_layer=norm_layer,
         )
 
@@ -282,23 +371,81 @@ class SETR_PUP(L.LightningModule):
 
     def __init__(
         self,
-        image_size: int,
-        patch_size: int,
-        num_layers: int,
-        num_heads: int,
-        hidden_dim: int,
-        mlp_dim: int,
-        num_classes: int,
-        num_convs: int,
+        image_size: int | tuple[int, int] = 512,
+        patch_size: int = 16,
+        num_layers: int = 24,
+        num_heads: int = 16,
+        hidden_dim: int = 1024,
+        mlp_dim: int = 4096,
         encoder_dropout: float = 0.1,
-        decoder_dropout: float = 0.1,
-        decoder_channels: int = 1024,
+        num_classes: int = 1000,
         norm_layer: Optional[nn.Module] = None,
+        decoder_channels: int = 256,
+        num_convs: int = 4,
+        up_scale: int = 2,
+        kernel_size: int = 3,
+        align_corners: bool = False,
+        decoder_dropout: float = 0.1,
+        conv_norm: Optional[nn.Module] = None,
+        conv_act: Optional[nn.Module] = None,
         interpolate_mode: str = "bilinear",
         loss_fn: Optional[nn.Module] = None,
     ):
+        """
+        Initializes the SetR model.
+
+        Parameters
+        ----------
+        image_size : int or tuple[int, int]
+            The input image size. Defaults to 512.
+        patch_size : int
+            The size of each patch. Defaults to 16.
+        num_layers : int
+            The number of layers in the transformer encoder. Defaults to 24.
+        num_heads : int
+            The number of attention heads in the transformer encoder. Defaults to 16.
+        hidden_dim : int
+            The hidden dimension of the transformer encoder. Defaults to 1024.
+        mlp_dim : int
+            The dimension of the MLP layers in the transformer encoder. Defaults to 4096.
+        encoder_dropout : float
+            The dropout rate for the transformer encoder. Defaults to 0.1.
+        num_classes : int
+            The number of output classes. Defaults to 1000.
+        norm_layer : nn.Module, optional
+            The normalization layer to be used in the decoder. Defaults to None.
+        decoder_channels : int
+            The number of channels in the decoder. Defaults to 256.
+        num_convs : int
+            The number of convolutional layers in the decoder. Defaults to 4.
+        up_scale : int
+            The scale factor for upsampling in the decoder. Defaults to 2.
+        kernel_size : int
+            The kernel size for convolutional layers in the decoder. Defaults to 3.
+        align_corners : bool
+            Whether to align corners during interpolation in the decoder. Defaults to False.
+        decoder_dropout : float
+            The dropout rate for the decoder. Defaults to 0.1.
+        conv_norm : nn.Module, optional
+            The normalization layer to be used in the convolutional layers of the decoder. Defaults to None.
+        conv_act : nn.Module, optional
+            The activation function to be used in the convolutional layers of the decoder. Defaults to None.
+        interpolate_mode : str
+            The interpolation mode for upsampling in the decoder. Defaults to "bilinear".
+        loss_fn : nn.Module, optional
+            The loss function to be used during training. Defaults to None.
+
+        """
         super().__init__()
         self.loss_fn = loss_fn if loss_fn is not None else nn.CrossEntropyLoss()
+        norm_layer = (
+            norm_layer if norm_layer is not None else nn.LayerNorm(decoder_channels)
+        )
+        conv_norm = (
+            conv_norm if conv_norm is not None else nn.SyncBatchNorm(self.out_channels)
+        )
+        conv_act = conv_act if conv_act is not None else nn.ReLU()
+
         self.model = _SetR_PUP(
             image_size=image_size,
             patch_size=patch_size,
@@ -308,11 +455,16 @@ class SETR_PUP(L.LightningModule):
             mlp_dim=mlp_dim,
             num_classes=num_classes,
             num_convs=num_convs,
+            up_scale=up_scale,
+            kernel_size=kernel_size,
+            conv_norm=conv_norm,
+            conv_act=conv_act,
             decoder_channels=decoder_channels,
             encoder_dropout=encoder_dropout,
             decoder_dropout=decoder_dropout,
             norm_layer=norm_layer,
             interpolate_mode=interpolate_mode,
+            align_corners=align_corners,
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:

@@ -30,6 +30,38 @@ class _VisionTransformerBackbone(nn.Module):
         norm_layer: Callable[..., torch.nn.Module] = partial(nn.LayerNorm, eps=1e-6),
         conv_stem_configs: Optional[List[ConvStemConfig]] = None,
     ):
+        """
+        Initializes a Vision Transformer (ViT) model.
+
+        Parameters
+        ----------
+        image_size : int or tuple[int, int]
+            The size of the input image. If an int is provided, it is assumed
+            to be a square image. If a tuple of ints is provided, it represents the height and width of the image.
+        patch_size : int
+            The size of each patch in the image.
+        num_layers : int
+            The number of transformer layers in the model.
+        num_heads : int
+            The number of attention heads in the transformer layers.
+        hidden_dim : int
+            The dimensionality of the hidden layers in the transformer.
+        mlp_dim : int
+            The dimensionality of the feed-forward MLP layers in the transformer.
+        dropout : float, optional
+            The dropout rate to apply. Defaults to 0.0.
+        attention_dropout : float, optional
+            The dropout rate to apply to the attention weights. Defaults to 0.0.
+        num_classes : int, optional
+            The number of output classes. Defaults to 1000.
+        norm_layer : Callable[..., torch.nn.Module], optional
+            The normalization layer to use. Defaults to nn.LayerNorm with epsilon=1e-6.
+        conv_stem_configs : List[ConvStemConfig], optional
+            The configuration for the convolutional stem layers.
+            If provided, the input image will be processed by these convolutional layers before being passed to
+            the transformer. Defaults to None.
+
+        """
         super().__init__()
         _log_api_usage_once(self)
 
@@ -128,6 +160,14 @@ class _VisionTransformerBackbone(nn.Module):
                 nn.init.zeros_(self.conv_proj.conv_last.bias)
 
     def _process_input(self, x: torch.Tensor) -> tuple[torch.Tensor, int, int]:
+        """Process the input tensor and return the reshaped tensor and dimensions.
+
+        Args:
+            x (torch.Tensor): The input tensor.
+
+        Returns:
+            tuple[torch.Tensor, int, int]: The reshaped tensor, number of rows, and number of columns.
+        """
         n, c, h, w = x.shape
         p = self.patch_size
 
@@ -169,6 +209,14 @@ class _VisionTransformerBackbone(nn.Module):
         return x, n_h, n_w
 
     def forward(self, x: torch.Tensor):
+        """Forward pass of the Vision Transformer Backbone.
+
+        Args:
+            x (torch.Tensor): The input tensor.
+
+        Returns:
+            torch.Tensor: The output tensor.
+        """
         # Reshape and permute the input tensor
         x, n_h, n_w = self._process_input(x)
         n = x.shape[0]
