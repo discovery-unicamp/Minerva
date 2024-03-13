@@ -102,12 +102,15 @@ class _SETRUPHead(nn.Module):
             in_channels = self.out_channels
 
     def forward(self, x):
-
         n, c, h, w = x.shape
 
+        print(x.shape)
+
         x = x.reshape(n, c, h * w).transpose(1, 2).contiguous()
+        print(x.shape)
         x = self.norm(x)
         x = x.transpose(1, 2).reshape(n, c, h, w).contiguous()
+        print(x.shape)
 
         for up_conv in self.up_convs:
             x = up_conv(x)
@@ -442,7 +445,7 @@ class SETR_PUP(L.LightningModule):
             norm_layer if norm_layer is not None else nn.LayerNorm(decoder_channels)
         )
         conv_norm = (
-            conv_norm if conv_norm is not None else nn.SyncBatchNorm(self.out_channels)
+            conv_norm if conv_norm is not None else nn.SyncBatchNorm(decoder_channels)
         )
         conv_act = conv_act if conv_act is not None else nn.ReLU()
 
