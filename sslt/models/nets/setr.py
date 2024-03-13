@@ -442,6 +442,7 @@ class SETR_PUP(L.LightningModule):
             conv_norm if conv_norm is not None else nn.SyncBatchNorm(decoder_channels)
         )
         conv_act = conv_act if conv_act is not None else nn.ReLU()
+        self.num_classes = num_classes
 
         self.model = _SetR_PUP(
             image_size=image_size,
@@ -506,7 +507,7 @@ class SETR_PUP(L.LightningModule):
         """
         x, y = batch
         y_hat = self.model(x)
-        loss = self._loss_func(y_hat, y)
+        loss = self._loss_func(y_hat[0], y.squeeze(1))
         self.log(
             f"{step_name}_loss",
             loss,
