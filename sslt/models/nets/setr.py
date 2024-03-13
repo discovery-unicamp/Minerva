@@ -527,7 +527,9 @@ class SETR_PUP(L.LightningModule):
     def test_step(self, batch: torch.Tensor, batch_idx: int):
         return self._single_step(batch, batch_idx, "test")
 
-    def predict_step(self, batch: torch.Tensor, batch_idx: int, dataloader_idx: int):
+    def predict_step(
+        self, batch: torch.Tensor, batch_idx: int, dataloader_idx: int | None = None
+    ):
         x, _ = batch
         return self.model(x)
 
