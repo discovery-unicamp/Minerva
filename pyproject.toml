@@ -41,3 +41,6 @@ dev = ["mock", "pytest", "black", "isort"]
 
 "Bug Tracker" = "https://github.com/GabrielBG0/Framework-SSL/issues"
 "Homepage" = "https://github.com/GabrielBG0/Framework-SSL"
+
+[tool.setuptools]
+py-modules = ["sslt"]
