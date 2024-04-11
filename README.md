@@ -20,7 +20,7 @@ Import the necessary modules from Minerva and use them in your machine learning 
 
 ```python
 from minerva.transforms import Flip, TransformPipeline
-from minerva.models.nets import _VisionTransformerBackbone
+from minerva.models.nets import SETR_PUP
 from minerva.analysis.metrics import PixelAccuracy
 ```
 
