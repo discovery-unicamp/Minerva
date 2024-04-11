@@ -1,7 +1,7 @@
 import pytest
 import torch
 
-from sslt.models.nets.setr import SETR_PUP
+from minerva.models.nets.setr import SETR_PUP
 
 
 def test_wisenet_loss():
