@@ -1,4 +1,5 @@
 import torch
+
 from minerva.models.nets.base import SimpleSupervisedModel
 
 
