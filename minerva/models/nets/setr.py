@@ -5,8 +5,8 @@ import lightning as L
 import torch
 from torch import nn
 
-from sslt.models.nets.vit import _VisionTransformerBackbone
-from sslt.utils.upsample import Upsample, resize
+from minerva.models.nets.vit import _VisionTransformerBackbone
+from minerva.utils.upsample import Upsample, resize
 
 
 class _SETRUPHead(nn.Module):

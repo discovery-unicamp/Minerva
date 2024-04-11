@@ -1,8 +1,6 @@
-from typing import Optional
-
 import torch
 
-from sslt.models.nets.base import SimpleSupervisedModel
+from minerva.models.nets.base import SimpleSupervisedModel
 
 
 class _WiseNet(torch.nn.Module):
@@ -101,11 +99,13 @@ class WiseNet(SimpleSupervisedModel):
         self,
         in_channels: int = 1,
         out_channels: int = 1,
-        loss_fn: Optional[torch.nn.Module] = None,
+        loss_fn: torch.nn.Module = None,
         learning_rate: float = 1e-3,
     ):
         super().__init__(
-            backbone=_WiseNet(in_channels=in_channels, out_channels=out_channels),
+            backbone=_WiseNet(
+                in_channels=in_channels, out_channels=out_channels
+            ),
             fc=torch.nn.Identity(),
             loss_fn=loss_fn or torch.nn.MSELoss(),
             learning_rate=learning_rate,
@@ -129,6 +129,7 @@ class WiseNet(SimpleSupervisedModel):
             logger=True,
         )
         return loss
+
 
     def predict_step(self, batch, batch_idx, dataloader_idx=None):
         x, y = batch

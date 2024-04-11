@@ -4,8 +4,8 @@ import torch
 import torch.nn.functional as F
 from torch.nn.modules.loss import _Loss
 
-from sslt.losses._functional import dice_score
-from sslt.utils.tensor import to_tensor
+from minerva.losses._functional import dice_score
+from minerva.utils.tensor import to_tensor
 
 BINARY_MODE = "binary"
 MULTICLASS_MODE = "multiclass"

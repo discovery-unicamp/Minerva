@@ -1,7 +1,7 @@
 from typing import List, Optional, Any, Iterable, Tuple, Union
 from torch.utils.data import Dataset
-from sslt.transforms.transform import _Transform
-from sslt.data.readers.reader import _Reader
+from minerva.transforms.transform import _Transform
+from minerva.data.readers.reader import _Reader
 
 
 class SimpleDataset(Dataset):
@@ -54,9 +54,9 @@ class SimpleDataset(Dataset):
         1. Supervised Dataset:
         
         ```python
-        from sslt.data.readers import ImageReader, LabelReader
-        from sslt.transforms import ImageTransform, LabelTransform
-        from sslt.data.datasets import SimpleDataset
+        from minerva.data.readers import ImageReader, LabelReader
+        from minerva.transforms import ImageTransform, LabelTransform
+        from minerva.data.datasets import SimpleDataset
         
         # Create the readers
         image_reader = ImageReader("path/to/images")
@@ -78,9 +78,9 @@ class SimpleDataset(Dataset):
         2. Unsupervised Dataset:
             
         ```python
-        from sslt.data.readers import ImageReader
-        from sslt.transforms import ImageTransform
-        from sslt.data.datasets import SimpleDataset
+        from minerva.data.readers import ImageReader
+        from minerva.transforms import ImageTransform
+        from minerva.data.datasets import SimpleDataset
         
         # Create the reader
         image_reader = ImageReader("path/to/images")

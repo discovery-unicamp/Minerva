@@ -3,7 +3,7 @@ from typing import Sequence
 import numpy as np
 import pytest
 
-from sslt.transforms import Flip, PerlinMasker, TransformPipeline, _Transform
+from minerva.transforms import Flip, TransformPipeline, _Transform
 
 
 def test_transform_pipeline():
