@@ -1,6 +1,6 @@
 import torch
 
-from sslt.analysis.metrics import PixelAccuracy
+from minerva.analysis.metrics import PixelAccuracy
 
 
 def test_pixel_accuracy():
