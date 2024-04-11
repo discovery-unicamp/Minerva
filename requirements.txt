@@ -1,12 +1,11 @@
-torch
 lightning
-git+https://github.com/discovery-unicamp/hiaac-librep.git@0.0.4-dev
-scipy
-plotly
 numpy
 pandas
+plotly
 PyYAML
+scipy
 statsmodels
-jsonargparse[all]
+tifffile
+torch
 zarr
-rich
+torchmetrics
