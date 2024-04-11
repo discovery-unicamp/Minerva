@@ -1,5 +1,7 @@
 from typing import Any, List, Sequence
-
+from perlin_noise import PerlinNoise
+from itertools import product
+import torch
 import numpy as np
 
 
@@ -76,3 +78,40 @@ class Flip(_Transform):
             x = np.flip(x, axis=axis)
 
         return x
+
+
+class PerlinMasker(_Transform):
+    """Zeroes entries of a tensor according to the sign of Perlin noise. Seed for the noise generator given by torch.randint"""
+
+    def __init__(self, octaves: int, scale: float = 1):
+        """Zeroes entries of a tensor according to the sign of Perlin noise. Seed for the noise generator given by torch.randint
+        
+        Parameters
+        ----------
+        octaves: int
+            Level of detail for the Perlin noise generator
+        scale: float = 1
+            Optionally rescale the Perlin noise. Default is 1 (no rescaling)
+        """
+        if octaves <= 0: raise ValueError(f"Number of octaves must be positive, but got {octaves=}")
+        if scale == 0: raise ValueError(f"Scale can't be 0")
+        self.octaves = octaves
+        self.scale = scale
+
+    def __call__(self, x: np.ndarray) -> np.ndarray:
+        """Zeroes entries of a tensor according to the sign of Perlin noise.
+        
+        Parameters
+        ----------
+        x: np.ndarray
+            The tensor whose entries to zero.
+        """
+
+        mask   = np.empty_like(x, dtype=bool)
+        noise  = PerlinNoise(self.octaves, torch.randint(0, 2**32, (1,)).item())
+        denom = self.scale * max(x.shape)
+
+        for pos in product(*[range(i) for i in mask.shape]):
+            mask[pos] = (noise([i/denom for i in pos]) < 0)
+        
+        return x * mask

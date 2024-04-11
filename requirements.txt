@@ -8,4 +8,6 @@ statsmodels
 tifffile
 torch
 zarr
+rich
+perlin-noise
 torchmetrics
