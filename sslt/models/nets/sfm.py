@@ -1,107 +1,16 @@
 import torch
 import torch.nn as nn
-import pytorch_lightning as pl
+import lightning as L
 from functools import partial
 from timm.models.vision_transformer import PatchEmbed, Block
 import numpy as np
 
 import torch
-
-# --------------------------------------------------------
-# 2D sine-cosine position embedding
-# References:
-# Transformer: https://github.com/tensorflow/models/blob/master/official/nlp/transformer/model_utils.py
-# MoCo v3: https://github.com/facebookresearch/moco-v3
-# --------------------------------------------------------
-def get_2d_sincos_pos_embed(embed_dim, grid_size, cls_token=False):
-    """
-    grid_size: int of the grid height and width
-    return:
-    pos_embed: [grid_size*grid_size, embed_dim] or [1+grid_size*grid_size, embed_dim] (w/ or w/o cls_token)
-    """
-    grid_h = np.arange(grid_size, dtype=np.float32)
-    grid_w = np.arange(grid_size, dtype=np.float32)
-    grid = np.meshgrid(grid_w, grid_h)  # here w goes first
-    grid = np.stack(grid, axis=0)
-
-    grid = grid.reshape([2, 1, grid_size, grid_size])
-    pos_embed = get_2d_sincos_pos_embed_from_grid(embed_dim, grid)
-    if cls_token:
-        pos_embed = np.concatenate([np.zeros([1, embed_dim]), pos_embed], axis=0)
-    return pos_embed
-
-
-def get_2d_sincos_pos_embed_from_grid(embed_dim, grid):
-    assert embed_dim % 2 == 0
-
-    # use half of dimensions to encode grid_h
-    emb_h = get_1d_sincos_pos_embed_from_grid(embed_dim // 2, grid[0])  # (H*W, D/2)
-    emb_w = get_1d_sincos_pos_embed_from_grid(embed_dim // 2, grid[1])  # (H*W, D/2)
-
-    emb = np.concatenate([emb_h, emb_w], axis=1) # (H*W, D)
-    return emb
-
-
-def get_1d_sincos_pos_embed_from_grid(embed_dim, pos):
-    """
-    embed_dim: output dimension for each position
-    pos: a list of positions to be encoded: size (M,)
-    out: (M, D)
-    """
-    assert embed_dim % 2 == 0
-    omega = np.arange(embed_dim // 2, dtype=np.float)
-    omega /= embed_dim / 2.
-    omega = 1. / 10000**omega  # (D/2,)
-
-    pos = pos.reshape(-1)  # (M,)
-    out = np.einsum('m,d->md', pos, omega)  # (M, D/2), outer product
-
-    emb_sin = np.sin(out) # (M, D/2)
-    emb_cos = np.cos(out) # (M, D/2)
-
-    emb = np.concatenate([emb_sin, emb_cos], axis=1)  # (M, D)
-    return emb
-
-
-# --------------------------------------------------------
-# Interpolate position embeddings for high-resolution
-# References:
-# DeiT: https://github.com/facebookresearch/deit
-# --------------------------------------------------------
-def interpolate_pos_embed(model, checkpoint_model,newsize1=None,newsize2=None):
-    if 'pos_embed' in checkpoint_model:
-        pos_embed_checkpoint = checkpoint_model['pos_embed']
-        embedding_size = pos_embed_checkpoint.shape[-1]
-        num_patches = model.patch_embed.num_patches
-        num_extra_tokens = model.pos_embed.shape[-2] - num_patches
-        # height (== width) for the checkpoint position embedding
-        orig_size = int((pos_embed_checkpoint.shape[-2] - num_extra_tokens) ** 0.5)
-        # height (== width) for the new position embedding
-        new_size = int(num_patches ** 0.5)
-        # class_token and dist_token are kept unchanged
-        if orig_size != new_size:
-            if newsize1 == None:
-                newsize1,newsize2 = new_size,new_size
-            print("Position interpolate from %dx%d to %dx%d" % (orig_size, orig_size, newsize1, newsize2))
-            extra_tokens = pos_embed_checkpoint[:, :num_extra_tokens]
-            # only the position tokens are interpolated
-            pos_tokens = pos_embed_checkpoint[:, num_extra_tokens:]
-            pos_tokens = pos_tokens.reshape(-1, orig_size, orig_size, embedding_size).permute(0, 3, 1, 2)
-            pos_tokens = torch.nn.functional.interpolate(
-                pos_tokens, size=(newsize1, newsize2), mode='bicubic', align_corners=False)
-            pos_tokens = pos_tokens.permute(0, 2, 3, 1).flatten(1, 2)
-            new_pos_embed = torch.cat((extra_tokens, pos_tokens), dim=1)
-            checkpoint_model['pos_embed'] = new_pos_embed
-        # elif orig_size > new_size:
-        #     print("Position generate from %dx%d to %dx%d" % (orig_size, orig_size, new_size, new_size))
-        #     pos_tokens = get_2d_sincos_pos_embed(embedding_size, new_size, cls_token=True)
-        #     pos_tokens = torch.from_numpy(pos_tokens).float().unsqueeze(0)
-        #     checkpoint_model['pos_embed'] = pos_tokens
+from sslt.utils.position_embedding import get_2d_sincos_pos_embed
 
 
 
-
-class MaskedAutoencoderViT(pl.LightningModule):
+class MaskedAutoencoderViT(L.LightningModule):
     """
     Masked Autoencoder with VisionTransformer backbone.
 
@@ -233,7 +142,7 @@ class MaskedAutoencoderViT(pl.LightningModule):
             nn.init.constant_(m.bias, 0)
             nn.init.constant_(m.weight, 1.0)
 
-    def patchify(self, imgs):
+    def patchify(self, imgs):                                               # input: (32, 1, 224, 224)
         """
         Extract patches from input images.
 
@@ -243,13 +152,13 @@ class MaskedAutoencoderViT(pl.LightningModule):
         Returns:
             torch.Tensor: Patches of shape (N, num_patches, patch_size^2 * in_chans).
         """
-        p = self.patch_embed.patch_size[0]
-        assert imgs.shape[2] == imgs.shape[3] and imgs.shape[2] % p == 0
+        p = self.patch_embed.patch_size[0]                                 
+        assert imgs.shape[2] == imgs.shape[3] and imgs.shape[2] % p == 0    # only square images are supported, and the size must be divisible by the patch size
 
-        h = w = imgs.shape[2] // p
-        x = imgs.reshape((imgs.shape[0], self.in_chans, h, p, w, p))
-        x = torch.einsum("nchpwq->nhwpqc", x)
-        x = x.reshape((imgs.shape[0], h * w, p**2 * self.in_chans))
+        h = w = imgs.shape[2] // p                                          
+        x = imgs.reshape((imgs.shape[0], self.in_chans, h, p, w, p))        # Transform images into (32, 1, 14, 16, 14, 16)
+        x = torch.einsum("nchpwq->nhwpqc", x)                               # reshape into (32, 14, 14, 16, 16, 1)
+        x = x.reshape((imgs.shape[0], h * w, p**2 * self.in_chans))         # Transform into (32, 196, 256)
         return x
 
     def unpatchify(self, x):
@@ -312,7 +221,7 @@ class MaskedAutoencoderViT(pl.LightningModule):
         Returns:
             Tuple[torch.Tensor, torch.Tensor, torch.Tensor]: Encoded representation, binary mask, shuffled indices.
         """
-        x = self.patchify(x)
+        x = self.patch_embed(x)
         x = x + self.pos_embed[:, 1:, :]
 
         x, mask, ids_restore = self.random_masking(x, mask_ratio)
@@ -443,6 +352,9 @@ class MaskedAutoencoderViT(pl.LightningModule):
 
 
 # Define model architectures
+
+# mae_vit_small_patch16_dec512d8b
+# decoder: 512 dim, 8 blocks, depth: 6
 mae_vit_small_patch16 = partial(
     MaskedAutoencoderViT,
     patch_size=16,
@@ -456,6 +368,8 @@ mae_vit_small_patch16 = partial(
     norm_layer=partial(nn.LayerNorm, eps=1e-6),
 )
 
+# mae_vit_base_patch16_dec512d8b
+# decoder: 512 dim, 8 blocks, 
 mae_vit_base_patch16 = partial(
     MaskedAutoencoderViT,
     patch_size=16,
@@ -469,6 +383,8 @@ mae_vit_base_patch16 = partial(
     norm_layer=partial(nn.LayerNorm, eps=1e-6),
 )
 
+# mae_vit_large_patch16_dec512d8b
+# decoder: 512 dim, 8 blocks
 mae_vit_large_patch16 = partial(
     MaskedAutoencoderViT,
     patch_size=16,
@@ -482,6 +398,8 @@ mae_vit_large_patch16 = partial(
     norm_layer=partial(nn.LayerNorm, eps=1e-6),
 )
 
+# mae_vit_huge_patch14_dec512d8b
+# decoder: 512 dim, 8 blocks
 mae_vit_huge_patch14 = partial(
     MaskedAutoencoderViT,
     patch_size=14,
@@ -495,6 +413,8 @@ mae_vit_huge_patch14 = partial(
     norm_layer=partial(nn.LayerNorm, eps=1e-6),
 )
 
+# mae_vit_large_patch16_dec256d4b
+# decoder: 256 dim, 8 blocks
 mae_vit_large_patch16D4d256 = partial(
     MaskedAutoencoderViT,
     patch_size=16,
@@ -508,6 +428,8 @@ mae_vit_large_patch16D4d256 = partial(
     norm_layer=partial(nn.LayerNorm, eps=1e-6),
 )
 
+
+# mae_vit_base_patch16_dec256d4b
 mae_vit_base_patch16D4d256 = partial(
     MaskedAutoencoderViT,
     patch_size=16,
@@ -521,50 +443,50 @@ mae_vit_base_patch16D4d256 = partial(
     norm_layer=partial(nn.LayerNorm, eps=1e-6),
 )
 
-
-import torch
-from torch.utils.data import DataLoader, TensorDataset
-import pytorch_lightning as pl
-import numpy as np
-
-
-def main():
-    # Create random data
-    N = 32  # Batch size
-    C, H, W = 3, 224, 224  # Image dimensions
-    img_data = np.random.rand(N, C, H, W).astype(np.float32)
-    target_data = np.random.randint(0, 10, size=N)  # Random labels
-    imgs = torch.tensor(img_data)
-    targets = torch.tensor(target_data)
-
-    # Create a Lightning DataModule
-    class RandomDataModule(pl.LightningDataModule):
-        def __init__(self, imgs, targets, batch_size=32):
-            super().__init__()
-            self.imgs = imgs
-            self.targets = targets
-            self.batch_size = batch_size
-
-        def train_dataloader(self):
-            dataset = TensorDataset(self.imgs, self.targets)
-            return DataLoader(dataset, batch_size=self.batch_size, shuffle=True)
-
-        def val_dataloader(self):
-            dataset = TensorDataset(self.imgs, self.targets)
-            return DataLoader(dataset, batch_size=self.batch_size)
-
-    # Instantiate Lightning DataModule
-    data_module = RandomDataModule(imgs, targets)
-
-    # Instantiate the model
-    model = MaskedAutoencoderViT()
-
-    # Instantiate the Lightning Trainer
-    trainer = pl.Trainer(max_epochs=5)
-
-    # Perform a forward pass
-    trainer.fit(model, datamodule=data_module)
+# import torch
+# from torch.utils.data import DataLoader, TensorDataset
+# import pytorch_lightning as pl
+# import numpy as np
 
 
-if __name__ == "__main__":
-    main()
+# def main():
+#     # Create random data
+#     N = 32  # Batch size
+#     C, H, W = 1, 224, 224  # Image dimensions
+#     img_data = np.random.rand(N, C, H, W).astype(np.float32)
+#     target_data = np.random.randint(0, 10, size=N)  # Random labels
+#     imgs = torch.tensor(img_data)
+#     targets = torch.tensor(target_data)
+
+#     # Create a Lightning DataModule
+#     class RandomDataModule(L.LightningDataModule):
+#         def __init__(self, imgs, targets, batch_size=32):
+#             super().__init__()
+#             self.imgs = imgs
+#             self.targets = targets
+#             self.batch_size = batch_size
+
+#         def train_dataloader(self):
+#             dataset = TensorDataset(self.imgs, self.targets)
+#             return DataLoader(dataset, batch_size=self.batch_size, shuffle=True)
+
+#         def val_dataloader(self):
+#             dataset = TensorDataset(self.imgs, self.targets)
+#             return DataLoader(dataset, batch_size=self.batch_size)
+
+#     # Instantiate Lightning DataModule
+#     data_module = RandomDataModule(imgs, targets)
+
+#     # Instantiate the model
+#     model = MaskedAutoencoderViT(img_size=224, patch_size=16, in_chans=1, embed_dim=256, depth=24, num_heads=16)
+
+#     # Instantiate the Lightning Trainer
+#     trainer = L.Trainer(max_epochs=5, devices=1, accelerator="cpu")
+
+#     print("Forward pass...")
+#     # Perform a forward pass
+#     trainer.fit(model, datamodule=data_module)
+
+
+# if __name__ == "__main__":
+#     main()
