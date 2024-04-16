@@ -60,7 +60,7 @@ class _Encoder(nn.Module):
             for i, layer in enumerate(self.layers):
                 input = layer(input)
                 if i in self.aux_output_layers: # type: ignore
-                    aux_outputs.append(input)
+                    aux_outputs.append(self.ln(self.dropout(input)))
             return self.ln(self.dropout(input)), aux_outputs
         
 
@@ -293,6 +293,13 @@ class _VisionTransformerBackbone(nn.Module):
 
         if self.aux_output:
             x, aux_outputs = self.encoder(x)
+            x = x[:, 1:]
+            B, _, C = x.shape
+            x = x.reshape(B, n_h, n_w, C).permute(0, 3, 1, 2).contiguous()
+            for i, aux_output in enumerate(aux_outputs):
+                aux_outputs[i] = aux_output[:, 1:]
+                B, _, C = aux_output.shape
+                aux_outputs[i] = aux_outputs.reshape(B, n_h, n_w, C).permute(0, 3, 1, 2).contiguous()
             return x, aux_outputs
 
         x = self.encoder(x)
