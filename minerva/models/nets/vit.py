@@ -32,11 +32,13 @@ class _Encoder(nn.Module):
         super().__init__()
         # Note that batch_size is on the first dim because
         # we have batch_first=True in nn.MultiAttention() by default
-        
+
         self.aux_output = aux_output
         self.aux_output_layers = aux_output_layers
 
-        self.pos_embedding = nn.Parameter(torch.empty(1, seq_length, hidden_dim).normal_(std=0.02))  # from BERT
+        self.pos_embedding = nn.Parameter(
+            torch.empty(1, seq_length, hidden_dim).normal_(std=0.02)
+        )  # from BERT
         self.dropout = nn.Dropout(dropout)
         layers: OrderedDict[str, nn.Module] = OrderedDict()
         for i in range(num_layers):
@@ -52,17 +54,19 @@ class _Encoder(nn.Module):
         self.ln = norm_layer(hidden_dim)
 
     def forward(self, input: torch.Tensor):
-        torch._assert(input.dim() == 3, f"Expected (batch_size, seq_length, hidden_dim) got {input.shape}")
+        torch._assert(
+            input.dim() == 3,
+            f"Expected (batch_size, seq_length, hidden_dim) got {input.shape}",
+        )
         input = input + self.pos_embedding
 
         if self.aux_output:
             aux_outputs = []
             for i, layer in enumerate(self.layers):
                 input = layer(input)
-                if i in self.aux_output_layers: # type: ignore
+                if i in self.aux_output_layers:  # type: ignore
                     aux_outputs.append(self.ln(self.dropout(input)))
             return self.ln(self.dropout(input)), aux_outputs
-        
 
         return self.ln(self.layers(self.dropout(input)))
 
@@ -262,6 +266,7 @@ class _VisionTransformerBackbone(nn.Module):
         n_w = w // p
 
         # (n, c, h, w) -> (n, hidden_dim, n_h, n_w)
+        x = x.to(torch.float32)
         x = self.conv_proj(x)
         # (n, hidden_dim, n_h, n_w) -> (n, hidden_dim, (n_h * n_w))
         x = x.reshape(n, self.hidden_dim, n_h * n_w)
@@ -299,7 +304,12 @@ class _VisionTransformerBackbone(nn.Module):
             for i, aux_output in enumerate(aux_outputs):
                 aux_outputs[i] = aux_output[:, 1:]
                 B, _, C = aux_outputs[i].shape
-                aux_outputs[i] = aux_outputs[i].reshape(B, n_h, n_w, C).permute(0, 3, 1, 2).contiguous()
+                aux_outputs[i] = (
+                    aux_outputs[i]
+                    .reshape(B, n_h, n_w, C)
+                    .permute(0, 3, 1, 2)
+                    .contiguous()
+                )
             return x, aux_outputs
 
         x = self.encoder(x)
