@@ -298,8 +298,8 @@ class _VisionTransformerBackbone(nn.Module):
             x = x.reshape(B, n_h, n_w, C).permute(0, 3, 1, 2).contiguous()
             for i, aux_output in enumerate(aux_outputs):
                 aux_outputs[i] = aux_output[:, 1:]
-                B, _, C = aux_output.shape
-                aux_outputs[i] = aux_output.reshape(B, n_h, n_w, C).permute(0, 3, 1, 2).contiguous()
+                B, _, C = aux_outputs[i].shape
+                aux_outputs[i] = aux_outputs[i].reshape(B, n_h, n_w, C).permute(0, 3, 1, 2).contiguous()
             return x, aux_outputs
 
         x = self.encoder(x)
