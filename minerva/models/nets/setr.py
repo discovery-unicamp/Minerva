@@ -408,6 +408,7 @@ class SETR_PUP(L.LightningModule):
         loss_fn: Optional[nn.Module] = None,
         aux_output: bool = True,
         aux_output_layers: list[int] | None = [9, 14, 19],
+        aux_weights: list[float] = [0.4, 0.4, 0.4],
     ):
         """
         Initializes the SetR model.
@@ -461,7 +462,18 @@ class SETR_PUP(L.LightningModule):
             conv_norm if conv_norm is not None else nn.SyncBatchNorm(decoder_channels)
         )
         conv_act = conv_act if conv_act is not None else nn.ReLU()
+
+        if aux_output:
+            assert aux_output_layers is not None, "aux_output_layers must be provided."
+            assert (
+                len(aux_output_layers) == 3
+            ), "aux_output_layers must have 3 values. Only 3 aux heads are supported."
+            assert len(aux_weights) == len(
+                aux_output_layers
+            ), "aux_weights must have the same length as aux_output_layers."
+
         self.num_classes = num_classes
+        self.aux_weights = aux_weights
 
         self.model = _SetR_PUP(
             image_size=image_size,
@@ -516,7 +528,12 @@ class SETR_PUP(L.LightningModule):
             loss_aux1 = self.loss_fn(y_aux1, y.long())
             loss_aux2 = self.loss_fn(y_aux2, y.long())
             loss_aux3 = self.loss_fn(y_aux3, y.long())
-            return loss + (loss_aux1 * 0.4) + (loss_aux2 * 0.4) + (loss_aux3 * 0.4)
+            return (
+                loss
+                + (loss_aux1 * self.aux_weights[0])
+                + (loss_aux2 * self.aux_weights[1])
+                + (loss_aux3 * self.aux_weights[2])
+            )
 
         loss = self.loss_fn(y_hat, y.long())
         return loss
