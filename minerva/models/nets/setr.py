@@ -288,7 +288,9 @@ class _SetR_PUP(nn.Module):
         super().__init__()
         if aux_output:
             assert aux_output_layers is not None, "aux_output_layers must be provided."
-            assert len(aux_output_layers) is 3, "aux_output_layers must have 3 values. Only 3 aux heads are supported."
+            assert (
+                len(aux_output_layers) == 3
+            ), "aux_output_layers must have 3 values. Only 3 aux heads are supported."
 
         self.aux_output = aux_output
         self.aux_output_layers = aux_output_layers
@@ -487,7 +489,13 @@ class SETR_PUP(L.LightningModule):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.model(x)
 
-    def _loss_func(self, y_hat: torch.Tensor | Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor], y: torch.Tensor) -> torch.Tensor:
+    def _loss_func(
+        self,
+        y_hat: (
+            torch.Tensor | Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]
+        ),
+        y: torch.Tensor,
+    ) -> torch.Tensor:
         """Calculate the loss between the output and the input data.
 
         Parameters
@@ -504,16 +512,14 @@ class SETR_PUP(L.LightningModule):
         """
         if isinstance(y_hat, tuple):
             y_hat, y_aux1, y_aux2, y_aux3 = y_hat
-            loss = self.loss_fn(y_hat, y)
-            loss_aux1 = self.loss_fn(y_aux1, y)
-            loss_aux2 = self.loss_fn(y_aux2, y)
-            loss_aux3 = self.loss_fn(y_aux3, y)
+            loss = self.loss_fn(y_hat, y.long())
+            loss_aux1 = self.loss_fn(y_aux1, y.long())
+            loss_aux2 = self.loss_fn(y_aux2, y.long())
+            loss_aux3 = self.loss_fn(y_aux3, y.long())
             return loss + (loss_aux1 * 0.4) + (loss_aux2 * 0.4) + (loss_aux3 * 0.4)
 
-
-        loss = self.loss_fn(y_hat, y)
+        loss = self.loss_fn(y_hat, y.long())
         return loss
-    
 
     def _single_step(
         self, batch: torch.Tensor, batch_idx: int, step_name: str
