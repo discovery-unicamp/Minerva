@@ -1,10 +1,10 @@
 from typing import List, Tuple
 
 import numpy as np
-from sslt.data.datasets.base import SimpleDataset
 
-from sslt.data.readers.reader import _Reader
-from sslt.transforms.transform import _Transform
+from minerva.data.datasets.base import SimpleDataset
+from minerva.data.readers.reader import _Reader
+from minerva.transforms.transform import _Transform
 
 
 class SupervisedReconstructionDataset(SimpleDataset):
@@ -24,9 +24,9 @@ class SupervisedReconstructionDataset(SimpleDataset):
     1. Semantic Segmentation Dataset:
 
         ```python
-        from sslt.data.readers import ImageReader
-        from sslt.transforms import ImageTransform
-        from sslt.data.datasets import SupervisedReconstructionDataset
+        from minerva.data.readers import ImageReader
+        from minerva.transforms import ImageTransform
+        from minerva.data.datasets import SupervisedReconstructionDataset
 
         # Create the readers
         image_reader = ImageReader("path/to/images")
@@ -40,15 +40,13 @@ class SupervisedReconstructionDataset(SimpleDataset):
             readers=[image_reader, mask_reader],
             transforms=image_transform
         )
-        
+
         # Load the first sample
         dataset[0]  # Returns a tuple: (image, mask)
         ```
     """
 
-    def __init__(
-        self, readers: List[_Reader], transforms: _Transform | None = None
-    ):
+    def __init__(self, readers: List[_Reader], transforms: _Transform | None = None):
         """A simple dataset class for supervised reconstruction tasks.
 
         Parameters

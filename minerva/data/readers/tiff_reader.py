@@ -4,7 +4,7 @@ from typing import Union
 import numpy as np
 import tifffile as tiff
 
-from sslt.data.readers.reader import _Reader
+from minerva.data.readers.reader import _Reader
 
 
 class TiffReader(_Reader):

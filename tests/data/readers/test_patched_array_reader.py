@@ -1,5 +1,6 @@
 import numpy as np
-from sslt.data.readers.patched_array_reader import PatchedArrayReader
+
+from minerva.data.readers.patched_array_reader import PatchedArrayReader
 
 
 def test_patched_array_reader_no_stride_1():
@@ -36,14 +37,11 @@ def test_patched_array_reader_no_stride_1():
             ]
         )
     ), "The content of the last patch is incorrect"
-    
+
+
 def test_patched_array_reader_stride():
     data = np.arange(100).reshape(10, 10)
-    reader = PatchedArrayReader(
-        data,
-        data_shape=(5, 5),
-        stride=(2, 5)
-    )
+    reader = PatchedArrayReader(data, data_shape=(5, 5), stride=(2, 5))
 
     assert len(reader) == 6, "The number of patches is incorrect"
     assert np.all(
@@ -58,9 +56,9 @@ def test_patched_array_reader_stride():
             ]
         )
     ), "The content of the first patch is incorrect"
-    
+
     assert np.all(
-        reader[2] 
+        reader[2]
         == np.array(
             [
                 [20, 21, 22, 23, 24],
@@ -81,7 +79,7 @@ def test_patched_array_reader_stride_and_pad():
         stride=(2, 5),
         pad_width=2,
         pad_mode="constant",
-        pad_kwargs={"constant_values": -1}
+        pad_kwargs={"constant_values": -1},
     )
     assert len(reader) == 10, "The number of patches is incorrect"
     assert np.all(
@@ -90,13 +88,13 @@ def test_patched_array_reader_stride_and_pad():
             [
                 [-1, -1, -1, -1, -1],
                 [-1, -1, -1, -1, -1],
-                [-1, -1,  0,  1,  2],
+                [-1, -1, 0, 1, 2],
                 [-1, -1, 10, 11, 12],
                 [-1, -1, 20, 21, 22],
             ]
         )
     ), "The content of the first patch is incorrect"
-    
+
     assert np.all(
         reader[-1]
         == np.array(
@@ -105,7 +103,7 @@ def test_patched_array_reader_stride_and_pad():
                 [73, 74, 75, 76, 77],
                 [83, 84, 85, 86, 87],
                 [93, 94, 95, 96, 97],
-                [-1, -1, -1, -1, -1]
+                [-1, -1, -1, -1, -1],
             ]
         )
     ), "The content of the last patch is incorrect"
