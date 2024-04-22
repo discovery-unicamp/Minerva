@@ -1,8 +1,8 @@
 from typing import List, Tuple
 
 import numpy as np
-from base import SimpleDataset
 
+from minerva.data.datasets.base import SimpleDataset
 from minerva.data.readers.reader import _Reader
 from minerva.transforms.transform import _Transform
 
@@ -40,15 +40,16 @@ class SupervisedReconstructionDataset(SimpleDataset):
             readers=[image_reader, mask_reader],
             transforms=image_transform
         )
-        
         # Load the first sample
         dataset[0]  # Returns a tuple: (image, mask)
         ```
     """
 
+
     def __init__(
         self, readers: List[_Reader], transforms: _Transform | None = None
     ):
+
         """A simple dataset class for supervised reconstruction tasks.
 
         Parameters

@@ -24,7 +24,6 @@ class PatchedZarrReader(PatchedArrayReader):
         ----------
         path : PathLike
             Path to the Zarr array.
-            
         Notes
         -----
         1.  The Zarr array is expected to be stored on disk. If the array is not
@@ -37,7 +36,7 @@ class PatchedZarrReader(PatchedArrayReader):
             
         Examples
         ---------
-        
+
         ```python
         >>> from pathlib import Path
         >>> data_path = Path("data.zarr")

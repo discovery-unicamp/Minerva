@@ -4,6 +4,7 @@ import lightning as L
 import torch
 
 
+
 class SimpleSupervisedModel(L.LightningModule):
     """Simple pipeline for supervised models.
 
@@ -19,7 +20,6 @@ class SimpleSupervisedModel(L.LightningModule):
     easier to implement new models by only changing the backbone model. More
     complex models, that does not follow this pipeline, should not inherit from
     this class.
-
     Note that, for this class the input data is a tuple of tensors, where the
     first tensor is the input data and the second tensor is the mask or label.
     """
