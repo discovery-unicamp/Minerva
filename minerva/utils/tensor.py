@@ -1,6 +1,7 @@
-import torch
-import numpy as np
 from typing import Iterable
+
+import numpy as np
+import torch
 
 
 def to_tensor(x, dtype=None) -> torch.Tensor:

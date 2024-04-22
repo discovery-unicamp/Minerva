@@ -4,7 +4,6 @@ import lightning as L
 import torch
 
 
-
 class SimpleSupervisedModel(L.LightningModule):
     """Simple pipeline for supervised models.
 

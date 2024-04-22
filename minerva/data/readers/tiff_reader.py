@@ -50,7 +50,6 @@ class TiffReader(_Reader):
         """
         return tiff.imread(self.files[index].as_posix())
 
-
     def __len__(self) -> int:
         """Return the number of TIFF files in the directory.
 
