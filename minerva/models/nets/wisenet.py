@@ -103,7 +103,9 @@ class WiseNet(SimpleSupervisedModel):
         learning_rate: float = 1e-3,
     ):
         super().__init__(
-            backbone=_WiseNet(in_channels=in_channels, out_channels=out_channels),
+            backbone=_WiseNet(
+                in_channels=in_channels, out_channels=out_channels
+            ),
             fc=torch.nn.Identity(),
             loss_fn=loss_fn or torch.nn.MSELoss(),
             learning_rate=learning_rate,
@@ -133,3 +135,4 @@ class WiseNet(SimpleSupervisedModel):
         y_hat = self.forward(x)
         y_hat = y_hat[:, :, : y.size(2), : y.size(3)]
         return y_hat
+

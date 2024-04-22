@@ -133,7 +133,9 @@ class PatchedArrayReader(_Reader):
 
         # Generate indices for left upper corner of patches
         for index in np.ndindex(*max_indices):
-            corner_index = tuple(index[i] * self.stride[i] for i in range(len(index)))
+            corner_index = tuple(
+                index[i] * self.stride[i] for i in range(len(index))
+            )
             indices.append(corner_index)
 
         return indices

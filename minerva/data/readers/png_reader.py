@@ -57,6 +57,7 @@ class PNGReader(_Reader):
         """
         return np.array(Image.open(self.files[index].as_posix()))
 
+
     def __len__(self) -> int:
         """Return the number of PNG files in the directory.
 

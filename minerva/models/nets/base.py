@@ -1,6 +1,8 @@
 from typing import Dict
-import torch
+
 import lightning as L
+import torch
+
 
 
 class SimpleSupervisedModel(L.LightningModule):
@@ -18,7 +20,6 @@ class SimpleSupervisedModel(L.LightningModule):
     easier to implement new models by only changing the backbone model. More
     complex models, that does not follow this pipeline, should not inherit from
     this class.
-    
     Note that, for this class the input data is a tuple of tensors, where the
     first tensor is the input data and the second tensor is the mask or label.
     """
@@ -38,7 +39,7 @@ class SimpleSupervisedModel(L.LightningModule):
         backbone : torch.nn.Module
             The backbone model. Usually the encoder/decoder part of the model.
         fc : torch.nn.Module
-            The fully connected model, usually used to classification tasks. 
+            The fully connected model, usually used to classification tasks.
             Use `torch.nn.Identity()` if no FC model is needed.
         loss_fn : torch.nn.Module
             The function used to compute the loss.

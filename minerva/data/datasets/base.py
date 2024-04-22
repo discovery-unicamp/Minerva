@@ -8,6 +8,8 @@ from minerva.transforms.transform import _Transform
 
 class SimpleDataset(Dataset):
     """Dataset is responsible for loading data from multiple readers and
+    responsible for loading data from multiple readers and 
+
     apply specified transforms. It is a generic implementation that can be
     used to create differents dataset, from supervised to unsupervised ones.
 
@@ -20,7 +22,6 @@ class SimpleDataset(Dataset):
         3. Append the transformed data to the list of data.
     Return the tuple of transformed data.
     """
-
     def __init__(
         self,
         readers: Union[_Reader, List[_Reader]],
@@ -55,7 +56,6 @@ class SimpleDataset(Dataset):
         Examples
         --------
         1. Supervised Dataset:
-
         ```python
         from minerva.data.readers import ImageReader, LabelReader
         from minerva.transforms import ImageTransform, LabelTransform
@@ -68,7 +68,6 @@ class SimpleDataset(Dataset):
         # Create the transforms
         image_transform = ImageTransform()
         label_transform = None          # No transform for the labels
-
         # Create the dataset
         dataset = SimpleDataset(
             readers=[image_reader, label_reader],
@@ -79,7 +78,6 @@ class SimpleDataset(Dataset):
         ```
 
         2. Unsupervised Dataset:
-
         ```python
         from minerva.data.readers import ImageReader
         from minerva.transforms import ImageTransform
@@ -90,14 +88,12 @@ class SimpleDataset(Dataset):
 
         # Create the transform
         image_transform = ImageTransform()
-
         # Create the dataset
         dataset = SimpleDataset(
             readers=[image_reader],
             transforms=image_transform,
             return_single=True
         )
-
         dataset[0]  # Returns image
         ```
 
@@ -109,7 +105,6 @@ class SimpleDataset(Dataset):
         # ---------------- Parsing readers ----------------
         if not isinstance(self.readers, Iterable):
             self.readers = [self.readers]
-
         # ---------------- Parsing transforms ----------------
         # If no transform is provided, use the identity transform.
         # It will generate a list of None transforms with the same length
@@ -166,7 +161,6 @@ class SimpleDataset(Dataset):
             if transform is not None:
                 sample = transform(sample)
             data.append(sample)
-
         # Return the list of transformed data or a single sample if return_single
         # is True and there is only one reader.
         if self.return_single:
