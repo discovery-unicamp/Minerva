@@ -45,11 +45,7 @@ class SupervisedReconstructionDataset(SimpleDataset):
         ```
     """
 
-
-    def __init__(
-        self, readers: List[_Reader], transforms: _Transform | None = None
-    ):
-
+    def __init__(self, readers: List[_Reader], transforms: _Transform | None = None):
         """A simple dataset class for supervised reconstruction tasks.
 
         Parameters

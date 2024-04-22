@@ -8,7 +8,7 @@ from minerva.transforms.transform import _Transform
 
 class SimpleDataset(Dataset):
     """Dataset is responsible for loading data from multiple readers and
-    responsible for loading data from multiple readers and 
+    responsible for loading data from multiple readers and
 
     apply specified transforms. It is a generic implementation that can be
     used to create differents dataset, from supervised to unsupervised ones.
@@ -22,6 +22,7 @@ class SimpleDataset(Dataset):
         3. Append the transformed data to the list of data.
     Return the tuple of transformed data.
     """
+
     def __init__(
         self,
         readers: Union[_Reader, List[_Reader]],
