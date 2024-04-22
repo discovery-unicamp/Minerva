@@ -3,7 +3,8 @@ from typing import Union
 
 import numpy as np
 from PIL import Image
-from sslt.data.readers.reader import _Reader
+
+from minerva.data.readers.reader import _Reader
 
 
 class PNGReader(_Reader):

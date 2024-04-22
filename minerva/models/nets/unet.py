@@ -1,17 +1,16 @@
 """ Full assembly of the parts to form the complete network """
 
-from typing import Dict
-import lightning as L
-import torch.optim as optim
-from torch.optim.lr_scheduler import CyclicLR
-from torch.optim.lr_scheduler import StepLR
 import time
+from typing import Dict
+
+import lightning as L
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import torch.optim as optim
+from torch.optim.lr_scheduler import CyclicLR, StepLR
 
-from sslt.models.nets.base import SimpleSupervisedModel
-
+from minerva.models.nets.base import SimpleSupervisedModel
 
 """ -------------- Parts of the U-Net model --------------"""
 
@@ -44,15 +43,11 @@ class _DoubleConv(nn.Module):
             nn.Conv2d(
                 in_channels, mid_channels, kernel_size=3, padding=1, bias=False
             ),  # no need to add bias since BatchNorm2d will do that
-            nn.BatchNorm2d(
-                mid_channels
-            ),  # normalize the output of the previous layer
+            nn.BatchNorm2d(mid_channels),  # normalize the output of the previous layer
             nn.ReLU(
                 inplace=True
             ),  # inplace=True will modify the input directly instead of allocating new memory
-            nn.Conv2d(
-                mid_channels, out_channels, kernel_size=3, padding=1, bias=False
-            ),
+            nn.Conv2d(mid_channels, out_channels, kernel_size=3, padding=1, bias=False),
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True),
         )
@@ -82,9 +77,7 @@ class _Up(nn.Module):
 
         # if bilinear, use the normal convolutions to reduce the number of channels
         if bilinear:
-            self.up = nn.Upsample(
-                scale_factor=2, mode="bilinear", align_corners=True
-            )
+            self.up = nn.Upsample(scale_factor=2, mode="bilinear", align_corners=True)
             self.conv = _DoubleConv(in_channels, out_channels, in_channels // 2)
         else:
             self.up = nn.ConvTranspose2d(
@@ -99,9 +92,7 @@ class _Up(nn.Module):
         diffX = x2.size()[3] - x1.size()[3]
 
         # pad the input tensor on all sides with the given "pad" value
-        x1 = F.pad(
-            x1, [diffX // 2, diffX - diffX // 2, diffY // 2, diffY - diffY // 2]
-        )
+        x1 = F.pad(x1, [diffX // 2, diffX - diffX // 2, diffY // 2, diffY - diffY // 2])
         # if you have padding issues, see
         # https://github.com/HaiyongJiang/U-Net-Pytorch-Unstructured-Buggy/commit/0e854509c2cea854e247a9c615f175f76fbb2e3a
         # https://github.com/xiaopeng-liao/Pytorch-UNet/commit/8ebac70e633bac59fc22bb5195e513d5832fb3bd
@@ -231,5 +222,5 @@ class UNet(SimpleSupervisedModel):
             fc=torch.nn.Identity(),
             loss_fn=loss_fn or torch.nn.MSELoss(),
             learning_rate=learning_rate,
-            flatten=False
+            flatten=False,
         )

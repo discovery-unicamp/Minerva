@@ -15,7 +15,7 @@ classifiers = [
 description = "Self supervised learning tools"
 keywords = ["ssl tools", "self supervised learning", "machine learning"]
 license = { file = "LICENSE" }
-name = "sslt"
+name = "minerva"
 readme = "README.md"
 requires-python = ">=3.8"
 version = "0.0.1-dev"
@@ -43,4 +43,4 @@ dev = ["mock", "pytest", "black", "isort"]
 "Homepage" = "https://github.com/GabrielBG0/Framework-SSL"
 
 [tool.setuptools]
-py-modules = ["sslt"]
+py-modules = ["minerva"]

@@ -1,13 +1,12 @@
+from functools import partial
+
+import lightning as L
+import numpy as np
 import torch
 import torch.nn as nn
-import lightning as L
-from functools import partial
-from timm.models.vision_transformer import PatchEmbed, Block
-import numpy as np
+from timm.models.vision_transformer import Block, PatchEmbed
 
-import torch
-from sslt.utils.position_embedding import get_2d_sincos_pos_embed
-
+from minerva.utils.position_embedding import get_2d_sincos_pos_embed
 
 
 class MaskedAutoencoderViT(L.LightningModule):
@@ -112,9 +111,7 @@ class MaskedAutoencoderViT(L.LightningModule):
             int(self.patch_embed.num_patches**0.5),
             cls_token=True,
         )
-        self.pos_embed.data.copy_(
-            torch.from_numpy(pos_embed).float().unsqueeze(0)
-        )
+        self.pos_embed.data.copy_(torch.from_numpy(pos_embed).float().unsqueeze(0))
 
         decoder_pos_embed = get_2d_sincos_pos_embed(
             self.decoder_pos_embed.shape[-1],
@@ -142,7 +139,7 @@ class MaskedAutoencoderViT(L.LightningModule):
             nn.init.constant_(m.bias, 0)
             nn.init.constant_(m.weight, 1.0)
 
-    def patchify(self, imgs):                                               # input: (32, 1, 224, 224)
+    def patchify(self, imgs):  # input: (32, 1, 224, 224)
         """
         Extract patches from input images.
 
@@ -152,13 +149,19 @@ class MaskedAutoencoderViT(L.LightningModule):
         Returns:
             torch.Tensor: Patches of shape (N, num_patches, patch_size^2 * in_chans).
         """
-        p = self.patch_embed.patch_size[0]                                 
-        assert imgs.shape[2] == imgs.shape[3] and imgs.shape[2] % p == 0    # only square images are supported, and the size must be divisible by the patch size
+        p = self.patch_embed.patch_size[0]
+        assert (
+            imgs.shape[2] == imgs.shape[3] and imgs.shape[2] % p == 0
+        )  # only square images are supported, and the size must be divisible by the patch size
 
-        h = w = imgs.shape[2] // p                                          
-        x = imgs.reshape((imgs.shape[0], self.in_chans, h, p, w, p))        # Transform images into (32, 1, 14, 16, 14, 16)
-        x = torch.einsum("nchpwq->nhwpqc", x)                               # reshape into (32, 14, 14, 16, 16, 1)
-        x = x.reshape((imgs.shape[0], h * w, p**2 * self.in_chans))         # Transform into (32, 196, 256)
+        h = w = imgs.shape[2] // p
+        x = imgs.reshape(
+            (imgs.shape[0], self.in_chans, h, p, w, p)
+        )  # Transform images into (32, 1, 14, 16, 14, 16)
+        x = torch.einsum("nchpwq->nhwpqc", x)  # reshape into (32, 14, 14, 16, 16, 1)
+        x = x.reshape(
+            (imgs.shape[0], h * w, p**2 * self.in_chans)
+        )  # Transform into (32, 196, 256)
         return x
 
     def unpatchify(self, x):
@@ -200,9 +203,7 @@ class MaskedAutoencoderViT(L.LightningModule):
         ids_restore = torch.argsort(ids_shuffle, dim=1)
 
         ids_keep = ids_shuffle[:, :len_keep]
-        x_masked = torch.gather(
-            x, dim=1, index=ids_keep.unsqueeze(-1).repeat(1, 1, D)
-        )
+        x_masked = torch.gather(x, dim=1, index=ids_keep.unsqueeze(-1).repeat(1, 1, D))
 
         mask = torch.ones(N, L, device=x.device)
         mask[:, :len_keep] = 0
@@ -369,7 +370,7 @@ mae_vit_small_patch16 = partial(
 )
 
 # mae_vit_base_patch16_dec512d8b
-# decoder: 512 dim, 8 blocks, 
+# decoder: 512 dim, 8 blocks,
 mae_vit_base_patch16 = partial(
     MaskedAutoencoderViT,
     patch_size=16,

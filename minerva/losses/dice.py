@@ -1,11 +1,11 @@
-from typing import Optional, List
+from typing import List, Optional
 
 import torch
 import torch.nn.functional as F
 from torch.nn.modules.loss import _Loss
 
-from sslt.losses._functional import dice_score
-from sslt.utils.tensor import to_tensor
+from minerva.losses._functional import dice_score
+from minerva.utils.tensor import to_tensor
 
 BINARY_MODE = "binary"
 MULTICLASS_MODE = "multiclass"
@@ -15,59 +15,57 @@ MULTILABEL_MODE = "multilabel"
 # Borrowed from https://github.com/qubvel/segmentation_models.pytorch/blob/master/segmentation_models_pytorch/losses/dice.py
 class DiceLoss(_Loss):
     def __init__(
-            self,
-            mode: str,
-            classes: Optional[List[int]] = None,
-            log_loss: bool = False,
-            from_logits: bool = True,
-            smooth: float = 0.0,
-            ignore_index: Optional[int] = None,
-            eps: float = 1e-7,
-        ):
-            """
-            Initialize the DiceLoss class.
+        self,
+        mode: str,
+        classes: Optional[List[int]] = None,
+        log_loss: bool = False,
+        from_logits: bool = True,
+        smooth: float = 0.0,
+        ignore_index: Optional[int] = None,
+        eps: float = 1e-7,
+    ):
+        """
+        Initialize the DiceLoss class.
 
-            Parameters
-            ----------
-            mode : str
-                Loss mode. Valid options are 'binary', 'multiclass', or 'multilabel'.
-            classes : Optional[List[int]], optional
-                List of classes that contribute in loss computation. By default, all channels are included. By default None
-            log_loss : bool, optional
-                If True, loss is computed as `- log(dice_coeff)`. If False, loss is computed as `1 - dice_coeff`, by default False
-            from_logits : bool, optional
-                If True, assumes input is raw logits. If False, assumes input is probabilities., by default True
-            smooth : float, optional
-                Smoothness constant for dice coefficient (a), by default 0.0
-            ignore_index : Optional[int], optional
-                Label that indicates ignored pixels (does not contribute to loss), by default None
-            eps : float, optional
-                A small epsilon for numerical stability to avoid zero division error (denominator will be always greater or equal to eps), by default 1e-7
+        Parameters
+        ----------
+        mode : str
+            Loss mode. Valid options are 'binary', 'multiclass', or 'multilabel'.
+        classes : Optional[List[int]], optional
+            List of classes that contribute in loss computation. By default, all channels are included. By default None
+        log_loss : bool, optional
+            If True, loss is computed as `- log(dice_coeff)`. If False, loss is computed as `1 - dice_coeff`, by default False
+        from_logits : bool, optional
+            If True, assumes input is raw logits. If False, assumes input is probabilities., by default True
+        smooth : float, optional
+            Smoothness constant for dice coefficient (a), by default 0.0
+        ignore_index : Optional[int], optional
+            Label that indicates ignored pixels (does not contribute to loss), by default None
+        eps : float, optional
+            A small epsilon for numerical stability to avoid zero division error (denominator will be always greater or equal to eps), by default 1e-7
 
-            Raises
-            ------
-            AssertionError
-                If the mode is not one of 'binary', 'multiclass', or 'multilabel' and classes are being masked with mode='binary'.
-            """
-            assert mode in {BINARY_MODE, MULTILABEL_MODE, MULTICLASS_MODE}
-            super(DiceLoss, self).__init__()
-            self.mode = mode
-            if classes is not None:
-                assert (
-                    mode != BINARY_MODE
-                ), "Masking classes is not supported with mode=binary"
-                classes = to_tensor(classes, dtype=torch.long)
+        Raises
+        ------
+        AssertionError
+            If the mode is not one of 'binary', 'multiclass', or 'multilabel' and classes are being masked with mode='binary'.
+        """
+        assert mode in {BINARY_MODE, MULTILABEL_MODE, MULTICLASS_MODE}
+        super(DiceLoss, self).__init__()
+        self.mode = mode
+        if classes is not None:
+            assert (
+                mode != BINARY_MODE
+            ), "Masking classes is not supported with mode=binary"
+            classes = to_tensor(classes, dtype=torch.long)
 
-            self.classes = classes
-            self.from_logits = from_logits
-            self.smooth = smooth
-            self.eps = eps
-            self.log_loss = log_loss
-            self.ignore_index = ignore_index
+        self.classes = classes
+        self.from_logits = from_logits
+        self.smooth = smooth
+        self.eps = eps
+        self.log_loss = log_loss
+        self.ignore_index = ignore_index
 
-    def forward(
-        self, y_pred: torch.Tensor, y_true: torch.Tensor
-    ) -> torch.Tensor:
+    def forward(self, y_pred: torch.Tensor, y_true: torch.Tensor) -> torch.Tensor:
 
         assert y_true.size(0) == y_pred.size(0)
 
@@ -104,9 +102,7 @@ class DiceLoss(_Loss):
                 y_true = F.one_hot(
                     (y_true * mask).to(torch.long), num_classes
                 )  # N,H*W -> N,H*W, C
-                y_true = y_true.permute(0, 2, 1) * mask.unsqueeze(
-                    1
-                )  # N, C, H*W
+                y_true = y_true.permute(0, 2, 1) * mask.unsqueeze(1)  # N, C, H*W
             else:
                 y_true = F.one_hot(y_true, num_classes)  # N,H*W -> N,H*W, C
                 y_true = y_true.permute(0, 2, 1)  # N, C, H*W

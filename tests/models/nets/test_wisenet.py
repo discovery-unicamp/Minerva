@@ -1,5 +1,6 @@
 import torch
-from sslt.models.nets.wisenet import WiseNet
+
+from minerva.models.nets.wisenet import WiseNet
 
 
 def test_wisenet_loss():
