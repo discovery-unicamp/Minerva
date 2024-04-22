@@ -51,6 +51,5 @@ dependencies = [
 dev = ["mock", "pytest", "black", "isort"]
 
 [project.urls]
-
 "Bug Tracker" = "https://github.com/discovery-unicamp/Minerva/issues"
 "Homepage" = "https://github.com/discovery-unicamp/Minerva"
