@@ -1,6 +1,5 @@
 import numpy as np
 import pytest
-
 from minerva.data.datasets.base import SimpleDataset
 
 

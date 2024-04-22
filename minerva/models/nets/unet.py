@@ -1,7 +1,8 @@
 """ Full assembly of the parts to form the complete network """
 
 import time
-from typing import Dict
+from typing import Dict, Optional
+
 
 import lightning as L
 import torch
@@ -200,7 +201,7 @@ class UNet(SimpleSupervisedModel):
         n_channels: int = 1,
         bilinear: bool = False,
         learning_rate: float = 1e-3,
-        loss_fn: torch.nn.Module = None,
+        loss_fn: Optional[torch.nn.Module] = None,
     ):
         """Wrapper implementation of the U-Net model.
 

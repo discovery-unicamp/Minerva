@@ -49,10 +49,7 @@ class TiffReader(_Reader):
             If the specified file does not exist in the given path.
         """
         return tiff.imread(self.files[index].as_posix())
-        # if (self.path / f"{index}.tif").exists():
-        #     return tiff.imread(sorted(self.path.glob("*.tif"))[index].as_posix())
-        # else:
-        #     raise ValueError(f"File {index}.tif does not exist in {self.path}")
+
 
     def __len__(self) -> int:
         """Return the number of TIFF files in the directory.
