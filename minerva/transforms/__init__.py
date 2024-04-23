@@ -1,1 +1,1 @@
-from .transform import Flip, TransformPipeline, _Transform
+from .transform import Flip, PerlinMasker, TransformPipeline, _Transform
