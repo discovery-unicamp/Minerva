@@ -9,7 +9,7 @@ def test_pixel_accuracy1():
     # Test case 1: All correct predictions
     preds = torch.tensor([0, 1, 2, 3])
     target = torch.tensor([0, 1, 2, 3])
-    metric.update(preds, target)
+    metric(preds, target)
     assert metric.compute() == 1.0
 
 
@@ -29,5 +29,5 @@ def test_pixel_accuracy3():
     # Test case 3: Partially correct predictions
     preds = torch.tensor([0, 1, 2, 3])
     target = torch.tensor([0, 1, 1, 0])
-    metric.update(preds, target)
+    metric(preds, target)
     assert metric.compute() == 0.5
