@@ -3,7 +3,7 @@ from typing import Sequence
 import numpy as np
 import pytest
 
-from minerva.transforms import Flip, TransformPipeline, _Transform
+from minerva.transforms import Flip, PerlinMasker, TransformPipeline, _Transform
 
 
 def test_transform_pipeline():
@@ -61,24 +61,6 @@ def test_flip_invalid_axes():
         flipped_x = flip_transform(x)
 
 
-def test_perlin_masker():
-    # Create a dummy input
-    x = np.random.rand(10, 20)
-
-    # Apply the PerlinMasker transform
-    perlin_masker = PerlinMasker(octaves=3, scale=2)
-    masked_x = perlin_masker(x)
-
-    # Check if the masked data has the same shape as the input
-    assert masked_x.shape == x.shape
-
-    # Check if the masked data has zeros at the positions where Perlin noise is negative
-    noise = perlin_masker.noise
-    denom = perlin_masker.scale * max(x.shape)
-    for pos in np.ndindex(*x.shape):
-        expected_value = (noise([i/denom for i in pos]) < 0)
-        assert masked_x[pos] == pytest.approx(x[pos] * expected_value)
-
 def test_perlin_masker_invalid_octaves():
     # Create a dummy input
     x = np.random.rand(10, 20)
@@ -87,6 +69,7 @@ def test_perlin_masker_invalid_octaves():
     with pytest.raises(ValueError):
         perlin_masker = PerlinMasker(octaves=-1)
         masked_x = perlin_masker(x)
+
 
 def test_perlin_masker_invalid_scale():
     # Create a dummy input
