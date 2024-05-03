@@ -27,7 +27,7 @@ class TiffReader(_Reader):
         self.path = Path(path)
         if not self.path.is_dir():
             raise ValueError(f"Path {path} is not a directory")
-        self.len = len(list(self.path.glob("*.tif")))
+        self.files = list(sorted(self.path.rglob("*.tif")))
 
     def __getitem__(self, index: Union[int, slice]) -> np.ndarray:
         """Retrieve the TIFF file at the specified index. The index will be
@@ -48,10 +48,7 @@ class TiffReader(_Reader):
         ValueError
             If the specified file does not exist in the given path.
         """
-        if (self.path / f"{index}.tif").exists():
-            return tiff.imread(sorted(self.path.glob("*.tif"))[index].as_posix())
-        else:
-            raise ValueError(f"File {index}.tif does not exist in {self.path}")
+        return tiff.imread(self.files[index].as_posix())
 
     def __len__(self) -> int:
         """Return the number of TIFF files in the directory.
@@ -61,4 +58,4 @@ class TiffReader(_Reader):
         int
             The number of TIFF files in the directory.
         """
-        return self.len
+        return len(self.files)

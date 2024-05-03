@@ -1,6 +1,6 @@
 import numpy as np
-from minerva.data.datasets.base import SimpleDataset
 import pytest
+from minerva.data.datasets.base import SimpleDataset
 
 
 class _SimpleReader:
@@ -50,15 +50,15 @@ def random_sum_transform2() -> _SumTransform:
 
 
 def test_simple_dataset(random_data_reader: _SimpleReader):
-    """Test the SimpleDataset class with a single reader passed as a list and 
+    """Test the SimpleDataset class with a single reader passed as a list and
     as a single object.
     """
-    
+
     # Single reader (list)
     dataset = SimpleDataset([random_data_reader])
     assert len(dataset) == len(random_data_reader)
     assert all(dataset[0][0] == random_data_reader[0])
-    
+
     # Single reader (single)
     dataset = SimpleDataset(random_data_reader)
     assert len(dataset) == len(random_data_reader)
@@ -104,16 +104,12 @@ def test_simple_dataset_transform(
     # List of transforms
     dataset = SimpleDataset([random_data_reader], [random_sum_transform])
     assert len(dataset) == len(random_data_reader)
-    assert all(
-        dataset[0][0] == random_data_reader[0] + random_sum_transform.constant
-    )
+    assert all(dataset[0][0] == random_data_reader[0] + random_sum_transform.constant)
 
     # Single transform
     dataset = SimpleDataset([random_data_reader], random_sum_transform)
     assert len(dataset) == len(random_data_reader)
-    assert all(
-        dataset[0][0] == random_data_reader[0] + random_sum_transform.constant
-    )
+    assert all(dataset[0][0] == random_data_reader[0] + random_sum_transform.constant)
 
 
 def test_simple_dataset_transform_multiple_readers(
@@ -121,7 +117,7 @@ def test_simple_dataset_transform_multiple_readers(
     random_data_reader2: _SimpleReader,
     random_sum_transform: _SumTransform,
 ):
-    """Test the SimpleDataset class with multiple readers and a single 
+    """Test the SimpleDataset class with multiple readers and a single
     transform. When a single transform object is passed, it is applied to all
     readers. However, passing a 1-element list of transforms to a 2-element list
     of readers should raise an AssertionError.
@@ -131,20 +127,15 @@ def test_simple_dataset_transform_multiple_readers(
         [random_data_reader, random_data_reader2], random_sum_transform
     )
     assert len(dataset) == len(random_data_reader)
-    assert all(
-        dataset[0][0] == random_data_reader[0] + random_sum_transform.constant
-    )
-    assert all(
-        dataset[0][1] == random_data_reader2[0] + random_sum_transform.constant
-    )
-    
+    assert all(dataset[0][0] == random_data_reader[0] + random_sum_transform.constant)
+    assert all(dataset[0][1] == random_data_reader2[0] + random_sum_transform.constant)
+
     # Single transform (list)
     with pytest.raises(AssertionError):
         dataset = SimpleDataset(
             [random_data_reader, random_data_reader2],
             [random_sum_transform],
         )
-
 
 
 def test_simple_dataset_multiple_transforms_multiple_readers(
@@ -155,7 +146,7 @@ def test_simple_dataset_multiple_transforms_multiple_readers(
 ):
     """Test the SimpleDataset class with multiple readers and multiple transforms
     passed as object. Some of the transforms are None.
-    """   
+    """
     # List of transforms
     dataset = SimpleDataset(
         [random_data_reader, random_data_reader2],
@@ -163,13 +154,9 @@ def test_simple_dataset_multiple_transforms_multiple_readers(
     )
 
     assert len(dataset) == len(random_data_reader)
-    assert all(
-        dataset[0][0] == random_data_reader[0] + random_sum_transform.constant
-    )
-    assert all(
-        dataset[0][1] == random_data_reader2[0] + random_sum_transform2.constant
-    )
-    
+    assert all(dataset[0][0] == random_data_reader[0] + random_sum_transform.constant)
+    assert all(dataset[0][1] == random_data_reader2[0] + random_sum_transform2.constant)
+
     # None in the list of transforms (1º element)
     dataset = SimpleDataset(
         [random_data_reader, random_data_reader2],
@@ -177,9 +164,7 @@ def test_simple_dataset_multiple_transforms_multiple_readers(
     )
 
     assert len(dataset) == len(random_data_reader)
-    assert all(
-        dataset[0][0] == random_data_reader[0] + random_sum_transform.constant
-    )
+    assert all(dataset[0][0] == random_data_reader[0] + random_sum_transform.constant)
     assert all(dataset[0][1] == random_data_reader2[0])
 
     # None in the list of transforms (2º element)
@@ -190,9 +175,7 @@ def test_simple_dataset_multiple_transforms_multiple_readers(
 
     assert len(dataset) == len(random_data_reader)
     assert all(dataset[0][0] == random_data_reader[0])
-    assert all(
-        dataset[0][1] == random_data_reader2[0] + random_sum_transform2.constant
-    )
+    assert all(dataset[0][1] == random_data_reader2[0] + random_sum_transform2.constant)
 
 
 def test_simple_dataset_transform_multiple_readers_return_single(

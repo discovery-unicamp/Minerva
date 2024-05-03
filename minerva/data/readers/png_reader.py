@@ -34,7 +34,7 @@ class PNGReader(_Reader):
         self.path = Path(path)
         if not self.path.is_dir():
             raise ValueError(f"Path {path} is not a directory")
-        self.len = len(list(self.path.glob("*.png")))
+        self.files = list(sorted(self.path.rglob("*.png")))
 
     def __getitem__(self, index: int) -> np.ndarray:
         """Retrieve the PNG file at the specified index. The index will be
@@ -55,10 +55,7 @@ class PNGReader(_Reader):
         ValueError
             If the specified file does not exist in the given path.
         """
-        if (self.path / f"{index}.png").exists():
-            return np.array(Image.open(self.path / f"{index}.png"))
-        else:
-            raise ValueError(f"File {index}.png does not exist in {self.path}")
+        return np.array(Image.open(self.files[index].as_posix()))
 
     def __len__(self) -> int:
         """Return the number of PNG files in the directory.
@@ -68,4 +65,4 @@ class PNGReader(_Reader):
         int
             The number of PNG files in the directory.
         """
-        return self.len
+        return len(self.files)

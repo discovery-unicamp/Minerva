@@ -103,9 +103,7 @@ class WiseNet(SimpleSupervisedModel):
         learning_rate: float = 1e-3,
     ):
         super().__init__(
-            backbone=_WiseNet(
-                in_channels=in_channels, out_channels=out_channels
-            ),
+            backbone=_WiseNet(in_channels=in_channels, out_channels=out_channels),
             fc=torch.nn.Identity(),
             loss_fn=loss_fn or torch.nn.MSELoss(),
             learning_rate=learning_rate,
@@ -129,7 +127,6 @@ class WiseNet(SimpleSupervisedModel):
             logger=True,
         )
         return loss
-
 
     def predict_step(self, batch, batch_idx, dataloader_idx=None):
         x, y = batch
