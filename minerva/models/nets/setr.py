@@ -1,9 +1,11 @@
 import warnings
+from enum import Enum
 from typing import Optional, Tuple
 
 import lightning as L
 import torch
 from torch import nn
+from torchmetrics import JaccardIndex
 
 from minerva.models.nets.vit import _VisionTransformerBackbone
 from minerva.utils.upsample import Upsample, resize
@@ -366,6 +368,31 @@ class _SetR_PUP(nn.Module):
         return x, torch.zeros(1), torch.zeros(1), torch.zeros(1)
 
 
+class MetricTypeSetR(Enum):
+    """Type of metric to be used for evaluation.
+
+    Type of metric to be used for evaluation in the `SETR` model.
+    """
+
+    mIoU = "mIoU"
+
+    def get_metric(self, **kwargs) -> nn.Module:
+        """Get the metric object.
+
+        Returns
+        -------
+        nn.Module
+            The metric object.
+        """
+
+        if self == MetricTypeSetR.mIoU:
+            task = kwargs.get("task", "segmentation")
+            num_classes = kwargs.get("num_classes")
+            avrege = kwargs.get("average", "macro")
+            return JaccardIndex(task=task, num_classes=num_classes, average=avrege)
+        raise ValueError(f"Invalid metric type: {self}")
+
+
 class SETR_PUP(L.LightningModule):
 
     def __init__(
@@ -389,6 +416,10 @@ class SETR_PUP(L.LightningModule):
         conv_act: Optional[nn.Module] = None,
         interpolate_mode: str = "bilinear",
         loss_fn: Optional[nn.Module] = None,
+        log_train_metrics: bool = False,
+        train_metrics: Optional[nn.Module] = None,
+        log_val_metrics: bool = False,
+        val_metrics: Optional[nn.Module] = None,
     ):
         """
         Initializes the SetR model.
@@ -433,6 +464,10 @@ class SETR_PUP(L.LightningModule):
             The interpolation mode for upsampling in the decoder. Defaults to "bilinear".
         loss_fn : nn.Module, optional
             The loss function to be used during training. Defaults to None.
+        log_metrics : bool
+            Whether to log metrics during training. Defaults to True.
+        metrics : list[MetricTypeSetR], optional
+            The metrics to be used for evaluation. Defaults to [MetricTypeSetR.mIoU, MetricTypeSetR.mIoU, MetricTypeSetR.mIoU].
 
         """
         super().__init__()
@@ -443,6 +478,21 @@ class SETR_PUP(L.LightningModule):
         )
         conv_act = conv_act if conv_act is not None else nn.ReLU()
         self.num_classes = num_classes
+
+        self.log_train_metrics = log_train_metrics
+        self.log_val_metrics = log_val_metrics
+
+        if log_train_metrics:
+            assert (
+                train_metrics is not None
+            ), "train_metrics must be provided if log_train_metrics is True"
+            self.train_metrics = train_metrics
+
+        if log_val_metrics:
+            assert (
+                val_metrics is not None
+            ), "val_metrics must be provided if log_val_metrics is True"
+            self.val_metrics = val_metrics
 
         self.model = _SetR_PUP(
             image_size=image_size,
@@ -508,6 +558,27 @@ class SETR_PUP(L.LightningModule):
         x, y = batch
         y_hat = self.model(x)
         loss = self._loss_func(y_hat[0], y.squeeze(1))
+
+        if step_name == "train" and self.log_train_metrics:
+            self.train_metrics(y_hat[0], y)
+            self.log(
+                f"{step_name}_metrics",
+                self.train_metrics.compute(),
+                on_step=False,
+                on_epoch=True,
+                logger=True,
+            )
+
+        if step_name == "val" and self.log_val_metrics:
+            self.val_metrics(y_hat[0], y)
+            self.log(
+                f"{step_name}_metrics",
+                self.val_metrics.compute(),
+                on_step=False,
+                on_epoch=True,
+                logger=True,
+            )
+
         self.log(
             f"{step_name}_loss",
             loss,
