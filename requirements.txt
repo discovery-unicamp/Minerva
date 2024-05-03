@@ -11,3 +11,5 @@ zarr
 rich
 perlin-noise
 torchmetrics
+torchvision
+timm
