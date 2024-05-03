@@ -47,6 +47,9 @@ dependencies = [
     "perlin-noise",
 ]
 
+[tool.setuptools]
+py-modules = []
+
 [project.optional-dependencies]
 dev = ["mock", "pytest", "black", "isort"]
 
