@@ -1,5 +1,5 @@
 # Minerva
-[![Continuous Test](https://github.com/discovery-unicamp/Minerva/actions/workflows/python-app.yml/badge.svg)]([https://github.com/discovery-unicamp/dasf-core/actions/workflows/ci.yaml](https://github.com/discovery-unicamp/Minerva/actions/workflows/python-app.yml))
+[![Continuous Test](https://github.com/discovery-unicamp/Minerva/actions/workflows/python-app.yml/badge.svg)](https://github.com/discovery-unicamp/Minerva/actions/workflows/python-app.yml)
 
 
 
