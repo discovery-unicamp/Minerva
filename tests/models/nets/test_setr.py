@@ -5,10 +5,10 @@ from minerva.models.nets.setr import SETR_PUP
 
 
 def test_wisenet_loss():
-    model = SETR_PUP()
+    model = SETR_PUP(image_size=16)
     batch_size = 2
-    x = torch.rand(2, 3, 512, 512)
-    mask = torch.rand(2, 1, 512, 512).long()
+    x = torch.rand(2, 3, 16, 16)
+    mask = torch.rand(2, 1, 16, 16).long()
 
     # Do the training step
     loss = model.training_step((x, mask), 0).item()
@@ -17,11 +17,11 @@ def test_wisenet_loss():
 
 
 def test_wisenet_predict():
-    model = SETR_PUP()
+    model = SETR_PUP(image_size=16)
     batch_size = 2
-    mask_shape = (batch_size, 1000, 512, 512)  # (2, 1, 500, 500)
-    x = torch.rand(2, 3, 512, 512)
-    mask = torch.rand(2, 1, 512, 512).long()
+    mask_shape = (batch_size, 1000, 16, 16)  # (2, 1, 500, 500)
+    x = torch.rand(2, 3, 16, 16)
+    mask = torch.rand(2, 1, 16, 16).long()
 
     # Do the prediction step
     preds = model.predict_step((x, mask), 0)
