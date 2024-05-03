@@ -20,7 +20,7 @@ test_models = [
 ]
 
 
-# @pytest.mark.parametrize("model_cls,img_size", test_models)
+@pytest.mark.parametrize("model_cls,img_size", test_models)
 def test_sfm_pretrain_forward(model_cls, img_size):
     # Test the class instantiation
     model = model_cls(img_size=img_size, in_chans=1, norm_pix_loss=False)
