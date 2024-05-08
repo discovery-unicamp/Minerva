@@ -1,4 +1,7 @@
 # Minerva
+[![Continuous Test](https://github.com/discovery-unicamp/Minerva/actions/workflows/python-app.yml/badge.svg)](https://github.com/discovery-unicamp/Minerva/actions/workflows/python-app.yml)
+
+
 
 Minerva is a framework for training machine learning models for researchers.
 
