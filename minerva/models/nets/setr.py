@@ -533,7 +533,7 @@ class SETR_PUP(L.LightningModule):
         torch.Tensor
             The loss value.
         """
-        loss = self.loss_fn(y_hat, y)
+        loss = self.loss_fn(y_hat, y.long())
         return loss
 
     def _single_step(
@@ -556,25 +556,29 @@ class SETR_PUP(L.LightningModule):
             The loss value.
         """
         x, y = batch
-        y_hat = self.model(x)
+        y_hat = self.model(x.float())
         loss = self._loss_func(y_hat[0], y.squeeze(1))
 
         if step_name == "train" and self.log_train_metrics:
-            self.train_metrics(y_hat[0], y)
+            preds = torch.argmax(y_hat[0], dim=1, keepdim=True)
+            self.train_metrics(preds, y)
+            mIoU = self.train_metrics.compute()
             self.log(
                 f"{step_name}_metrics",
-                self.train_metrics.compute(),
-                on_step=False,
+                mIoU,
+                on_step=True,
                 on_epoch=True,
                 logger=True,
             )
 
         if step_name == "val" and self.log_val_metrics:
-            self.val_metrics(y_hat[0], y)
+            preds = torch.argmax(y_hat[0], dim=1, keepdim=True)
+            self.train_metrics(preds, y)
+            mIoU = self.val_metrics.compute()
             self.log(
                 f"{step_name}_metrics",
-                self.val_metrics.compute(),
-                on_step=False,
+                mIoU,
+                on_step=True,
                 on_epoch=True,
                 logger=True,
             )
