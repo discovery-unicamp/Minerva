@@ -3,6 +3,7 @@
 
 import torch
 
+
 # Borrowed from https://github.com/qubvel/segmentation_models.pytorch/blob/master/segmentation_models_pytorch/losses/_functional.py
 def dice_score(
     y_hat: torch.Tensor,
@@ -18,7 +19,5 @@ def dice_score(
     else:
         intersection = torch.sum(y_hat * y)
         cardinality = torch.sum(y_hat + y)
-    dice_score = (2.0 * intersection + smooth) / (
-        cardinality + smooth
-    ).clamp_min(eps)
+    dice_score = (2.0 * intersection + smooth) / (cardinality + smooth).clamp_min(eps)
     return dice_score
