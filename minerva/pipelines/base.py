@@ -1,21 +1,21 @@
-
-from abc import abstractmethod
 import copy
-from pathlib import Path
-from lightning.pytorch.core.mixins import HyperparametersMixin
-from typing import Any, List, Dict, Tuple
-from uuid import uuid4
-from time import time
-import traceback
 import sys
+import traceback
+from abc import abstractmethod
+from pathlib import Path
+from time import time
+from typing import Any, Dict, List, Optional
+from uuid import uuid4
+
 from jsonargparse import CLI
+from lightning.pytorch.core.mixins.hparams_mixin import HyperparametersMixin
 
 
 class Pipeline(HyperparametersMixin):
     def __init__(
         self,
-        cwd: Path | str = None,
-        ignore: str | List[str] = None,
+        cwd: Optional[Path | str] = None,
+        ignore: Optional[str | List[str]] = None,
         cache_result: bool = False,
     ):
         self._initialize_vars()
