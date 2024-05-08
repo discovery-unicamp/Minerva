@@ -29,7 +29,7 @@ from minerva.analysis.metrics import PixelAccuracy
 
 ## License
 
-This project is licensed under the MIT License. See the LICENSE file for details.
+This project is licensed under the MIT License. See the [LICENSE](https://github.com/discovery-unicamp/Minerva/blob/main/LICENSE) file for details.
 
 ## Contact
 
