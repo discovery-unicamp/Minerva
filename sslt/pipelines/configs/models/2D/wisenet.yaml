@@ -1,9 +1,0 @@
-class_path: minerva.models.nets.WiseNet
-init_args:
-  in_channels: 1
-  out_channels: 1
-  loss_fn:
-    class_path: torch.nn.MSELoss
-    init_args:
-      reduction: mean
-  learning_rate: 0.001
