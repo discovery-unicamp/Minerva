@@ -1,0 +1,3 @@
+class_path: minerva.models.nets.unet.UNet
+init_args:
+  n_channels: 1

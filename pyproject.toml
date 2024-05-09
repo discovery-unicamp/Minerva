@@ -48,6 +48,7 @@ dependencies = [
     "torchmetrics",
     "rich",
     "perlin-noise",
+    "gitpython"
     "jsonargparse",
 ]
 
