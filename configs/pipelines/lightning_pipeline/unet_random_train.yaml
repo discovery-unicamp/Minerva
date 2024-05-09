@@ -1,0 +1,6 @@
+model: "/workspaces/seismic/Framework-SSL/configs/models/single_channel_unet.yaml"
+trainer: "/workspaces/seismic/Framework-SSL/configs/trainer/default.yaml"
+cwd: null
+run:
+  data: "/workspaces/seismic/Framework-SSL/configs/data/random_reconstruction_data.yaml"
+  task: fit

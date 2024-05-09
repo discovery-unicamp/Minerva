@@ -1,0 +1,8 @@
+class_path: minerva.utils.data.RandomDataModule
+init_args:
+  data_shape: [1, 128, 128]
+  label_shape: [1, 128, 128]
+  num_train_samples: 128
+  num_val_samples: 8
+  num_test_samples: 8
+  batch_size: 4

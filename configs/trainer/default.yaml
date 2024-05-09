@@ -1,0 +1,9 @@
+class_path: lightning.Trainer
+init_args:
+  devices: 1
+  accelerator: gpu
+  strategy: auto
+  max_epochs: 2
+  logger: null
+  logger: "/workspaces/seismic/Framework-SSL/configs/loggers/default.yaml"
+  callbacks: "/workspaces/seismic/Framework-SSL/configs/callbacks/default_train.yaml"
