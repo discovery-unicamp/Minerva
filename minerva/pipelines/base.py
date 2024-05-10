@@ -183,7 +183,7 @@ class Pipeline(HyperparametersMixin):
 
         if self._save_run_status:
             self._cached_run_status.append(self.run_status)
-            self._save_pipeline_info(self._cwd / f"run_{self.pipeline_id}.yaml")
+            self._save_pipeline_info(self.working_dir / f"run_{self.pipeline_id}.yaml")
 
         return result
 
