@@ -10,6 +10,11 @@ import yaml
 
 
 class SimpleLightningPipeline(Pipeline):
+    """Simple pipeline to train, test, predict and evaluate models using Pytorch
+    Lightning. This class is intended to be seamlessly integrated with
+    jsonargparse CLI.
+    """
+
     def __init__(
         self,
         model: L.LightningModule,
@@ -20,6 +25,56 @@ class SimpleLightningPipeline(Pipeline):
         regression_metrics: Dict[str, Metric] = None,
         apply_metrics_per_sample: bool = False,
     ):
+        """Train/test/predict/evaluate a Pytorch Lightning model.
+
+        It provides 4 tasks: fit, test, predict and evaluate. The fit task
+        trains the model, the test task evaluates the model on the test set, the
+        predict task generates predictions for the predict set and the evaluate
+        task evaluates the model on the predict set and returns the metrics.
+
+        The evaluate task can calculate classification and regression metrics,
+        which is passed as arguments. The metrics are calculated per sample if
+        `apply_metrics_per_sample` is True (that generate a metric for each),
+        otherwise the metrics are calculated for the whole dataset (single
+        metric). The last option is the default.
+
+        Parameters
+        ----------
+        model : L.LightningModule
+            The LightningModule to be used.
+        trainer : L.Trainer
+            The Lightning Trainer to be used.
+        cwd : str, optional
+            The working dir, to be passed to the pipeline. We do not change to
+            this directory. It is only used to help users the location of can
+            be found, by default None (set to current Python working directory)
+        save_run_status : bool, optional
+            If True, save the status of each run in a YAML file. This file will
+            be saved in the working directory with the name
+            `run_{pipeline_id}.yaml`. By default False.
+        classification_metrics : Dict[str, Metric], optional
+            The classification metrics to be used in the evaluate task. This
+            dictionary should have the metric name as key and the
+            `torchmetrics.Metric`-like object as value. The metric should be
+            able to receive two tensors (y_true, y_pred) and return a tensor
+            with the metric value. If None, no classification metrics will be
+            calculated. Different from regression, the torch.argmax will be
+            applied to the predictions before calculating the metrics.
+            By default None.
+        regression_metrics : Dict[str, Metric], optional
+            The regression metrics to be used in the evaluate task. This
+            dictionary should have the metric name as key and the
+            `torchmetrics.Metric`-like object as value. The metric should be
+            able to receive two tensors (y_true, y_pred) and return a tensor
+            with the metric value. If None, no regression metrics will be
+            calculated. By default None.
+        apply_metrics_per_sample : bool, optional
+            Apply the metrics per sample. If True, the metrics will be
+            calculated for each sample and the results will be a list of
+            metrics. If False, the metrics will be calculated for the whole
+            dataset and the results will be a single metric (single-element
+            list). By default False
+        """
         super().__init__(
             cwd=cwd,
             ignore=["model", "trainer"],
@@ -35,25 +90,68 @@ class SimpleLightningPipeline(Pipeline):
 
     # Public read-only properties
     @property
-    def model(self):
+    def model(self) -> L.LightningModule:
+        """The LightningModule used in the pipeline.
+
+        Returns
+        -------
+        L.LightningModule
+            The model used in the pipeline.
+        """
         return self._model
 
     @property
-    def trainer(self):
+    def trainer(self) -> L.Trainer:
+        """The Lightning Trainer used in the pipeline.
+
+        Returns
+        -------
+        L.Trainer
+            The trainer used in the pipeline.
+        """
         return self._trainer
 
     @property
-    def data(self):
+    def data(self) -> L.LightningDataModule:
+        """The LightningDataModule used in the last run of the pipeline.
+
+        Returns
+        -------
+        L.LightningDataModule
+            The data used in the last run of the pipeline.
+        """
         return self._data
 
-    def _calculate_metrics(self, metrics: Dict[str, Metric], y_hat, y):
+    def _calculate_metrics(
+        self, metrics: Dict[str, Metric], y_hat: torch.Tensor, y: torch.Tensor
+    ) -> Dict[str, List[float]]:
+        """Calculate the metrics for the given predictions and targets.
+
+        Parameters
+        ----------
+        metrics : Dict[str, Metric]
+            The metrics to be calculated. The dictionary should have the metric
+            name as key and the `torchmetrics.Metric`-like object as value.
+        y_hat : torch.Tensor
+            The predictions tensor.
+        y : torch.Tensor
+            The targets tensor.
+
+        Returns
+        -------
+        Dict[str, List[float]]
+            A dictionary with the metric name as key and the list of metric
+            values as value. The list will have a single element if
+            `apply_metrics_per_sample` is False, otherwise it will have a value.
+        """
         results = {}
         if not self._apply_metrics_per_sample:
             y, y_hat = [y], [y_hat]
 
         for metric_name, metric in metrics.items():
             final_results = [
-                metric(y_i, y_hat_i).float().item() for y_i, y_hat_i in zip(y, y_hat)
+                metric(y_i, y_hat_i).float().item()
+                for y_i, y_hat_i in zip(y, y_hat)
             ]
             results[metric_name] = final_results
 
@@ -61,11 +159,31 @@ class SimpleLightningPipeline(Pipeline):
 
     # Private methods
     def _fit(self, data: L.LightningDataModule, ckpt_path: str | Path):
+        """Fit the model using the given data.
+
+        Parameters
+        ----------
+        data : L.LightningDataModule
+            The data module to be used. The data module should have the
+            `train_dataloader` method implemented.
+        ckpt_path : str | Path
+            The checkpoint path to be used. If None, no checkpoint will be used.
+        """
         return self._trainer.fit(
             model=self._model, datamodule=data, ckpt_path=ckpt_path
         )
 
     def _test(self, data: L.LightningDataModule, ckpt_path: str | Path):
+        """Test the model using the given data.
+
+        Parameters
+        ----------
+        data : L.LightningDataModule
+            The data module to be used. The data module should have the
+            `test_dataloader` method implemented.
+        ckpt_path : str | Path
+            The checkpoint path to be used. If None, no checkpoint will be used.
+        """
         return self._trainer.test(
             model=self._model, datamodule=data, ckpt_path=ckpt_path
         )
@@ -74,7 +192,22 @@ class SimpleLightningPipeline(Pipeline):
         self,
         data: L.LightningDataModule,
         ckpt_path: str | Path = None,
-    ):
+    ) -> torch.Tensor:
+        """Predict using the given data.
+
+        Parameters
+        ----------
+        data : L.LightningDataModule
+            The data module to be used. The data module should have the
+            `predict_dataloader` method implemented.
+        ckpt_path : str | Path
+            The checkpoint path to be used. If None, no checkpoint will be used.
+
+        Returns
+        -------
+        torch.Tensor
+            The predictions tensor.
+        """
         return self._trainer.predict(
             model=self._model, datamodule=data, ckpt_path=ckpt_path
         )
@@ -83,7 +216,23 @@ class SimpleLightningPipeline(Pipeline):
         self,
         data: L.LightningDataModule,
         ckpt_path: str | Path = None,
-    ):
+    ) -> Dict[str, Dict[str, List[float]]]:
+        """Evaluate the model and calculate regression and/or classification 
+        metrics. 
+
+        Parameters
+        ----------
+        data : L.LightningDataModule
+            The data module to be used. The data module should have the
+            `predict_dataloader` method implemented.
+        ckpt_path : str | Path
+            The checkpoint path to be used. If None, no checkpoint will be used.
+
+        Returns
+        -------
+        Dict[str, Dict[str, List[float]]]
+            A dictionary with metric.
+        """
         metrics = defaultdict(dict)
 
         X, y = get_full_data_split(data, "predict")
@@ -106,7 +255,7 @@ class SimpleLightningPipeline(Pipeline):
             metrics["regression"] = self._calculate_metrics(
                 self._regression_metrics, y_hat, y
             )
-            
+
         metrics = dict(metrics)
 
         if self._save_pipeline_info:
@@ -114,7 +263,7 @@ class SimpleLightningPipeline(Pipeline):
             with open(yaml_path, "w") as f:
                 yaml.dump(metrics, f)
                 print(f"Metrics saved to {yaml_path}")
-                
+
         print(metrics)
 
         return metrics
@@ -123,9 +272,33 @@ class SimpleLightningPipeline(Pipeline):
     def _run(
         self,
         data: L.LightningDataModule,
-        task: Literal["fit", "test", "predict", "evaluate"] = "fit",
+        task: Literal["fit", "test", "predict", "evaluate"],
         ckpt_path: str | Path = None,
     ):
+        """
+        Run the specified task on the given data.
+
+        Parameters
+        ----------
+        data : L.LightningDataModule
+            The LightningDataModule object containing the data for the task.
+        task : Literal["fit", "test", "predict", "evaluate"], optional
+            The task to be performed. Valid options are "fit", "test", 
+            "predict", and "evaluate".
+        ckpt_path : str | Path, optional
+            The path to the checkpoint file to be used for resuming training or 
+            performing inference. Defaults to None.
+
+        Returns
+        -------
+        Any
+            The result of the specified task.
+
+        Raises
+        ------
+        ValueError
+            If an unknown task is provided.
+        """
         self._data = data
 
         if task == "fit":
