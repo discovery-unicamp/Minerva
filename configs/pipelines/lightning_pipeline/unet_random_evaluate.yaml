@@ -1,0 +1,14 @@
+model: "/workspaces/seismic/Framework-SSL/configs/models/single_channel_unet.yaml"
+trainer: "/workspaces/seismic/Framework-SSL/configs/trainer/default.yaml"
+regression_metrics: 
+  mse:
+    class_path: torchmetrics.regression.MeanSquaredError
+    init_args: {}
+  mae:
+    class_path: torchmetrics.regression.MeanAbsoluteError
+    init_args: {}
+cwd: null
+run:
+  data: "/workspaces/seismic/Framework-SSL/configs/data/random_reconstruction_data.yaml"
+  task: evaluate
+  
