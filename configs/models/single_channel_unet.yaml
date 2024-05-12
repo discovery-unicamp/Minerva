@@ -1,6 +1,0 @@
-# A single-channel U-Net used for reconstruction tasks.
-
-# The class used and its init arguments.
-class_path: minerva.models.nets.unet.UNet
-init_args:
-  n_channels: 1
