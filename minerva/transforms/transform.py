@@ -95,7 +95,9 @@ class PerlinMasker(_Transform):
             Optionally rescale the Perlin noise. Default is 1 (no rescaling)
         """
         if octaves <= 0:
-            raise ValueError(f"Number of octaves must be positive, but got {octaves=}")
+            raise ValueError(
+                f"Number of octaves must be positive, but got {octaves=}"
+            )
         if scale == 0:
             raise ValueError(f"Scale can't be 0")
         self.octaves = octaves
@@ -118,3 +120,57 @@ class PerlinMasker(_Transform):
             mask[pos] = noise([i / denom for i in pos]) < 0
 
         return x * mask
+
+
+class Squeeze(_Transform):
+    """Remove single-dimensional entries from the shape of an array."""
+
+    def __init__(self, axis: int):
+        """Remove single-dimensional entries from the shape of an array.
+
+        Parameters
+        ----------
+        axis : int
+            The position of the axis to be removed.
+        """
+        self.axis = axis
+
+    def __call__(self, x: np.ndarray) -> np.ndarray:
+        """Remove single-dimensional entries from the shape of an array."""
+        return np.squeeze(x, axis=self.axis)
+
+
+class Unsqueeze(_Transform):
+    """Add a new axis to the input data at the specified position."""
+
+    def __init__(self, axis: int):
+        """Add a new axis to the input data at the specified position.
+
+        Parameters
+        ----------
+        axis : int
+            The position of the new axis to be added.
+        """
+        self.axis = axis
+
+    def __call__(self, x: np.ndarray) -> np.ndarray:
+        """Add a new axis to the input data at the specified position."""
+        return np.expand_dims(x, axis=self.axis)
+
+
+class CastTo(_Transform):
+    """Cast the input data to the specified data type."""
+
+    def __init__(self, dtype: type | str):
+        """Cast the input data to the specified data type.
+
+        Parameters
+        ----------
+        dtype : type
+            The data type to which the input data will be cast.
+        """
+        self.dtype = dtype
+
+    def __call__(self, x: np.ndarray) -> np.ndarray:
+        """Cast the input data to the specified data type."""
+        return x.astype(self.dtype)
