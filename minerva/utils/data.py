@@ -113,7 +113,6 @@ class RandomDataModule(L.LightningDataModule):
                     self.num_classes,
                 )
                 self.predict_data = SimpleDataset(data, label)
-                print(f"******* GENERATED PREDICT DATA!")
                 
         else:
             raise ValueError(f"Invalid stage: {stage}")
@@ -159,7 +158,9 @@ def get_split_dataloader(
 
 
 def full_dataset_from_dataloader(dataloader: DataLoader):
-    return dataloader.dataset[:]
+    res = [dataloader.dataset[i] for i in range(dataloader.dataset)]
+    # unpack the data and labels
+    return list(zip(*res))
 
 
 def get_full_data_split(

@@ -1,0 +1,34 @@
+# Configuration file to evaluate a model to calculate seismic attributes in F3 
+# dataset. This is the entry-point configuration to CLI from lightning_pipeline
+# class. It uses the following configuration files:
+# - model: "/workspaces/seismic/Framework-SSL/configs/models/single_channel_unet.yaml"
+# - trainer: "/workspaces/seismic/Framework-SSL/configs/trainer/default.yaml"
+# - data: "/workspaces/seismic/Framework-SSL/configs/data/f3_reconstruct_data.yaml"
+# The model is a single-channel U-Net used for reconstruction tasks. The data
+# module is the F3 reconstruction data module. The trainer is the default
+# configuration for the Trainer class. The model is evaluated using the last
+# checkpoint from the training process. The mse and mae metrics are used to 
+# evaluate the model.
+
+# --------------------- INIT ARGS ---------------------
+# Model configuration file
+model: "/workspaces/seismic/Framework-SSL/configs/models/single_channel_unet.yaml" 
+# Trainer configuration file
+trainer: "/workspaces/seismic/Framework-SSL/configs/trainer/default.yaml"
+log_dir: null
+# Required metrics to evaluate the model (MSE and MAE). Follows torchmetrics API
+regression_metrics: 
+  mse:
+    class_path: torchmetrics.regression.MeanSquaredError
+    init_args: {}
+  mae:
+    class_path: torchmetrics.regression.MeanAbsoluteError
+    init_args: {}
+# --------------------- RUN ARGS (Pipeline's entry-point) ---------------------
+run:
+  # Set the task to evaluate
+  task: evaluate
+  # Data configuration file
+  data: "/workspaces/seismic/Framework-SSL/configs/data/f3_reconstruct_data.yaml"
+  # Path to the checkpoint to evaluate
+  ckpt_path: "/workspaces/seismic/Framework-SSL/logs/lightning_logs/version_29/checkpoints/last.ckpt"

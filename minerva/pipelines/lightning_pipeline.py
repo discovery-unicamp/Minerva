@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Dict, List, Literal
+from typing import Any, Dict, Iterable, List, Literal
 import lightning as L
 import torch
 from minerva.pipelines.base import Pipeline
@@ -7,6 +7,7 @@ from torchmetrics import Metric
 from minerva.utils.data import get_full_data_split
 from collections import defaultdict
 import yaml
+from minerva.utils.typing import PathLike
 
 
 class SimpleLightningPipeline(Pipeline):
@@ -19,8 +20,8 @@ class SimpleLightningPipeline(Pipeline):
         self,
         model: L.LightningModule,
         trainer: L.Trainer,
-        cwd: str = None,
-        save_run_status: bool = False,
+        log_dir: PathLike = None,
+        save_run_status: bool = True,
         classification_metrics: Dict[str, Metric] = None,
         regression_metrics: Dict[str, Metric] = None,
         apply_metrics_per_sample: bool = False,
@@ -44,14 +45,13 @@ class SimpleLightningPipeline(Pipeline):
             The LightningModule to be used.
         trainer : L.Trainer
             The Lightning Trainer to be used.
-        cwd : str, optional
-            The working dir, to be passed to the pipeline. We do not change to
-            this directory. It is only used to help users the location of can
-            be found, by default None (set to current Python working directory)
+        log_dir : PathLike, optional
+            The default logging directory where all related pipeline files 
+            should be saved. By default None (uses current working directory)
         save_run_status : bool, optional
             If True, save the status of each run in a YAML file. This file will
             be saved in the working directory with the name
-            `run_{pipeline_id}.yaml`. By default False.
+            `run_{pipeline_id}.yaml`. By default True.
         classification_metrics : Dict[str, Metric], optional
             The classification metrics to be used in the evaluate task. This
             dictionary should have the metric name as key and the
@@ -74,10 +74,18 @@ class SimpleLightningPipeline(Pipeline):
             metrics. If False, the metrics will be calculated for the whole
             dataset and the results will be a single metric (single-element
             list). By default False
-        """
+        """ 
+        if log_dir is None and trainer.log_dir is not None:
+            log_dir = trainer.log_dir
+        
         super().__init__(
-            cwd=cwd,
-            ignore=["model", "trainer"],
+            log_dir=log_dir,
+            ignore=[
+                "model",
+                "trainer",
+                "classification_metrics",
+                "regression_metrics",
+            ],
             cache_result=True,
             save_run_status=save_run_status,
         )
@@ -124,7 +132,7 @@ class SimpleLightningPipeline(Pipeline):
 
     def _calculate_metrics(
         self, metrics: Dict[str, Metric], y_hat: torch.Tensor, y: torch.Tensor
-    ) -> Dict[str, List[float]]:
+    ) -> Dict[str, Any]:
         """Calculate the metrics for the given predictions and targets.
 
         Parameters
@@ -139,7 +147,7 @@ class SimpleLightningPipeline(Pipeline):
 
         Returns
         -------
-        Dict[str, List[float]]
+        Dict[str, Any]
             A dictionary with the metric name as key and the list of metric
             values as value. The list will have a single element if
             `apply_metrics_per_sample` is False, otherwise it will have a value.
@@ -158,7 +166,7 @@ class SimpleLightningPipeline(Pipeline):
         return results
 
     # Private methods
-    def _fit(self, data: L.LightningDataModule, ckpt_path: str | Path):
+    def _fit(self, data: L.LightningDataModule, ckpt_path: PathLike):
         """Fit the model using the given data.
 
         Parameters
@@ -166,14 +174,14 @@ class SimpleLightningPipeline(Pipeline):
         data : L.LightningDataModule
             The data module to be used. The data module should have the
             `train_dataloader` method implemented.
-        ckpt_path : str | Path
+        ckpt_path : PathLike
             The checkpoint path to be used. If None, no checkpoint will be used.
         """
         return self._trainer.fit(
             model=self._model, datamodule=data, ckpt_path=ckpt_path
         )
 
-    def _test(self, data: L.LightningDataModule, ckpt_path: str | Path):
+    def _test(self, data: L.LightningDataModule, ckpt_path: PathLike):
         """Test the model using the given data.
 
         Parameters
@@ -181,7 +189,7 @@ class SimpleLightningPipeline(Pipeline):
         data : L.LightningDataModule
             The data module to be used. The data module should have the
             `test_dataloader` method implemented.
-        ckpt_path : str | Path
+        ckpt_path : PathLike
             The checkpoint path to be used. If None, no checkpoint will be used.
         """
         return self._trainer.test(
@@ -191,7 +199,7 @@ class SimpleLightningPipeline(Pipeline):
     def _predict(
         self,
         data: L.LightningDataModule,
-        ckpt_path: str | Path = None,
+        ckpt_path: PathLike = None,
     ) -> torch.Tensor:
         """Predict using the given data.
 
@@ -200,7 +208,7 @@ class SimpleLightningPipeline(Pipeline):
         data : L.LightningDataModule
             The data module to be used. The data module should have the
             `predict_dataloader` method implemented.
-        ckpt_path : str | Path
+        ckpt_path : PathLike
             The checkpoint path to be used. If None, no checkpoint will be used.
 
         Returns
@@ -215,23 +223,23 @@ class SimpleLightningPipeline(Pipeline):
     def _evaluate(
         self,
         data: L.LightningDataModule,
-        ckpt_path: str | Path = None,
-    ) -> Dict[str, Dict[str, List[float]]]:
-        """Evaluate the model and calculate regression and/or classification 
-        metrics. 
+        ckpt_path: PathLike = None,
+    ) -> Dict[str, Any]:
+        """Evaluate the model and calculate regression and/or classification
+        metrics.
 
         Parameters
         ----------
         data : L.LightningDataModule
             The data module to be used. The data module should have the
             `predict_dataloader` method implemented.
-        ckpt_path : str | Path
+        ckpt_path : PathLike
             The checkpoint path to be used. If None, no checkpoint will be used.
 
         Returns
         -------
-        Dict[str, Dict[str, List[float]]]
-            A dictionary with metric.
+        Dict[str, Dict[str, Any]
+            A dictionary with metrics.
         """
         metrics = defaultdict(dict)
 
@@ -259,13 +267,12 @@ class SimpleLightningPipeline(Pipeline):
         metrics = dict(metrics)
 
         if self._save_pipeline_info:
-            yaml_path = self.working_dir / f"metrics_{self.pipeline_id}.yaml"
+            yaml_path = self._log_dir / f"metrics_{self.pipeline_id}.yaml"
             with open(yaml_path, "w") as f:
                 yaml.dump(metrics, f)
                 print(f"Metrics saved to {yaml_path}")
 
         print(metrics)
-
         return metrics
 
     # Default run method (entry point)
@@ -273,7 +280,7 @@ class SimpleLightningPipeline(Pipeline):
         self,
         data: L.LightningDataModule,
         task: Literal["fit", "test", "predict", "evaluate"],
-        ckpt_path: str | Path = None,
+        ckpt_path: PathLike = None,
     ):
         """
         Run the specified task on the given data.
@@ -283,10 +290,10 @@ class SimpleLightningPipeline(Pipeline):
         data : L.LightningDataModule
             The LightningDataModule object containing the data for the task.
         task : Literal["fit", "test", "predict", "evaluate"], optional
-            The task to be performed. Valid options are "fit", "test", 
+            The task to be performed. Valid options are "fit", "test",
             "predict", and "evaluate".
-        ckpt_path : str | Path, optional
-            The path to the checkpoint file to be used for resuming training or 
+        ckpt_path : PathLike, optional
+            The path to the checkpoint file to be used for resuming training or
             performing inference. Defaults to None.
 
         Returns
@@ -317,7 +324,7 @@ def main():
     from jsonargparse import CLI
 
     CLI(SimpleLightningPipeline, as_positional=False)
-    # print("✨ 🍰 ✨")
+    print("✨ 🍰 ✨")
 
 
 if __name__ == "__main__":

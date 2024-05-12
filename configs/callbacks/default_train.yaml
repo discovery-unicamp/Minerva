@@ -1,9 +1,11 @@
+# Default callbacks for training
+
 - class_path: lightning.pytorch.callbacks.ModelCheckpoint
   init_args:
-    monitor: val_loss
+    # monitor: val_loss
     save_last: true
-- class_path: lightning.pytorch.callbacks.EarlyStopping
-  init_args:
-    monitor: val_loss
-    patience: 20
-    mode: min
+# - class_path: lightning.pytorch.callbacks.EarlyStopping
+#   init_args:
+#     monitor: val_loss
+#     patience: 20
+#     mode: min

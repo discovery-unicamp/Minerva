@@ -16,6 +16,8 @@ import git
 import sys
 import platform
 from functools import cached_property
+from lightning.pytorch.utilities import rank_zero_only
+from minerva.utils.typing import PathLike
 
 
 class Pipeline(HyperparametersMixin):
@@ -41,7 +43,7 @@ class Pipeline(HyperparametersMixin):
 
     def __init__(
         self,
-        cwd: Path | str = None,
+        log_dir: Path | str = None,
         ignore: str | List[str] = None,
         cache_result: bool = False,
         save_run_status: bool = False,
@@ -50,10 +52,9 @@ class Pipeline(HyperparametersMixin):
 
         Parameters
         ----------
-        cwd : Path | str, optional
-            The current working directory. We do not change to this directory.
-            It is only used to help users the location of can be found, by
-            default None (set to current Python working directory)
+        log_dir : Path | str, optional
+            The default logging directory where all related pipeline files 
+            should be saved. By default None (uses current working directory)
         ignore : str | List[str], optional
             Pipeline __init__ attributes are saved into config attibute. This
             option allows to ignore some attributes from being saved. This is
@@ -76,11 +77,8 @@ class Pipeline(HyperparametersMixin):
         self._cache_result = cache_result
         self._save_run_status = save_run_status
         self._cached_run_status = []
-        # Current Working Dir
-        self._cwd = cwd or Path.cwd()
-        if not isinstance(self._cwd, Path):
-            self._cwd = Path(self._cwd)
-        self._cwd = self._cwd.absolute()
+        # Log dir (set as property)
+        self.log_dir = log_dir or Path.cwd()
         # Hyperparameters
         ignore = ignore or []
         if isinstance(ignore, str):
@@ -125,17 +123,29 @@ class Pipeline(HyperparametersMixin):
         return self._result
 
     @property
-    def working_dir(self) -> Path:
-        """Return the current working directory of the pipeline. The working
-        directory is not changed by the pipeline, but it is used to help users
-        to know where to output their files.
+    def log_dir(self) -> Path:
+        """Return the log_dir where everything inside pipeline should be saved.
 
         Returns
         -------
         Path
-            Path to the pipeline's working directory
+            Path to the pipeline's log_dir
         """
-        return self._cwd
+        return self._log_dir
+    
+    @log_dir.setter
+    def log_dir(self, value: Path | str):
+        """Set the log_dir.
+
+        Parameters
+        ----------
+        value : Path | str
+            The new working directory path.
+        """
+        if not isinstance(value, Path):
+            value = Path(value)
+        self._log_dir = value.absolute()
+        print(f"Log directory set to: {str(self.log_dir)}")
 
     @property
     def pipeline_info(self) -> Dict[str, str]:
@@ -152,7 +162,7 @@ class Pipeline(HyperparametersMixin):
             "class_name": self.__class__.__name__,
             "created_time": self._created_at,
             "pipeline_id": self.pipeline_id,
-            "working_dir": str(self._cwd),
+            "log_dir": str(self.log_dir),
             "run_count": self._run_count,
         }
 
@@ -278,12 +288,13 @@ class Pipeline(HyperparametersMixin):
         clone_pipeline._initialize_vars()
         return clone_pipeline
 
-    def _save_pipeline_info(self, path: str | Path):
+    @rank_zero_only
+    def _save_pipeline_info(self, path: PathLike):
         """Save the pipeline information to a YAML file.
 
         Parameters
         ----------
-        path : str | Path
+        path : PathLike
             The path to save the pipeline information.
         """
         d = self.full_info
@@ -332,7 +343,7 @@ class Pipeline(HyperparametersMixin):
         if self._save_run_status:
             self._cached_run_status.append(self.run_status)
             self._save_pipeline_info(
-                self.working_dir / f"run_{self.pipeline_id}.yaml"
+                self._log_dir / f"run_{self.pipeline_id}.yaml"
             )
 
         return result
