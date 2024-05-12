@@ -1,6 +1,0 @@
-# Default logger configuration
-
-# The logger class to use and its init arguments.
-class_path: lightning.pytorch.loggers.CSVLogger
-init_args:
-  save_dir: logs
