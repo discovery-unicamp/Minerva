@@ -51,7 +51,7 @@ dependencies = [
 ]
 
 [tool.setuptools]
-py-modules = []
+packages = ["minerva"]
 
 [project.optional-dependencies]
 dev = ["mock", "pytest", "black", "isort"]
