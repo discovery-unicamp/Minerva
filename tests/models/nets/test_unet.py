@@ -1,6 +1,9 @@
 import torch
 
 from minerva.models.nets.unet import UNet
+import torchmetrics
+import lightning as L
+from minerva.utils.data import RandomDataModule
 
 
 def test_unet():
@@ -24,3 +27,34 @@ def test_unet():
     loss = model.training_step((x, mask), 0).item()
     assert loss is not None
     assert loss >= 0, f"Expected non-negative loss, but got {loss}"
+
+
+def test_unet_train_metrics():
+    metrics = {
+        "mse": torchmetrics.MeanSquaredError(squared=True),
+        "mae": torchmetrics.MeanAbsoluteError(),
+    }
+
+    # Generate a random input tensor (B, C, H, W) and the random mask of the
+    # same shape
+    data_module = RandomDataModule(
+        data_shape=(1, 128, 128),
+        label_shape=(1, 128, 128),
+        num_train_samples=2,
+        batch_size=2,
+    )
+
+    # Test the class instantiation
+    model = UNet(train_metrics=metrics)
+    trainer = L.Trainer(accelerator="cpu", max_epochs=1, devices=1)
+
+    assert data_module is not None
+    assert model is not None
+    assert trainer is not None
+
+    # Do fit
+    trainer.fit(model, data_module)
+
+    assert "train_mse" in trainer.logged_metrics
+    assert "train_mae" in trainer.logged_metrics
+    assert "train_loss" in trainer.logged_metrics
