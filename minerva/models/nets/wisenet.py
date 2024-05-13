@@ -101,6 +101,7 @@ class WiseNet(SimpleSupervisedModel):
         out_channels: int = 1,
         loss_fn: torch.nn.Module = None,
         learning_rate: float = 1e-3,
+        **kwargs,
     ):
         super().__init__(
             backbone=_WiseNet(in_channels=in_channels, out_channels=out_channels),
@@ -108,6 +109,7 @@ class WiseNet(SimpleSupervisedModel):
             loss_fn=loss_fn or torch.nn.MSELoss(),
             learning_rate=learning_rate,
             flatten=False,
+            **kwargs,
         )
 
     def _single_step(
