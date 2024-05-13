@@ -8,9 +8,67 @@ from torch import nn
 from torchvision.models.vision_transformer import (
     Conv2dNormActivation,
     ConvStemConfig,
-    Encoder,
+    EncoderBlock,
     _log_api_usage_once,
 )
+
+
+class _Encoder(nn.Module):
+    """Transformer Model Encoder for sequence to sequence translation."""
+
+    def __init__(
+        self,
+        seq_length: int,
+        num_layers: int,
+        num_heads: int,
+        hidden_dim: int,
+        mlp_dim: int,
+        dropout: float,
+        attention_dropout: float,
+        aux_output: bool = False,
+        aux_output_layers: List[int] | None = None,
+        norm_layer: Callable[..., torch.nn.Module] = partial(nn.LayerNorm, eps=1e-6),
+    ):
+        super().__init__()
+        # Note that batch_size is on the first dim because
+        # we have batch_first=True in nn.MultiAttention() by default
+
+        self.aux_output = aux_output
+        self.aux_output_layers = aux_output_layers
+
+        self.pos_embedding = nn.Parameter(
+            torch.empty(1, seq_length, hidden_dim).normal_(std=0.02)
+        )  # from BERT
+        self.dropout = nn.Dropout(dropout)
+        layers: OrderedDict[str, nn.Module] = OrderedDict()
+        for i in range(num_layers):
+            layers[f"encoder_layer_{i}"] = EncoderBlock(
+                num_heads,
+                hidden_dim,
+                mlp_dim,
+                dropout,
+                attention_dropout,
+                norm_layer,
+            )
+        self.layers = nn.Sequential(layers)
+        self.ln = norm_layer(hidden_dim)
+
+    def forward(self, input: torch.Tensor):
+        torch._assert(
+            input.dim() == 3,
+            f"Expected (batch_size, seq_length, hidden_dim) got {input.shape}",
+        )
+        input = input + self.pos_embedding
+
+        if self.aux_output:
+            aux_outputs = []
+            for i, layer in enumerate(self.layers):
+                input = layer(input)
+                if i in self.aux_output_layers:  # type: ignore
+                    aux_outputs.append(self.ln(self.dropout(input)))
+            return self.ln(self.dropout(input)), aux_outputs
+
+        return self.ln(self.layers(self.dropout(input)))
 
 
 class _VisionTransformerBackbone(nn.Module):
@@ -27,6 +85,8 @@ class _VisionTransformerBackbone(nn.Module):
         dropout: float = 0.0,
         attention_dropout: float = 0.0,
         num_classes: int = 1000,
+        aux_output: bool = False,
+        aux_output_layers: List[int] | None = None,
         norm_layer: Callable[..., torch.nn.Module] = partial(nn.LayerNorm, eps=1e-6),
         conv_stem_configs: Optional[List[ConvStemConfig]] = None,
     ):
@@ -65,6 +125,12 @@ class _VisionTransformerBackbone(nn.Module):
         super().__init__()
         _log_api_usage_once(self)
 
+        if aux_output:
+            assert aux_output_layers is not None
+            assert all(
+                0 <= i < num_layers for i in aux_output_layers
+            ), "Invalid layer index in aux_output_layers"
+
         if isinstance(image_size, int):
             torch._assert(
                 image_size % patch_size == 0, "Input shape indivisible by patch size!"
@@ -83,6 +149,8 @@ class _VisionTransformerBackbone(nn.Module):
         self.dropout = dropout
         self.num_classes = num_classes
         self.norm_layer = norm_layer
+        self.aux_output = aux_output
+        self.aux_output_layers = aux_output_layers
 
         if conv_stem_configs is not None:
             # As per https://arxiv.org/abs/2106.14881
@@ -125,7 +193,7 @@ class _VisionTransformerBackbone(nn.Module):
         self.class_token = nn.Parameter(torch.zeros(1, 1, hidden_dim))
         seq_length += 1
 
-        self.encoder = Encoder(
+        self.encoder = _Encoder(
             seq_length=seq_length,
             num_layers=num_layers,
             num_heads=num_heads,
@@ -134,6 +202,8 @@ class _VisionTransformerBackbone(nn.Module):
             dropout=dropout,
             attention_dropout=attention_dropout,
             norm_layer=norm_layer,
+            aux_output=aux_output,
+            aux_output_layers=aux_output_layers,
         )
         self.seq_length = seq_length
 
@@ -196,6 +266,7 @@ class _VisionTransformerBackbone(nn.Module):
         n_w = w // p
 
         # (n, c, h, w) -> (n, hidden_dim, n_h, n_w)
+        x = x.to(torch.float32)
         x = self.conv_proj(x)
         # (n, hidden_dim, n_h, n_w) -> (n, hidden_dim, (n_h * n_w))
         x = x.reshape(n, self.hidden_dim, n_h * n_w)
@@ -224,6 +295,22 @@ class _VisionTransformerBackbone(nn.Module):
         # Expand the class token to the full batch
         batch_class_token = self.class_token.expand(n, -1, -1)
         x = torch.cat([batch_class_token, x], dim=1)
+
+        if self.aux_output:
+            x, aux_outputs = self.encoder(x)
+            x = x[:, 1:]
+            B, _, C = x.shape
+            x = x.reshape(B, n_h, n_w, C).permute(0, 3, 1, 2).contiguous()
+            for i, aux_output in enumerate(aux_outputs):
+                aux_outputs[i] = aux_output[:, 1:]
+                B, _, C = aux_outputs[i].shape
+                aux_outputs[i] = (
+                    aux_outputs[i]
+                    .reshape(B, n_h, n_w, C)
+                    .permute(0, 3, 1, 2)
+                    .contiguous()
+                )
+            return x, aux_outputs
 
         x = self.encoder(x)
 
