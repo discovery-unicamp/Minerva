@@ -1,10 +1,10 @@
 import warnings
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Dict
 
 import lightning as L
 import torch
 from torch import nn
-from torchmetrics import JaccardIndex
+from torchmetrics import JaccardIndex, Metric
 
 from minerva.models.nets.vit import _VisionTransformerBackbone
 from minerva.utils.upsample import Upsample, resize
@@ -407,12 +407,9 @@ class SETR_PUP(L.LightningModule):
         conv_act: Optional[nn.Module] = None,
         interpolate_mode: str = "bilinear",
         loss_fn: Optional[nn.Module] = None,
-        log_train_metrics: bool = False,
-        train_metrics: Optional[nn.Module] = None,
-        log_val_metrics: bool = False,
-        val_metrics: Optional[nn.Module] = None,
-        log_test_metrics: bool = False,
-        test_metrics: Optional[nn.Module] = None,
+        train_metrics: Optional[Metric] = None,
+        val_metrics: Optional[Metric] = None,
+        test_metrics: Optional[Metric] = None,
         aux_output: bool = True,
         aux_output_layers: list[int] | None = [9, 14, 19],
         aux_weights: list[float] = [0.3, 0.3, 0.3],
@@ -486,27 +483,17 @@ class SETR_PUP(L.LightningModule):
         self.num_classes = num_classes
         self.aux_weights = aux_weights
 
-        self.log_train_metrics = log_train_metrics
-        self.log_val_metrics = log_val_metrics
-        self.log_test_metrics = log_test_metrics
-
-        if log_train_metrics:
-            assert (
-                train_metrics is not None
-            ), "train_metrics must be provided if log_train_metrics is True"
+        if train_metrics is not None:
             self.train_metrics = train_metrics
+            self.log_train_metrics = True
 
-        if log_val_metrics:
-            assert (
-                val_metrics is not None
-            ), "val_metrics must be provided if log_val_metrics is True"
+        if val_metrics is not None:
             self.val_metrics = val_metrics
+            self.log_val_metrics = True
 
-        if log_test_metrics:
-            assert (
-                test_metrics is not None
-            ), "test_metrics must be provided if log_test_metrics is True"
+        if test_metrics is not None:
             self.test_metrics = test_metrics
+            self.log_test_metrics = True
 
         self.model = _SetR_PUP(
             image_size=image_size,
@@ -531,17 +518,10 @@ class SETR_PUP(L.LightningModule):
             aux_output_layers=aux_output_layers,
         )
 
-        self.train_step_outputs = []
-        self.train_step_labels = []
-
-        self.val_step_outputs = []
-        self.val_step_labels = []
-
-        self.test_step_outputs = []
-        self.test_step_labels = []
-
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.model(x)
+    
+    def _compute_metrics(self, y_hat: torch.Tensor, y: torch.Tensor) -> 
 
     def _loss_func(
         self,
@@ -621,65 +601,6 @@ class SETR_PUP(L.LightningModule):
         )
 
         return loss
-
-    def on_train_epoch_end(self):
-        if self.log_train_metrics:
-            y_hat = torch.cat(self.train_step_outputs)
-            y = torch.cat(self.train_step_labels)
-            preds = torch.argmax(y_hat, dim=1, keepdim=True)
-            self.train_metrics(preds, y)
-            mIoU = self.train_metrics.compute()
-
-            self.log_dict(
-                {
-                    f"train_metrics": mIoU,
-                },
-                on_step=False,
-                on_epoch=True,
-                prog_bar=True,
-                logger=True,
-            )
-        self.train_step_outputs.clear()
-        self.train_step_labels.clear()
-
-    def on_validation_epoch_end(self):
-        if self.log_val_metrics:
-            y_hat = torch.cat(self.val_step_outputs)
-            y = torch.cat(self.val_step_labels)
-            preds = torch.argmax(y_hat, dim=1, keepdim=True)
-            self.val_metrics(preds, y)
-            mIoU = self.val_metrics.compute()
-
-            self.log_dict(
-                {
-                    f"val_metrics": mIoU,
-                },
-                on_step=False,
-                on_epoch=True,
-                prog_bar=True,
-                logger=True,
-            )
-        self.val_step_outputs.clear()
-        self.val_step_labels.clear()
-
-    def on_test_epoch_end(self):
-        if self.log_test_metrics:
-            y_hat = torch.cat(self.test_step_outputs)
-            y = torch.cat(self.test_step_labels)
-            preds = torch.argmax(y_hat, dim=1, keepdim=True)
-            self.test_metrics(preds, y)
-            mIoU = self.test_metrics.compute()
-            self.log_dict(
-                {
-                    f"test_metrics": mIoU,
-                },
-                on_step=False,
-                on_epoch=True,
-                prog_bar=True,
-                logger=True,
-            )
-        self.test_step_outputs.clear()
-        self.test_step_labels.clear()
 
     def training_step(self, batch: torch.Tensor, batch_idx: int):
         return self._single_step(batch, batch_idx, "train")
