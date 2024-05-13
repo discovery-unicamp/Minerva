@@ -241,6 +241,8 @@ class _SetR_PUP(nn.Module):
         conv_norm: nn.Module,
         conv_act: nn.Module,
         align_corners: bool,
+        aux_output: bool = False,
+        aux_output_layers: list[int] | None = None,
     ):
         """
         Initializes the SETR PUP model.
@@ -286,6 +288,15 @@ class _SetR_PUP(nn.Module):
 
         """
         super().__init__()
+        if aux_output:
+            assert aux_output_layers is not None, "aux_output_layers must be provided."
+            assert (
+                len(aux_output_layers) == 3
+            ), "aux_output_layers must have 3 values. Only 3 aux heads are supported."
+
+        self.aux_output = aux_output
+        self.aux_output_layers = aux_output_layers
+
         self.encoder = _VisionTransformerBackbone(
             image_size=image_size,
             patch_size=patch_size,
@@ -295,6 +306,8 @@ class _SetR_PUP(nn.Module):
             mlp_dim=mlp_dim,
             num_classes=num_classes,
             dropout=encoder_dropout,
+            aux_output=aux_output,
+            aux_output_layers=aux_output_layers,
         )
 
         self.decoder = _SETRUPHead(
@@ -357,15 +370,19 @@ class _SetR_PUP(nn.Module):
             norm_layer=norm_layer,
         )
 
-    def forward(
-        self, x: torch.Tensor
-    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+    def forward(self, x: torch.Tensor):
+
+        if self.aux_output:
+            x, aux_results = self.encoder(x)
+            x_aux1 = self.aux_head1(aux_results[0])
+            x_aux2 = self.aux_head2(aux_results[1])
+            x_aux3 = self.aux_head3(aux_results[2])
+            x = self.decoder(x)
+            return x, x_aux1, x_aux2, x_aux3
+
         x = self.encoder(x)
-        # x_aux1 = self.aux_head1(x)
-        # x_aux2 = self.aux_head2(x)
-        # x_aux3 = self.aux_head3(x)
         x = self.decoder(x)
-        return x, torch.zeros(1), torch.zeros(1), torch.zeros(1)
+        return x
 
 
 class MetricTypeSetR(Enum):
@@ -422,6 +439,9 @@ class SETR_PUP(L.LightningModule):
         val_metrics: Optional[nn.Module] = None,
         log_test_metrics: bool = False,
         test_metrics: Optional[nn.Module] = None,
+        aux_output: bool = True,
+        aux_output_layers: list[int] | None = [9, 14, 19],
+        aux_weights: list[float] = [0.3, 0.3, 0.3],
     ):
         """
         Initializes the SetR model.
@@ -479,7 +499,18 @@ class SETR_PUP(L.LightningModule):
             conv_norm if conv_norm is not None else nn.SyncBatchNorm(decoder_channels)
         )
         conv_act = conv_act if conv_act is not None else nn.ReLU()
+
+        if aux_output:
+            assert aux_output_layers is not None, "aux_output_layers must be provided."
+            assert (
+                len(aux_output_layers) == 3
+            ), "aux_output_layers must have 3 values. Only 3 aux heads are supported."
+            assert len(aux_weights) == len(
+                aux_output_layers
+            ), "aux_weights must have the same length as aux_output_layers."
+
         self.num_classes = num_classes
+        self.aux_weights = aux_weights
 
         self.log_train_metrics = log_train_metrics
         self.log_val_metrics = log_val_metrics
@@ -522,6 +553,8 @@ class SETR_PUP(L.LightningModule):
             norm_layer=norm_layer,
             interpolate_mode=interpolate_mode,
             align_corners=align_corners,
+            aux_output=aux_output,
+            aux_output_layers=aux_output_layers,
         )
 
         self.train_step_outputs = []
@@ -536,7 +569,13 @@ class SETR_PUP(L.LightningModule):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.model(x)
 
-    def _loss_func(self, y_hat: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+    def _loss_func(
+        self,
+        y_hat: (
+            torch.Tensor | Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]
+        ),
+        y: torch.Tensor,
+    ) -> torch.Tensor:
         """Calculate the loss between the output and the input data.
 
         Parameters
@@ -551,6 +590,18 @@ class SETR_PUP(L.LightningModule):
         torch.Tensor
             The loss value.
         """
+        if isinstance(y_hat, tuple):
+            y_hat, y_aux1, y_aux2, y_aux3 = y_hat
+            loss = self.loss_fn(y_hat, y.long())
+            loss_aux1 = self.loss_fn(y_aux1, y.long())
+            loss_aux2 = self.loss_fn(y_aux2, y.long())
+            loss_aux3 = self.loss_fn(y_aux3, y.long())
+            return (
+                loss
+                + (loss_aux1 * self.aux_weights[0])
+                + (loss_aux2 * self.aux_weights[1])
+                + (loss_aux3 * self.aux_weights[2])
+            )
         loss = self.loss_fn(y_hat, y.long())
         return loss
 

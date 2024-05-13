@@ -4,7 +4,7 @@ import torch
 from minerva.models.nets.setr import SETR_PUP
 
 
-def test_wisenet_loss():
+def test_setr_loss():
     model = SETR_PUP(image_size=16)
     batch_size = 2
     x = torch.rand(2, 3, 16, 16)
@@ -16,7 +16,7 @@ def test_wisenet_loss():
     assert loss >= 0, f"Expected non-negative loss, but got {loss}"
 
 
-def test_wisenet_predict():
+def test_setr_predict():
     model = SETR_PUP(image_size=16)
     batch_size = 2
     mask_shape = (batch_size, 1000, 16, 16)  # (2, 1, 500, 500)
@@ -29,3 +29,8 @@ def test_wisenet_predict():
     assert (
         preds[0].shape == mask_shape
     ), f"Expected shape {mask_shape}, but got {preds[0].shape}"
+
+
+if __name__ == "__main__":
+    test_setr_loss()
+    test_setr_predict()
