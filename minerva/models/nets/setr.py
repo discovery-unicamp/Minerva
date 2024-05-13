@@ -420,6 +420,8 @@ class SETR_PUP(L.LightningModule):
         train_metrics: Optional[nn.Module] = None,
         log_val_metrics: bool = False,
         val_metrics: Optional[nn.Module] = None,
+        log_test_metrics: bool = False,
+        test_metrics: Optional[nn.Module] = None,
     ):
         """
         Initializes the SetR model.
@@ -481,6 +483,7 @@ class SETR_PUP(L.LightningModule):
 
         self.log_train_metrics = log_train_metrics
         self.log_val_metrics = log_val_metrics
+        self.log_test_metrics = log_test_metrics
 
         if log_train_metrics:
             assert (
@@ -493,6 +496,12 @@ class SETR_PUP(L.LightningModule):
                 val_metrics is not None
             ), "val_metrics must be provided if log_val_metrics is True"
             self.val_metrics = val_metrics
+
+        if log_test_metrics:
+            assert (
+                test_metrics is not None
+            ), "test_metrics must be provided if log_test_metrics is True"
+            self.test_metrics = test_metrics
 
         self.model = _SetR_PUP(
             image_size=image_size,
@@ -515,6 +524,15 @@ class SETR_PUP(L.LightningModule):
             align_corners=align_corners,
         )
 
+        self.train_step_outputs = []
+        self.train_step_labels = []
+
+        self.val_step_outputs = []
+        self.val_step_labels = []
+
+        self.test_step_outputs = []
+        self.test_step_labels = []
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.model(x)
 
@@ -536,9 +554,7 @@ class SETR_PUP(L.LightningModule):
         loss = self.loss_fn(y_hat, y.long())
         return loss
 
-    def _single_step(
-        self, batch: torch.Tensor, batch_idx: int, step_name: str
-    ) -> torch.Tensor:
+    def _single_step(self, batch: torch.Tensor, batch_idx: int, step_name: str):
         """Perform a single step of the training/validation loop.
 
         Parameters
@@ -559,39 +575,86 @@ class SETR_PUP(L.LightningModule):
         y_hat = self.model(x.float())
         loss = self._loss_func(y_hat[0], y.squeeze(1))
 
-        if step_name == "train" and self.log_train_metrics:
-            preds = torch.argmax(y_hat[0], dim=1, keepdim=True)
-            self.train_metrics(preds, y)
-            mIoU = self.train_metrics.compute()
-            self.log(
-                f"{step_name}_metrics",
-                mIoU,
-                on_step=True,
-                on_epoch=True,
-                logger=True,
-            )
+        if step_name == "train":
+            self.train_step_outputs.append(y_hat[0])
+            self.train_step_labels.append(y)
+        elif step_name == "val":
+            self.val_step_outputs.append(y_hat[0])
+            self.val_step_labels.append(y)
+        elif step_name == "test":
+            self.test_step_outputs.append(y_hat[0])
+            self.test_step_labels.append(y)
 
-        if step_name == "val" and self.log_val_metrics:
-            preds = torch.argmax(y_hat[0], dim=1, keepdim=True)
-            self.train_metrics(preds, y)
-            mIoU = self.val_metrics.compute()
-            self.log(
-                f"{step_name}_metrics",
-                mIoU,
-                on_step=True,
-                on_epoch=True,
-                logger=True,
-            )
-
-        self.log(
-            f"{step_name}_loss",
-            loss,
+        self.log_dict(
+            {
+                f"{step_name}_loss": loss,
+            },
             on_step=True,
             on_epoch=True,
             prog_bar=True,
             logger=True,
         )
+
         return loss
+
+    def on_train_epoch_end(self):
+        if self.log_train_metrics:
+            y_hat = torch.cat(self.train_step_outputs)
+            y = torch.cat(self.train_step_labels)
+            preds = torch.argmax(y_hat, dim=1, keepdim=True)
+            self.train_metrics(preds, y)
+            mIoU = self.train_metrics.compute()
+
+            self.log_dict(
+                {
+                    f"train_metrics": mIoU,
+                },
+                on_step=False,
+                on_epoch=True,
+                prog_bar=True,
+                logger=True,
+            )
+        self.train_step_outputs.clear()
+        self.train_step_labels.clear()
+
+    def on_validation_epoch_end(self):
+        if self.log_val_metrics:
+            y_hat = torch.cat(self.val_step_outputs)
+            y = torch.cat(self.val_step_labels)
+            preds = torch.argmax(y_hat, dim=1, keepdim=True)
+            self.val_metrics(preds, y)
+            mIoU = self.val_metrics.compute()
+
+            self.log_dict(
+                {
+                    f"val_metrics": mIoU,
+                },
+                on_step=False,
+                on_epoch=True,
+                prog_bar=True,
+                logger=True,
+            )
+        self.val_step_outputs.clear()
+        self.val_step_labels.clear()
+
+    def on_test_epoch_end(self):
+        if self.log_test_metrics:
+            y_hat = torch.cat(self.test_step_outputs)
+            y = torch.cat(self.test_step_labels)
+            preds = torch.argmax(y_hat, dim=1, keepdim=True)
+            self.test_metrics(preds, y)
+            mIoU = self.test_metrics.compute()
+            self.log_dict(
+                {
+                    f"test_metrics": mIoU,
+                },
+                on_step=False,
+                on_epoch=True,
+                prog_bar=True,
+                logger=True,
+            )
+        self.test_step_outputs.clear()
+        self.test_step_labels.clear()
 
     def training_step(self, batch: torch.Tensor, batch_idx: int):
         return self._single_step(batch, batch_idx, "train")
