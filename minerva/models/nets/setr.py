@@ -1,5 +1,4 @@
 import warnings
-from enum import Enum
 from typing import Optional, Tuple
 
 import lightning as L
@@ -383,31 +382,6 @@ class _SetR_PUP(nn.Module):
         x = self.encoder(x)
         x = self.decoder(x)
         return x
-
-
-class MetricTypeSetR(Enum):
-    """Type of metric to be used for evaluation.
-
-    Type of metric to be used for evaluation in the `SETR` model.
-    """
-
-    mIoU = "mIoU"
-
-    def get_metric(self, **kwargs) -> nn.Module:
-        """Get the metric object.
-
-        Returns
-        -------
-        nn.Module
-            The metric object.
-        """
-
-        if self == MetricTypeSetR.mIoU:
-            task = kwargs.get("task", "segmentation")
-            num_classes = kwargs.get("num_classes")
-            avrege = kwargs.get("average", "macro")
-            return JaccardIndex(task=task, num_classes=num_classes, average=avrege)
-        raise ValueError(f"Invalid metric type: {self}")
 
 
 class SETR_PUP(L.LightningModule):
