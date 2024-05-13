@@ -2,6 +2,7 @@ from typing import Dict, Optional
 
 import lightning as L
 import torch
+from torchmetrics import Metric
 
 
 class SimpleSupervisedModel(L.LightningModule):
@@ -30,8 +31,15 @@ class SimpleSupervisedModel(L.LightningModule):
         loss_fn: torch.nn.Module,
         learning_rate: float = 1e-3,
         flatten: bool = True,
+        train_metrics: Dict[str, Metric] = None,
+        val_metrics: Dict[str, Metric] = None,
+        test_metrics: Dict[str, Metric] = None,
     ):
-        """Initialize the model.
+        """Initialize the model with the backbone, fc, loss function and 
+        metrics. Metrics are used to evaluate the model during training, 
+        validation, testing or prediction. It will be logged using 
+        lightning logger at the end of each epoch. Metrics should implement 
+        the `torchmetrics.Metric` interface.
 
         Parameters
         ----------
@@ -47,6 +55,15 @@ class SimpleSupervisedModel(L.LightningModule):
         flatten : bool, optional
             If `True` the input data will be flattened before passing through
             the fc model, by default True
+            
+        train_metrics : Dict[str, Metric], optional
+            The metrics to be used during training, by default None
+        val_metrics : Dict[str, Metric], optional
+            The metrics to be used during validation, by default None
+        test_metrics : Dict[str, Metric], optional
+            The metrics to be used during testing, by default None
+        predict_metrics : Dict[str, Metric], optional
+            The metrics to be used during prediction, by default None
         """
         super().__init__()
         self.backbone = backbone
@@ -54,6 +71,12 @@ class SimpleSupervisedModel(L.LightningModule):
         self.loss_fn = loss_fn
         self.learning_rate = learning_rate
         self.flatten = flatten
+
+        self.metrics = {
+            "train": train_metrics,
+            "val": val_metrics,
+            "test": test_metrics,
+        }
 
     def _loss_func(self, y_hat: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
         """Calculate the loss between the output and the input data.
@@ -92,6 +115,34 @@ class SimpleSupervisedModel(L.LightningModule):
         x = self.fc(x)
         return x
 
+    def _compute_metrics(
+        self, y_hat: torch.Tensor, y: torch.Tensor, step_name: str
+    ) -> Dict[str, torch.Tensor]:
+        """Calculate the metrics for the given step.
+
+        Parameters
+        ----------
+        y_hat : torch.Tensor
+            The output data from the forward pass.
+        y : torch.Tensor
+            The input data/label.
+        step_name : str
+            Name of the step. It will be used to get the metrics from the
+            `self.metrics` attribute.
+
+        Returns
+        -------
+        Dict[str, torch.Tensor]
+            A dictionary with the metrics values.
+        """
+        if self.metrics[step_name] is None:
+            return {}
+        
+        return {
+            f"{step_name}_{metric_name}": metric.to(self.device)(y_hat, y)
+            for metric_name, metric in self.metrics[step_name].items()
+        }
+
     def _single_step(
         self, batch: torch.Tensor, batch_idx: int, step_name: str
     ) -> torch.Tensor:
@@ -127,6 +178,18 @@ class SimpleSupervisedModel(L.LightningModule):
             prog_bar=True,
             logger=True,
         )
+        
+        metrics = self._compute_metrics(y_hat, y, step_name)
+        for metric_name, metric_value in metrics.items():
+            self.log(
+                metric_name,
+                metric_value,
+                on_step=False,
+                on_epoch=True,
+                prog_bar=True,
+                logger=True,
+            )
+        
         return loss
 
     def training_step(self, batch: torch.Tensor, batch_idx: int):
@@ -137,176 +200,6 @@ class SimpleSupervisedModel(L.LightningModule):
 
     def test_step(self, batch: torch.Tensor, batch_idx: int):
         return self._single_step(batch, batch_idx, step_name="test")
-
-    def predict_step(self, batch, batch_idx, dataloader_idx=None):
-        x, _ = batch
-        y_hat = self.forward(x)
-        return y_hat
-
-    def configure_optimizers(self):
-        optimizer = torch.optim.Adam(
-            self.parameters(),
-            lr=self.learning_rate,
-        )
-        return optimizer
-
-
-class LoggedSupervisedModel(L.LightningModule):
-    """Simple pipeline for supervised models with logging."""
-
-    def __init__(
-        self,
-        model: torch.nn.Module,
-        loss_fn: torch.nn.Module,
-        learning_rate: float = 1e-3,
-        flatten: bool = True,
-        train_metric: Optional[torch.nn.Module] = None,
-        val_metric: Optional[torch.nn.Module] = None,
-        test_metric: Optional[torch.nn.Module] = None,
-    ):
-        super().__init__()
-        self.model = model
-        self.loss_fn = loss_fn
-        self.learning_rate = learning_rate
-        self.flatten = flatten
-
-        if train_metric is not None:
-            self.train_metric = train_metric
-            self.log_train_metric = True
-
-        if val_metric is not None:
-            self.val_metric = val_metric
-            self.log_val_metric = True
-
-        if test_metric is not None:
-            self.test_metric = test_metric
-            self.log_test_metric = True
-
-        self.train_step_outputs = []
-        self.train_step_labels = []
-
-        self.val_step_outputs = []
-        self.val_step_labels = []
-
-        self.test_step_outputs = []
-        self.test_step_labels = []
-
-    def _loss_func(self, y_hat: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
-        """Calculate the loss between the output and the input data.
-
-        Parameters
-        ----------
-        y_hat : torch.Tensor
-            The output data from the forward pass.
-        y : torch.Tensor
-            The input data/label.
-
-        Returns
-        -------
-        torch.Tensor
-            The loss value.
-        """
-        loss = self.loss_fn(y_hat, y)
-        return loss
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Perform a forward pass with the input data on the backbone model.
-
-        Parameters
-        ----------
-        x : torch.Tensor
-            The input data.
-
-        Returns
-        -------
-        torch.Tensor
-            The output data from the forward pass.
-        """
-        return self.model(x)
-
-    def _single_step(
-        self, batch: torch.Tensor, batch_idx: int, step_name: str
-    ) -> torch.Tensor:
-
-        x, y = batch
-        y_hat = self.forward(x)
-        loss = self._loss_func(y_hat, y)
-
-        if step_name == "train":
-            self.train_step_outputs.append(y_hat)
-            self.train_step_labels.append(y)
-
-        elif step_name == "val":
-            self.val_step_outputs.append(y_hat)
-            self.val_step_labels.append(y)
-
-        elif step_name == "test":
-            self.test_step_outputs.append(y_hat)
-            self.test_step_labels.append(y)
-
-        self.log(
-            f"{step_name}_loss",
-            loss,
-            on_step=False,
-            on_epoch=True,
-            prog_bar=True,
-            logger=True,
-        )
-        return loss
-
-    def training_step(self, batch: torch.Tensor, batch_idx: int):
-        return self._single_step(batch, batch_idx, step_name="train")
-
-    def on_train_batch_end(self):
-        if self.log_train_metric:
-            y_hat = torch.cat(self.train_step_outputs)
-            y = torch.cat(self.train_step_labels)
-            metric = self.train_metric(y_hat, y)
-            self.log_dict(
-                {"train_metric": metric},
-                on_step=False,
-                on_epoch=True,
-                prog_bar=True,
-                logger=True,
-            )
-        self.train_step_outputs.clear()
-        self.train_step_labels.clear()
-
-    def validation_step(self, batch: torch.Tensor, batch_idx: int):
-        return self._single_step(batch, batch_idx, step_name="val")
-
-    def on_validation_batch_end(self):
-        if self.log_val_metric:
-            y_hat = torch.cat(self.val_step_outputs)
-            y = torch.cat(self.val_step_labels)
-            metric = self.val_metric(y_hat, y)
-            self.log_dict(
-                {"val_metric": metric},
-                on_step=False,
-                on_epoch=True,
-                prog_bar=True,
-                logger=True,
-            )
-        self.val_step_outputs.clear()
-        self.val_step_labels.clear()
-
-    def test_step(self, batch: torch.Tensor, batch_idx: int):
-        return self._single_step(batch, batch_idx, step_name="test")
-
-    def on_test_batch_end(self):
-        if self.log_test_metric:
-            y_hat = torch.cat(self.test_step_outputs)
-            y = torch.cat(self.test_step_labels)
-            metric = self.test_metric(y_hat, y)
-            self.log_dict(
-                {"test_metric": metric},
-                on_step=False,
-                on_epoch=True,
-                prog_bar=True,
-                logger=True,
-            )
-        self.test_step_outputs.clear()
-        self.test_step_labels.clear()
 
     def predict_step(self, batch, batch_idx, dataloader_idx=None):
         x, _ = batch
