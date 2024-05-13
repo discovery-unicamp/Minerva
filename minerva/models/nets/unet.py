@@ -201,6 +201,7 @@ class UNet(SimpleSupervisedModel):
         bilinear: bool = False,
         learning_rate: float = 1e-3,
         loss_fn: Optional[torch.nn.Module] = None,
+        **kwargs,
     ):
         """Wrapper implementation of the U-Net model.
 
@@ -216,6 +217,9 @@ class UNet(SimpleSupervisedModel):
         loss_fn : torch.nn.Module, optional
             The function used to compute the loss. If `None`, it will be used
             the MSELoss, by default None.
+        kwargs : Dict
+            Additional arguments to be passed to the `SimpleSupervisedModel`
+            class.
         """
         super().__init__(
             backbone=_UNet(n_channels=n_channels, bilinear=bilinear),
@@ -223,4 +227,5 @@ class UNet(SimpleSupervisedModel):
             loss_fn=loss_fn or torch.nn.MSELoss(),
             learning_rate=learning_rate,
             flatten=False,
+            **kwargs
         )
