@@ -22,10 +22,14 @@ class DeepLabV3_Head(nn.Module):
 
     def __init__(self) -> None:
         super().__init__()
-        raise NotImplementedError("DeepLabV3's head has not yet been implemented")
+        raise NotImplementedError(
+            "DeepLabV3's head has not yet been implemented"
+        )
 
     def forward(self, x):
-        raise NotImplementedError("DeepLabV3's head has not yet been implemented")
+        raise NotImplementedError(
+            "DeepLabV3's head has not yet been implemented"
+        )
 
 
 class DeepLabV3(SimpleSupervisedModel):
@@ -33,10 +37,16 @@ class DeepLabV3(SimpleSupervisedModel):
 
     References
     ----------
-    Liang-Chieh Chen, George Papandreou, Florian Schroff, Hartwig Adam. "Rethinking Atrous Convolution for Semantic Image Segmentation", 2017
+    Liang-Chieh Chen, George Papandreou, Florian Schroff, Hartwig Adam. 
+    "Rethinking Atrous Convolution for Semantic Image Segmentation", 2017
     """
 
-    def __init__(self, learning_rate: float = 1e-3, loss_fn: torch.nn.Module = None):
+    def __init__(
+        self,
+        learning_rate: float = 1e-3,
+        loss_fn: torch.nn.Module = None,
+        **kwargs,
+    ):
         """Wrapper implementation of the DeepLabv3 model.
 
         Parameters
@@ -46,10 +56,14 @@ class DeepLabV3(SimpleSupervisedModel):
         loss_fn : torch.nn.Module, optional
             The function used to compute the loss. If `None`, it will be used
             the MSELoss, by default None.
+        kwargs : Dict
+            Additional arguments to be passed to the `SimpleSupervisedModel`
+            class.
         """
         super().__init__(
             backbone=Resnet50Backbone(),
             fc=DeepLabV3_Head(),
             loss_fn=loss_fn or torch.nn.MSELoss(),
             learning_rate=learning_rate,
+            **kwargs,
         )

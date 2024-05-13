@@ -1,7 +1,8 @@
-from typing import Dict
+from typing import Dict, Optional
 
 import lightning as L
 import torch
+from torchmetrics import Metric
 
 
 class SimpleSupervisedModel(L.LightningModule):
@@ -30,8 +31,15 @@ class SimpleSupervisedModel(L.LightningModule):
         loss_fn: torch.nn.Module,
         learning_rate: float = 1e-3,
         flatten: bool = True,
+        train_metrics: Dict[str, Metric] = None,
+        val_metrics: Dict[str, Metric] = None,
+        test_metrics: Dict[str, Metric] = None,
     ):
-        """Initialize the model.
+        """Initialize the model with the backbone, fc, loss function and 
+        metrics. Metrics are used to evaluate the model during training, 
+        validation, testing or prediction. It will be logged using 
+        lightning logger at the end of each epoch. Metrics should implement 
+        the `torchmetrics.Metric` interface.
 
         Parameters
         ----------
@@ -47,6 +55,15 @@ class SimpleSupervisedModel(L.LightningModule):
         flatten : bool, optional
             If `True` the input data will be flattened before passing through
             the fc model, by default True
+            
+        train_metrics : Dict[str, Metric], optional
+            The metrics to be used during training, by default None
+        val_metrics : Dict[str, Metric], optional
+            The metrics to be used during validation, by default None
+        test_metrics : Dict[str, Metric], optional
+            The metrics to be used during testing, by default None
+        predict_metrics : Dict[str, Metric], optional
+            The metrics to be used during prediction, by default None
         """
         super().__init__()
         self.backbone = backbone
@@ -54,6 +71,12 @@ class SimpleSupervisedModel(L.LightningModule):
         self.loss_fn = loss_fn
         self.learning_rate = learning_rate
         self.flatten = flatten
+
+        self.metrics = {
+            "train": train_metrics,
+            "val": val_metrics,
+            "test": test_metrics,
+        }
 
     def _loss_func(self, y_hat: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
         """Calculate the loss between the output and the input data.
@@ -92,6 +115,34 @@ class SimpleSupervisedModel(L.LightningModule):
         x = self.fc(x)
         return x
 
+    def _compute_metrics(
+        self, y_hat: torch.Tensor, y: torch.Tensor, step_name: str
+    ) -> Dict[str, torch.Tensor]:
+        """Calculate the metrics for the given step.
+
+        Parameters
+        ----------
+        y_hat : torch.Tensor
+            The output data from the forward pass.
+        y : torch.Tensor
+            The input data/label.
+        step_name : str
+            Name of the step. It will be used to get the metrics from the
+            `self.metrics` attribute.
+
+        Returns
+        -------
+        Dict[str, torch.Tensor]
+            A dictionary with the metrics values.
+        """
+        if self.metrics[step_name] is None:
+            return {}
+        
+        return {
+            f"{step_name}_{metric_name}": metric.to(self.device)(y_hat, y)
+            for metric_name, metric in self.metrics[step_name].items()
+        }
+
     def _single_step(
         self, batch: torch.Tensor, batch_idx: int, step_name: str
     ) -> torch.Tensor:
@@ -127,6 +178,18 @@ class SimpleSupervisedModel(L.LightningModule):
             prog_bar=True,
             logger=True,
         )
+        
+        metrics = self._compute_metrics(y_hat, y, step_name)
+        for metric_name, metric_value in metrics.items():
+            self.log(
+                metric_name,
+                metric_value,
+                on_step=False,
+                on_epoch=True,
+                prog_bar=True,
+                logger=True,
+            )
+        
         return loss
 
     def training_step(self, batch: torch.Tensor, batch_idx: int):
