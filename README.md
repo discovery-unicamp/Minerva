@@ -1,7 +1,6 @@
 # Minerva
+
 [![Continuous Test](https://github.com/discovery-unicamp/Minerva/actions/workflows/python-app.yml/badge.svg)](https://github.com/discovery-unicamp/Minerva/actions/workflows/python-app.yml)
-
-
 
 Minerva is a framework for training machine learning models for researchers.
 
@@ -14,18 +13,24 @@ This project aims to provide a robust and flexible framework for researchers wor
 To install Minerva, you can use pip:
 
 ```sh
-pip install .
+pip install --editable . 
 ```
 
 ## Usage
 
-Import the necessary modules from Minerva and use them in your machine learning pipeline. For example:
+You can eather use Minerva's modules directly or use the command line interface (CLI) to train and evaluate models.
 
-```python
-from minerva.transforms import Flip, TransformPipeline
-from minerva.models.nets import SETR_PUP
-from minerva.analysis.metrics import PixelAccuracy
+### CLI
+
+To train a model using the CLI, you can use any of the available pipelines. For example, to train a simple model using the Lightning module, you can run the following command:
+
+```sh
+python minerva/pipelines/simple_lightning_pipeline.py --config config.yaml
 ```
+
+### Modules
+
+You can also use Minerva's modules directly in your code. Just import the module you want to use and call the desired functions.
 
 ## License
 
