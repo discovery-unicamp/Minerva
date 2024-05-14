@@ -604,6 +604,16 @@ class SETR_PUP(L.LightningModule):
                 sync_dist=True,
             )
 
+        self.log(
+            f"{step_name}_loss",
+            loss,
+            on_step=True,
+            on_epoch=True,
+            prog_bar=True,
+            logger=True,
+            sync_dist=True,
+        )
+
         return loss
 
     def training_step(self, batch: torch.Tensor, batch_idx: int):
