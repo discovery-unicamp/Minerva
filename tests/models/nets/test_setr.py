@@ -27,7 +27,7 @@ def test_setr_predict():
     preds = model.predict_step((x, mask), 0)
     assert preds is not None
     assert (
-        preds[0].shape == mask_shape
+        preds.shape == mask_shape
     ), f"Expected shape {mask_shape}, but got {preds[0].shape}"
 
 
