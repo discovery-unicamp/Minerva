@@ -594,8 +594,9 @@ class SETR_PUP(L.LightningModule):
 
         metrics = self._compute_metrics(y_hat[0], y, step_name)
         for metric_name, metric_value in metrics.items():
-            self.log_dict(
-                {metric_name: metric_value},
+            self.log(
+                metric_name,
+                metric_value,
                 on_step=False,
                 on_epoch=True,
                 prog_bar=True,
