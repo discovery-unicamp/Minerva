@@ -52,7 +52,7 @@ As a rule of thumb, changes are obvious fixes if they do not introduce any new f
 
 ### Security Vulnerabilities
 
-If you find a security vulnerability, do NOT open an issue. Contact one of the core maintainers privately or email <edson@ic.unicamp.br> instead.
+If you find a security vulnerability, **do NOT** open an issue. Contact one of the core maintainers privately or email <edson@ic.unicamp.br> instead.
 
 In order to determine whether you are dealing with a security issue, ask yourself these two questions:
 
@@ -81,45 +81,16 @@ General questions should go to the [Discussions](https://github.com/discovery-un
 
 One of our philosophies is to implement the least redundant features possible, without making our dependencies bloated. So, if there is a function within the scope of one of our dependencies that already solves what you are trying to implement you should prioritize it.
 
-Furthermore ...
-
-### Explain your desired process for suggesting a feature
-
-If there is back-and-forth or signoff required, say so. Ask them to scope the feature, thinking through why it’s needed and how it might work.
-
-> If you find yourself wishing for a feature that doesn't exist in Elasticsearch, you are probably not alone. There are bound to be others out there with similar needs. Many of the features that Elasticsearch has today have been added because our users saw the need. Open an issue on our issues list on GitHub which describes the feature you would like to see, why you need it, and how it should work.
-
-[source: [Elasticsearch](https://github.com/elastic/elasticsearch/blob/master/CONTRIBUTING.md#feature-requests)] **Need more inspiration?** [1] [Hoodie](https://github.com/hoodiehq/hoodie/blob/master/CONTRIBUTING.md#feature-requests) [2] [Ember.js](https://github.com/emberjs/ember.js/blob/master/CONTRIBUTING.md#requesting-a-feature)
+If you wish for a feature that isn't currently available in Minerva, you're likely not the only one. Many users share similar needs, especially since Minerva is still in its early stages. Please open an issue on our GitHub issues list, detailing the feature you'd like to see, why you need it, and how it should work.
 
 ## Code review process
 
-### Explain how a contribution gets accepted after it’s been submitted.
-Who reviews it? Who needs to sign off before it’s accepted? When should a contributor expect to hear from you? How can contributors get commit access, if at all?
-
-> The core team looks at Pull Requests on a regular basis in a weekly triage meeting that we hold in a public Google Hangout. The hangout is announced in the weekly status updates that are sent to the puppet-dev list. Notes are posted to the Puppet Community community-triage repo and include a link to a YouTube recording of the hangout.
-> After feedback has been given we expect responses within two weeks. After two weeks we may close the pull request if it isn't showing any activity.
-
-[source: [Puppet](https://github.com/puppetlabs/puppet/blob/master/CONTRIBUTING.md#submitting-changes)] **Need more inspiration?** [1] [Meteor](https://meteor.hackpad.com/Responding-to-GitHub-Issues-SKE2u3tkSiH ) [2] [Express.js](https://github.com/expressjs/express/blob/master/Contributing.md#becoming-a-committer)
+As the core team is composed mostly of postgraduate students, we may take some time to review your PR. We will do our best to review it as soon as possible, but we may take a few days to do so. Features deemed as core to the project or critical bug fixes will be reviewed first.
 
 ## Community
-If there are other channels you use besides GitHub to discuss contributions, mention them here. You can also list the author, maintainers, and/or contributors here, or set expectations for response time.
 
-> You can chat with the core team on https://gitter.im/cucumber/cucumber. We try to have office hours on Fridays.
+If you have any questions, ideas or other topic to discuss, feel free to use the [Discussions](https://github.com/discovery-unicamp/Minerva/discussions) tab. We will be happy to help you.
 
-[source: [cucumber-ruby](https://github.com/cucumber/cucumber-ruby/blob/master/CONTRIBUTING.md#talking-with-other-devs)] **Need more inspiration?**
- [1] [Chef](https://github.com/chef/chef/blob/master/CONTRIBUTING.md#-developer-office-hours) [2] [Cookiecutter](https://github.com/audreyr/cookiecutter#community)
+We would like to thank you for your interest in contributing to Minerva. We are looking forward to your contributions.
 
-## BONUS: Code, commit message and labeling conventions
-These sections are not necessary, but can help streamline the contributions you receive.
-
-### Explain your preferred style for code, if you have any.
-
-**Need inspiration?** [1] [Requirejs](http://requirejs.org/docs/contributing.html#codestyle) [2] [Elasticsearch](https://github.com/elastic/elasticsearch/blob/master/CONTRIBUTING.md#contributing-to-the-elasticsearch-codebase)
-
-### Explain if you use any commit message conventions.
-
-**Need inspiration?** [1] [Angular](https://github.com/angular/material/blob/master/.github/CONTRIBUTING.md#submit) [2] [Node.js](https://github.com/nodejs/node/blob/master/CONTRIBUTING.md#step-3-commit)
-
-### Explain if you use any labeling conventions for issues.
-
-**Need inspiration?** [1] [StandardIssueLabels](https://github.com/wagenet/StandardIssueLabels#standardissuelabels) [2] [Atom](https://github.com/atom/atom/blob/master/CONTRIBUTING.md#issue-and-pull-request-labels)
+The Minerva Team.
