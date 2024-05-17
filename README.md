@@ -13,7 +13,7 @@ This project aims to provide a robust and flexible framework for researchers wor
 To install Minerva, you can use pip:
 
 ```sh
-pip install --editable . 
+pip install . 
 ```
 
 ## Usage
