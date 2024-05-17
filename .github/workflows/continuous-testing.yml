@@ -19,7 +19,7 @@ permissions:
   contents: read
 
 jobs:
-  build:
+   continuous-testing:
     runs-on: ubuntu-latest
 
     steps:

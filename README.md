@@ -1,6 +1,6 @@
 # Minerva
 
-[![Continuous Test](https://github.com/discovery-unicamp/Minerva/actions/workflows/python-app.yml/badge.svg)](https://github.com/discovery-unicamp/Minerva/actions/workflows/python-app.yml)
+[![Continuous Test](https://github.com/discovery-unicamp/Minerva/actions/workflows/continuous-testing.yml/badge.svg)](https://github.com/discovery-unicamp/Minerva/actions/workflows/python-app.yml)
 
 Minerva is a framework for training machine learning models for researchers.
 
@@ -13,7 +13,7 @@ This project aims to provide a robust and flexible framework for researchers wor
 To install Minerva, you can use pip:
 
 ```sh
-pip install --editable . 
+pip install . 
 ```
 
 ## Usage
