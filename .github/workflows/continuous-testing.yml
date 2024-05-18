@@ -8,11 +8,21 @@ on:
     branches: ["main"]
     paths-ignore:
       - '**/README.md'
+      - '**/CONTRIBUTING.md'
+      - '**/CODE_OF_CONDUCT.md'
+      - '**/SECURITY.md'
+      - '**/.github/ISSUE_TEMPLATE/*'
+      - '**/.github/PULL_REQUEST_TEMPLATE/*'
       - '**/LICENSE'
   pull_request:
     branches: ["main"]
     paths-ignore:
       - '**/README.md'
+      - '**/CONTRIBUTING.md'
+      - '**/CODE_OF_CONDUCT.md'
+      - '**/SECURITY.md'
+      - '**/.github/ISSUE_TEMPLATE/*'
+      - '**/.github/PULL_REQUEST_TEMPLATE/*'
       - '**/LICENSE'
 
 permissions:
