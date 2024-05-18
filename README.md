@@ -40,6 +40,10 @@ This project is licensed under the MIT License. See the [LICENSE](https://github
 
 For any questions or concerns, please open an issue on our [GitHub issue tracker](https://github.com/discovery-unicamp/Minerva/issues).
 
+## Contribute
+
+If you want to contribute to this project make sure to read our [Code of Conduct](https://github.com/discovery-unicamp/Minerva/blob/main/CODE_OF_CONDUCT.md) and [Contributing]([https://github.com/discovery-unicamp/Minerva/blob/main/CODE_OF_CONDUCT.md](https://github.com/discovery-unicamp/Minerva/blob/main/CONTRIBUTING.md)) pages.
+
 ## Acknowledgements
 
 This project is maintained by Gabriel Gutierrez, Otavio Napoli, Fernando Gubitoso Marques, and Edson Borin.
