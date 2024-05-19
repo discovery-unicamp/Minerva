@@ -42,7 +42,7 @@ For any questions or concerns, please open an issue on our [GitHub issue tracker
 
 ## Contribute
 
-If you want to contribute to this project make sure to read our [Code of Conduct](https://github.com/discovery-unicamp/Minerva/blob/main/CODE_OF_CONDUCT.md) and [Contributing]([https://github.com/discovery-unicamp/Minerva/blob/main/CODE_OF_CONDUCT.md](https://github.com/discovery-unicamp/Minerva/blob/main/CONTRIBUTING.md)) pages.
+If you want to contribute to this project make sure to read our [Code of Conduct](https://github.com/discovery-unicamp/Minerva/blob/main/CODE_OF_CONDUCT.md) and [Contributing](https://github.com/discovery-unicamp/Minerva/blob/main/CONTRIBUTING.md) pages.
 
 ## Acknowledgements
 
