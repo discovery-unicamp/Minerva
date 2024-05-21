@@ -46,4 +46,4 @@ If you want to contribute to this project make sure to read our [Code of Conduct
 
 ## Acknowledgements
 
-This project is maintained by Gabriel Gutierrez, Otavio Napoli, Fernando Gubitoso Marques, and Edson Borin.
+This project is maintained by Gabriel Gutierrez, Otávio Napoli, Fernando Gubitoso Marques, and Edson Borin.
