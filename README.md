@@ -10,10 +10,16 @@ This project aims to provide a robust and flexible framework for researchers wor
 
 ## Installation
 
+### Intall Locally
 To install Minerva, you can use pip:
 
 ```sh
-pip install . 
+pip install .
+```
+### Get container from Docker Hub
+
+```
+docker pull gabrielbg0/minerva:latest
 ```
 
 ## Usage
@@ -46,4 +52,4 @@ If you want to contribute to this project make sure to read our [Code of Conduct
 
 ## Acknowledgements
 
-This project is maintained by Gabriel Gutierrez, Otavio Napoli, Fernando Gubitoso Marques, and Edson Borin.
+This project is maintained by Gabriel Gutierrez, Otávio Napoli, Fernando Gubitoso Marques, and Edson Borin.
