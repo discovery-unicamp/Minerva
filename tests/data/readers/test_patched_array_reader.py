@@ -1,6 +1,6 @@
 import numpy as np
 
-from minerva.data.readers.patched_array_reader import PatchedArrayReader
+from minerva.data.readers import PatchedArrayReader
 
 
 def test_patched_array_reader_no_stride_1():

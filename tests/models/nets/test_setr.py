@@ -1,7 +1,7 @@
 import pytest
 import torch
 
-from minerva.models.nets.setr import SETR_PUP
+from minerva.models.nets import SETR_PUP
 
 
 def test_setr_loss():
