@@ -1,8 +1,8 @@
-import torch
-
-from minerva.models.nets.unet import UNet
-import torchmetrics
 import lightning as L
+import torch
+import torchmetrics
+
+from minerva.models.nets import UNet
 from minerva.utils.data import RandomDataModule
 
 
