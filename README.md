@@ -10,10 +10,16 @@ This project aims to provide a robust and flexible framework for researchers wor
 
 ## Installation
 
+### Intall Locally
 To install Minerva, you can use pip:
 
 ```sh
-pip install . 
+pip install .
+```
+### Get container from Docker Hub
+
+```
+docker pull gabrielbg0/minerva:latest
 ```
 
 ## Usage
