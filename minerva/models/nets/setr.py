@@ -240,8 +240,8 @@ class _SetR_PUP(nn.Module):
         conv_norm: nn.Module,
         conv_act: nn.Module,
         align_corners: bool,
-        aux_output: bool = False,
-        aux_output_layers: list[int] | None = None,
+        aux_output: bool,
+        aux_output_layers: list[int] | None,
     ):
         """
         Initializes the SETR PUP model.
@@ -407,6 +407,7 @@ class SETR_PUP(L.LightningModule):
         conv_act: Optional[nn.Module] = None,
         interpolate_mode: str = "bilinear",
         loss_fn: Optional[nn.Module] = None,
+        optimizer: Optional[torch.optim.Optimizer] = None,
         train_metrics: Optional[Dict[str, Metric]] = None,
         val_metrics: Optional[Dict[str, Metric]] = None,
         test_metrics: Optional[Dict[str, Metric]] = None,
@@ -457,6 +458,8 @@ class SETR_PUP(L.LightningModule):
             The interpolation mode for upsampling in the decoder. Defaults to "bilinear".
         loss_fn : nn.Module, optional
             The loss function to be used during training. Defaults to None.
+        optimizer : torch.optim.Optimizer, optional
+            The optimizer to be used during training. Defaults to None.
         train_metrics : Dict[str, Metric], optional
             The metrics to be used for training evaluation. Defaults to None.
         val_metrics : Dict[str, Metric], optional
@@ -487,6 +490,11 @@ class SETR_PUP(L.LightningModule):
             assert len(aux_weights) == len(
                 aux_output_layers
             ), "aux_weights must have the same length as aux_output_layers."
+
+        if optimizer is not None:
+            self.optimizer = optimizer
+        else:
+            self.optimizer = torch.optim.Adam(self.parameters(), lr=1e-3)
 
         self.num_classes = num_classes
         self.aux_weights = aux_weights
@@ -632,4 +640,4 @@ class SETR_PUP(L.LightningModule):
         return self.model(x)[0]
 
     def configure_optimizers(self):
-        return torch.optim.Adam(self.model.parameters(), lr=1e-3)
+        return self.optimizer
