@@ -6,19 +6,31 @@ requires = ["setuptools>=64.0.0"]
 authors = [
     { name = "Gabriel Gutierrez", email = "gabriel.bgs00@gmail.com" },
     { name = "Otavio Napoli", email = "onapoli@lmcad.ic.unicamp.br" },
+    { name = "Fernando Gubitoso Marques", email = "fernandogubitosom@gmail.com" },
+    { name = "Edson Borin", email = "borin@unicamp.br " },
+
 ]
 classifiers = [
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
 ]
-description = "Self supervised learning tools"
-keywords = ["ssl tools", "self supervised learning", "machine learning"]
+description = "the framework for traning machine learning models for reaserchers."
+keywords = [
+    "Machine Learning",
+    "self supervised learning",
+    "Reaserch",
+    "Deep Learning",
+    "Computer Vision",
+    "Pytorch",
+    "SSL",
+]
 license = { file = "LICENSE" }
-name = "sslt"
+name = "minerva"
 readme = "README.md"
 requires-python = ">=3.8"
-version = "0.0.1-dev"
+version = "0.2.2-beta"
+
 
 dependencies = [
     "lightning",
@@ -30,17 +42,22 @@ dependencies = [
     "statsmodels",
     "tifffile",
     "torch",
+    "torchvision",
+    "timm",
     "zarr",
     "torchmetrics",
+    "rich",
+    "perlin-noise",
+    "gitpython",
+    "jsonargparse"
 ]
+
+[tool.setuptools]
+packages = ["minerva"]
 
 [project.optional-dependencies]
 dev = ["mock", "pytest", "black", "isort"]
 
 [project.urls]
-
-"Bug Tracker" = "https://github.com/GabrielBG0/Framework-SSL/issues"
-"Homepage" = "https://github.com/GabrielBG0/Framework-SSL"
-
-[tool.setuptools]
-py-modules = ["sslt"]
+"Bug Tracker" = "https://github.com/discovery-unicamp/Minerva/issues"
+"Homepage" = "https://github.com/discovery-unicamp/Minerva"

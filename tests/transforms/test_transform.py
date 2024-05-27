@@ -1,9 +1,9 @@
-import pytest
 from typing import Sequence
 
 import numpy as np
+import pytest
 
-from sslt.transforms import Flip, TransformPipeline, _Transform
+from minerva.transforms import Flip, PerlinMasker, TransformPipeline, _Transform
 
 
 def test_transform_pipeline():
@@ -59,3 +59,23 @@ def test_flip_invalid_axes():
     # Check if an AssertionError is raised when applying the transform
     with pytest.raises(AssertionError):
         flipped_x = flip_transform(x)
+
+
+def test_perlin_masker_invalid_octaves():
+    # Create a dummy input
+    x = np.random.rand(10, 20)
+
+    # Check if a ValueError is raised when using invalid octaves
+    with pytest.raises(ValueError):
+        perlin_masker = PerlinMasker(octaves=-1)
+        masked_x = perlin_masker(x)
+
+
+def test_perlin_masker_invalid_scale():
+    # Create a dummy input
+    x = np.random.rand(10, 20)
+
+    # Check if a ValueError is raised when using invalid scale
+    with pytest.raises(ValueError):
+        perlin_masker = PerlinMasker(octaves=3, scale=0)
+        masked_x = perlin_masker(x)
