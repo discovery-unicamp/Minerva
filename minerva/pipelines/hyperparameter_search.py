@@ -21,27 +21,47 @@ class HyperParameterSearch(Pipeline):
     def __init__(
         self,
         model: L.LightningModule,
-        trainer: L.Trainer,
-        log_dir: PathLike,
-        save_run_status: bool,
-        classification_metrics: Dict[str, Metric],
-        regression_metrics: Dict[str, Metric],
-        apply_metrics_per_sample: bool,
-        search_space=Dict[str, Categorical | Float | Integer],
+        search_space: Dict[str, Any],
+        log_dir: Optional[PathLike] = None,
+        save_run_status: bool = False,
+        num_epochs: int = 2,
+        num_samples: int = 2,
     ):
+        super().__init__(log_dir=log_dir, save_run_status=save_run_status)
         self.model = model
-        self.trainer = trainer
-        self.log_dir = log_dir
-        self.save_run_status = save_run_status
-        self.classification_metrics = classification_metrics
-        self.regression_metrics = regression_metrics
-        self.apply_metrics_per_sample = apply_metrics_per_sample
         self.search_space = search_space
+        self.trainer = prepare_trainer(
+            L.Trainer(
+                devices="auto",
+                accelerator="auto",
+                strategy=RayDDPStrategy(),
+                callbacks=[RayTrainReportCallback()],
+                plugins=[RayLightningEnvironment()],
+                enable_progress_bar=False,
+            )
+        )
+        self.num_epochs = num_epochs
+        self.num_samples = num_samples
 
     def _search(
         self, data: L.LightningDataModule, ckpt_path: Optional[PathLike]
     ) -> Any:
-        tune.loguniform
+        def _tuner_train_func(config):
+            model = self.model(config)
+            self.trainer.fit(model, data, ckpt_path=ckpt_path)
+
+        scheduler = ASHAScheduler(max_t=self.num_epochs, grace_period=1)
+        tuner = tune.Tuner(
+            _tuner_train_func,
+            param_space=self.search_space,
+            tune_config=tune.TuneConfig(
+                metric="ptl/val_miou",
+                mode="max",
+                num_samples=self.num_samples,
+                scheduler=scheduler,
+            ),
+        )
+        return tuner.fit()
 
     def _test(self, data: L.LightningDataModule, ckpt_path: Optional[PathLike]) -> Any:
         raise NotImplementedError
@@ -51,15 +71,10 @@ class HyperParameterSearch(Pipeline):
     ) -> Any:
         raise NotImplementedError
 
-    def _evaluate(
-        self, data: L.LightningDataModule, ckpt_path: Optional[PathLike]
-    ) -> Any:
-        raise NotImplementedError
-
     def _run(
         self,
         data: L.LightningDataModule,
-        task: Optional[Literal["search", "test", "predict", "evaluate"]],
+        task: Optional[Literal["search", "test", "predict"]],
         ckpt_path: Optional[PathLike] = None,
     ) -> Any:
         if task == "search":
@@ -68,11 +83,7 @@ class HyperParameterSearch(Pipeline):
             return self._test(data, ckpt_path)
         elif task == "predict":
             return self._predict(data, ckpt_path)
-        elif task == "evaluate":
-            return self._evaluate(data, ckpt_path)
         elif task is None:
             search = self._search(data, ckpt_path)
             test = self._test(data, ckpt_path)
-            predict = self._predict(data, ckpt_path)
-            evaluate = self._evaluate(data, ckpt_path)
-            return search, test, predict, evaluate
+            return search, test
