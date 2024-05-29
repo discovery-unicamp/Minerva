@@ -1,4 +1,15 @@
-Installation
------------------
+.. _installation:
 
-Under construction...
+==========================
+Installation Guide
+==========================
+
+Pip Installation
+---------------------
+
+To install Minerva, you can use pip:
+
+.. code-block:: bash
+    
+    pip install minerva
+

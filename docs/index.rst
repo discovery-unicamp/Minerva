@@ -12,8 +12,6 @@ Welcome to Minerva's documentation!
    
    installation
    tutorials
-   experiments
-   contributing
    api
 
 
