@@ -17,7 +17,6 @@ Submodules
    /autoapi/minerva/models/nets/deeplabv3/index
    /autoapi/minerva/models/nets/imu_transformer/index
    /autoapi/minerva/models/nets/inception_time/index
-   /autoapi/minerva/models/nets/multi_channel_cnn/index
    /autoapi/minerva/models/nets/resnet_1d/index
    /autoapi/minerva/models/nets/setr/index
    /autoapi/minerva/models/nets/sfm/index
