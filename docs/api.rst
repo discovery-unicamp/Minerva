@@ -5,4 +5,4 @@ Here is the Programming Interface
 
 ..  toctree::
 
-    autoapi/ssl_tools/index
+    autoapi/minerva/index

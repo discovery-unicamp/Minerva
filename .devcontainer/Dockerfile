@@ -53,19 +53,20 @@ RUN     rm -rf /var/lib/apt/lists/* && \
 
 # System-wide python packages
 RUN python -m pip install --upgrade pip setuptools pytest && \
-    python -m pip install black \
+    python -m pip install \
+        black \
         ipykernel \
-        kaleido \
-        lightning>=2.1.0 \
-        matplotlib \
+        kaleido>=0.2 \
+        lightning>=2.1.9 \
+        matplotlib>=3.7 \
         nbformat \
-        numpy \
-        pandas \
-        plotly \
-        seaborn \
-        scipy \
-        torchmetrics \
-        torchvision
+        numpy>=1.22 \
+        pandas>=2.0 \
+        plotly>=5.18 \
+        seaborn>=0.11 \
+        scipy>=1.10 \
+        torchmetrics>=1.3.0 \
+        torchvision>=0.15
 
 
 # Change shell for user b

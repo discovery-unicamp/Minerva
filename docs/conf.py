@@ -22,7 +22,7 @@ import sphinx_rtd_theme
 
 # -- Project information -----------------------------------------------------
 
-project = 'Minerva'
+project = 'minerva'
 copyright = '2024, Unicamp'
 author = 'Discovery'
 
@@ -60,11 +60,11 @@ templates_path = ['_templates']
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = ['build', 'Thumbs.db', '.DS_Store', '.git']
 
 ####### Auto API
 autoapi_type = 'python'
-autoapi_dirs = ['../sslt/']
+autoapi_dirs = ['../minerva/']
 autoapi_member_order = 'alphabetical'
 autoapi_python_use_implicit_namespaces = True
 autoapi_python_class_content = 'both'
@@ -91,8 +91,8 @@ nbsphinx_execute_arguments = [
 # a list of builtin themes.
 #
 html_theme = 'sphinx_rtd_theme'
-htmlhelp_basename = 'ssl_tools_docs'
-htmlhelp_basename = 'ssl_tools_docs'
+htmlhelp_basename = 'minerva_docs'
+htmlhelp_basename = 'minerva_docs'
 source_encoding = 'utf-8'
 
 # Add any paths that contain custom static files (such as style sheets) here,
