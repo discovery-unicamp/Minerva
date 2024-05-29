@@ -13,7 +13,6 @@ Submodules
    /autoapi/minerva/models/nets/base/index
    /autoapi/minerva/models/nets/cnn_ha_etal/index
    /autoapi/minerva/models/nets/cnn_pf/index
-   /autoapi/minerva/models/nets/deep_conv_lstm/index
    /autoapi/minerva/models/nets/deeplabv3/index
    /autoapi/minerva/models/nets/imu_transformer/index
    /autoapi/minerva/models/nets/inception_time/index
