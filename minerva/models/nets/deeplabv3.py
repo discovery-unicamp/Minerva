@@ -62,12 +62,12 @@ class DeepLabV3Backbone(nn.Module):
         RN50model = resnet50(replace_stride_with_dilation=[False, True, True])
         self.RN50model = RN50model
     
-    def freeze_weights():
-        for param in RN50model.parameters():
+    def freeze_weights(self):
+        for param in self.RN50model.parameters():
             param.requires_grad = False
 
-    def unfreeze_weights():
-        for param in RN50model.parameters():
+    def unfreeze_weights(self):
+        for param in self.RN50model.parameters():
             param.requires_grad = True
 
     def forward(self, x):
