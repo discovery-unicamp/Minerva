@@ -1,69 +1,98 @@
-import lightning as L
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
-from torchvision import models
+from torch import nn
+from torch.nn import functional as F
+from typing import Any, Optional, Sequence
 
-from .base import SimpleSupervisedModel
+from torchvision.models.resnet import resnet50
+from torchvision.models._utils import IntermediateLayerGetter
+import types
 
+import lightning as L
 
-class Resnet50Backbone(nn.Module):
+from torchvision.models.segmentation import DeepLabV3
+from torchvision.models.segmentation.deeplabv3 import ASPP
 
-    def __init__(self) -> None:
+class DeepLabV3Model(L.LightningModule):
+    def __init__(self, backbone=None, pred_head=None, num_classes=6):
         super().__init__()
-        self.resnet50 = models.resnet50()
-        self.resnet50 = nn.Sequential(*list(self.resnet50.children())[:-2])
+        if backbone:
+            self.backbone = backbone
+        else:
+            self.backbone = DeepLabV3Backbone()
+        if pred_head:
+            self.pred_head = pred_head
+        else:
+            self.pred_head = DeepLabV3PredictionHead(num_classes=num_classes)
+
+        self.loss_fn = torch.nn.CrossEntropyLoss()
 
     def forward(self, x):
-        return self.resnet50(x)
+        input_shape = x.shape[-2:]
+        h = self.backbone(x)
+        z = self.pred_head(h)
+        # Upscaling
+        return F.interpolate(z, size=input_shape, mode="bilinear", align_corners=False)
 
+    def training_step(self, batch, batch_idx):
+        X, y = batch
+        y_hat = self.forward(X.float())
+        # Compute the loss
+        loss = self.loss_fn(y_hat, y.squeeze(1).long())
+        # Logging to TensorBoard (if installed) by default
+        self.log("train_loss", loss)
+        return loss
 
-class DeepLabV3_Head(nn.Module):
+    def validation_step(self, batch, batch_idx):
+        # this is the validation loop
+        X, y = batch
+        y_hat = self.forward(X.float())
+        # Compute the loss
+        val_loss = self.loss_fn(y_hat, y.squeeze(1).long())
+        # Logging to TensorBoard (if installed) by default
+        self.log("val_loss", val_loss)
+        return val_loss
 
-    def __init__(self) -> None:
+    def configure_optimizers(self):
+        optimizer = torch.optim.Adam(params=self.parameters(), lr=0.001)
+        return optimizer
+    
+class DeepLabV3Backbone(nn.Module):
+    def __init__(self, num_classes=6):
         super().__init__()
-        raise NotImplementedError(
-            "DeepLabV3's head has not yet been implemented"
-        )
+        RN50model = resnet50(replace_stride_with_dilation=[False, True, True])
+        self.RN50model = RN50model
+    
+    def freeze_weights():
+        for param in RN50model.parameters():
+            param.requires_grad = False
+
+    def unfreeze_weights():
+        for param in RN50model.parameters():
+            param.requires_grad = True
 
     def forward(self, x):
-        raise NotImplementedError(
-            "DeepLabV3's head has not yet been implemented"
-        )
-
-
-class DeepLabV3(SimpleSupervisedModel):
-    """A DeeplabV3 with a ResNet50 backbone
-
-    References
-    ----------
-    Liang-Chieh Chen, George Papandreou, Florian Schroff, Hartwig Adam. 
-    "Rethinking Atrous Convolution for Semantic Image Segmentation", 2017
-    """
-
-    def __init__(
-        self,
-        learning_rate: float = 1e-3,
-        loss_fn: torch.nn.Module = None,
-        **kwargs,
-    ):
-        """Wrapper implementation of the DeepLabv3 model.
-
-        Parameters
-        ----------
-        learning_rate : float, optional
-            The learning rate to Adam optimizer, by default 1e-3
-        loss_fn : torch.nn.Module, optional
-            The function used to compute the loss. If `None`, it will be used
-            the MSELoss, by default None.
-        kwargs : Dict
-            Additional arguments to be passed to the `SimpleSupervisedModel`
-            class.
-        """
+            x = self.RN50model.conv1(x)
+            x = self.RN50model.bn1(x)
+            x = self.RN50model.relu(x)
+            x = self.RN50model.maxpool(x)
+            x = self.RN50model.layer1(x)
+            x = self.RN50model.layer2(x)
+            x = self.RN50model.layer3(x)
+            x = self.RN50model.layer4(x)
+            #x = self.RN50model.avgpool(x)      # These should be removed for deeplabv3
+            #x = torch.RN50model.flatten(x, 1)  # These should be removed for deeplabv3
+            #x = self.RN50model.fc(x)           # These should be removed for deeplabv3
+            return x
+    
+class DeepLabV3PredictionHead(nn.Sequential):
+    def __init__(self, 
+                 in_channels: int = 2048, 
+                 num_classes: int = 6, 
+                 atrous_rates: Sequence[int] = (12, 24, 36)) -> None:
         super().__init__(
-            backbone=Resnet50Backbone(),
-            fc=DeepLabV3_Head(),
-            loss_fn=loss_fn or torch.nn.MSELoss(),
-            learning_rate=learning_rate,
-            **kwargs,
+            ASPP(in_channels, atrous_rates),
+            nn.Conv2d(256, 256, 3, padding=1, bias=False),
+            nn.BatchNorm2d(256),
+            nn.ReLU(),
+            nn.Conv2d(256, num_classes, 1),
         )
