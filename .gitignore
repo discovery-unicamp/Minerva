@@ -170,4 +170,3 @@ cython_debug/
 experiments/
 logs/
 lightning_logs/
-data/
