@@ -31,6 +31,6 @@ def test_setr_predict():
     ), f"Expected shape {mask_shape}, but got {preds[0].shape}"
 
 
-if __name__ == "__main__":
-    test_setr_loss()
-    test_setr_predict()
+# if __name__ == "__main__":
+#     test_setr_loss()
+#     test_setr_predict()
