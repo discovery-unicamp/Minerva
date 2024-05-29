@@ -1,7 +1,7 @@
-ssl_tools
+minerva
 =========
 
 .. toctree::
    :maxdepth: 4
 
-   ssl_tools
+   minerva

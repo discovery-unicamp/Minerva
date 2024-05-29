@@ -174,3 +174,22 @@ class CastTo(_Transform):
     def __call__(self, x: np.ndarray) -> np.ndarray:
         """Cast the input data to the specified data type."""
         return x.astype(self.dtype)
+
+
+class Padding(_Transform):
+    def __init__(self, target_h_size: int, target_w_size: int):
+        self.target_h_size = target_h_size
+        self.target_w_size = target_w_size
+
+    def __call__(self, x: np.ndarray) -> np.ndarray:
+        h, w = x.shape[:2]
+        pad_h = max(0, self.target_h_size - h)
+        pad_w = max(0, self.target_w_size - w)
+        if len(x.shape) == 2:
+            padded = np.pad(x, ((0, pad_h), (0, pad_w)), mode="reflect")
+            padded = np.expand_dims(padded, axis=2)
+        else:
+            padded = np.pad(x, ((0, pad_h), (0, pad_w), (0, 0)), mode="reflect")
+
+        padded = np.transpose(padded, (2, 0, 1))
+        return padded

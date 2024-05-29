@@ -27,7 +27,9 @@ class TiffReader(_Reader):
         self.path = Path(path)
         if not self.path.is_dir():
             raise ValueError(f"Path {path} is not a directory")
-        self.files = list(sorted(self.path.rglob("*.tif")))
+        self.files = list(sorted(self.path.rglob("*.tif"))) + list(
+            sorted(self.path.rglob("*.tiff"))
+        )
 
     def __getitem__(self, index: Union[int, slice]) -> np.ndarray:
         """Retrieve the TIFF file at the specified index. The index will be
