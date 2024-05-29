@@ -1,10 +1,5 @@
 #!/bin/bash
 
-echo "Installing minerva"
+echo "Installing minerva (editable mode)..."
 pip install -e .
-
-# Add tmux options
-echo -e "set -g default-terminal \"screen-256color\"\nset -g mouse on\nbind e setw synchronize-panes on\nbind E setw synchronize-panes off" >> ~/.tmux.conf
-
-# remove full path from prompt
-sed -i '/^\s*PS1.*\\w/s/\\w/\\W/g' ~/.bashrc
+echo "Minerva installed in editable mode"

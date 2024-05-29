@@ -1,0 +1,42 @@
+name: minerva documentation
+on:
+  push:
+    branches:
+    - docs
+
+jobs:
+  docs:
+    name: Minverva documentation
+    runs-on: ubuntu-latest
+    steps:
+
+    - uses: actions/checkout@v2
+
+    - name: Install Python
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.11.9
+
+    - name: Install packages
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y pandoc
+
+    - name: Install requirements
+      run: |
+        pip3 install sphinx sphinx-rtd-theme sphinx-autodoc-typehints sphinx-argparse sphinx-autoapi nbsphinx pandoc Ipython
+    
+    - name: Build docs
+      run: |
+        cd docs
+        make clean
+        make html
+
+    # https://github.com/peaceiris/actions-gh-pages
+    - name: Deploy
+      if: success()
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        publish_branch: gh-pages
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: docs/build/html/
