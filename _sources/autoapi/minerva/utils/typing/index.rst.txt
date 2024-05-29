@@ -1,0 +1,19 @@
+minerva.utils.typing
+====================
+
+.. py:module:: minerva.utils.typing
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   minerva.utils.typing.PathLike
+
+
+Module Contents
+---------------
+
+.. py:data:: PathLike
+

@@ -1,0 +1,38 @@
+minerva.utils.position_embedding
+================================
+
+.. py:module:: minerva.utils.position_embedding
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   minerva.utils.position_embedding.get_1d_sincos_pos_embed_from_grid
+   minerva.utils.position_embedding.get_2d_sincos_pos_embed
+   minerva.utils.position_embedding.get_2d_sincos_pos_embed_from_grid
+   minerva.utils.position_embedding.interpolate_pos_embed
+
+
+Module Contents
+---------------
+
+.. py:function:: get_1d_sincos_pos_embed_from_grid(embed_dim, pos)
+
+   embed_dim: output dimension for each position
+   pos: a list of positions to be encoded: size (M,)
+   out: (M, D)
+
+
+.. py:function:: get_2d_sincos_pos_embed(embed_dim, grid_size, cls_token=False)
+
+   grid_size: int of the grid height and width
+   return:
+   pos_embed: [grid_size*grid_size, embed_dim] or [1+grid_size*grid_size, embed_dim] (w/ or w/o cls_token)
+
+
+.. py:function:: get_2d_sincos_pos_embed_from_grid(embed_dim, grid)
+
+.. py:function:: interpolate_pos_embed(model, checkpoint_model, newsize1=None, newsize2=None)
+

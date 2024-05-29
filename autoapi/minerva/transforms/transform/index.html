@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>minerva.transforms.transform &mdash; minerva  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=fd3f3429" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+    <link rel="next" title="minerva.utils" href="../../utils/index.html" />
+    <link rel="prev" title="minerva.transforms" href="../index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            minerva
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorials.html">Tutorials</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../../../api.html">Programming Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../../index.html">minerva</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="../../index.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="../../analysis/index.html">minerva.analysis</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../data/index.html">minerva.data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../losses/index.html">minerva.losses</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../models/index.html">minerva.models</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../pipelines/index.html">minerva.pipelines</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="../index.html">minerva.transforms</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../utils/index.html">minerva.utils</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">minerva</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../../api.html">Programming Reference</a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">minerva</a></li>
+          <li class="breadcrumb-item"><a href="../index.html">minerva.transforms</a></li>
+      <li class="breadcrumb-item active">minerva.transforms.transform</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../../_sources/autoapi/minerva/transforms/transform/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-minerva.transforms.transform">
+<span id="minerva-transforms-transform"></span><h1>minerva.transforms.transform<a class="headerlink" href="#module-minerva.transforms.transform" title="Link to this heading"></a></h1>
+<section id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Link to this heading"></a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#minerva.transforms.transform.CastTo" title="minerva.transforms.transform.CastTo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CastTo</span></code></a></p></td>
+<td><p>Cast the input data to the specified data type.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#minerva.transforms.transform.Flip" title="minerva.transforms.transform.Flip"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Flip</span></code></a></p></td>
+<td><p>Flip the input data along the specified axis.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#minerva.transforms.transform.Padding" title="minerva.transforms.transform.Padding"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Padding</span></code></a></p></td>
+<td><p>This class is a base class for all transforms. Transforms is just a</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#minerva.transforms.transform.PerlinMasker" title="minerva.transforms.transform.PerlinMasker"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PerlinMasker</span></code></a></p></td>
+<td><p>Zeroes entries of a tensor according to the sign of Perlin noise. Seed for the noise generator given by torch.randint</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#minerva.transforms.transform.Squeeze" title="minerva.transforms.transform.Squeeze"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Squeeze</span></code></a></p></td>
+<td><p>Remove single-dimensional entries from the shape of an array.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#minerva.transforms.transform.TransformPipeline" title="minerva.transforms.transform.TransformPipeline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TransformPipeline</span></code></a></p></td>
+<td><p>Apply a sequence of transforms to a single sample of data and return the</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#minerva.transforms.transform.Unsqueeze" title="minerva.transforms.transform.Unsqueeze"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Unsqueeze</span></code></a></p></td>
+<td><p>Add a new axis to the input data at the specified position.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#minerva.transforms.transform._Transform" title="minerva.transforms.transform._Transform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_Transform</span></code></a></p></td>
+<td><p>This class is a base class for all transforms. Transforms is just a</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.transforms.transform.CastTo">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.transforms.transform.</span></span><span class="sig-name descname"><span class="pre">CastTo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dtype</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#minerva.transforms.transform.CastTo" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#minerva.transforms.transform._Transform" title="minerva.transforms.transform._Transform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_Transform</span></code></a></p>
+<p>Cast the input data to the specified data type.</p>
+<p>Cast the input data to the specified data type.</p>
+<section id="parameters">
+<h3>Parameters<a class="headerlink" href="#parameters" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt>dtype<span class="classifier">type</span></dt><dd><p>The data type to which the input data will be cast.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.transforms.transform.CastTo.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#minerva.transforms.transform.CastTo.__call__" title="Link to this definition"></a></dt>
+<dd><p>Cast the input data to the specified data type.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>numpy.ndarray</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>dtype</strong> (<em>type</em><em> | </em><em>str</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.transforms.transform.Flip">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.transforms.transform.</span></span><span class="sig-name descname"><span class="pre">Flip</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#minerva.transforms.transform.Flip" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#minerva.transforms.transform._Transform" title="minerva.transforms.transform._Transform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_Transform</span></code></a></p>
+<p>Flip the input data along the specified axis.</p>
+<p>Flip the input data along the specified axis.</p>
+<section id="id1">
+<h3>Parameters<a class="headerlink" href="#id1" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt>axis<span class="classifier">int | List[int], optional</span></dt><dd><p>One or more axis to flip the input data along, by default 0.
+If a list of axis is provided, the input data is flipped along all the specified axis in the order they are provided.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.transforms.transform.Flip.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#minerva.transforms.transform.Flip.__call__" title="Link to this definition"></a></dt>
+<dd><p>Flip the input data along the specified axis.
+if axis is an integer, the input data is flipped along the specified axis.
+if axis is a list of integers, the input data is flipped along all the specified axis in the order they are provided.
+The input must have the same, or less, number of dimensions as the length of the list of axis.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>numpy.ndarray</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>axis</strong> (<em>int</em><em> | </em><em>List</em><em>[</em><em>int</em><em>]</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.transforms.transform.Padding">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.transforms.transform.</span></span><span class="sig-name descname"><span class="pre">Padding</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target_h_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_w_size</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#minerva.transforms.transform.Padding" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#minerva.transforms.transform._Transform" title="minerva.transforms.transform._Transform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_Transform</span></code></a></p>
+<p>This class is a base class for all transforms. Transforms is just a
+fancy word for a function that takes an input and returns an output. The
+input and output can be anything. However, transforms operates over a
+single sample of data and does not require any additional information to
+perform the transformation. The __call__ method should be overridden in
+subclasses to define the transformation logic.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>target_h_size</strong> (<em>int</em>)</p></li>
+<li><p><strong>target_w_size</strong> (<em>int</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.transforms.transform.Padding.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#minerva.transforms.transform.Padding.__call__" title="Link to this definition"></a></dt>
+<dd><p>Implement the transformation logic in this method. Usually, the
+transformation is applyied on a single sample of data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>numpy.ndarray</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.transforms.transform.PerlinMasker">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.transforms.transform.</span></span><span class="sig-name descname"><span class="pre">PerlinMasker</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">octaves</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#minerva.transforms.transform.PerlinMasker" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#minerva.transforms.transform._Transform" title="minerva.transforms.transform._Transform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_Transform</span></code></a></p>
+<p>Zeroes entries of a tensor according to the sign of Perlin noise. Seed for the noise generator given by torch.randint</p>
+<p>Zeroes entries of a tensor according to the sign of Perlin noise. Seed for the noise generator given by torch.randint</p>
+<section id="id2">
+<h3>Parameters<a class="headerlink" href="#id2" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt>octaves: int</dt><dd><p>Level of detail for the Perlin noise generator</p>
+</dd>
+<dt>scale: float = 1</dt><dd><p>Optionally rescale the Perlin noise. Default is 1 (no rescaling)</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.transforms.transform.PerlinMasker.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#minerva.transforms.transform.PerlinMasker.__call__" title="Link to this definition"></a></dt>
+<dd><p>Zeroes entries of a tensor according to the sign of Perlin noise.</p>
+<section id="id3">
+<h4>Parameters<a class="headerlink" href="#id3" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt>x: np.ndarray</dt><dd><p>The tensor whose entries to zero.</p>
+</dd>
+</dl>
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>numpy.ndarray</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>octaves</strong> (<em>int</em>)</p></li>
+<li><p><strong>scale</strong> (<em>float</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.transforms.transform.Squeeze">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.transforms.transform.</span></span><span class="sig-name descname"><span class="pre">Squeeze</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">axis</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#minerva.transforms.transform.Squeeze" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#minerva.transforms.transform._Transform" title="minerva.transforms.transform._Transform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_Transform</span></code></a></p>
+<p>Remove single-dimensional entries from the shape of an array.</p>
+<p>Remove single-dimensional entries from the shape of an array.</p>
+<section id="id4">
+<h3>Parameters<a class="headerlink" href="#id4" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt>axis<span class="classifier">int</span></dt><dd><p>The position of the axis to be removed.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.transforms.transform.Squeeze.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#minerva.transforms.transform.Squeeze.__call__" title="Link to this definition"></a></dt>
+<dd><p>Remove single-dimensional entries from the shape of an array.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>numpy.ndarray</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>axis</strong> (<em>int</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.transforms.transform.TransformPipeline">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.transforms.transform.</span></span><span class="sig-name descname"><span class="pre">TransformPipeline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transforms</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#minerva.transforms.transform.TransformPipeline" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#minerva.transforms.transform._Transform" title="minerva.transforms.transform._Transform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_Transform</span></code></a></p>
+<p>Apply a sequence of transforms to a single sample of data and return the
+transformed data.</p>
+<p>Apply a sequence of transforms to a single sample of data and return
+the transformed data.</p>
+<section id="id5">
+<h3>Parameters<a class="headerlink" href="#id5" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt>transforms<span class="classifier">List[_Transform]</span></dt><dd><p>A list of transforms to be applied to the input data.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.transforms.transform.TransformPipeline.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#minerva.transforms.transform.TransformPipeline.__call__" title="Link to this definition"></a></dt>
+<dd><p>Apply a sequence of transforms to a single sample of data and return
+the transformed data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>Any</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Any</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>transforms</strong> (<em>Sequence</em><em>[</em><a class="reference internal" href="#minerva.transforms.transform._Transform" title="minerva.transforms.transform._Transform"><em>_Transform</em></a><em>]</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.transforms.transform.Unsqueeze">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.transforms.transform.</span></span><span class="sig-name descname"><span class="pre">Unsqueeze</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">axis</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#minerva.transforms.transform.Unsqueeze" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#minerva.transforms.transform._Transform" title="minerva.transforms.transform._Transform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_Transform</span></code></a></p>
+<p>Add a new axis to the input data at the specified position.</p>
+<p>Add a new axis to the input data at the specified position.</p>
+<section id="id6">
+<h3>Parameters<a class="headerlink" href="#id6" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt>axis<span class="classifier">int</span></dt><dd><p>The position of the new axis to be added.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.transforms.transform.Unsqueeze.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#minerva.transforms.transform.Unsqueeze.__call__" title="Link to this definition"></a></dt>
+<dd><p>Add a new axis to the input data at the specified position.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>numpy.ndarray</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>axis</strong> (<em>int</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.transforms.transform._Transform">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.transforms.transform.</span></span><span class="sig-name descname"><span class="pre">_Transform</span></span><a class="headerlink" href="#minerva.transforms.transform._Transform" title="Link to this definition"></a></dt>
+<dd><p>This class is a base class for all transforms. Transforms is just a
+fancy word for a function that takes an input and returns an output. The
+input and output can be anything. However, transforms operates over a
+single sample of data and does not require any additional information to
+perform the transformation. The __call__ method should be overridden in
+subclasses to define the transformation logic.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.transforms.transform._Transform.__call__">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#minerva.transforms.transform._Transform.__call__" title="Link to this definition"></a></dt>
+<dd><p>Implement the transformation logic in this method. Usually, the
+transformation is applyied on a single sample of data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Any</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../index.html" class="btn btn-neutral float-left" title="minerva.transforms" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../../utils/index.html" class="btn btn-neutral float-right" title="minerva.utils" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Unicamp.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

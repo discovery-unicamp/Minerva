@@ -1,0 +1,65 @@
+minerva.models.layers.gru
+=========================
+
+.. py:module:: minerva.models.layers.gru
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   minerva.models.layers.gru.GRUEncoder
+
+
+Module Contents
+---------------
+
+.. py:class:: GRUEncoder(hidden_size = 100, in_channels = 6, encoding_size = 10, num_layers = 1, dropout = 0.0, bidirectional = True)
+
+   Bases: :py:obj:`torch.nn.Module`
+
+
+   
+   Gate Recurrent Unit (GRU) Encoder.
+   This class is a wrapper for the GRU layer (torch.nn.GRU) followed by a
+   linear layer, in order to obtain a fixed-size encoding of the input
+   sequence.
+
+   The input sequence is expected to be of shape
+   [batch_size, in_channel, seq_len].
+   For instance, for HAR data in MotionSense Dataset:
+       - in_channel = 6 (3 for accelerometer and 3 for gyroscope); and
+       - seq_len = 60 (the number of time steps).
+
+   In forward pass, the input sequence is permuted to
+   [seq_len, batch_size, in_channel] before being fed to the GRU layer.
+   The output of forward pass is the encoding of shape
+   [batch_size, encoding_size].
+
+   Parameters
+   ----------
+   hidden_size : int, optional
+       The number of features in the hidden state of the GRU,
+       by default 100
+   in_channel: int, optional
+       The number of input features (e.g. 6 for HAR data in MotionSense
+       Dataset), by default 6
+   encoding_size : int, optional
+       Size of the encoding (output of the linear layer).
+   num_layers : int, optional
+       Number of recurrent layers. E.g., setting ``num_layers=2``
+       would mean stacking two GRUs together to form a `stacked GRU`,
+       with the second GRU taking in outputs of the first GRU and
+       computing the final results. By default 1
+   dropout : float, optional
+       If non-zero, introduces a `Dropout` layer on the outputs of each
+       GRU layer except the last layer, with dropout probability equal to
+       :attr:`dropout`. Default: 0
+   bidirectional : bool, optional
+       If ``True``, becomes a bidirectional GRU, by default True
+
+
+   .. py:method:: forward(x)
+
+

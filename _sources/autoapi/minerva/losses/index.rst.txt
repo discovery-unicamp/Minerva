@@ -1,0 +1,16 @@
+minerva.losses
+==============
+
+.. py:module:: minerva.losses
+
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   /autoapi/minerva/losses/_functional/index
+   /autoapi/minerva/losses/dice/index
+
+

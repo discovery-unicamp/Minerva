@@ -1,0 +1,115 @@
+minerva.data.readers.tiff_reader
+================================
+
+.. py:module:: minerva.data.readers.tiff_reader
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   minerva.data.readers.tiff_reader.TiffReader
+   minerva.data.readers.tiff_reader._Reader
+
+
+Module Contents
+---------------
+
+.. py:class:: TiffReader(path)
+
+   Bases: :py:obj:`minerva.data.readers.reader._Reader`
+
+
+   This class loads a TIFF file from a directory. It assumes that the TIFF
+   files are named with a number as the filename, starting from 0. This is
+   shown below.
+
+   ```
+   /path/
+   ├── 0.tiff
+   ├── 1.tiff
+   ├── 2.tiff
+   └── ...
+   ```
+
+   Thus, the element at index `i` will be the file `i.tiff`.
+
+
+   .. py:method:: __getitem__(index)
+
+      Retrieve the TIFF file at the specified index. The index will be
+      used as the filename of the TIFF file.
+
+      Parameters
+      ----------
+      index : int
+          Index of the TIFF file to retrieve.
+
+      Returns
+      -------
+      np.ndarray
+          The TIFF file as a NumPy array.
+
+      Raises
+      ------
+      ValueError
+          If the specified file does not exist in the given path.
+
+
+
+   .. py:method:: __len__()
+
+      Return the number of TIFF files in the directory.
+
+      Returns
+      -------
+      int
+          The number of TIFF files in the directory.
+
+
+
+.. py:class:: _Reader
+
+   Base class for readers. Readers define an ordered collection of data and
+   provide methods to access it. This class primarily handles:
+
+   1. Definition of data structure and storage.
+   2. Reading data from the source.
+
+   The access is handled by the __getitem__ and __len__ methods, which should be
+   implemented by a subclass. Readers usually returns a single item at a time,
+   that can be a single image, a single label, etc.
+
+
+   .. py:method:: __getitem__(index)
+      :abstractmethod:
+
+
+      Retrieve an item from the reader at the specified index.
+
+      Parameters
+      ----------
+      index : int
+          Index of the item to retrieve.
+
+      Returns
+      -------
+      Any
+          An item from the reader.
+
+
+
+   .. py:method:: __len__()
+      :abstractmethod:
+
+
+      Get the length of the reader.
+
+      Returns
+      -------
+      int
+          The length of the reader.
+
+
+

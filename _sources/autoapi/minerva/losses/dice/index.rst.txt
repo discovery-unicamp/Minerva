@@ -1,0 +1,92 @@
+minerva.losses.dice
+===================
+
+.. py:module:: minerva.losses.dice
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   minerva.losses.dice.BINARY_MODE
+   minerva.losses.dice.MULTICLASS_MODE
+   minerva.losses.dice.MULTILABEL_MODE
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   minerva.losses.dice.DiceLoss
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   minerva.losses.dice.dice_score
+   minerva.losses.dice.to_tensor
+
+
+Module Contents
+---------------
+
+.. py:data:: BINARY_MODE
+   :value: 'binary'
+
+
+.. py:class:: DiceLoss(mode, classes = None, log_loss = False, from_logits = True, smooth = 0.0, ignore_index = None, eps = 1e-07)
+
+   Bases: :py:obj:`torch.nn.modules.loss._Loss`
+
+
+   
+   Initialize the DiceLoss class.
+
+   Parameters
+   ----------
+   mode : str
+       Loss mode. Valid options are 'binary', 'multiclass', or 'multilabel'.
+   classes : Optional[List[int]], optional
+       List of classes that contribute in loss computation. By default, all channels are included. By default None
+   log_loss : bool, optional
+       If True, loss is computed as `- log(dice_coeff)`. If False, loss is computed as `1 - dice_coeff`, by default False
+   from_logits : bool, optional
+       If True, assumes input is raw logits. If False, assumes input is probabilities., by default True
+   smooth : float, optional
+       Smoothness constant for dice coefficient (a), by default 0.0
+   ignore_index : Optional[int], optional
+       Label that indicates ignored pixels (does not contribute to loss), by default None
+   eps : float, optional
+       A small epsilon for numerical stability to avoid zero division error (denominator will be always greater or equal to eps), by default 1e-7
+
+   Raises
+   ------
+   AssertionError
+       If the mode is not one of 'binary', 'multiclass', or 'multilabel' and classes are being masked with mode='binary'.
+
+
+   .. py:method:: aggregate_loss(loss)
+
+
+   .. py:method:: compute_score(output, target, smooth=0.0, eps=1e-07, dims=None)
+
+
+   .. py:method:: forward(y_pred, y_true)
+
+
+.. py:data:: MULTICLASS_MODE
+   :value: 'multiclass'
+
+
+.. py:data:: MULTILABEL_MODE
+   :value: 'multilabel'
+
+
+.. py:function:: dice_score(y_hat, y, smooth = 0.0, eps = 1e-07, dims=None)
+
+.. py:function:: to_tensor(x, dtype=None)
+

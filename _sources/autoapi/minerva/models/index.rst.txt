@@ -1,0 +1,16 @@
+minerva.models
+==============
+
+.. py:module:: minerva.models
+
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 1
+
+   /autoapi/minerva/models/layers/index
+   /autoapi/minerva/models/nets/index
+
+

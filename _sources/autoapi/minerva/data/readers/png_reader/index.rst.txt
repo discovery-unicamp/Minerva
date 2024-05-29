@@ -1,0 +1,122 @@
+minerva.data.readers.png_reader
+===============================
+
+.. py:module:: minerva.data.readers.png_reader
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   minerva.data.readers.png_reader.PNGReader
+   minerva.data.readers.png_reader._Reader
+
+
+Module Contents
+---------------
+
+.. py:class:: PNGReader(path)
+
+   Bases: :py:obj:`minerva.data.readers.reader._Reader`
+
+
+   This class loads a PNG file from a directory. It assumes that the PNG
+   files are named with a number as the filename, starting from 0. This is
+   shown below.
+
+   ```
+   /path/
+   ├── 0.png
+   ├── 1.png
+   ├── 2.png
+   └── ...
+   ```
+
+   Thus, the element at index `i` will be the file `i.png`.
+
+   This class loads a PNG file from a directory.
+
+   Parameters
+   ----------
+   path : Union[Path, str]
+       Path to the directory containing the PNG files.
+
+
+   .. py:method:: __getitem__(index)
+
+      Retrieve the PNG file at the specified index. The index will be
+      used as the filename of the PNG file.
+
+      Parameters
+      ----------
+      index : int
+          Index of the PNG file to retrieve.
+
+      Returns
+      -------
+      np.ndarray
+          The PNG file as a NumPy array.
+
+      Raises
+      ------
+      ValueError
+          If the specified file does not exist in the given path.
+
+
+
+   .. py:method:: __len__()
+
+      Return the number of PNG files in the directory.
+
+      Returns
+      -------
+      int
+          The number of PNG files in the directory.
+
+
+
+.. py:class:: _Reader
+
+   Base class for readers. Readers define an ordered collection of data and
+   provide methods to access it. This class primarily handles:
+
+   1. Definition of data structure and storage.
+   2. Reading data from the source.
+
+   The access is handled by the __getitem__ and __len__ methods, which should be
+   implemented by a subclass. Readers usually returns a single item at a time,
+   that can be a single image, a single label, etc.
+
+
+   .. py:method:: __getitem__(index)
+      :abstractmethod:
+
+
+      Retrieve an item from the reader at the specified index.
+
+      Parameters
+      ----------
+      index : int
+          Index of the item to retrieve.
+
+      Returns
+      -------
+      Any
+          An item from the reader.
+
+
+
+   .. py:method:: __len__()
+      :abstractmethod:
+
+
+      Get the length of the reader.
+
+      Returns
+      -------
+      int
+          The length of the reader.
+
+
+

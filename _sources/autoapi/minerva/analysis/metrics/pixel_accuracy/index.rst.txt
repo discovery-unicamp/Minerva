@@ -1,0 +1,54 @@
+minerva.analysis.metrics.pixel_accuracy
+=======================================
+
+.. py:module:: minerva.analysis.metrics.pixel_accuracy
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   minerva.analysis.metrics.pixel_accuracy.PixelAccuracy
+
+
+Module Contents
+---------------
+
+.. py:class:: PixelAccuracy(dist_sync_on_step=False)
+
+   Bases: :py:obj:`torchmetrics.Metric`
+
+
+   
+   Initializes a PixelAccuracy metric object.
+
+   Parameters
+   ----------
+       dist_sync_on_step: bool, optional
+           Whether to synchronize metric state across processes at each step.
+           Defaults to False.
+
+
+   .. py:method:: compute()
+
+      Computes the pixel accuracy.
+
+      Returns:
+          float: The pixel accuracy.
+
+
+
+   .. py:method:: update(preds, target)
+
+      Updates the metric state with the predictions and targets.
+
+      Parameters
+      ----------
+          preds: torch.Tensor
+              The predicted tensor.
+          target:
+              torch.Tensor The target tensor.
+
+
+

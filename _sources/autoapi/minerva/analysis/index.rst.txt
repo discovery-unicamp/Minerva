@@ -1,0 +1,15 @@
+minerva.analysis
+================
+
+.. py:module:: minerva.analysis
+
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 1
+
+   /autoapi/minerva/analysis/metrics/index
+
+

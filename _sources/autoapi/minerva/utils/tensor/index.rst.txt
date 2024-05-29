@@ -1,0 +1,19 @@
+minerva.utils.tensor
+====================
+
+.. py:module:: minerva.utils.tensor
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   minerva.utils.tensor.to_tensor
+
+
+Module Contents
+---------------
+
+.. py:function:: to_tensor(x, dtype=None)
+

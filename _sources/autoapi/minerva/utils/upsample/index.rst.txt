@@ -1,0 +1,35 @@
+minerva.utils.upsample
+======================
+
+.. py:module:: minerva.utils.upsample
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   minerva.utils.upsample.Upsample
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   minerva.utils.upsample.resize
+
+
+Module Contents
+---------------
+
+.. py:class:: Upsample(size=None, scale_factor=None, mode='nearest', align_corners=None)
+
+   Bases: :py:obj:`torch.nn.Module`
+
+
+   .. py:method:: forward(x)
+
+
+.. py:function:: resize(input, size=None, scale_factor=None, mode='nearest', align_corners=None, warning=True)
+
