@@ -9,6 +9,13 @@ from minerva.models.nets.base import SimpleSupervisedModel
 
 
 class DeepLabV3(SimpleSupervisedModel):
+    """A DeeplabV3 with a ResNet50 backbone
+
+    References
+    ----------
+    Liang-Chieh Chen, George Papandreou, Florian Schroff, Hartwig Adam.
+    "Rethinking Atrous Convolution for Semantic Image Segmentation", 2017
+    """
 
     def __init__(
         self,
@@ -21,6 +28,28 @@ class DeepLabV3(SimpleSupervisedModel):
         val_metrics: Optional[Dict[str, Metric]] = None,
         test_metrics: Optional[Dict[str, Metric]] = None,
     ):
+        """
+        Initializes a DeepLabV3 model.
+
+        Parameters
+        ----------
+        backbone: Optional[nn.Module]
+            The backbone network. Defaults to None.
+        pred_head: Optional[nn.Module]
+            The prediction head network. Defaults to None.
+        loss_fn: Optional[nn.Module]
+            The loss function. Defaults to None.
+        learning_rate: float
+            The learning rate for the optimizer. Defaults to 0.001.
+        num_classes: int
+            The number of classes for prediction. Defaults to 6.
+        train_metrics: Optional[Dict[str, Metric]]
+            The metrics to be computed during training. Defaults to None.
+        val_metrics: Optional[Dict[str, Metric]]
+            The metrics to be computed during validation. Defaults to None.
+        test_metrics: Optional[Dict[str, Metric]]
+            The metrics to be computed during testing. Defaults to None.
+        """
         backbone = backbone or DeepLabV3Backbone()
         pred_head = pred_head or DeepLabV3PredictionHead(num_classes=num_classes)
         loss_fn = loss_fn or nn.CrossEntropyLoss()
@@ -53,7 +82,17 @@ class DeepLabV3(SimpleSupervisedModel):
 
 
 class DeepLabV3Backbone(nn.Module):
-    def __init__(self, num_classes=6):
+    """A ResNet50 backbone for DeepLabV3"""
+
+    def __init__(self, num_classes: int = 6):
+        """
+        Initializes the DeepLabV3 model.
+
+        Parameters
+        ----------
+        num_classes: int
+            The number of classes for classification. Default is 6.
+        """
         super().__init__()
         RN50model = resnet50(replace_stride_with_dilation=[False, True, True])
         self.RN50model = RN50model
@@ -82,12 +121,26 @@ class DeepLabV3Backbone(nn.Module):
 
 
 class DeepLabV3PredictionHead(nn.Sequential):
+    """The prediction head for DeepLabV3"""
+
     def __init__(
         self,
         in_channels: int = 2048,
         num_classes: int = 6,
         atrous_rates: Sequence[int] = (12, 24, 36),
     ) -> None:
+        """
+        Initializes the DeepLabV3 model.
+
+        Parameters
+        ----------
+        in_channels: int
+            Number of input channels. Defaults to 2048.
+        num_classes: int
+            Number of output classes. Defaults to 6.
+        atrous_rates: Sequence[int]
+            A sequence of atrous rates for the ASPP module. Defaults to (12, 24, 36).
+        """
         super().__init__(
             ASPP(in_channels, atrous_rates),
             nn.Conv2d(256, 256, 3, padding=1, bias=False),
