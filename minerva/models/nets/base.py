@@ -31,14 +31,14 @@ class SimpleSupervisedModel(L.LightningModule):
         loss_fn: torch.nn.Module,
         learning_rate: float = 1e-3,
         flatten: bool = True,
-        train_metrics: Dict[str, Metric] = None,
-        val_metrics: Dict[str, Metric] = None,
-        test_metrics: Dict[str, Metric] = None,
+        train_metrics: Optional[Dict[str, Metric]] = None,
+        val_metrics: Optional[Dict[str, Metric]] = None,
+        test_metrics: Optional[Dict[str, Metric]] = None,
     ):
-        """Initialize the model with the backbone, fc, loss function and 
-        metrics. Metrics are used to evaluate the model during training, 
-        validation, testing or prediction. It will be logged using 
-        lightning logger at the end of each epoch. Metrics should implement 
+        """Initialize the model with the backbone, fc, loss function and
+        metrics. Metrics are used to evaluate the model during training,
+        validation, testing or prediction. It will be logged using
+        lightning logger at the end of each epoch. Metrics should implement
         the `torchmetrics.Metric` interface.
 
         Parameters
@@ -55,7 +55,7 @@ class SimpleSupervisedModel(L.LightningModule):
         flatten : bool, optional
             If `True` the input data will be flattened before passing through
             the fc model, by default True
-            
+
         train_metrics : Dict[str, Metric], optional
             The metrics to be used during training, by default None
         val_metrics : Dict[str, Metric], optional
@@ -137,7 +137,7 @@ class SimpleSupervisedModel(L.LightningModule):
         """
         if self.metrics[step_name] is None:
             return {}
-        
+
         return {
             f"{step_name}_{metric_name}": metric.to(self.device)(y_hat, y)
             for metric_name, metric in self.metrics[step_name].items()
@@ -178,7 +178,7 @@ class SimpleSupervisedModel(L.LightningModule):
             prog_bar=True,
             logger=True,
         )
-        
+
         metrics = self._compute_metrics(y_hat, y, step_name)
         for metric_name, metric_value in metrics.items():
             self.log(
@@ -189,7 +189,7 @@ class SimpleSupervisedModel(L.LightningModule):
                 prog_bar=True,
                 logger=True,
             )
-        
+
         return loss
 
     def training_step(self, batch: torch.Tensor, batch_idx: int):
