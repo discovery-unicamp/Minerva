@@ -1,20 +1,22 @@
 import torch
 
-from minerva.models.nets.deeplabv3 import DeepLabV3Model, DeepLabV3Backbone
+from minerva.models.nets.deeplabv3 import DeepLabV3, DeepLabV3Backbone
+
 
 def test_deeplabv3_model():
 
     # Test the class instantiation
-    model = DeepLabV3Model()
+    model = DeepLabV3()
     assert model is not None
 
     # Test the forward method
     input_shape = (2, 3, 701, 255)
-    expected_output_size = torch.Size([2,6,701,255])
+    expected_output_size = torch.Size([2, 6, 701, 255])
     x = torch.rand(*input_shape)
     output = model(x)
-    assert (output.shape == expected_output_size), \
-        f"Expected output shape {input_shape}, but got {output.shape}"
+    assert (
+        output.shape == expected_output_size
+    ), f"Expected output shape {input_shape}, but got {output.shape}"
 
     # Test the _loss_func method
     label_shape = (2, 1, 701, 255)
@@ -27,6 +29,7 @@ def test_deeplabv3_model():
     optimizer = model.configure_optimizers()
     assert optimizer is not None
 
+
 def test_deeplabv3_backbone():
 
     # Test the class instantiation
@@ -35,11 +38,12 @@ def test_deeplabv3_backbone():
 
     # Test the forward method
     input_shape = (2, 3, 701, 255)
-    expected_output_size = torch.Size([2,2048,88,32])
+    expected_output_size = torch.Size([2, 2048, 88, 32])
     x = torch.rand(*input_shape)
     output = backbone(x)
-    assert (output.shape == expected_output_size), \
-        f"Expected output shape {input_shape}, but got {output.shape}"
+    assert (
+        output.shape == expected_output_size
+    ), f"Expected output shape {input_shape}, but got {output.shape}"
 
     # Test the freeze_weights method
     backbone.freeze_weights()
@@ -47,8 +51,9 @@ def test_deeplabv3_backbone():
     # Test the unfreeze_weights method
     backbone.unfreeze_weights()
 
+
 def test_deeplabv3_save_restore():
 
     # Test the class instantiation
-    model = DeepLabV3Model()
+    model = DeepLabV3()
     assert model is not None
