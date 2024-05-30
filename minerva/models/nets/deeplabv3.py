@@ -1,61 +1,41 @@
-import torch
-from torch import nn
-from torch.nn import functional as F
-from typing import Any, Optional, Sequence
+from torch import nn, Tensor, optim, load
+from typing import Sequence
 
 from torchvision.models.resnet import resnet50
-from torchvision.models._utils import IntermediateLayerGetter
-import types
-
-import lightning as L
-
-from torchvision.models.segmentation import DeepLabV3
 from torchvision.models.segmentation.deeplabv3 import ASPP
+from minerva.models.nets.base import SimpleSupervisedModel
 
-class DeepLabV3Model(L.LightningModule):
-    def __init__(self, backbone=None, pred_head=None, num_classes=6):
-        super().__init__()
-        if backbone:
-            self.backbone = backbone
-        else:
-            self.backbone = DeepLabV3Backbone()
-        if pred_head:
-            self.pred_head = pred_head
-        else:
-            self.pred_head = DeepLabV3PredictionHead(num_classes=num_classes)
+class DeepLabV3Model(SimpleSupervisedModel):
+    def __init__(self, 
+                 backbone: nn.Module=None, 
+                 pred_head: nn.Module=None,
+                 loss_fn: nn.Module=None,
+                 learning_rate: float=0.001,
+                 num_classes:int=6):
+        backbone = backbone or DeepLabV3Backbone()
+        pred_head = pred_head or DeepLabV3PredictionHead(num_classes=num_classes)
+        loss_fn = loss_fn or nn.CrossEntropyLoss()
+        
+        super().__init__(backbone=backbone,
+                         fc=pred_head,
+                         loss_fn=loss_fn,
+                         learning_rate=learning_rate)
 
-        self.loss_fn = torch.nn.CrossEntropyLoss()
-
-    def forward(self, x):
+    def forward(self, x: Tensor) -> Tensor:
+        x = x.float()
         input_shape = x.shape[-2:]
         h = self.backbone(x)
-        z = self.pred_head(h)
+        z = self.fc(h)
         # Upscaling
-        return F.interpolate(z, size=input_shape, mode="bilinear", align_corners=False)
+        return nn.functional.interpolate(z, size=input_shape, 
+                                         mode="bilinear", align_corners=False)
 
-    def training_step(self, batch, batch_idx):
-        X, y = batch
-        y_hat = self.forward(X.float())
-        # Compute the loss
-        loss = self.loss_fn(y_hat, y.squeeze(1).long())
-        # Logging to TensorBoard (if installed) by default
-        self.log("train_loss", loss)
-        return loss
-
-    def validation_step(self, batch, batch_idx):
-        # this is the validation loop
-        X, y = batch
-        y_hat = self.forward(X.float())
-        # Compute the loss
-        val_loss = self.loss_fn(y_hat, y.squeeze(1).long())
-        # Logging to TensorBoard (if installed) by default
-        self.log("val_loss", val_loss)
-        return val_loss
+    def _loss_func(self, y_hat: Tensor, y: Tensor) -> Tensor:
+        return self.loss_fn(y_hat, y.squeeze(1).long()) 
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(params=self.parameters(), lr=0.001)
-        return optimizer
-    
+        return optim.Adam(params=self.parameters(), lr=self.learning_rate)    
+
 class DeepLabV3Backbone(nn.Module):
     def __init__(self, num_classes=6):
         super().__init__()
