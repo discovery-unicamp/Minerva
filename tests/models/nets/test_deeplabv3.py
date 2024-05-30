@@ -1,32 +1,54 @@
-import lightning as L
 import torch
-import torchmetrics
 
-from minerva.utils.data import RandomDataModule
+from minerva.models.nets.deeplabv3 import DeepLabV3Model, DeepLabV3Backbone
 
-from minerva.models.nets.deeplabv3 import DeepLabV3Model
-
-def test_deeplabv3_forward():
+def test_deeplabv3_model():
 
     # Test the class instantiation
     model = DeepLabV3Model()
     assert model is not None
 
-    # Generate a random input tensor (B, C, H, W) and the random mask of the
-    # same shape
+    # Test the forward method
     input_shape = (2, 3, 701, 255)
+    expected_output_size = torch.Size([2,6,701,255])
     x = torch.rand(*input_shape)
-    mask = torch.rand(*input_shape)
+    output = model(x)
+    assert (output.shape == expected_output_size), \
+        f"Expected output shape {input_shape}, but got {output.shape}"
+
+    # Test the _loss_func method
+    label_shape = (2, 1, 701, 255)
+    mask = torch.rand(*label_shape)
+    loss = model._loss_func(x, mask)
+    assert loss is not None
+    # TODO: assert the loss result
+
+    # Test the configure_optimizers method
+    optimizer = model.configure_optimizers()
+    assert optimizer is not None
+
+def test_deeplabv3_backbone():
+
+    # Test the class instantiation
+    backbone = DeepLabV3Backbone()
+    assert backbone is not None
 
     # Test the forward method
-    output = model(x)
-    assert (
-        # Batch = 1
-        # 6 output classes (default)
-        # Width = 701
-        # Height = 255
-        output.shape[0] == 2 and 
-         output.shape[1] == 6 and
-          output.shape[2] == 701 and 
-           output.shape[3] == 255
-    ), f"Expected output shape {input_shape}, but got {output.shape}"
+    input_shape = (2, 3, 701, 255)
+    expected_output_size = torch.Size([2,2048,88,32])
+    x = torch.rand(*input_shape)
+    output = backbone(x)
+    assert (output.shape == expected_output_size), \
+        f"Expected output shape {input_shape}, but got {output.shape}"
+
+    # Test the freeze_weights method
+    backbone.freeze_weights()
+
+    # Test the unfreeze_weights method
+    backbone.unfreeze_weights()
+
+def test_deeplabv3_save_restore():
+
+    # Test the class instantiation
+    model = DeepLabV3Model()
+    assert model is not None
