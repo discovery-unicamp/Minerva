@@ -1,0 +1,15 @@
+lightning
+numpy
+pandas
+plotly
+PyYAML
+scipy
+statsmodels
+tifffile
+torch
+zarr
+rich
+perlin-noise
+torchmetrics
+torchvision
+timm
