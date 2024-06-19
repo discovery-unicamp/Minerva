@@ -158,7 +158,7 @@ def get_split_dataloader(
 
 
 def full_dataset_from_dataloader(dataloader: DataLoader):
-    res = [dataloader.dataset[i] for i in range(dataloader.dataset)]
+    res = [dataloader.dataset[i] for i in range(len(dataloader.dataset))]
     # unpack the data and labels
     return list(zip(*res))
 

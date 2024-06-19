@@ -146,6 +146,7 @@ class ResNet1DBase(SimpleSupervisedModel):
         num_residual_blocks: int = 5,
         reduction_ratio=2,
         learning_rate: float = 1e-3,
+        **kwargs
     ):
         backbone = _ResNet1D(
             input_shape=input_shape,
@@ -166,12 +167,7 @@ class ResNet1DBase(SimpleSupervisedModel):
             learning_rate=learning_rate,
             flatten=True,
             loss_fn=torch.nn.CrossEntropyLoss(),
-            val_metrics={
-                "acc": Accuracy(task="multiclass", num_classes=num_classes)
-            },
-            test_metrics={
-                "acc": Accuracy(task="multiclass", num_classes=num_classes)
-            },
+            **kwargs,
         )
 
     def _calculate_fc_input_features(
