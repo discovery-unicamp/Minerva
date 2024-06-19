@@ -25,6 +25,6 @@ def test_cpc_model():
     ), f"Expected output shape {expected_output_shape}, but got {output.shape}"
 
     # Test the training step
-    loss = model.training_step((x, mask), 0).item()
+    loss = model.training_step(x, 0).item()
     assert loss is not None
     assert loss >= 0, f"Expected non-negative loss, but got {loss}"
