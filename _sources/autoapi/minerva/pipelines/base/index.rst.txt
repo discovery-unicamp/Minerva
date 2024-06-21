@@ -4,14 +4,6 @@ minerva.pipelines.base
 .. py:module:: minerva.pipelines.base
 
 
-Attributes
-----------
-
-.. autoapisummary::
-
-   minerva.pipelines.base.PathLike
-
-
 Classes
 -------
 
@@ -22,8 +14,6 @@ Classes
 
 Module Contents
 ---------------
-
-.. py:data:: PathLike
 
 .. py:class:: Pipeline(log_dir = None, ignore = None, cache_result = False, save_run_status = False)
 

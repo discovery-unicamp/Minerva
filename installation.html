@@ -23,7 +23,7 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Tutorials" href="tutorials.html" />
+    <link rel="next" title="Getting Started" href="getting_started.html" />
     <link rel="prev" title="Welcome to Minerva’s documentation!" href="index.html" /> 
 </head>
 
@@ -50,8 +50,14 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Installation Guide</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#pip-installation">Pip Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#using-docker">Using Docker</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#development-install">Development Install</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#running-the-tests">Running the tests</a></li>
 </ul>
 </li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorials.html">Tutorials</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">Programming Reference</a></li>
 </ul>
@@ -82,12 +88,50 @@
              
   <section id="installation-guide">
 <span id="installation"></span><h1>Installation Guide<a class="headerlink" href="#installation-guide" title="Link to this heading"></a></h1>
+<p>Minerva is a standard Python package that can be installed using pip. We also provide a Docker image for easy deployment.</p>
 <section id="pip-installation">
 <h2>Pip Installation<a class="headerlink" href="#pip-installation" title="Link to this heading"></a></h2>
-<p>To install Minerva, you can use pip:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>minerva
+<p>To install the latest stable version of Minerva, you can use pip to install it
+from github main branch using the following command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>git+https://github.com/discovery-unicamp/Minerva.git
 </pre></div>
 </div>
+</section>
+<section id="using-docker">
+<h2>Using Docker<a class="headerlink" href="#using-docker" title="Link to this heading"></a></h2>
+<p>We provide a Docker image for easy deployment. You can pull the image from
+Docker Hub using the following command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>pull<span class="w"> </span>gabrielbg0/minerva:latest
+</pre></div>
+</div>
+</section>
+<section id="development-install">
+<h2>Development Install<a class="headerlink" href="#development-install" title="Link to this heading"></a></h2>
+<p>If you want to install Minerva for development purposes, you can clone the repository and install it using pip:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/discovery-unicamp/Minerva.git<span class="w"> </span>Minerva
+<span class="nb">cd</span><span class="w"> </span>Minerva
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;.[dev]&quot;</span>
+</pre></div>
+</div>
+<p>If you want to install minerva on your local machine, outside any container, we
+recommend using a virtual environment to install Minerva. You can create a virtual environment using the following command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>Minerva
+python3<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>venv
+<span class="nb">source</span><span class="w"> </span>venv/bin/activate
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;.[dev]&quot;</span>
+</pre></div>
+</div>
+<p>If you want to build the documentation, you can install the documentation dependencies using the following command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;.[dev,docs]&quot;</span>
+</pre></div>
+</div>
+<section id="running-the-tests">
+<h3>Running the tests<a class="headerlink" href="#running-the-tests" title="Link to this heading"></a></h3>
+<p>After installing Minerva, you can run the tests using standard Python testing tools, such as <cite>pytest</cite>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pytest
+</pre></div>
+</div>
+</section>
 </section>
 </section>
 
@@ -96,7 +140,7 @@
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="index.html" class="btn btn-neutral float-left" title="Welcome to Minerva’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="tutorials.html" class="btn btn-neutral float-right" title="Tutorials" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="getting_started.html" class="btn btn-neutral float-right" title="Getting Started" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

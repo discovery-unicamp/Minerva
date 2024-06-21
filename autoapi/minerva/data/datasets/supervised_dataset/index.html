@@ -49,6 +49,7 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../../../../../installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../getting_started.html">Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../tutorials.html">Tutorials</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../../../../../api.html">Programming Reference</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="../../../index.html">minerva</a><ul class="current">
@@ -102,171 +103,14 @@
 <h2>Classes<a class="headerlink" href="#classes" title="Link to this heading"></a></h2>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#minerva.data.datasets.supervised_dataset.SimpleDataset" title="minerva.data.datasets.supervised_dataset.SimpleDataset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SimpleDataset</span></code></a></p></td>
-<td><p>Dataset is responsible for loading data from multiple readers and</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#minerva.data.datasets.supervised_dataset.SupervisedReconstructionDataset" title="minerva.data.datasets.supervised_dataset.SupervisedReconstructionDataset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SupervisedReconstructionDataset</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#minerva.data.datasets.supervised_dataset.SupervisedReconstructionDataset" title="minerva.data.datasets.supervised_dataset.SupervisedReconstructionDataset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SupervisedReconstructionDataset</span></code></a></p></td>
 <td><p>A simple dataset class for supervised reconstruction tasks.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#minerva.data.datasets.supervised_dataset._Reader" title="minerva.data.datasets.supervised_dataset._Reader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_Reader</span></code></a></p></td>
-<td><p>Base class for readers. Readers define an ordered collection of data and</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#minerva.data.datasets.supervised_dataset._Transform" title="minerva.data.datasets.supervised_dataset._Transform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_Transform</span></code></a></p></td>
-<td><p>This class is a base class for all transforms. Transforms is just a</p></td>
 </tr>
 </tbody>
 </table>
 </section>
 <section id="module-contents">
 <h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading"></a></h2>
-<dl class="py class">
-<dt class="sig sig-object py" id="minerva.data.datasets.supervised_dataset.SimpleDataset">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.data.datasets.supervised_dataset.</span></span><span class="sig-name descname"><span class="pre">SimpleDataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">readers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transforms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_single</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#minerva.data.datasets.supervised_dataset.SimpleDataset" title="Link to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.utils.data.Dataset</span></code></p>
-<p>Dataset is responsible for loading data from multiple readers and
-responsible for loading data from multiple readers and</p>
-<p>apply specified transforms. It is a generic implementation that can be
-used to create differents dataset, from supervised to unsupervised ones.</p>
-<p>This class implements the common pipeline for reading and transforming data.
-The __getitem__ pipeline is as follows:</p>
-<dl class="simple">
-<dt>For each reader R and transform list T:</dt><dd><ol class="arabic simple">
-<li><p>Read the data from the reader R at the index idx.</p></li>
-<li><p>Apply the transforms T to the data.</p></li>
-<li><p>Append the transformed data to the list of data.</p></li>
-</ol>
-</dd>
-</dl>
-<p>Return the tuple of transformed data.</p>
-<p>Load data from multiple sources and apply specified transforms.</p>
-<section id="parameters">
-<h3>Parameters<a class="headerlink" href="#parameters" title="Link to this heading"></a></h3>
-<dl>
-<dt>readers<span class="classifier">Union[_Reader, List[_Reader]]</span></dt><dd><p>The list of readers to load data from. It can be a single reader or
-a list of readers.</p>
-</dd>
-<dt>transforms<span class="classifier">Optional[Union[_Transform, List[_Transform]]], optional</span></dt><dd><p>The list of transforms to apply to each sample. This can be:
--   None, in which case no transform is applied.
--   A single transform, in which case the same transform is applied</p>
-<blockquote>
-<div><p>to data from all readers.</p>
-</div></blockquote>
-<ul class="simple">
-<li><p>A list of transforms, in which case each transform is applied
-to the corresponding reader. That is, the first transform is
-applied to the first reader, the second transform is applied to
-the second reader, and so on.</p></li>
-</ul>
-</dd>
-<dt>return_single<span class="classifier">bool, optional</span></dt><dd><p>If True, the __getitem__ method will return a single sample  when
-a single reader is used. This is useful for unsupervised datasets,
-where we usually have a single reader. If False, the __getitem__
-method will return a tuple of samples, where each sample is from a
-different reader, from same index. This is useful for supervised
-datasets, where the data from different readers are related and
-should be returned together. The default is False.</p>
-</dd>
-</dl>
-</section>
-<section id="examples">
-<h3>Examples<a class="headerlink" href="#examples" title="Link to this heading"></a></h3>
-<p>1. Supervised Dataset:
-<a href="#id1"><span class="problematic" id="id2">``</span></a><a href="#id3"><span class="problematic" id="id4">`</span></a>python
-from minerva.data.readers import ImageReader, LabelReader
-from minerva.transforms import ImageTransform, LabelTransform
-from minerva.data.datasets import SimpleDataset</p>
-<p># Create the readers
-image_reader = ImageReader(“path/to/images”)
-label_reader = LabelReader(“path/to/labels”)</p>
-<p># Create the transforms
-image_transform = ImageTransform()
-label_transform = None          # No transform for the labels
-# Create the dataset
-dataset = SimpleDataset(</p>
-<blockquote>
-<div><p>readers=[image_reader, label_reader],
-transforms=[image_transform, label_transform]</p>
-</div></blockquote>
-<p>)</p>
-<p>dataset[0]  # Returns [image, label]
-<a href="#id5"><span class="problematic" id="id6">``</span></a><a href="#id7"><span class="problematic" id="id8">`</span></a></p>
-<p>2. Unsupervised Dataset:
-<a href="#id9"><span class="problematic" id="id10">``</span></a><a href="#id11"><span class="problematic" id="id12">`</span></a>python
-from minerva.data.readers import ImageReader
-from minerva.transforms import ImageTransform
-from minerva.data.datasets import SimpleDataset</p>
-<p># Create the reader
-image_reader = ImageReader(“path/to/images”)</p>
-<p># Create the transform
-image_transform = ImageTransform()
-# Create the dataset
-dataset = SimpleDataset(</p>
-<blockquote>
-<div><p>readers=[image_reader],
-transforms=image_transform,
-return_single=True</p>
-</div></blockquote>
-<p>)
-dataset[0]  # Returns image
-<a href="#id13"><span class="problematic" id="id14">``</span></a><a href="#id15"><span class="problematic" id="id16">`</span></a></p>
-<dl class="py method">
-<dt class="sig sig-object py" id="minerva.data.datasets.supervised_dataset.SimpleDataset.__getitem__">
-<span class="sig-name descname"><span class="pre">__getitem__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#minerva.data.datasets.supervised_dataset.SimpleDataset.__getitem__" title="Link to this definition"></a></dt>
-<dd><p>Load data from multiple sources and apply specified transforms.</p>
-<section id="id17">
-<h4>Parameters<a class="headerlink" href="#id17" title="Link to this heading"></a></h4>
-<dl class="simple">
-<dt>idx<span class="classifier">int</span></dt><dd><p>The index of the sample to load.</p>
-</dd>
-</dl>
-</section>
-<section id="returns">
-<h4>Returns<a class="headerlink" href="#returns" title="Link to this heading"></a></h4>
-<dl class="simple">
-<dt>List[Any]</dt><dd><p>A list of transformed data from each reader.</p>
-</dd>
-</dl>
-</section>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>idx</strong> (<em>int</em>)</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>Union[Any, Tuple[Any, Ellipsis]]</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="minerva.data.datasets.supervised_dataset.SimpleDataset.__len__">
-<span class="sig-name descname"><span class="pre">__len__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#minerva.data.datasets.supervised_dataset.SimpleDataset.__len__" title="Link to this definition"></a></dt>
-<dd><p>The length of the dataset is the length of the first reader.</p>
-<section id="id18">
-<h4>Returns<a class="headerlink" href="#id18" title="Link to this heading"></a></h4>
-<dl class="simple">
-<dt>int</dt><dd><p>The number of samples in the dataset.</p>
-</dd>
-</dl>
-</section>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>int</p>
-</dd>
-</dl>
-</dd></dl>
-
-</section>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>readers</strong> (<em>Union</em><em>[</em><a class="reference internal" href="../../readers/reader/index.html#minerva.data.readers.reader._Reader" title="minerva.data.readers.reader._Reader"><em>minerva.data.readers.reader._Reader</em></a><em>, </em><em>List</em><em>[</em><a class="reference internal" href="../../readers/reader/index.html#minerva.data.readers.reader._Reader" title="minerva.data.readers.reader._Reader"><em>minerva.data.readers.reader._Reader</em></a><em>]</em><em>]</em>)</p></li>
-<li><p><strong>transforms</strong> (<em>Optional</em><em>[</em><em>Union</em><em>[</em><a class="reference internal" href="../../../transforms/transform/index.html#minerva.transforms.transform._Transform" title="minerva.transforms.transform._Transform"><em>minerva.transforms.transform._Transform</em></a><em>, </em><em>List</em><em>[</em><a class="reference internal" href="../../../transforms/transform/index.html#minerva.transforms.transform._Transform" title="minerva.transforms.transform._Transform"><em>minerva.transforms.transform._Transform</em></a><em>]</em><em>]</em><em>]</em>)</p></li>
-<li><p><strong>return_single</strong> (<em>bool</em>)</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
 <dl class="py class">
 <dt class="sig sig-object py" id="minerva.data.datasets.supervised_dataset.SupervisedReconstructionDataset">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.data.datasets.supervised_dataset.</span></span><span class="sig-name descname"><span class="pre">SupervisedReconstructionDataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">readers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transforms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#minerva.data.datasets.supervised_dataset.SupervisedReconstructionDataset" title="Link to this definition"></a></dt>
@@ -278,12 +122,12 @@ Usually, both input and target data have the same shape.</p>
 <p>This dataset is useful for supervised tasks such as image reconstruction,
 segmantic segmentation, and object detection, where the input data is the
 original data and the target is a mask or a segmentation map.</p>
-<section id="id19">
-<h3>Examples<a class="headerlink" href="#id19" title="Link to this heading"></a></h3>
+<section id="examples">
+<h3>Examples<a class="headerlink" href="#examples" title="Link to this heading"></a></h3>
 <ol class="arabic">
 <li><p>Semantic Segmentation Dataset:</p>
 <blockquote>
-<div><p><a href="#id20"><span class="problematic" id="id21">``</span></a><a href="#id22"><span class="problematic" id="id23">`</span></a>python
+<div><p><a href="#id1"><span class="problematic" id="id2">``</span></a><a href="#id3"><span class="problematic" id="id4">`</span></a>python
 from minerva.data.readers import ImageReader
 from minerva.transforms import ImageTransform
 from minerva.data.datasets import SupervisedReconstructionDataset</p>
@@ -301,14 +145,14 @@ transforms=image_transform</p>
 <p>)
 # Load the first sample
 dataset[0]  # Returns a tuple: (image, mask)
-<a href="#id24"><span class="problematic" id="id25">``</span></a><a href="#id26"><span class="problematic" id="id27">`</span></a></p>
+<a href="#id5"><span class="problematic" id="id6">``</span></a><a href="#id7"><span class="problematic" id="id8">`</span></a></p>
 </div></blockquote>
 </li>
 </ol>
 <p>A simple dataset class for supervised reconstruction tasks.</p>
 </section>
-<section id="id28">
-<h3>Parameters<a class="headerlink" href="#id28" title="Link to this heading"></a></h3>
+<section id="parameters">
+<h3>Parameters<a class="headerlink" href="#parameters" title="Link to this heading"></a></h3>
 <dl class="simple">
 <dt>readers: List[_Reader]</dt><dd><p>List of data readers. It must contain exactly 2 readers.
 The first reader for the input data and the second reader for the
@@ -328,15 +172,15 @@ target data.</p>
 <span class="sig-name descname"><span class="pre">__getitem__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#minerva.data.datasets.supervised_dataset.SupervisedReconstructionDataset.__getitem__" title="Link to this definition"></a></dt>
 <dd><p>Load data from sources and apply specified transforms. The same
 transform is applied to both input and target data.</p>
-<section id="id29">
-<h4>Parameters<a class="headerlink" href="#id29" title="Link to this heading"></a></h4>
+<section id="id9">
+<h4>Parameters<a class="headerlink" href="#id9" title="Link to this heading"></a></h4>
 <dl class="simple">
 <dt>index<span class="classifier">int</span></dt><dd><p>The index of the sample to load.</p>
 </dd>
 </dl>
 </section>
-<section id="id30">
-<h4>Returns<a class="headerlink" href="#id30" title="Link to this heading"></a></h4>
+<section id="returns">
+<h4>Returns<a class="headerlink" href="#returns" title="Link to this heading"></a></h4>
 <dl class="simple">
 <dt>Tuple[np.ndarray, np.ndarray]</dt><dd><p>A tuple containing two numpy arrays representing the data.</p>
 </dd>
@@ -361,89 +205,6 @@ transform is applied to both input and target data.</p>
 </ul>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="minerva.data.datasets.supervised_dataset._Reader">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.data.datasets.supervised_dataset.</span></span><span class="sig-name descname"><span class="pre">_Reader</span></span><a class="headerlink" href="#minerva.data.datasets.supervised_dataset._Reader" title="Link to this definition"></a></dt>
-<dd><p>Base class for readers. Readers define an ordered collection of data and
-provide methods to access it. This class primarily handles:</p>
-<ol class="arabic simple">
-<li><p>Definition of data structure and storage.</p></li>
-<li><p>Reading data from the source.</p></li>
-</ol>
-<p>The access is handled by the __getitem__ and __len__ methods, which should be
-implemented by a subclass. Readers usually returns a single item at a time,
-that can be a single image, a single label, etc.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="minerva.data.datasets.supervised_dataset._Reader.__getitem__">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">__getitem__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#minerva.data.datasets.supervised_dataset._Reader.__getitem__" title="Link to this definition"></a></dt>
-<dd><p>Retrieve an item from the reader at the specified index.</p>
-<section id="id31">
-<h3>Parameters<a class="headerlink" href="#id31" title="Link to this heading"></a></h3>
-<dl class="simple">
-<dt>index<span class="classifier">int</span></dt><dd><p>Index of the item to retrieve.</p>
-</dd>
-</dl>
-</section>
-<section id="id32">
-<h3>Returns<a class="headerlink" href="#id32" title="Link to this heading"></a></h3>
-<dl class="simple">
-<dt>Any</dt><dd><p>An item from the reader.</p>
-</dd>
-</dl>
-</section>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>index</strong> (<em>int</em>)</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>Any</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="minerva.data.datasets.supervised_dataset._Reader.__len__">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">__len__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#minerva.data.datasets.supervised_dataset._Reader.__len__" title="Link to this definition"></a></dt>
-<dd><p>Get the length of the reader.</p>
-<section id="id33">
-<h3>Returns<a class="headerlink" href="#id33" title="Link to this heading"></a></h3>
-<dl class="simple">
-<dt>int</dt><dd><p>The length of the reader.</p>
-</dd>
-</dl>
-</section>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>int</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="minerva.data.datasets.supervised_dataset._Transform">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.data.datasets.supervised_dataset.</span></span><span class="sig-name descname"><span class="pre">_Transform</span></span><a class="headerlink" href="#minerva.data.datasets.supervised_dataset._Transform" title="Link to this definition"></a></dt>
-<dd><p>This class is a base class for all transforms. Transforms is just a
-fancy word for a function that takes an input and returns an output. The
-input and output can be anything. However, transforms operates over a
-single sample of data and does not require any additional information to
-perform the transformation. The __call__ method should be overridden in
-subclasses to define the transformation logic.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="minerva.data.datasets.supervised_dataset._Transform.__call__">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#minerva.data.datasets.supervised_dataset._Transform.__call__" title="Link to this definition"></a></dt>
-<dd><p>Implement the transformation logic in this method. Usually, the
-transformation is applyied on a single sample of data.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Any</p>
-</dd>
-</dl>
-</dd></dl>
-
 </dd></dl>
 
 </section>

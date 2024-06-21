@@ -49,6 +49,7 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../../../../../installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../getting_started.html">Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../tutorials.html">Tutorials</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../../../../../api.html">Programming Reference</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="../../../index.html">minerva</a><ul class="current">
@@ -105,9 +106,6 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="#minerva.data.readers.csv_reader.CSVReader" title="minerva.data.readers.csv_reader.CSVReader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CSVReader</span></code></a></p></td>
 <td><p>Base class for readers. Readers define an ordered collection of data and</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#minerva.data.readers.csv_reader.TabularReader" title="minerva.data.readers.csv_reader.TabularReader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TabularReader</span></code></a></p></td>
-<td><p>Base class for readers. Readers define an ordered collection of data and</p></td>
-</tr>
 </tbody>
 </table>
 </section>
@@ -154,103 +152,6 @@ the specified shape. (default is None)</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>path</strong> (<em>str</em>)</p></li>
-<li><p><strong>columns_to_select</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>list</em><em>[</em><em>str</em><em>]</em><em>]</em>)</p></li>
-<li><p><strong>cast_to</strong> (<em>str</em>)</p></li>
-<li><p><strong>data_shape</strong> (<em>tuple</em><em>[</em><em>int</em><em>, </em><em>Ellipsis</em><em>]</em>)</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="minerva.data.readers.csv_reader.TabularReader">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.data.readers.csv_reader.</span></span><span class="sig-name descname"><span class="pre">TabularReader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">columns_to_select</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cast_to</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#minerva.data.readers.csv_reader.TabularReader" title="Link to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="../reader/index.html#minerva.data.readers.reader._Reader" title="minerva.data.readers.reader._Reader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">minerva.data.readers.reader._Reader</span></code></a></p>
-<p>Base class for readers. Readers define an ordered collection of data and
-provide methods to access it. This class primarily handles:</p>
-<ol class="arabic simple">
-<li><p>Definition of data structure and storage.</p></li>
-<li><p>Reading data from the source.</p></li>
-</ol>
-<p>The access is handled by the __getitem__ and __len__ methods, which should be
-implemented by a subclass. Readers usually returns a single item at a time,
-that can be a single image, a single label, etc.</p>
-<p>Reader to select columns from a DataFrame and return them as a NumPy
-array. The DataFrame is indexed by the row number. Each row of the
-DataFrame is considered as a sample. Thus, the __getitem__ method will
-return the columns of the DataFrame at the specified index as a NumPy
-array.</p>
-<section id="id1">
-<h3>Parameters<a class="headerlink" href="#id1" title="Link to this heading"></a></h3>
-<dl class="simple">
-<dt>df<span class="classifier">pd.DataFrame</span></dt><dd><p>The DataFrame to select the columns from. The DataFrame should have
-the columns that are specified in the <cite>columns_to_select</cite> parameter.</p>
-</dd>
-<dt>columns_to_select<span class="classifier">Union[str, list[str]]</span></dt><dd><p>A string or a list of strings used to select the columns from the DataFrame.
-The string can be a regular expression pattern or a column name. The columns
-that match the pattern will be selected.</p>
-</dd>
-<dt>cast_to<span class="classifier">str, optional</span></dt><dd><p>Cast the selected columns to the specified data type. If None, the
-data type of the columns will not be changed. (default is None)</p>
-</dd>
-<dt>data_shape<span class="classifier">tuple[int, …], optional</span></dt><dd><p>The shape of the data to be returned. If None, the data will be
-returned as a 1D array. If provided, the data will be reshaped to
-the specified shape. (default is None)</p>
-</dd>
-</dl>
-<dl class="py method">
-<dt class="sig sig-object py" id="minerva.data.readers.csv_reader.TabularReader.__getitem__">
-<span class="sig-name descname"><span class="pre">__getitem__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#minerva.data.readers.csv_reader.TabularReader.__getitem__" title="Link to this definition"></a></dt>
-<dd><p>Return the columns of the DataFrame at the specified row index as a NumPy
-array. The columns are selected based on the <cite>self.columns_to_select</cite>.</p>
-<section id="id2">
-<h4>Parameters<a class="headerlink" href="#id2" title="Link to this heading"></a></h4>
-<dl class="simple">
-<dt>index<span class="classifier">int</span></dt><dd><p>The row index to select the columns from the DataFrame.</p>
-</dd>
-</dl>
-</section>
-<section id="returns">
-<h4>Returns<a class="headerlink" href="#returns" title="Link to this heading"></a></h4>
-<dl class="simple">
-<dt>np.ndarray</dt><dd><p>The selected columns from the row as a NumPy array.</p>
-</dd>
-</dl>
-</section>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>index</strong> (<em>int</em>)</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>numpy.ndarray</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="minerva.data.readers.csv_reader.TabularReader.__len__">
-<span class="sig-name descname"><span class="pre">__len__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#minerva.data.readers.csv_reader.TabularReader.__len__" title="Link to this definition"></a></dt>
-<dd><p>Return the number of samples in the DataFrame. The number of samples
-is equal to the number of rows in the DataFrame.</p>
-<section id="id3">
-<h4>Returns<a class="headerlink" href="#id3" title="Link to this heading"></a></h4>
-<dl class="simple">
-<dt>int</dt><dd><p>The number of samples in the DataFrame.</p>
-</dd>
-</dl>
-</section>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>int</p>
-</dd>
-</dl>
-</dd></dl>
-
-</section>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>df</strong> (<em>pandas.DataFrame</em>)</p></li>
 <li><p><strong>columns_to_select</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>list</em><em>[</em><em>str</em><em>]</em><em>]</em>)</p></li>
 <li><p><strong>cast_to</strong> (<em>str</em>)</p></li>
 <li><p><strong>data_shape</strong> (<em>tuple</em><em>[</em><em>int</em><em>, </em><em>Ellipsis</em><em>]</em>)</p></li>

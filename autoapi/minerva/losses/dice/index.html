@@ -49,6 +49,7 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../../../../installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../getting_started.html">Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../tutorials.html">Tutorials</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../../../../api.html">Programming Reference</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="../../index.html">minerva</a><ul class="current">
@@ -119,19 +120,6 @@
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#minerva.losses.dice.DiceLoss" title="minerva.losses.dice.DiceLoss"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DiceLoss</span></code></a></p></td>
 <td><p>Initialize the DiceLoss class.</p></td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="functions">
-<h2>Functions<a class="headerlink" href="#functions" title="Link to this heading"></a></h2>
-<table class="autosummary longtable docutils align-default">
-<tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#minerva.losses.dice.dice_score" title="minerva.losses.dice.dice_score"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dice_score</span></code></a>(y_hat, y[, smooth, eps, dims])</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#minerva.losses.dice.to_tensor" title="minerva.losses.dice.to_tensor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">to_tensor</span></code></a>(x[, dtype])</p></td>
-<td><p></p></td>
 </tr>
 </tbody>
 </table>
@@ -229,34 +217,6 @@
 <dt class="sig sig-object py" id="minerva.losses.dice.MULTILABEL_MODE">
 <span class="sig-prename descclassname"><span class="pre">minerva.losses.dice.</span></span><span class="sig-name descname"><span class="pre">MULTILABEL_MODE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'multilabel'</span></em><a class="headerlink" href="#minerva.losses.dice.MULTILABEL_MODE" title="Link to this definition"></a></dt>
 <dd></dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="minerva.losses.dice.dice_score">
-<span class="sig-prename descclassname"><span class="pre">minerva.losses.dice.</span></span><span class="sig-name descname"><span class="pre">dice_score</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y_hat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smooth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1e-07</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dims</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#minerva.losses.dice.dice_score" title="Link to this definition"></a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>y_hat</strong> (<em>torch.Tensor</em>)</p></li>
-<li><p><strong>y</strong> (<em>torch.Tensor</em>)</p></li>
-<li><p><strong>smooth</strong> (<em>float</em>)</p></li>
-<li><p><strong>eps</strong> (<em>float</em>)</p></li>
-</ul>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>torch.Tensor</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="minerva.losses.dice.to_tensor">
-<span class="sig-prename descclassname"><span class="pre">minerva.losses.dice.</span></span><span class="sig-name descname"><span class="pre">to_tensor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#minerva.losses.dice.to_tensor" title="Link to this definition"></a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>torch.Tensor</p>
-</dd>
-</dl>
-</dd></dl>
 
 </section>
 </section>

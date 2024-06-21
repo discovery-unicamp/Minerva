@@ -49,6 +49,7 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../../../../../installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../getting_started.html">Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../tutorials.html">Tutorials</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../../../../../api.html">Programming Reference</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="../../../index.html">minerva</a><ul class="current">
@@ -105,30 +106,14 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="#minerva.models.nets.setr.SETR_PUP" title="minerva.models.nets.setr.SETR_PUP"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SETR_PUP</span></code></a></p></td>
 <td><p>Initializes the SetR model.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#minerva.models.nets.setr.Upsample" title="minerva.models.nets.setr.Upsample"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Upsample</span></code></a></p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#minerva.models.nets.setr._SETRMLAHead" title="minerva.models.nets.setr._SETRMLAHead"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_SETRMLAHead</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#minerva.models.nets.setr._SETRMLAHead" title="minerva.models.nets.setr._SETRMLAHead"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_SETRMLAHead</span></code></a></p></td>
 <td><p>Multi level feature aggretation head of SETR.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#minerva.models.nets.setr._SETRUPHead" title="minerva.models.nets.setr._SETRUPHead"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_SETRUPHead</span></code></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#minerva.models.nets.setr._SETRUPHead" title="minerva.models.nets.setr._SETRUPHead"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_SETRUPHead</span></code></a></p></td>
 <td><p>Naive upsampling head and Progressive upsampling head of SETR.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#minerva.models.nets.setr._SetR_PUP" title="minerva.models.nets.setr._SetR_PUP"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_SetR_PUP</span></code></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#minerva.models.nets.setr._SetR_PUP" title="minerva.models.nets.setr._SetR_PUP"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_SetR_PUP</span></code></a></p></td>
 <td><p>Initializes the SETR PUP model.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#minerva.models.nets.setr._VisionTransformerBackbone" title="minerva.models.nets.setr._VisionTransformerBackbone"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_VisionTransformerBackbone</span></code></a></p></td>
-<td><p>Vision Transformer as per <a class="reference external" href="https://arxiv.org/abs/2010.11929">https://arxiv.org/abs/2010.11929</a>.</p></td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="functions">
-<h2>Functions<a class="headerlink" href="#functions" title="Link to this heading"></a></h2>
-<table class="autosummary longtable docutils align-default">
-<tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#minerva.models.nets.setr.resize" title="minerva.models.nets.setr.resize"><code class="xref py py-obj docutils literal notranslate"><span class="pre">resize</span></code></a>(input[, size, scale_factor, mode, ...])</p></td>
-<td><p></p></td>
 </tr>
 </tbody>
 </table>
@@ -380,17 +365,6 @@
 </dd></dl>
 
 <dl class="py class">
-<dt class="sig sig-object py" id="minerva.models.nets.setr.Upsample">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.models.nets.setr.</span></span><span class="sig-name descname"><span class="pre">Upsample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'nearest'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">align_corners</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#minerva.models.nets.setr.Upsample" title="Link to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
-<dl class="py method">
-<dt class="sig sig-object py" id="minerva.models.nets.setr.Upsample.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#minerva.models.nets.setr.Upsample.forward" title="Link to this definition"></a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
 <dt class="sig sig-object py" id="minerva.models.nets.setr._SETRMLAHead">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.models.nets.setr.</span></span><span class="sig-name descname"><span class="pre">_SETRMLAHead</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conv_norm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conv_act</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_classes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mla_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">128</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">up_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">align_corners</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#minerva.models.nets.setr._SETRMLAHead" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
@@ -572,105 +546,6 @@
 </dd>
 </dl>
 </dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="minerva.models.nets.setr._VisionTransformerBackbone">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.models.nets.setr.</span></span><span class="sig-name descname"><span class="pre">_VisionTransformerBackbone</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_layers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_heads</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hidden_dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mlp_dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attention_dropout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_classes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aux_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aux_output_layers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm_layer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">partial(nn.LayerNorm,</span> <span class="pre">eps=1e-06)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conv_stem_configs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#minerva.models.nets.setr._VisionTransformerBackbone" title="Link to this definition"></a></dt>
-<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
-<p>Vision Transformer as per <a class="reference external" href="https://arxiv.org/abs/2010.11929">https://arxiv.org/abs/2010.11929</a>.</p>
-<p>Initializes a Vision Transformer (ViT) model.</p>
-<section id="id7">
-<h3>Parameters<a class="headerlink" href="#id7" title="Link to this heading"></a></h3>
-<dl class="simple">
-<dt>image_size<span class="classifier">int or tuple[int, int]</span></dt><dd><p>The size of the input image. If an int is provided, it is assumed
-to be a square image. If a tuple of ints is provided, it represents the height and width of the image.</p>
-</dd>
-<dt>patch_size<span class="classifier">int</span></dt><dd><p>The size of each patch in the image.</p>
-</dd>
-<dt>num_layers<span class="classifier">int</span></dt><dd><p>The number of transformer layers in the model.</p>
-</dd>
-<dt>num_heads<span class="classifier">int</span></dt><dd><p>The number of attention heads in the transformer layers.</p>
-</dd>
-<dt>hidden_dim<span class="classifier">int</span></dt><dd><p>The dimensionality of the hidden layers in the transformer.</p>
-</dd>
-<dt>mlp_dim<span class="classifier">int</span></dt><dd><p>The dimensionality of the feed-forward MLP layers in the transformer.</p>
-</dd>
-<dt>dropout<span class="classifier">float, optional</span></dt><dd><p>The dropout rate to apply. Defaults to 0.0.</p>
-</dd>
-<dt>attention_dropout<span class="classifier">float, optional</span></dt><dd><p>The dropout rate to apply to the attention weights. Defaults to 0.0.</p>
-</dd>
-<dt>num_classes<span class="classifier">int, optional</span></dt><dd><p>The number of output classes. Defaults to 1000.</p>
-</dd>
-<dt>norm_layer<span class="classifier">Callable[…, torch.nn.Module], optional</span></dt><dd><p>The normalization layer to use. Defaults to nn.LayerNorm with epsilon=1e-6.</p>
-</dd>
-<dt>conv_stem_configs<span class="classifier">List[ConvStemConfig], optional</span></dt><dd><p>The configuration for the convolutional stem layers.
-If provided, the input image will be processed by these convolutional layers before being passed to
-the transformer. Defaults to None.</p>
-</dd>
-</dl>
-<dl class="py method">
-<dt class="sig sig-object py" id="minerva.models.nets.setr._VisionTransformerBackbone._process_input">
-<span class="sig-name descname"><span class="pre">_process_input</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#minerva.models.nets.setr._VisionTransformerBackbone._process_input" title="Link to this definition"></a></dt>
-<dd><p>Process the input tensor and return the reshaped tensor and dimensions.</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>x (torch.Tensor): The input tensor.</p>
-</dd>
-<dt>Returns:</dt><dd><p>tuple[torch.Tensor, int, int]: The reshaped tensor, number of rows, and number of columns.</p>
-</dd>
-</dl>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>x</strong> (<em>torch.Tensor</em>)</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>tuple[torch.Tensor, int, int]</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="minerva.models.nets.setr._VisionTransformerBackbone.forward">
-<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#minerva.models.nets.setr._VisionTransformerBackbone.forward" title="Link to this definition"></a></dt>
-<dd><p>Forward pass of the Vision Transformer Backbone.</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>x (torch.Tensor): The input tensor.</p>
-</dd>
-<dt>Returns:</dt><dd><p>torch.Tensor: The output tensor.</p>
-</dd>
-</dl>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>x</strong> (<em>torch.Tensor</em>)</p>
-</dd>
-</dl>
-</dd></dl>
-
-</section>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>image_size</strong> (<em>int</em><em> | </em><em>tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>]</em>)</p></li>
-<li><p><strong>patch_size</strong> (<em>int</em>)</p></li>
-<li><p><strong>num_layers</strong> (<em>int</em>)</p></li>
-<li><p><strong>num_heads</strong> (<em>int</em>)</p></li>
-<li><p><strong>hidden_dim</strong> (<em>int</em>)</p></li>
-<li><p><strong>mlp_dim</strong> (<em>int</em>)</p></li>
-<li><p><strong>dropout</strong> (<em>float</em>)</p></li>
-<li><p><strong>attention_dropout</strong> (<em>float</em>)</p></li>
-<li><p><strong>num_classes</strong> (<em>int</em>)</p></li>
-<li><p><strong>aux_output</strong> (<em>bool</em>)</p></li>
-<li><p><strong>aux_output_layers</strong> (<em>List</em><em>[</em><em>int</em><em>] </em><em>| </em><em>None</em>)</p></li>
-<li><p><strong>norm_layer</strong> (<em>Callable</em><em>[</em><em>Ellipsis</em><em>, </em><em>torch.nn.Module</em><em>]</em>)</p></li>
-<li><p><strong>conv_stem_configs</strong> (<em>Optional</em><em>[</em><em>List</em><em>[</em><em>torchvision.models.vision_transformer.ConvStemConfig</em><em>]</em><em>]</em>)</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="minerva.models.nets.setr.resize">
-<span class="sig-prename descclassname"><span class="pre">minerva.models.nets.setr.</span></span><span class="sig-name descname"><span class="pre">resize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'nearest'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">align_corners</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">warning</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#minerva.models.nets.setr.resize" title="Link to this definition"></a></dt>
-<dd></dd></dl>
 
 </section>
 </section>

@@ -10,19 +10,9 @@ Classes
 .. autoapisummary::
 
    minerva.models.nets.setr.SETR_PUP
-   minerva.models.nets.setr.Upsample
    minerva.models.nets.setr._SETRMLAHead
    minerva.models.nets.setr._SETRUPHead
    minerva.models.nets.setr._SetR_PUP
-   minerva.models.nets.setr._VisionTransformerBackbone
-
-
-Functions
----------
-
-.. autoapisummary::
-
-   minerva.models.nets.setr.resize
 
 
 Module Contents
@@ -150,14 +140,6 @@ Module Contents
    .. py:method:: validation_step(batch, batch_idx)
 
 
-.. py:class:: Upsample(size=None, scale_factor=None, mode='nearest', align_corners=None)
-
-   Bases: :py:obj:`torch.nn.Module`
-
-
-   .. py:method:: forward(x)
-
-
 .. py:class:: _SETRMLAHead(channels, conv_norm, conv_act, in_channels, out_channels, num_classes, mla_channels = 128, up_scale = 4, kernel_size = 3, align_corners = True, dropout = 0.1, threshold = None)
 
    Bases: :py:obj:`torch.nn.Module`
@@ -270,69 +252,4 @@ Module Contents
 
    .. py:method:: forward(x)
 
-
-.. py:class:: _VisionTransformerBackbone(image_size, patch_size, num_layers, num_heads, hidden_dim, mlp_dim, dropout = 0.0, attention_dropout = 0.0, num_classes = 1000, aux_output = False, aux_output_layers = None, norm_layer = partial(nn.LayerNorm, eps=1e-06), conv_stem_configs = None)
-
-   Bases: :py:obj:`torch.nn.Module`
-
-
-   Vision Transformer as per https://arxiv.org/abs/2010.11929.
-
-   Initializes a Vision Transformer (ViT) model.
-
-   Parameters
-   ----------
-   image_size : int or tuple[int, int]
-       The size of the input image. If an int is provided, it is assumed
-       to be a square image. If a tuple of ints is provided, it represents the height and width of the image.
-   patch_size : int
-       The size of each patch in the image.
-   num_layers : int
-       The number of transformer layers in the model.
-   num_heads : int
-       The number of attention heads in the transformer layers.
-   hidden_dim : int
-       The dimensionality of the hidden layers in the transformer.
-   mlp_dim : int
-       The dimensionality of the feed-forward MLP layers in the transformer.
-   dropout : float, optional
-       The dropout rate to apply. Defaults to 0.0.
-   attention_dropout : float, optional
-       The dropout rate to apply to the attention weights. Defaults to 0.0.
-   num_classes : int, optional
-       The number of output classes. Defaults to 1000.
-   norm_layer : Callable[..., torch.nn.Module], optional
-       The normalization layer to use. Defaults to nn.LayerNorm with epsilon=1e-6.
-   conv_stem_configs : List[ConvStemConfig], optional
-       The configuration for the convolutional stem layers.
-       If provided, the input image will be processed by these convolutional layers before being passed to
-       the transformer. Defaults to None.
-
-
-
-   .. py:method:: _process_input(x)
-
-      Process the input tensor and return the reshaped tensor and dimensions.
-
-      Args:
-          x (torch.Tensor): The input tensor.
-
-      Returns:
-          tuple[torch.Tensor, int, int]: The reshaped tensor, number of rows, and number of columns.
-
-
-
-   .. py:method:: forward(x)
-
-      Forward pass of the Vision Transformer Backbone.
-
-      Args:
-          x (torch.Tensor): The input tensor.
-
-      Returns:
-          torch.Tensor: The output tensor.
-
-
-
-.. py:function:: resize(input, size=None, scale_factor=None, mode='nearest', align_corners=None, warning=True)
 

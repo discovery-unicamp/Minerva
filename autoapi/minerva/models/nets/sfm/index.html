@@ -49,6 +49,7 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../../../../../installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../getting_started.html">Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../tutorials.html">Tutorials</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../../../../../api.html">Programming Reference</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="../../../index.html">minerva</a><ul class="current">
@@ -129,16 +130,6 @@
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#minerva.models.nets.sfm.MaskedAutoencoderViT" title="minerva.models.nets.sfm.MaskedAutoencoderViT"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MaskedAutoencoderViT</span></code></a></p></td>
 <td><p>Masked Autoencoder with VisionTransformer backbone.</p></td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="functions">
-<h2>Functions<a class="headerlink" href="#functions" title="Link to this heading"></a></h2>
-<table class="autosummary longtable docutils align-default">
-<tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#minerva.models.nets.sfm.get_2d_sincos_pos_embed" title="minerva.models.nets.sfm.get_2d_sincos_pos_embed"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_2d_sincos_pos_embed</span></code></a>(embed_dim, grid_size[, cls_token])</p></td>
-<td><p>grid_size: int of the grid height and width</p></td>
 </tr>
 </tbody>
 </table>
@@ -306,14 +297,6 @@ batch_idx (int): Index of the current batch.</p>
 </dl>
 </dd></dl>
 
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="minerva.models.nets.sfm.get_2d_sincos_pos_embed">
-<span class="sig-prename descclassname"><span class="pre">minerva.models.nets.sfm.</span></span><span class="sig-name descname"><span class="pre">get_2d_sincos_pos_embed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">embed_dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cls_token</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#minerva.models.nets.sfm.get_2d_sincos_pos_embed" title="Link to this definition"></a></dt>
-<dd><p>grid_size: int of the grid height and width
-return:
-pos_embed: [grid_size*grid_size, embed_dim] or [1+grid_size*grid_size, embed_dim] (w/ or w/o cls_token)</p>
 </dd></dl>
 
 <dl class="py data">

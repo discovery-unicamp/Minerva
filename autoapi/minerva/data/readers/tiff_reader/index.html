@@ -49,6 +49,7 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../../../../../installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../getting_started.html">Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../tutorials.html">Tutorials</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../../../../../api.html">Programming Reference</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="../../../index.html">minerva</a><ul class="current">
@@ -104,9 +105,6 @@
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#minerva.data.readers.tiff_reader.TiffReader" title="minerva.data.readers.tiff_reader.TiffReader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TiffReader</span></code></a></p></td>
 <td><p>This class loads a TIFF file from a directory. It assumes that the TIFF</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#minerva.data.readers.tiff_reader._Reader" title="minerva.data.readers.tiff_reader._Reader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_Reader</span></code></a></p></td>
-<td><p>Base class for readers. Readers define an ordered collection of data and</p></td>
 </tr>
 </tbody>
 </table>
@@ -177,66 +175,6 @@ used as the filename of the TIFF file.</p>
 <h3>Returns<a class="headerlink" href="#id1" title="Link to this heading"></a></h3>
 <dl class="simple">
 <dt>int</dt><dd><p>The number of TIFF files in the directory.</p>
-</dd>
-</dl>
-</section>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>int</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="minerva.data.readers.tiff_reader._Reader">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.data.readers.tiff_reader.</span></span><span class="sig-name descname"><span class="pre">_Reader</span></span><a class="headerlink" href="#minerva.data.readers.tiff_reader._Reader" title="Link to this definition"></a></dt>
-<dd><p>Base class for readers. Readers define an ordered collection of data and
-provide methods to access it. This class primarily handles:</p>
-<ol class="arabic simple">
-<li><p>Definition of data structure and storage.</p></li>
-<li><p>Reading data from the source.</p></li>
-</ol>
-<p>The access is handled by the __getitem__ and __len__ methods, which should be
-implemented by a subclass. Readers usually returns a single item at a time,
-that can be a single image, a single label, etc.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="minerva.data.readers.tiff_reader._Reader.__getitem__">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">__getitem__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#minerva.data.readers.tiff_reader._Reader.__getitem__" title="Link to this definition"></a></dt>
-<dd><p>Retrieve an item from the reader at the specified index.</p>
-<section id="id2">
-<h3>Parameters<a class="headerlink" href="#id2" title="Link to this heading"></a></h3>
-<dl class="simple">
-<dt>index<span class="classifier">int</span></dt><dd><p>Index of the item to retrieve.</p>
-</dd>
-</dl>
-</section>
-<section id="id3">
-<h3>Returns<a class="headerlink" href="#id3" title="Link to this heading"></a></h3>
-<dl class="simple">
-<dt>Any</dt><dd><p>An item from the reader.</p>
-</dd>
-</dl>
-</section>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>index</strong> (<em>int</em>)</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>Any</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="minerva.data.readers.tiff_reader._Reader.__len__">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">__len__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#minerva.data.readers.tiff_reader._Reader.__len__" title="Link to this definition"></a></dt>
-<dd><p>Get the length of the reader.</p>
-<section id="id4">
-<h3>Returns<a class="headerlink" href="#id4" title="Link to this heading"></a></h3>
-<dl class="simple">
-<dt>int</dt><dd><p>The length of the reader.</p>
 </dd>
 </dl>
 </section>

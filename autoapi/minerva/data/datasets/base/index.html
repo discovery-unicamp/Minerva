@@ -49,6 +49,7 @@
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../../../../../installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../getting_started.html">Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../tutorials.html">Tutorials</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../../../../../api.html">Programming Reference</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="../../../index.html">minerva</a><ul class="current">
@@ -104,12 +105,6 @@
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#minerva.data.datasets.base.SimpleDataset" title="minerva.data.datasets.base.SimpleDataset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SimpleDataset</span></code></a></p></td>
 <td><p>Dataset is responsible for loading data from multiple readers and</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#minerva.data.datasets.base._Reader" title="minerva.data.datasets.base._Reader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_Reader</span></code></a></p></td>
-<td><p>Base class for readers. Readers define an ordered collection of data and</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#minerva.data.datasets.base._Transform" title="minerva.data.datasets.base._Transform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_Transform</span></code></a></p></td>
-<td><p>This class is a base class for all transforms. Transforms is just a</p></td>
 </tr>
 </tbody>
 </table>
@@ -262,89 +257,6 @@ dataset[0]  # Returns image
 </ul>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="minerva.data.datasets.base._Reader">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.data.datasets.base.</span></span><span class="sig-name descname"><span class="pre">_Reader</span></span><a class="headerlink" href="#minerva.data.datasets.base._Reader" title="Link to this definition"></a></dt>
-<dd><p>Base class for readers. Readers define an ordered collection of data and
-provide methods to access it. This class primarily handles:</p>
-<ol class="arabic simple">
-<li><p>Definition of data structure and storage.</p></li>
-<li><p>Reading data from the source.</p></li>
-</ol>
-<p>The access is handled by the __getitem__ and __len__ methods, which should be
-implemented by a subclass. Readers usually returns a single item at a time,
-that can be a single image, a single label, etc.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="minerva.data.datasets.base._Reader.__getitem__">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">__getitem__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#minerva.data.datasets.base._Reader.__getitem__" title="Link to this definition"></a></dt>
-<dd><p>Retrieve an item from the reader at the specified index.</p>
-<section id="id19">
-<h3>Parameters<a class="headerlink" href="#id19" title="Link to this heading"></a></h3>
-<dl class="simple">
-<dt>index<span class="classifier">int</span></dt><dd><p>Index of the item to retrieve.</p>
-</dd>
-</dl>
-</section>
-<section id="id20">
-<h3>Returns<a class="headerlink" href="#id20" title="Link to this heading"></a></h3>
-<dl class="simple">
-<dt>Any</dt><dd><p>An item from the reader.</p>
-</dd>
-</dl>
-</section>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>index</strong> (<em>int</em>)</p>
-</dd>
-<dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p>Any</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="minerva.data.datasets.base._Reader.__len__">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">__len__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#minerva.data.datasets.base._Reader.__len__" title="Link to this definition"></a></dt>
-<dd><p>Get the length of the reader.</p>
-<section id="id21">
-<h3>Returns<a class="headerlink" href="#id21" title="Link to this heading"></a></h3>
-<dl class="simple">
-<dt>int</dt><dd><p>The length of the reader.</p>
-</dd>
-</dl>
-</section>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>int</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt class="sig sig-object py" id="minerva.data.datasets.base._Transform">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.data.datasets.base.</span></span><span class="sig-name descname"><span class="pre">_Transform</span></span><a class="headerlink" href="#minerva.data.datasets.base._Transform" title="Link to this definition"></a></dt>
-<dd><p>This class is a base class for all transforms. Transforms is just a
-fancy word for a function that takes an input and returns an output. The
-input and output can be anything. However, transforms operates over a
-single sample of data and does not require any additional information to
-perform the transformation. The __call__ method should be overridden in
-subclasses to define the transformation logic.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="minerva.data.datasets.base._Transform.__call__">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#minerva.data.datasets.base._Transform.__call__" title="Link to this definition"></a></dt>
-<dd><p>Implement the transformation logic in this method. Usually, the
-transformation is applyied on a single sample of data.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Any</p>
-</dd>
-</dl>
-</dd></dl>
-
 </dd></dl>
 
 </section>

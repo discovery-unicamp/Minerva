@@ -10,8 +10,6 @@ Classes
 .. autoapisummary::
 
    minerva.data.datasets.base.SimpleDataset
-   minerva.data.datasets.base._Reader
-   minerva.data.datasets.base._Transform
 
 
 Module Contents
@@ -132,69 +130,6 @@ Module Contents
       -------
       int
           The number of samples in the dataset.
-
-
-
-.. py:class:: _Reader
-
-   Base class for readers. Readers define an ordered collection of data and
-   provide methods to access it. This class primarily handles:
-
-   1. Definition of data structure and storage.
-   2. Reading data from the source.
-
-   The access is handled by the __getitem__ and __len__ methods, which should be
-   implemented by a subclass. Readers usually returns a single item at a time,
-   that can be a single image, a single label, etc.
-
-
-   .. py:method:: __getitem__(index)
-      :abstractmethod:
-
-
-      Retrieve an item from the reader at the specified index.
-
-      Parameters
-      ----------
-      index : int
-          Index of the item to retrieve.
-
-      Returns
-      -------
-      Any
-          An item from the reader.
-
-
-
-   .. py:method:: __len__()
-      :abstractmethod:
-
-
-      Get the length of the reader.
-
-      Returns
-      -------
-      int
-          The length of the reader.
-
-
-
-.. py:class:: _Transform
-
-   This class is a base class for all transforms. Transforms is just a
-   fancy word for a function that takes an input and returns an output. The
-   input and output can be anything. However, transforms operates over a
-   single sample of data and does not require any additional information to
-   perform the transformation. The __call__ method should be overridden in
-   subclasses to define the transformation logic.
-
-
-   .. py:method:: __call__(*args, **kwargs)
-      :abstractmethod:
-
-
-      Implement the transformation logic in this method. Usually, the
-      transformation is applyied on a single sample of data.
 
 
 

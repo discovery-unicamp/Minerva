@@ -22,15 +22,6 @@ Classes
    minerva.losses.dice.DiceLoss
 
 
-Functions
----------
-
-.. autoapisummary::
-
-   minerva.losses.dice.dice_score
-   minerva.losses.dice.to_tensor
-
-
 Module Contents
 ---------------
 
@@ -85,8 +76,4 @@ Module Contents
 .. py:data:: MULTILABEL_MODE
    :value: 'multilabel'
 
-
-.. py:function:: dice_score(y_hat, y, smooth = 0.0, eps = 1e-07, dims=None)
-
-.. py:function:: to_tensor(x, dtype=None)
 

@@ -25,14 +25,6 @@ Classes
    minerva.models.nets.sfm.MaskedAutoencoderViT
 
 
-Functions
----------
-
-.. autoapisummary::
-
-   minerva.models.nets.sfm.get_2d_sincos_pos_embed
-
-
 Module Contents
 ---------------
 
@@ -191,13 +183,6 @@ Module Contents
       Returns:
           Dict[str, torch.Tensor]: Dictionary containing the loss value for the current step.
 
-
-
-.. py:function:: get_2d_sincos_pos_embed(embed_dim, grid_size, cls_token=False)
-
-   grid_size: int of the grid height and width
-   return:
-   pos_embed: [grid_size*grid_size, embed_dim] or [1+grid_size*grid_size, embed_dim] (w/ or w/o cls_token)
 
 
 .. py:data:: mae_vit_base_patch16
