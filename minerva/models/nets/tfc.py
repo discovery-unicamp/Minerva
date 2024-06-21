@@ -9,7 +9,7 @@ class TFC_Backbone(nn.Module):
             out = backbone(random_input)
         return out.view(out.size(0), -1).size(1)
     
-    def __init__(self, input_channels = 6, TS_length = 128):
+    def __init__(self, input_channels = 6, TS_length = 128, encoding_size = 128):
         super(TFC_Backbone, self).__init__()
         self.conv_block_t = nn.Sequential(
             nn.Conv1d(input_channels, 32, kernel_size=8, stride=1, bias=False, padding=4),
@@ -47,14 +47,14 @@ class TFC_Backbone(nn.Module):
             nn.Linear(self._calculate_fc_input_features(self.conv_block_t, (input_channels, TS_length)), 256),
             nn.BatchNorm1d(256),
             nn.ReLU(),
-            nn.Linear(256, 128)
+            nn.Linear(256, encoding_size//2)
         )
 
         self.projector_f = nn.Sequential(
             nn.Linear(self._calculate_fc_input_features(self.conv_block_t, (input_channels, TS_length)), 256),
             nn.BatchNorm1d(256),
             nn.ReLU(),
-            nn.Linear(256, 128)
+            nn.Linear(256, (encoding_size+1)//2)
         )
 
     def forward(self, x_in_t, x_in_f):

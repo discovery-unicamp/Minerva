@@ -3,7 +3,7 @@ from torch import nn
 import lightning as pl
 from typing import List, Tuple
 from transforms.tfc import TFC_Transforms
-from nets.tfc import TFC_Backbone, TFC_PredicionHead
+from minerva.models.nets.tfc import TFC_Backbone, TFC_PredicionHead
 
 
 class TFC_Model(pl.LightningModule):
