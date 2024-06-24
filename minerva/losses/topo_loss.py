@@ -1,7 +1,6 @@
 from torch.nn.modules.loss import _Loss
 import torch
-from torch.nn import Parameter as torchnnParameter
-from _topological_signature_distance import TopologicalSignatureDistance
+from minerva.losses._topological_signature_distance import TopologicalSignatureDistance
 
 class TopologicalLoss(_Loss):
     def __init__(self, p=2):
@@ -27,7 +26,7 @@ class TopologicalLoss(_Loss):
         x_encoded_distances = x_encoded_distances / self.latent_norm 
 
         # Compute the topological signature distance
-        topological_error, _ = self.topological_signature_distance(x, x_distances)
+        topological_error, _ = self.topological_signature_distance(x_distances, x_encoded_distances)
         # Normalize the topological error according to batch size
         topological_error = topological_error / x.size(0)
         return topological_error

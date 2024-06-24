@@ -3,7 +3,7 @@
 import numpy as np
 import torch
 from torch import nn
-from _topology import PersistentHomologyCalculation
+from minerva.losses._topology import PersistentHomologyCalculation
 
 class TopologicalSignatureDistance(nn.Module):
     """Topological signature."""

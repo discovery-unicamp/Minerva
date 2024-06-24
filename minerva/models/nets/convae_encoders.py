@@ -84,16 +84,18 @@ class ConvTAEDecoder(torch.nn.Module):
         output_channels = self.target_channels
         for _ in range(conv_num_layers):
             required_input = convtranspose1d_input_required(required_output, conv_kernel, conv_padding)
-            layers.append(torch.nn.Conv1d(self.conv_mid_channels, output_channels, kernel_size=conv_kernel, padding=conv_padding))
+            layers.append(torch.nn.ConvTranspose1d(self.conv_mid_channels, output_channels, kernel_size=conv_kernel, padding=conv_padding))
             layers.append(torch.nn.ReLU())
             output_channels = self.conv_mid_channels
             required_output = required_input
+        # Layer to resize it to the correct shape
+        layers.append(torch.nn.Unflatten(1, (self.conv_mid_channels, required_output )))
         # Fully connected layers
         linear_dimensions = linspace(self.encoding_size, required_input * self.conv_mid_channels, fc_num_layers + 1).astype(int)
         # Reverse the list
         linear_dimensions = linear_dimensions[::-1]
         for i in range(fc_num_layers):
-            layers.append(torch.nn.Linear(linear_dimensions[i], linear_dimensions[i + 1]))
+            layers.append(torch.nn.Linear(linear_dimensions[i + 1], linear_dimensions[i]))
             layers.append(torch.nn.ReLU())
         # Removing last ReLU
         layers.pop()
