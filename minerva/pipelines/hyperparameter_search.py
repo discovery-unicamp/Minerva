@@ -35,7 +35,7 @@ class HyperParameterSearch(Pipeline):
                 devices="auto",
                 accelerator="auto",
                 strategy=RayDDPStrategy(),
-                callbacks=[RayTrainReportCallback()],
+                callbacks=[RayTrainReportCallback],
                 plugins=[RayLightningEnvironment()],
                 enable_progress_bar=False,
             )
@@ -64,12 +64,13 @@ class HyperParameterSearch(Pipeline):
         return tuner.fit()
 
     def _test(self, data: L.LightningDataModule, ckpt_path: Optional[PathLike]) -> Any:
-        raise NotImplementedError
+
+        return self.trainer.test(self.model, data, ckpt_path=ckpt_path)
 
     def _predict(
         self, data: L.LightningDataModule, ckpt_path: Optional[PathLike]
     ) -> Any:
-        raise NotImplementedError
+        return self.trainer.predict(self.model, data, ckpt_path=ckpt_path)
 
     def _run(
         self,
