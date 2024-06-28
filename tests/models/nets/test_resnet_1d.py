@@ -1,5 +1,7 @@
 import torch
-from minerva.models.nets.resnet_1d import ResNet1D_8, ResNetSE1D_8, ResNetSE1D_5
+
+from minerva.models.nets.resnet import ResNet1D_8, ResNetSE1D_5, ResNetSE1D_8
+
 
 def test_resnet_1d_8_forward():
     input_shape = (6, 60)
@@ -13,8 +15,8 @@ def test_resnet_1d_8_forward():
     x = torch.rand(1, *input_shape)
     y = model(x)
     assert y is not None
-    
-    
+
+
 def test_resnet_se_1d_8_forward():
     input_shape = (6, 60)
     model = ResNetSE1D_8(
@@ -27,7 +29,8 @@ def test_resnet_se_1d_8_forward():
     x = torch.rand(1, *input_shape)
     y = model(x)
     assert y is not None
-    
+
+
 def test_resnet_se_1d_5_forward():
     input_shape = (6, 60)
     model = ResNetSE1D_5(

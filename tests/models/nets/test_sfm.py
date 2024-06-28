@@ -1,7 +1,7 @@
 import pytest
 import torch
 
-from minerva.models.nets.sfm import (
+from minerva.models.nets.vit import (
     mae_vit_base_patch16,
     mae_vit_base_patch16D4d256,
     mae_vit_huge_patch14,

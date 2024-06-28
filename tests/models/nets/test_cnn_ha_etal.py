@@ -1,5 +1,7 @@
 import torch
-from minerva.models.nets.cnn_ha_etal import CNN_HaEtAl_1D, CNN_HaEtAl_2D
+
+from minerva.models.nets.cnn import CNN_HaEtAl_1D, CNN_HaEtAl_2D
+
 
 def test_cnn_ha_etal_1d_forward():
     input_shape = (1, 6, 60)

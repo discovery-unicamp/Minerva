@@ -1,10 +1,11 @@
 from typing import Tuple
+
+import lightning as L
 import torch
 from torch import nn
 from torch.nn import TransformerEncoder, TransformerEncoderLayer
-from minerva.models.nets.base import SimpleSupervisedModel
-import lightning as L
 
+from minerva.models.nets.base import SimpleSupervisedModel
 
 """
 IMUTransformerEncoder model
@@ -197,7 +198,7 @@ class IMUCNN(SimpleSupervisedModel):
             dropout_factor=dropout_factor,
         )
         self.fc_input_channels = self._calculate_fc_input_features(
-                    backbone, input_shape
+            backbone, input_shape
         )
         fc = self._create_fc(self.fc_input_channels, hidden_dim, num_classes)
 
@@ -206,7 +207,7 @@ class IMUCNN(SimpleSupervisedModel):
             fc=fc,
             learning_rate=learning_rate,
             loss_fn=torch.nn.CrossEntropyLoss(),
-            flatten=True
+            flatten=True,
         )
 
     def _create_backbone(self, input_shape, hidden_dim, dropout_factor):
@@ -219,7 +220,6 @@ class IMUCNN(SimpleSupervisedModel):
             torch.nn.MaxPool1d(kernel_size=2),
         )
 
-
     def _calculate_fc_input_features(
         self, backbone: torch.nn.Module, input_shape: Tuple[int, int]
     ) -> int:
@@ -228,64 +228,9 @@ class IMUCNN(SimpleSupervisedModel):
             out = backbone(random_input)
         return out.view(out.size(0), -1).size(1)
 
-
     def _create_fc(self, input_features, hidden_dim, num_classes):
         return torch.nn.Sequential(
             torch.nn.Linear(input_features, hidden_dim),
             torch.nn.ReLU(),
             torch.nn.Linear(hidden_dim, num_classes),
         )
-
-
-# def test_imu_transformer():
-#     input_shape = (6, 60)
-
-#     data_module = RandomDataModule(
-#         num_samples=8,
-#         num_classes=6,
-#         input_shape=input_shape,
-#         batch_size=8,
-#     )
-
-#     model = IMUTransformerEncoder(
-#         input_shape=input_shape, num_classes=6, learning_rate=1e-3
-#     )
-#     print(model)
-
-#     trainer = L.Trainer(
-#         max_epochs=1, logger=False, devices=1, accelerator="cpu"
-#     )
-
-#     trainer.fit(model, datamodule=data_module)
-
-
-# def test_imu_cnn():
-#     input_shape = (6, 60)
-
-#     data_module = RandomDataModule(
-#         num_samples=8,
-#         num_classes=6,
-#         input_shape=input_shape,
-#         batch_size=8,
-#     )
-
-#     model = IMUCNN(
-#         input_shape=input_shape, num_classes=6, learning_rate=1e-3
-#     )
-#     print(model)
-
-#     trainer = L.Trainer(
-#         max_epochs=1, logger=False, devices=1, accelerator="cpu"
-#     )
-
-#     trainer.fit(model, datamodule=data_module)
-
-
-# if __name__ == "__main__":
-#     import logging
-
-#     logging.getLogger("lightning.pytorch").setLevel(logging.ERROR)
-#     logging.getLogger("lightning").setLevel(logging.ERROR)
-#     logging.getLogger("lightning.pytorch.core").setLevel(logging.ERROR)
-#     test_imu_transformer()
-#     test_imu_cnn()
