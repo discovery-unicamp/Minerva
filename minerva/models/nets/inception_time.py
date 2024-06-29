@@ -1,14 +1,14 @@
-import numpy as np
 import time
-
-
 from typing import Tuple
+
+import lightning as L
+import numpy as np
 import torch
 from torch import nn
 from torch.nn import TransformerEncoder, TransformerEncoderLayer
 from torchmetrics import Accuracy
+
 from minerva.models.nets.base import SimpleSupervisedModel
-import lightning as L
 
 
 class InceptionModule(torch.nn.Module):
@@ -229,12 +229,8 @@ class InceptionTime(SimpleSupervisedModel):
             learning_rate=learning_rate,
             flatten=True,
             loss_fn=torch.nn.CrossEntropyLoss(),
-            val_metrics={
-                "acc": Accuracy(task="multiclass", num_classes=num_classes)
-            },
-            test_metrics={
-                "acc": Accuracy(task="multiclass", num_classes=num_classes)
-            },
+            val_metrics={"acc": Accuracy(task="multiclass", num_classes=num_classes)},
+            test_metrics={"acc": Accuracy(task="multiclass", num_classes=num_classes)},
         )
 
     def _calculate_fc_input_features(
@@ -260,55 +256,8 @@ class InceptionTime(SimpleSupervisedModel):
             out = backbone(random_input)
         return out.view(out.size(0), -1).size(1)
 
-    def _create_fc(
-        self, input_features: int, num_classes: int
-    ) -> torch.nn.Module:
+    def _create_fc(self, input_features: int, num_classes: int) -> torch.nn.Module:
         return torch.nn.Sequential(
             torch.nn.Linear(in_features=input_features, out_features=num_classes),
             # torch.nn.Softmax(dim=1),
         )
-
-
-# def test_inception_time():
-#     input_shape = (6, 60)
-
-#     data_module = RandomDataModule(
-#         num_samples=8,
-#         num_classes=6,
-#         input_shape=input_shape,
-#         batch_size=8,
-#     )
-
-#     model = InceptionTime(
-#         input_shape=input_shape, num_classes=6, learning_rate=1e-3
-#     )
-#     print(model)
-
-#     trainer = L.Trainer(
-#         max_epochs=1, logger=False, devices=1, accelerator="cpu"
-#     )
-
-#     trainer.fit(model, datamodule=data_module)
-
-
-
-    # from torchview import draw_graph
-
-    # model = InceptionTime()
-    # result = model(torch.rand(1, 6, 60))
-    # print(f"Result.shape: {result.shape}")
-    # model_graph = draw_graph(
-    #     model,
-    #     input_size=(64, 6, 60),
-    #     device="cpu",
-    #     expand_nested=True,
-    #     show_shapes=True,
-    #     save_graph=True,
-    #     filename="inception_graph",
-    # )
-    # model_graph.visual_graph.render("inception_graph.png", format="png")
-    # print(f"Graph saved to `inception_graph.png`")
-
-
-# if __name__ == "__main__":
-#     test_inception_time()
