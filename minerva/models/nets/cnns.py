@@ -13,8 +13,6 @@ class ZeroPadder2D(torch.nn.Module):
         self.padding_size = padding_size
 
     def forward(self, x):
-        # X = (Batch, channels, H, W)
-        # X = (8, 1, 6, 60)
 
         for i in self.pad_at:
             left = x[:, :, :i, :]
@@ -22,10 +20,6 @@ class ZeroPadder2D(torch.nn.Module):
             right = x[:, :, i:, :]
 
             x = torch.cat([left, zeros, right], dim=2)
-            # print(f"-- Left.shape: {left.shape}")
-            # print(f"-- Zeros.shape: {zeros.shape}")
-            # print(f"-- Right.shape: {right.shape}")
-            # print(f"-- X.shape: {x.shape}")
 
         return x
 
@@ -64,11 +58,6 @@ class CNN_HaEtAl_1D(SimpleSupervisedModel):
 
     def _create_backbone(self, input_shape: Tuple[int, int]) -> torch.nn.Module:
         return torch.nn.Sequential(
-            # Add padding
-            # ZeroPadder2D(
-            #     pad_at=self.pad_at,
-            #     padding_size=4 - 1,  # kernel size - 1
-            # ),
             # First 2D convolutional layer
             torch.nn.Conv2d(
                 in_channels=input_shape[0],
@@ -413,7 +402,6 @@ class CNN_PF_2D(SimpleSupervisedModel):
             torch.nn.ReLU(),
             torch.nn.Dropout(0.5),
             torch.nn.Linear(in_features=512, out_features=num_classes),
-            # torch.nn.Softmax(dim=1),
         )
 
 
