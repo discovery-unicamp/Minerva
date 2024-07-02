@@ -1,5 +1,10 @@
 import torch
-from minerva.models.nets.imu_transformer import IMUTransformerEncoder, IMUCNN
+
+from minerva.models.nets.time_series.imu_transformer import (
+    IMUCNN,
+    IMUTransformerEncoder,
+)
+
 
 def test_imu_transformer_forward():
     input_shape = (6, 60)
