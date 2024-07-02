@@ -1,54 +1,196 @@
 from torch import nn, optim
 import lightning as L
+import torch
 
 class CPC(L.LightningModule):
     """Implements the Contrastive Predictive Coding (CPC) model, as described in
-    https://arxiv.org/abs/1807.03748. The implementation was adapted from
-    https://github.com/sanatonek/TNC_representation_learning
+    https://dl.acm.org/doi/10.1145/3463506. The implementation was adapted from
+    https://github.com/harkash/contrastive-predictive-coding-for-har
     """
     def __init__(
         self,
-        encoder: nn.Module,
-        density_estimator: nn.Module,
-        auto_regressor: nn.Module,
+        g_enc: L.LightningModule,
+        g_ar: L.LightningModule,
+        prediction_head: L.LightningModule,
+        num_steps_prediction: int = 28,
+        batch_size: int = 64,
         learning_rate: float = 1e-3,
-        weight_decay: float = 0.0,
-        # TODO: add other parameters
-    ):
-        self.encoder = encoder
-        self.density_estimator = density_estimator
-        self.auto_regressor = auto_regressor
+    ):  
+        super(CPC, self).__init__()
+        self.g_enc = g_enc
+        self.g_ar = g_ar
+        self.prediction_head = prediction_head
+        self.predictors = nn.ModuleList([self.prediction_head
+                                 for i in range(num_steps_prediction)])
         self.learning_rate = learning_rate
-        self.weight_decay = weight_decay
-        self.loss_func = nn.CrossEntropyLoss()
+        self.softmax = nn.Softmax(dim=1)
+        self.lsoftmax = nn.LogSoftmax(dim=1)
+        self.batch_size = batch_size
+        self.num_steps_prediction = num_steps_prediction
 
-    # TODO: Implement the training step (code invoked by Lightning Trainer).
     def forward(self, x):
-        z = self.encoder(x)
-        c = self.auto_regressor(z)
-        _, c_t = self.auto_regressor(z) # TODO: Verify this code. Is it retrieving c_t?
-        c_t = c_t.squeeze(1).squeeze(0)  # Equivalent to c_t.view(-1)
-        return c_t
+        z = self.g_enc(x)
+        r_out, _ = self.g_ar(z, None)
+        r_out = r_out[:, -1, :]
+        y = torch.stack([pred(r_out) for pred in self.predictors], dim=1)
+        # print("Y", y.shape)
+        # print("Z", z.shape)
+        return z, y
     
-    # TODO: Implement the training step (code invoked by Lightning Trainer).
     def training_step(self, batch, batch_idx):
-        # Remember to invoke self.log("train_loss", loss) to report the training loss
-        raise NotImplementedError("Must be implemented")
+        z, _ = self.forward(batch[0])
 
-    # TODO: Implement the validation step (code invoked by Lightning Trainer).
+        batch_size = batch[0].size(0) # 64
+
+        S = z.size(1)
+
+        # Tempo aleatório para começar a previsão futura
+
+        start = torch.randint(high=int(S - self.num_steps_prediction),
+                              size=(1,), low=2).long()
+                
+        # Contexto : Dados de entrada até o tempo inicial (PASSADO)
+
+        context = batch[0][:, :, :start+1]
+
+        # Verdade : Dados de entrada até o tempo inicial + o número de passos de previsão (FUTURO)
+
+        y_truth = z[:, start+1:start+1+self.num_steps_prediction, :].permute(1, 0, 2)
+
+        _, y_pred = self.forward(context)
+
+        y_pred = y_pred.permute(1, 0, 2)
+
+        nce = 0
+        correct = 0
+        correct_steps = []
+
+        # Looping over the number of timesteps chosen
+        for k in range(self.num_steps_prediction):
+            log_density_ratio = torch.mm(y_truth[k],y_pred[k].transpose(0, 1))
+
+            # correct if highest probability is in the diagonal
+            positive_batch_pred = torch.argmax(self.softmax(log_density_ratio),
+                                               dim=0)
+            positive_batch_actual = torch.arange(0, batch_size).to(self.device)
+
+            correct = (correct +
+                       torch.sum(torch.eq(positive_batch_pred,
+                                          positive_batch_actual)).item())
+            correct_steps.append(torch.sum(torch.eq(positive_batch_pred,
+                                                    positive_batch_actual)).item())
+
+            # calculate NCE loss
+            nce = nce + torch.sum(torch.diag(self.lsoftmax(log_density_ratio)))
+
+        # average over timestep and batch
+        nce = nce / (-1.0 * batch_size * self.num_steps_prediction)
+        self.log("train_loss", nce)
+        return nce
+
     def validation_step(self, batch, batch_idx):
-        # Remember to invoke self.log("val_loss", loss) to report the validation loss
-        raise NotImplementedError("Must be implemented")
+        z, _ = self.forward(batch[0]) 
 
-    # TODO: Implement the test step (code invoked by Lightning Trainer).
+        batch_size = batch[0].size(0)
+
+        S = z.size(1)
+
+        start = torch.randint(high=int(S - self.num_steps_prediction),low=2,
+                              size=(1,)).long()
+        
+        # Contexto : Dados de entrada até o tempo inicial (PASSADO)
+
+        context = batch[0][:, :, :start+1] #64, 6, tudo até start+1
+
+        # Verdade : Dados de entrada até o tempo inicial + o número de passos de previsão (FUTURO)
+
+        y_truth = z[:, start+1:start+1+self.num_steps_prediction, :].permute(1, 0, 2) 
+
+        _, y_pred = self.forward(context)
+
+        y_pred = y_pred.permute(1, 0, 2)
+
+        nce = 0
+        correct = 0
+        correct_steps = []
+
+        # Looping over the number of timesteps chosen
+        for k in range(self.num_steps_prediction):
+
+            log_density_ratio = torch.mm(y_truth[k],y_pred[k].transpose(0, 1))
+
+            # correct if highest probability is in the diagonal
+            positive_batch_pred = torch.argmax(self.softmax(log_density_ratio),
+                                               dim=0)
+            positive_batch_actual = torch.arange(0, batch_size).to(self.device)
+
+            correct = (correct +
+                       torch.sum(torch.eq(positive_batch_pred,
+                                          positive_batch_actual)).item())
+            correct_steps.append(torch.sum(torch.eq(positive_batch_pred,
+                                                    positive_batch_actual)).item())
+
+            # calculate NCE loss
+            nce = nce + torch.sum(torch.diag(self.lsoftmax(log_density_ratio)))
+
+        # average over timestep and batch
+        nce = nce / (-1.0 * batch_size * self.num_steps_prediction)
+        self.log("val_loss", nce)
+        return nce
+
     def test_step(self, batch, batch_idx):
-        # Remember to invoke self.log("test_loss", loss) to report the test loss
-        raise NotImplementedError("Must be implemented")
+        z, _ = self.forward(batch[0]) 
+
+        batch_size = batch[0].size(0) # 64
+
+        S = z.size(1)
+
+        start = torch.randint(high=int(S - self.num_steps_prediction),low=2,
+                              size=(1,)).long()
+        
+        # Contexto : Dados de entrada até o tempo inicial (PASSADO)
+
+        context = batch[0][:, :, :start+1] #64, 6, tudo até start+1
+
+        # Verdade : Dados de entrada até o tempo inicial + o número de passos de previsão (FUTURO)
+
+        y_truth = z[:, start+1:start+1+self.num_steps_prediction, :].permute(1, 0, 2) 
+
+        _, y_pred = self.forward(context)
+
+        y_pred = y_pred.permute(1, 0, 2)
+
+        nce = 0
+        correct = 0
+        correct_steps = []
+
+        # Looping over the number of timesteps chosen
+        for k in range(self.num_steps_prediction):
+
+            log_density_ratio = torch.mm(y_truth[k],y_pred[k].transpose(0, 1))
+
+            # correct if highest probability is in the diagonal
+            positive_batch_pred = torch.argmax(self.softmax(log_density_ratio),
+                                               dim=0)
+            positive_batch_actual = torch.arange(0, batch_size).to(self.device)
+
+            correct = (correct +
+                       torch.sum(torch.eq(positive_batch_pred,
+                                          positive_batch_actual)).item())
+            correct_steps.append(torch.sum(torch.eq(positive_batch_pred,
+                                                    positive_batch_actual)).item())
+
+            # calculate NCE loss
+            nce = nce + torch.sum(torch.diag(self.lsoftmax(log_density_ratio)))
+
+        # average over timestep and batch
+        nce = nce / (-1.0 * batch_size * self.num_steps_prediction)
+        self.log("test_loss", nce)
+        return nce
 
     def configure_optimizers(self):
         optimizer = optim.Adam(
             self.parameters(),
             lr=self.learning_rate,
-            weight_decay=self.weight_decay,
         )
         return optimizer
