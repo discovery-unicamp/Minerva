@@ -5,6 +5,24 @@ from minerva.losses.topo_loss import TopologicalLoss
 
 class TopologicalAutoencoder(L.LightningModule):
     def __init__(self, encoder, decoder, topological_loss=None, reconstruction_loss=None, lambda_param=1e-3,learning_rate=1e-3):
+        """
+        Topological autoencoder model.
+
+        Parameters
+        ----------
+        encoder : torch.nn.Module
+            Encoder model
+        decoder : torch.nn.Module
+            Decoder model
+        topological_loss : torch.nn.Module, optional
+            Topological loss, by default None
+        reconstruction_loss : torch.nn.Module, optional
+            Reconstruction loss, by default None
+        lambda_param : float, optional
+            Weight of the topological loss, by default 1e-3
+        learning_rate : float, optional
+            Learning rate, by default 1e-3
+        """
         super(TopologicalAutoencoder, self).__init__()
         # Saving parameters
         self.lambda_param = lambda_param
@@ -13,9 +31,9 @@ class TopologicalAutoencoder(L.LightningModule):
         self.encoder = encoder
         self.decoder = decoder
         # Defining topological loss
-        self.topological_loss = topological_loss if topological_loss is not None else TopologicalLoss
+        self.topological_loss = topological_loss if topological_loss is not None else TopologicalLoss()
         # Defining reconstruction loss
-        self.reconstruction_loss = reconstruction_loss if reconstruction_loss is not None else MSELoss
+        self.reconstruction_loss = reconstruction_loss if reconstruction_loss is not None else MSELoss()
 
     def forward(self, x):
         z = self.encoder(x)

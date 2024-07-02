@@ -4,13 +4,22 @@ from minerva.losses._topological_signature_distance import TopologicalSignatureD
 
 class TopologicalLoss(_Loss):
     def __init__(self, p=2):
+        """
+        Initialize the TopologicalLoss class.
+
+        Parameters
+        ----------
+        p : int, optional
+            Order of norm used for distance computation, by default 2
+        """
         super(TopologicalLoss, self).__init__()
+        self.p = p
         self.topological_signature_distance = TopologicalSignatureDistance()
         self.latent_norm = torch.nn.Parameter(data=torch.ones(1), requires_grad=True)
 
 
     def forward(self, x, x_encoded):
-        x_distances = self._compute_distance_matrix(x)
+        x_distances = self._compute_distance_matrix(x, p=self.p)
         if len(x.size()) == 4:
             # If the input is an image (has 4 dimensions), normalize using theoretical maximum
             _, ch, b, w = x.size()
@@ -22,7 +31,7 @@ class TopologicalLoss(_Loss):
             max_distance = x_distances.max()
         x_distances = x_distances / max_distance
         # Latent distances
-        x_encoded_distances = self._compute_distance_matrix(x_encoded)
+        x_encoded_distances = self._compute_distance_matrix(x_encoded, p=self.p)
         x_encoded_distances = x_encoded_distances / self.latent_norm 
 
         # Compute the topological signature distance
