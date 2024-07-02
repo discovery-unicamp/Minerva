@@ -1,5 +1,5 @@
 import torch
-from minerva.losses.topo_loss import TopologicalLoss
+from minerva.losses.topological_loss import TopologicalLoss
 
 
 def test_topological_loss():

@@ -1,17 +1,18 @@
 import torch
 from numpy import linspace
+from typing import Callable, List, Optional
 
 class ConvTAEEncoder(torch.nn.Module):
     def __init__(
             self,
-            in_channels=6,
-            time_steps=60,
-            encoding_size=256,
-            fc_num_layers=3,
-            conv_num_layers=3,
-            conv_mid_channels=12,
-            conv_kernel=5,
-            conv_padding=0,
+            in_channels: int=6,
+            time_steps: int=60,
+            encoding_size: int=256,
+            fc_num_layers: int=3,
+            conv_num_layers: int=3,
+            conv_mid_channels: int=12,
+            conv_kernel: int=5,
+            conv_padding: int=0,
     ):
         """
         An encoder for a simple convolutional autoencoder.
@@ -77,14 +78,14 @@ class ConvTAEEncoder(torch.nn.Module):
 class ConvTAEDecoder(torch.nn.Module):
     def __init__(
             self,
-            target_channels=6,
-            target_time_steps=60,
-            encoding_size=256,
-            fc_num_layers=3,
-            conv_num_layers=3,
-            conv_mid_channels=12,
-            conv_kernel=5,
-            conv_padding=0,
+            target_channels: int=6,
+            target_time_steps: int=60,
+            encoding_size: int=256,
+            fc_num_layers: int=3,
+            conv_num_layers: int=3,
+            conv_mid_channels: int=12,
+            conv_kernel: int=5,
+            conv_padding: int=0,
     ):
         """
         A decoder for a simple convolutional autodecoder.

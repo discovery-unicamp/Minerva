@@ -1,5 +1,5 @@
-from minerva.models.ssl.ae import Autoencoder
-from minerva.models.nets.convae_encoders import ConvTAEEncoder, ConvTAEDecoder
+from minerva.models.ssl.autoencoder import Autoencoder
+from minerva.models.nets.conv_autoencoders_encoders import ConvTAEEncoder, ConvTAEDecoder
 import torch
 
 def test_autoencoder_forward():

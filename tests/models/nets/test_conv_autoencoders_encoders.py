@@ -1,4 +1,4 @@
-from minerva.models.nets.convae_encoders import ConvTAEEncoder, ConvTAEDecoder
+from minerva.models.nets.conv_autoencoders_encoders import ConvTAEEncoder, ConvTAEDecoder
 import torch
 
 def test_convae_encoder_forward():

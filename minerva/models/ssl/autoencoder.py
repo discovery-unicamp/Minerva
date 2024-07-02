@@ -1,9 +1,17 @@
 import lightning as L
 from torch.nn import MSELoss
 from torch.optim import Adam
+import torch
+from torch import nn
+from typing import Optional, Callable
 
 class Autoencoder(L.LightningModule):
-    def __init__(self, encoder, decoder, loss=None, learning_rate=1e-3):
+    def __init__(
+            self,
+            encoder: nn.Module,
+            decoder: nn.Module,
+            loss: Optional[Callable]=None,
+            learning_rate: float=1e-3):
         """
         Autoencoder model.
 
@@ -13,7 +21,7 @@ class Autoencoder(L.LightningModule):
             Encoder model
         decoder : torch.nn.Module
             Decoder model
-        loss : torch.nn.Module, optional
+        loss : Callable, optional
             Reconstruction loss, by default None
         learning_rate : float, optional
             Learning rate, by default 1e-3

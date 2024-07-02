@@ -1,10 +1,19 @@
 import lightning as L
 from torch.nn import MSELoss
 from torch.optim import Adam
-from minerva.losses.topo_loss import TopologicalLoss
+from minerva.losses.topological_loss import TopologicalLoss
+from typing import Callable, List, Optional
+import torch.nn as nn
 
 class TopologicalAutoencoder(L.LightningModule):
-    def __init__(self, encoder, decoder, topological_loss=None, reconstruction_loss=None, lambda_param=1e-3,learning_rate=1e-3):
+    def __init__(
+            self,
+            encoder: nn.Module,
+            decoder: nn.Module,
+            topological_loss: Optional[Callable]=None,
+            reconstruction_loss: Optional[Callable]=None,
+            lambda_param: float=1e-3,
+            learning_rate: float=1e-3):
         """
         Topological autoencoder model.
 
