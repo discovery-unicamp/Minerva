@@ -1,6 +1,6 @@
 import torch
 
-from minerva.models.nets.cnns import CNN_PF_2D, CNN_PFF_2D
+from minerva.models.nets.time_series.cnns import CNN_PF_2D, CNN_PFF_2D
 
 
 def test_cnn_pf_forward():

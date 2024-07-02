@@ -1,6 +1,6 @@
 import torch
 
-from minerva.models.nets.cnns import CNN_HaEtAl_1D, CNN_HaEtAl_2D
+from minerva.models.nets.time_series.cnns import CNN_HaEtAl_1D, CNN_HaEtAl_2D
 
 
 def test_cnn_ha_etal_1d_forward():
