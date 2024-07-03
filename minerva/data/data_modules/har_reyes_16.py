@@ -1,28 +1,94 @@
 import os
-import urllib.request
-import zipfile
 from pathlib import Path
-from typing import List, Tuple, Union
+from typing import Union
 import lightning as L
 import numpy as np
 import pandas as pd
 from torch.utils.data import DataLoader, Dataset
 import torch
+from minerva.utils.typing import PathLike
 
 
 class ReyesDataset(Dataset):
-    def __init__(self, path):
+    """
+    A dataset loader for data of UCI-HAR (https://doi.org/10.24432/C54S4K) used in the paper:
+    "An Analysis of Time-Frequency Consistency in Human Activity Recognition" by Hecker et al.
+    the dataset file is consisted by 9 channels, 3 for x y z of total acceleration, body acceleration
+    and body gyroscope; 128 samples for each channel; one label for each sample, that could be 
+    walking, walking upstairs, walking downstairs, sitting, standing, and lying. This dataset
+    was sampled at 50Hz, so each sample has a duration of 2.56 seconds.
+    This dataset class loads a csv file with no header, where each row is a sample. The first
+    128 columns are the time_steps of the first channel, the next 128 columns are the time_steps of the
+    second channel, and so on. The last column is the label of the sample, totalizing 1153 columns.
+    The label is a float number from 0.0 to 5.0, representing the activity, by the order mentioned.
+    The ReyesDataset class inherits from torch.utils.data.Dataset.
+    
+    """
+    def __init__(self, path: PathLike):
+        """
+        Builder of the ReyesDataset class.
+        
+        Parameters
+        ----------
+        path : PathLike
+            The path to the csv file with the desired dataset
+        
+        """
         dataset = pd.read_csv(path, header=None)
         self.X, self.Y = self.convert(dataset)
         self.len = self.X.shape[0]
 
-    def __getitem__(self, index):
+    def __getitem__(self, index: int):
+        """
+        Get a sample from the dataset by its index.
+
+        Parameters
+        ----------
+        index : int
+            The index of the desired sample
+
+        Returns
+        -------
+        tuple
+            A tuple with the sample and its label. The sample is a torch tensor with
+            shape (9, 128) or (channels, time_steps). The label is a integer from 0 to 5.
+        
+        """
         return self.X[index], self.Y[index]
 
     def __len__(self):
+        """
+        Get the length of the dataset.
+
+        Returns
+        -------
+        int
+            The number of samples in the dataset.
+        
+        """
         return self.len
     
-    def convert(self, dataset, ncanais = 9, tamanho = 128):
+    def convert(self, dataset: pd.DataFrame, ncanais: int = 9, tamanho: int = 128): # dataset is a pandas dataframe
+        """
+        Convert the dataset from a pandas dataframe to a torch tensor.
+        
+        Parameters
+        ----------
+        dataset : pd.DataFrame
+            The dataset to be converted
+        ncanais : int
+            The number of channels in the dataset
+        tamanho : int
+            The number of time_steps in each channel
+        
+        Returns
+        -------
+        tuple
+            A tuple with the converted dataset. The first element is a torch tensor with
+            shape (n_samples, n_channels, n_time_steps) with type float64. The second element is a torch tensor
+            with shape (n_samples,) with type integer.
+        
+        """
         dataset = np.asarray(dataset)
         X = torch.tensor(dataset[:, :tamanho*ncanais],dtype=torch.float64)
         Y = torch.tensor(dataset[:,tamanho*ncanais],dtype=torch.int32)
@@ -31,13 +97,27 @@ class ReyesDataset(Dataset):
 
 
 class ReyesModule(L.LightningDataModule):
+    """
+    A datamodule for the UCI-HAR dataset (https://doi.org/10.24432/C54S4K) used in the paper:
+    "An Analysis of Time-Frequency Consistency in Human Activity Recognition" by Hecker et al.
+    the datamodule is consisted by a train, validation and test dataloaders, each one with a standart batch size
+    of 42. The dataset files are consisted by 9 channels, 3 for x y z of total acceleration, body acceleration and
+    body gyroscope; 128 samples for each channel; one label for each sample, that could be walking, walking upstairs,
+    walking downstairs, sitting, standing, and lying.
+    The train dataset is loaded from the file train.csv, the validation dataset is loaded from the file train.csv,
+    once there is no validation dataset on the original work repository, and the test dataset is loaded from the
+    file test.csv. This datamodule class inherits from lightning.LightningDataModule. It is possible to set the
+    percentage of the train and validation datasets to be used.
+    
+    """
+
     def __init__(
         self,
         # General DataModule parameters
         root_data_dir: Union[Path, str],
         # DataLoader parameters
         batch_size: int = 42,
-        percentage: float = 1,
+        percentage: float = 1.0,
     ):
         super().__init__()
         self.root_data_dir = Path(root_data_dir)
@@ -51,7 +131,7 @@ class ReyesModule(L.LightningDataModule):
         self.setup()
 
     def setup(self, stage: str = None) -> None:
-        # Verify that the data is available. If not, fectch and unzip dataset
+        # Verify that the data is available. If not, raise an error.
         for k, v in self.csv_files.items():
             if not os.path.exists(v):
                 print(v, "file is missing")
