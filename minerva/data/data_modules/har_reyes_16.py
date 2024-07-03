@@ -4,9 +4,10 @@ from typing import Union
 import lightning as L
 import numpy as np
 import pandas as pd
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import DataLoader, Dataset, Subset
 import torch
 from minerva.utils.typing import PathLike
+import random
 
 
 class ReyesDataset(Dataset):
@@ -139,9 +140,24 @@ class ReyesModule(L.LightningDataModule):
 
 
     def _get_dataset_dataloader(
-        self, path: Path, shuffle: bool
+        self, path: Path, shuffle: bool, percentage: float = 1.0
     ) -> DataLoader[ReyesDataset]:
+        """
+
+
+
+        This function differ from the solution implemented in article to the percentage,
+        because this way is more accurate.
+        
+        
+        """
         dataset = ReyesDataset(path)
+        if percentage < 1.0:
+            indices = list(range(len(dataset)))
+            indices = random.sample(
+                indices, int(len(indices) * percentage)
+            )
+            dataset = Subset(dataset, indices)
         dataloader = DataLoader(
             dataset,
             batch_size=self.batch_size,
@@ -153,13 +169,13 @@ class ReyesModule(L.LightningDataModule):
 
     def train_dataloader(self):
         dataloader = self._get_dataset_dataloader(
-            self.root_data_dir / "train.csv", shuffle=True
+            self.root_data_dir / "train.csv", shuffle=True, percentage=self.percentage
         )
         return dataloader
 
     def val_dataloader(self):
         dataloader = self._get_dataset_dataloader(
-            self.root_data_dir / "train.csv", shuffle=False
+            self.root_data_dir / "train.csv", shuffle=False, percentage=self.percentage
         )
         return dataloader
 
