@@ -101,7 +101,7 @@ class ReyesModule(L.LightningDataModule):
     """
     A datamodule for the UCI-HAR dataset (https://doi.org/10.24432/C54S4K) used in the paper:
     "An Analysis of Time-Frequency Consistency in Human Activity Recognition" by Hecker et al.
-    the datamodule is consisted by a train, validation and test dataloaders, each one with a standart batch size
+    the datamodule is consisted by a train, validation and test dataloaders, each one with a default batch size
     of 42. The dataset files are consisted by 9 channels, 3 for x y z of total acceleration, body acceleration and
     body gyroscope; 128 samples for each channel; one label for each sample, that could be walking, walking upstairs,
     walking downstairs, sitting, standing, and lying.
@@ -115,11 +115,24 @@ class ReyesModule(L.LightningDataModule):
     def __init__(
         self,
         # General DataModule parameters
-        root_data_dir: Union[Path, str],
+        root_data_dir: PathLike,
         # DataLoader parameters
         batch_size: int = 42,
         percentage: float = 1.0,
     ):
+        """
+        Builder of the ReyesModule class.
+
+        Parameters
+        ----------
+        root_data_dir : PathLike
+            The root directory of the dataset files
+        batch_size : int
+            The batch size of the dataloaders, default is 42
+        percentage : float
+            The percentage of the dataset to be used, default is 1.0
+
+        """
         super().__init__()
         self.root_data_dir = Path(root_data_dir)
         self.batch_size = batch_size
@@ -131,7 +144,11 @@ class ReyesModule(L.LightningDataModule):
         self.percentage = percentage
         self.setup()
 
-    def setup(self, stage: str = None) -> None:
+    def setup(self) -> None:
+        """
+        Setup the datamodule, verifying if the dataset files are available.
+        Raises an error if the files defined in the builder are missing.
+        """
         # Verify that the data is available. If not, raise an error.
         for k, v in self.csv_files.items():
             if not os.path.exists(v):
@@ -143,15 +160,29 @@ class ReyesModule(L.LightningDataModule):
         self, path: Path, shuffle: bool, percentage: float = 1.0
     ) -> DataLoader[ReyesDataset]:
         """
-
-
-
+        Get a dataloader from a dataset file, shuffling the samples if shuffle is True
+        and setting the percentage of the datasets to be used.
         This function differ from the solution implemented in article to the percentage,
         because this way is more accurate.
         
+        Parameters
+        ----------
+        path : Path
+            The path to the dataset file
+        shuffle : bool
+            If True, the samples will be shuffled
+        percentage : float
+            The percentage of the dataset to be used
+
+        Returns
+        -------
+        DataLoader
+            A DataLoader with the desired dataset
         
         """
         dataset = ReyesDataset(path)
+
+        # if percentage is set, chose random len*percentage samples and build a subset
         if percentage < 1.0:
             indices = list(range(len(dataset)))
             indices = random.sample(
@@ -168,18 +199,44 @@ class ReyesModule(L.LightningDataModule):
         return dataloader
 
     def train_dataloader(self):
+        """
+        Get the train dataloader by location defined by root_data_dir/train.csv.
+
+        Returns
+        -------
+        DataLoader
+            A DataLoader with the train dataset
+        """
         dataloader = self._get_dataset_dataloader(
             self.root_data_dir / "train.csv", shuffle=True, percentage=self.percentage
         )
         return dataloader
 
     def val_dataloader(self):
+        """
+        Get the validaton dataloader by location defined by root_data_dir/train.csv. This dataloader uses the same
+        dataset as the train dataloader, because there is no validation dataset in the original work repository.
+
+        Returns
+        -------
+        DataLoader
+            A DataLoader with the train dataset
+        """
         dataloader = self._get_dataset_dataloader(
             self.root_data_dir / "train.csv", shuffle=False, percentage=self.percentage
         )
         return dataloader
 
     def test_dataloader(self):
+        """
+
+        Get the test dataloader by location defined by root_data_dir/test.csv.
+        
+        Returns
+        -------
+        DataLoader
+            A DataLoader with the test dataset
+        """
         dataloader = self._get_dataset_dataloader(
             self.root_data_dir / "test.csv", shuffle=False
         )
