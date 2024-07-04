@@ -6,7 +6,7 @@ def test_tfc_backbone_forward():
     encoding_size = 256
     batch_size = 37
 
-    model = TFC_Backbone(input_channels=input_shape[0], TS_length=input_shape[1], encoding_size=encoding_size)
+    model = TFC_Backbone(input_channels=input_shape[0], TS_length=input_shape[1], single_encoding_size=encoding_size)
     assert model is not None
     x = torch.rand(batch_size, *input_shape)
     y = model(x, x)
