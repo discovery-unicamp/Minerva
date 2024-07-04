@@ -3,13 +3,46 @@ import torch.nn as nn
 from typing import Tuple
 
 class TFC_Conv_Backbone(nn.Module):
-    def _calculate_fc_input_features(self, backbone: torch.nn.Module, input_shape: Tuple[int, int]) -> int:
+    """
+    A convolutional version of backbone of the Temporal-Frequency Convolutional (TFC) model.
+    The backbone is composed of two convolutional neural networks that extract features from the input data in the time domain and frequency domain.
+    The features are then projected to a latent space.
+    This class implements the forward method that receives the input data and returns the features extracted in the time domain and frequency domain.
+    """
+    def _calculate_fc_input_features(self, encoder: torch.nn.Module, input_shape: Tuple[int, int]) -> int:
+        """
+        Calculate the input features of the fully connected layer after the encoders (conv blocks).
+
+        Parameters
+        ----------
+        - encoder: torch.nn.Module
+            The encoder to calculate the input features
+        - input_shape: Tuple[int, int]
+            The input shape of the data
+
+        Returns
+        -------
+        - int
+            The number of features to be passed to the fully connected layer
+        """
         random_input = torch.randn(1, *input_shape)
         with torch.no_grad():
-            out = backbone(random_input)
+            out = encoder(random_input)
         return out.view(out.size(0), -1).size(1)
     
     def __init__(self, input_channels, TS_length, single_encoding_size = 128):
+        """
+        Constructor of the TFC_Conv_Backbone class.
+
+        Parameters
+        ----------
+        - input_channels: int
+            The number of channels in the input data
+        - TS_length: int
+            The number of time steps in the input data
+        - single_encoding_size: int
+            The size of the encoding in the latent space of frequency or time domain individually
+        """
         super(TFC_Conv_Backbone, self).__init__()
         self.conv_block_t = nn.Sequential(
             nn.Conv1d(input_channels, 32, kernel_size=8, stride=1, bias=False, padding=4),
@@ -51,13 +84,28 @@ class TFC_Conv_Backbone(nn.Module):
         )
 
         self.projector_f = nn.Sequential(
-            nn.Linear(self._calculate_fc_input_features(self.conv_block_t, (input_channels, TS_length)), 256),
+            nn.Linear(self._calculate_fc_input_features(self.conv_block_f, (input_channels, TS_length)), 256),
             nn.BatchNorm1d(256),
             nn.ReLU(),
             nn.Linear(256, single_encoding_size)
         )
 
     def forward(self, x_in_t, x_in_f):
+        """
+        The forward method of the backbone. It receives the input data in the time domain and frequency domain and returns the features extracted in the time domain and frequency domain.
+
+        Parameters
+        ----------
+        - x_in_t: torch.Tensor
+            The input data in the time domain
+        - x_in_f: torch.Tensor
+            The input data in the frequency domain
+
+        Returns
+        -------
+        - tuple
+            A tuple with the features extracted in the time domain and frequency domain, h_time, z_time, h_freq, z_freq respectively
+        """
         x = self.conv_block_t(x_in_t)
         h_time = x.reshape(x.shape[0], -1)
         z_time = self.projector_t(h_time)
@@ -70,7 +118,24 @@ class TFC_Conv_Backbone(nn.Module):
     
 
 class TFC_PredicionHead(nn.Module):
+    """
+    A simple prediction head for the Temporal-Frequency Convolutional (TFC) model.
+    The prediction head is composed of a linear layer that receives the features extracted by the backbone and returns the prediction of the model.
+    This class implements the forward method that receives the features extracted by the backbone and returns the prediction of the model.
+    """
     def __init__(self, num_classes, connections=2, single_encoding_size=128):
+        """
+        Constructor of the TFC_PredicionHead class.
+
+        Parameters
+        ----------
+        - num_classes: int
+            The number of classes in the classification task
+        - connections: int
+            The number of pipelines in the backbone. If 1, only the time or frequency domain is used. If 2, both domains are used. Other values are treated as 1.
+        - single_encoding_size: int
+            The size of the encoding in the latent space of frequency or time domain individually
+        """
         super(TFC_PredicionHead, self).__init__()
         if connections != 2:
             print(f"Only one pipeline is on: {connections} connections.")
@@ -78,6 +143,20 @@ class TFC_PredicionHead(nn.Module):
         self.logits_simple = nn.Linear(64, num_classes)
 
     def forward(self, emb):
+        """
+        The forward method of the prediction head. It receives the features extracted by the backbone and returns the prediction of the model.
+
+        Parameters
+        ----------
+        - emb: torch.Tensor
+            The features extracted by the backbone
+
+        Returns
+        -------
+        - torch.Tensor
+            The prediction of the model
+        
+        """
         emb_flat = emb.reshape(emb.shape[0], -1)
         emb = torch.sigmoid(self.logits(emb_flat))
         pred = self.logits_simple(emb)
