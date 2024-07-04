@@ -1,11 +1,6 @@
-import time
 from typing import Tuple
 
-import lightning as L
-import numpy as np
 import torch
-from torch import nn
-from torch.nn import TransformerEncoder, TransformerEncoderLayer
 from torchmetrics import Accuracy
 
 from minerva.models.nets.base import SimpleSupervisedModel

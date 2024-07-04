@@ -1,11 +1,11 @@
 import torch
 
-from minerva.models.nets.cnns import CNN_PF_2D, CNN_PFF_2D
+from minerva.models.nets.time_series.cnns import CNN_HaEtAl_1D, CNN_HaEtAl_2D
 
 
-def test_cnn_pf_forward():
+def test_cnn_ha_etal_1d_forward():
     input_shape = (1, 6, 60)
-    model = CNN_PF_2D(input_shape=input_shape, pad_at=3)
+    model = CNN_HaEtAl_1D(input_shape=input_shape)
     assert model is not None
 
     x = torch.rand(1, *input_shape)
@@ -13,9 +13,9 @@ def test_cnn_pf_forward():
     assert y is not None
 
 
-def test_cnn_ha_pff_forward():
+def test_cnn_ha_etal_2d_forward():
     input_shape = (1, 6, 60)
-    model = CNN_PFF_2D(input_shape=input_shape, pad_at=3)
+    model = CNN_HaEtAl_2D(input_shape=input_shape)
     assert model is not None
 
     x = torch.rand(1, *input_shape)

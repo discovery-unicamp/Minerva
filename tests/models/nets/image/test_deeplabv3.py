@@ -1,6 +1,6 @@
 import torch
 
-from minerva.models.nets.deeplabv3 import DeepLabV3, DeepLabV3Backbone
+from minerva.models.nets.image.deeplabv3 import DeepLabV3, DeepLabV3Backbone
 
 
 def test_deeplabv3_model():
