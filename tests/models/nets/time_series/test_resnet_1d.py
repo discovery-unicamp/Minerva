@@ -1,6 +1,10 @@
 import torch
 
-from minerva.models.nets.resnet import ResNet1D_8, ResNetSE1D_5, ResNetSE1D_8
+from minerva.models.nets.time_series.resnet import (
+    ResNet1D_8,
+    ResNetSE1D_5,
+    ResNetSE1D_8,
+)
 
 
 def test_resnet_1d_8_forward():

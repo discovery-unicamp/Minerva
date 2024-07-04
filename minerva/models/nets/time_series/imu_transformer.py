@@ -1,6 +1,5 @@
 from typing import Tuple
 
-import lightning as L
 import torch
 from torch import nn
 from torch.nn import TransformerEncoder, TransformerEncoderLayer
