@@ -1,6 +1,6 @@
 from typing import Any, Dict, Literal, Optional
 
-import lightning as L
+import lightning.pytorch as L
 from ray import tune
 from ray.train.lightning import (
     RayDDPStrategy,

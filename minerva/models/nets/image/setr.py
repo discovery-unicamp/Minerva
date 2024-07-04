@@ -1,7 +1,7 @@
 import warnings
 from typing import Dict, Optional, Tuple
 
-import lightning as L
+import lightning.pytorch as L
 import torch
 from torch import nn
 from torchmetrics import Metric
