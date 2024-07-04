@@ -1,6 +1,6 @@
 ## Describe your changes
 
-## Issue ticket number and link
+## Issue ticket number and link (If apply)
 
 ## Checklist before requesting a review
 
