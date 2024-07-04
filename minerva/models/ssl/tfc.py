@@ -7,8 +7,41 @@ from minerva.models.nets.tfc import TFC_Conv_Backbone, TFC_PredicionHead
 
 
 class TFC_Model(pl.LightningModule):
+    """
+    Main class for the Temporal-Frequency Convolutional (TFC) model.
+    The model is composed of a backbone and a prediction head. The backbone is (by default) a Convolutional Neural Network (CNN) that extracts features 
+    from the input data in the time domain and frequency domain. The prediction head is a fully connected layer that classifies the features extracted 
+    by the backbone in the given classes.
+    This class can be trained with a supervised learning approach or with a self-supervised learning approach, or even with single pipelines.
+    This class implements the training and validation steps for the model, as well as the forward method and the configuration of the optimizer, as
+    requeired by pytorch-lightning.
+    """
 
     def __init__(self, input_channels, TS_length, num_classes, single_encoding_size, backbone = None, pred_head = True, loss = None, learning_rate = 3e-4, transform = None):
+        """
+        The constructor of the TFC_Model class.
+
+        Parameters
+        ----------
+        - input_channels: int
+            The number of channels in the input data
+        - TS_length: int
+            The number of time steps in the input data
+        - num_classes: int
+            The number of downstream classes in the dataset
+        - single_encoding_size: int
+            The size of the encoding in the latent space of frequency or time domain individually
+        - backbone: TFC_Conv_Backbone
+            The backbone of the model. If None, a default backbone is created as a convolutional neural network
+        - pred_head: bool
+            If True, a prediction head (MLP) is added to the model. If False, the model is trained in a self-supervised learning approach
+        - loss: torch.nn.Module
+            The loss function to be used in the training step. If None, the CrossEntropyLoss is used
+        - learning_rate: float
+            The learning rate of the optimizer
+        - transform: TFC_Transforms
+            The transformation to be applied to the input data. If None, a default transformation is applied that includes data augmentation and frequency domain transformation        
+        """
         super(TFC_Model, self).__init__()
         if backbone:
             self.backbone = backbone
@@ -30,6 +63,28 @@ class TFC_Model(pl.LightningModule):
             self.transform = TFC_Transforms()
     
     def forward(self, x_t, x_f, all=False): # "all" is useful for validation of acurracy and latent space
+        """
+        The forward method of the model. It receives the input data in the time domain and frequency domain and returns the prediction of the model.
+
+        Parameters
+        ----------
+        - x_t: torch.Tensor
+            The input data in the time domain
+        - x_f: torch.Tensor
+            The input data in the frequency domain
+        - all: bool
+            If True, the method returns the prediction of the model and the features extracted by the backbone. If False, only the prediction is returned
+
+        Returns
+        -------
+        - torch.Tensor
+            If the model has a prediction head and parameter "all" is False, the method returns the prediction of the model, a tensor with the shape (batch_size, num_classes)
+        - tuple
+            If the model has not a prediction head, the method returns a tuple with the features extracted by the backbone, h_t, z_t, h_f, z_f respectively.
+        - tuple
+            If the model has a prediction head and parameter "all" is True, the method returns a tuple with the prediction of the model and the features extracted by the backbone, following the format prediction, h_t, z_t, h_f, z_f.
+        
+        """
         h_t, z_t, h_f, z_f = self.backbone(x_t, x_f)
         if self.pred_head:
             fea_concat = torch.cat((z_t, z_f), dim=1)
@@ -41,6 +96,21 @@ class TFC_Model(pl.LightningModule):
             return h_t, z_t, h_f, z_f
 
     def training_step(self, batch, batch_index):
+        """
+        The training step of the model. It receives a batch of data and returns the loss of the model.
+
+        Parameters
+        ----------
+        - batch: tuple
+            A tuple with the input data and its labels as X, Y
+        - batch_index: int
+            The index of the batch in the dataset (not used in this method)
+
+        Returns
+        -------
+        - loss
+            The loss of the model in this training step
+        """
         x = batch[0]
         x = x.to(self.device)
         labels = batch[1]
@@ -63,6 +133,23 @@ class TFC_Model(pl.LightningModule):
         return loss
         
     def validation_step(self, batch, batch_index):
+        """
+        The validation step of the model. It receives a batch of data and returns the loss of the model.
+
+        Parameters
+        ----------
+        - batch: tuple
+            A tuple with the input data and its labels as X, Y
+        - batch_index: int
+            The index of the batch in the dataset (not used in this method)
+
+        Returns
+        -------
+        - loss
+            The loss of the model in this validation step
+        
+        
+        """
         x = batch[0]
         labels = batch[1]
         data, aug1, data_f, aug1_f = self.transform(x)
@@ -85,4 +172,13 @@ class TFC_Model(pl.LightningModule):
         
 
     def configure_optimizers(self):
+        """
+        Function that configures the optimizer of the model. It returns an Adam optimizer with the learning rate defined in the constructor.
+
+        Returns
+        -------
+        - torch.optim.Adam
+            The optimizer of the model
+
+        """
         return torch.optim.Adam(self.parameters(), lr=self.learning_rate, betas=(0.9, 0.99), weight_decay=3e-4)
