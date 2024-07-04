@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Optional, Tuple
 
 import torch
 from torchmetrics import Accuracy
@@ -7,7 +7,7 @@ from minerva.models.nets.base import SimpleSupervisedModel
 
 
 class ConvolutionalBlock(torch.nn.Module):
-    def __init__(self, in_channels: int, activation_cls: torch.nn.Module = None):
+    def __init__(self, in_channels: int, activation_cls: torch.nn.Module):
         super().__init__()
         self.in_channels = in_channels
         self.activation_cls = activation_cls

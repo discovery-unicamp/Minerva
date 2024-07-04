@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 from numpy.typing import ArrayLike
@@ -22,10 +22,10 @@ class PatchedArrayReader(_Reader):
         self,
         data: ArrayLike,
         data_shape: Tuple[int, ...],
-        stride: Tuple[int, ...] = None,
-        pad_width: Tuple[Tuple[int, int], ...] = None,
+        stride: Optional[Tuple[int, ...]] = None,
+        pad_width: Optional[Tuple[Tuple[int, int], ...]] = None,
         pad_mode: str = "constant",
-        pad_kwargs: dict = None,
+        pad_kwargs: Optional[Dict] = None,
     ):
         """Reads data from a NumPy array and generates patches from it.
 

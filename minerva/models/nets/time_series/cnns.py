@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 import torch
 from torchmetrics import Accuracy
@@ -7,7 +7,7 @@ from minerva.models.nets.base import SimpleSupervisedModel
 
 
 class ZeroPadder2D(torch.nn.Module):
-    def __init__(self, pad_at: List[int], padding_size: int):
+    def __init__(self, pad_at: Tuple[int], padding_size: int):
         super().__init__()
         self.pad_at = pad_at
         self.padding_size = padding_size
@@ -56,7 +56,9 @@ class CNN_HaEtAl_1D(SimpleSupervisedModel):
             test_metrics={"acc": Accuracy(task="multiclass", num_classes=num_classes)},
         )
 
-    def _create_backbone(self, input_shape: Tuple[int, int]) -> torch.nn.Module:
+    def _create_backbone(
+        self, input_shape: Union[Tuple[int, int], Tuple[int, int, int]]
+    ) -> torch.nn.Module:
         return torch.nn.Sequential(
             # First 2D convolutional layer
             torch.nn.Conv2d(
@@ -120,7 +122,7 @@ class CNN_HaEtAl_1D(SimpleSupervisedModel):
 class CNN_HaEtAl_2D(SimpleSupervisedModel):
     def __init__(
         self,
-        pad_at: List[int] = (3,),
+        pad_at: Tuple[int] = (3,),
         input_shape: Tuple[int, int, int] = (1, 6, 60),
         num_classes: int = 6,
         learning_rate: float = 1e-3,
@@ -144,7 +146,9 @@ class CNN_HaEtAl_2D(SimpleSupervisedModel):
             test_metrics={"acc": Accuracy(task="multiclass", num_classes=num_classes)},
         )
 
-    def _create_backbone(self, input_shape: Tuple[int, int]) -> torch.nn.Module:
+    def _create_backbone(
+        self, input_shape: Union[Tuple[int, int], Tuple[int, int, int]]
+    ) -> torch.nn.Module:
         first_kernel_size = 4
         return torch.nn.Sequential(
             # Add padding
