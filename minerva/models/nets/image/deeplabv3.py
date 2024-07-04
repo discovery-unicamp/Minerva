@@ -1,6 +1,6 @@
 from typing import Dict, Optional, Sequence
 
-from torch import Tensor, load, nn, optim
+from torch import Tensor, nn, optim
 from torchmetrics import Metric
 from torchvision.models.resnet import resnet50
 from torchvision.models.segmentation.deeplabv3 import ASPP
