@@ -1,12 +1,14 @@
+from collections import defaultdict
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Literal
+from typing import Any, Dict, Iterable, List, Literal, Optional
+
 import lightning as L
 import torch
-from minerva.pipelines.base import Pipeline
-from torchmetrics import Metric
-from minerva.utils.data import get_full_data_split
-from collections import defaultdict
 import yaml
+from torchmetrics import Metric
+
+from minerva.pipelines.base import Pipeline
+from minerva.utils.data import get_full_data_split
 from minerva.utils.typing import PathLike
 
 
@@ -46,7 +48,7 @@ class SimpleLightningPipeline(Pipeline):
         trainer : L.Trainer
             The Lightning Trainer to be used.
         log_dir : PathLike, optional
-            The default logging directory where all related pipeline files 
+            The default logging directory where all related pipeline files
             should be saved. By default None (uses current working directory)
         save_run_status : bool, optional
             If True, save the status of each run in a YAML file. This file will
@@ -74,10 +76,10 @@ class SimpleLightningPipeline(Pipeline):
             metrics. If False, the metrics will be calculated for the whole
             dataset and the results will be a single metric (single-element
             list). By default False
-        """ 
+        """
         if log_dir is None and trainer.log_dir is not None:
             log_dir = trainer.log_dir
-        
+
         super().__init__(
             log_dir=log_dir,
             ignore=[
@@ -158,15 +160,14 @@ class SimpleLightningPipeline(Pipeline):
 
         for metric_name, metric in metrics.items():
             final_results = [
-                metric(y_i, y_hat_i).float().item()
-                for y_i, y_hat_i in zip(y, y_hat)
+                metric(y_i, y_hat_i).float().item() for y_i, y_hat_i in zip(y, y_hat)
             ]
             results[metric_name] = final_results
 
         return results
 
     # Private methods
-    def _fit(self, data: L.LightningDataModule, ckpt_path: PathLike):
+    def _fit(self, data: L.LightningDataModule, ckpt_path: Optional[PathLike]):
         """Fit the model using the given data.
 
         Parameters
@@ -181,7 +182,7 @@ class SimpleLightningPipeline(Pipeline):
             model=self._model, datamodule=data, ckpt_path=ckpt_path
         )
 
-    def _test(self, data: L.LightningDataModule, ckpt_path: PathLike):
+    def _test(self, data: L.LightningDataModule, ckpt_path: Optional[PathLike]):
         """Test the model using the given data.
 
         Parameters
@@ -199,7 +200,7 @@ class SimpleLightningPipeline(Pipeline):
     def _predict(
         self,
         data: L.LightningDataModule,
-        ckpt_path: PathLike = None,
+        ckpt_path: Optional[PathLike] = None,
     ) -> torch.Tensor:
         """Predict using the given data.
 
@@ -223,7 +224,7 @@ class SimpleLightningPipeline(Pipeline):
     def _evaluate(
         self,
         data: L.LightningDataModule,
-        ckpt_path: PathLike = None,
+        ckpt_path: Optional[PathLike] = None,
     ) -> Dict[str, Any]:
         """Evaluate the model and calculate regression and/or classification
         metrics.
@@ -246,9 +247,7 @@ class SimpleLightningPipeline(Pipeline):
         X, y = get_full_data_split(data, "predict")
         y = torch.tensor(y, device="cpu")
 
-        y_hat = self.trainer.predict(
-            self._model, datamodule=data, ckpt_path=ckpt_path
-        )
+        y_hat = self.trainer.predict(self._model, datamodule=data, ckpt_path=ckpt_path)
         y_hat = torch.cat(y_hat).detach().cpu()
 
         if self._classification_metrics is not None:
@@ -280,7 +279,7 @@ class SimpleLightningPipeline(Pipeline):
         self,
         data: L.LightningDataModule,
         task: Literal["fit", "test", "predict", "evaluate"],
-        ckpt_path: PathLike = None,
+        ckpt_path: Optional[PathLike] = None,
     ):
         """
         Run the specified task on the given data.
