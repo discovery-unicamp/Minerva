@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 from typing import Tuple
 
-class TFC_Backbone(nn.Module):
+class TFC_Conv_Backbone(nn.Module):
     def _calculate_fc_input_features(self, backbone: torch.nn.Module, input_shape: Tuple[int, int]) -> int:
         random_input = torch.randn(1, *input_shape)
         with torch.no_grad():
@@ -10,7 +10,7 @@ class TFC_Backbone(nn.Module):
         return out.view(out.size(0), -1).size(1)
     
     def __init__(self, input_channels, TS_length, single_encoding_size = 128):
-        super(TFC_Backbone, self).__init__()
+        super(TFC_Conv_Backbone, self).__init__()
         self.conv_block_t = nn.Sequential(
             nn.Conv1d(input_channels, 32, kernel_size=8, stride=1, bias=False, padding=4),
             nn.BatchNorm1d(32),

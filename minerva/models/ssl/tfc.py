@@ -3,16 +3,17 @@ from torch import nn
 import lightning as pl
 from typing import List, Tuple
 from minerva.transforms.tfc import TFC_Transforms
-from minerva.models.nets.tfc import TFC_Backbone, TFC_PredicionHead
+from minerva.models.nets.tfc import TFC_Conv_Backbone, TFC_PredicionHead
 
 
 class TFC_Model(pl.LightningModule):
+
     def __init__(self, input_channels, TS_length, num_classes, single_encoding_size, backbone = None, pred_head = True, loss = None, learning_rate = 3e-4, transform = None):
         super(TFC_Model, self).__init__()
         if backbone:
             self.backbone = backbone
         else:
-            self.backbone = TFC_Backbone(input_channels, TS_length, single_encoding_size = single_encoding_size)
+            self.backbone = TFC_Conv_Backbone(input_channels, TS_length, single_encoding_size = single_encoding_size)
         if pred_head:
             self.pred_head = TFC_PredicionHead(num_classes=num_classes, single_encoding_size=single_encoding_size)
         else:
