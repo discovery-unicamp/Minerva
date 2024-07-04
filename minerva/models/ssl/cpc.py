@@ -6,21 +6,6 @@ class CPC(L.LightningModule):
     """Implements the Contrastive Predictive Coding (CPC) model, as described in
     https://dl.acm.org/doi/10.1145/3463506. The implementation was adapted from
     https://github.com/harkash/contrastive-predictive-coding-for-har
-    
-    Parameters
-    ----------
-    g_enc : L.LightningModule
-        Encoder network that processes the input sequence and extracts features.
-    g_ar : L.LightningModule
-        Autoregressive network that models the temporal dependencies in the feature space.
-    prediction_head : L.LightningModule
-        Network used to predict future representations.
-    num_steps_prediction : int, optional
-        Number of future steps to predict, by default 28.
-    batch_size : int, optional
-        Size of the batch, by default 64.
-    learning_rate : float, optional
-        Learning rate for the optimizer, by default 1e-3.
     """
     def __init__(
         self,
@@ -31,6 +16,22 @@ class CPC(L.LightningModule):
         batch_size: int = 64,
         learning_rate: float = 1e-3,
     ):  
+        """       
+        Parameters
+        ----------
+        g_enc : L.LightningModule
+            Encoder network that processes the input sequence and extracts features.
+        g_ar : L.LightningModule
+            Autoregressive network that models the temporal dependencies in the feature space.
+        prediction_head : L.LightningModule
+            Network used to predict future representations.
+        num_steps_prediction : int, optional
+            Number of future steps to predict, by default 28.
+        batch_size : int, optional
+            Size of the batch, by default 64.
+        learning_rate : float, optional
+            Learning rate for the optimizer, by default 1e-3.
+        """
         super(CPC, self).__init__()
         self.g_enc = g_enc
         self.g_ar = g_ar

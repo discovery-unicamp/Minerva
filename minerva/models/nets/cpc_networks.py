@@ -6,15 +6,14 @@ import torch
 
 class CNN(L.LightningModule):
 
-    """
-    Convolutional Neural Network (CNN) encoder for CPC (Contrastive Predictive Coding) 
-    for Human Activity Recognition (HAR).
-
-    This class serves as a wrapper for the Convolutional1DEncoder class, 
-    providing an easy-to-use interface for the CPC model.
-    """
-
     def __init__(self):
+        """
+        Convolutional Neural Network (CNN) encoder for CPC (Contrastive Predictive Coding) 
+        for Human Activity Recognition (HAR).
+
+        This class serves as a wrapper for the Convolutional1DEncoder class, 
+        providing an easy-to-use interface for the CPC model.
+        """
         super(CNN, self).__init__()
         self.encoder = Convolutional1DEncoder()
 
@@ -24,25 +23,24 @@ class CNN(L.LightningModule):
 
 class Convolutional1DEncoder(L.LightningModule):
 
-    """
-    1D Convolutional Encoder for CPC.
-
-    This encoder consists of a sequence of convolutional blocks that process the 
-    input time series data.
-
-    Parameters
-    ----------
-    input_size : int, optional
-        Number of input channels, by default 6.
-    kernel_size : int, optional
-        Size of the convolutional kernel, by default 3.
-    stride : int, optional
-        Stride of the convolution, by default 1.
-    padding : int, optional
-        Padding for the convolution, by default 1.
-    """
-
     def __init__(self, input_size=6, kernel_size=3, stride=1, padding=1):
+        """
+        1D Convolutional Encoder for CPC.
+
+        This encoder consists of a sequence of convolutional blocks that process the 
+        input time series data.
+
+        Parameters
+        ----------
+        input_size : int, optional
+            Number of input channels, by default 6.
+        kernel_size : int, optional
+            Size of the convolutional kernel, by default 3.
+        stride : int, optional
+            Stride of the convolution, by default 1.
+        padding : int, optional
+            Padding for the convolution, by default 1.
+        """
         super(Convolutional1DEncoder, self).__init__()
         self.encoder = nn.Sequential(
             ConvBlock(input_size, 32, kernel_size=kernel_size,
@@ -64,31 +62,30 @@ class Convolutional1DEncoder(L.LightningModule):
 
 class ConvBlock(L.LightningModule):
 
-    """
-    Convolutional Block for the 1D Convolutional Encoder.
-
-    This block consists of a convolutional layer followed by a ReLU activation and dropout.
-
-    Parameters
-    ----------
-    in_channels : int, optional
-        Number of input channels, by default 6.
-    out_channels : int, optional
-        Number of output channels, by default 128.
-    kernel_size : int, optional
-        Size of the convolutional kernel, by default 1.
-    stride : int, optional
-        Stride of the convolution, by default 1.
-    padding : int, optional
-        Padding for the convolution, by default 1.
-    padding_mode : str, optional
-        Padding mode for the convolution, by default 'reflect'.
-    dropout_prob : float, optional
-        Dropout probability, by default 0.2.
-    """
-
     def __init__(self, in_channels=6, out_channels=128, kernel_size=1, stride=1,
-                 padding=1, padding_mode='reflect', dropout_prob=0.2):
+                 padding=1, padding_mode='reflect', dropout_prob=0.2):        
+        """
+        Convolutional Block for the 1D Convolutional Encoder.
+
+        This block consists of a convolutional layer followed by a ReLU activation and dropout.
+
+        Parameters
+        ----------
+        in_channels : int, optional
+            Number of input channels, by default 6.
+        out_channels : int, optional
+            Number of output channels, by default 128.
+        kernel_size : int, optional
+            Size of the convolutional kernel, by default 1.
+        stride : int, optional
+            Stride of the convolution, by default 1.
+        padding : int, optional
+            Padding for the convolution, by default 1.
+        padding_mode : str, optional
+            Padding mode for the convolution, by default 'reflect'.
+        dropout_prob : float, optional
+            Dropout probability, by default 0.2.
+        """
         super(ConvBlock, self).__init__()
 
         # 1D convolutional layer
@@ -113,22 +110,21 @@ class ConvBlock(L.LightningModule):
 # ProjectionHead for CPC for HAR
 
 class PredictionNetwork(L.LightningModule):
-
-    """
-    Projection head for CPC used in Human Activity Recognition (HAR).
-
-    This network projects the encoded representations to a lower-dimensional space
-    to facilitate the contrastive learning process.
-
-    Parameters
-    ----------
-    in_channels : int, optional
-        Number of input channels, by default 256.
-    out_channels : int, optional
-        Number of output channels, by default 128.
-    """
     
     def __init__(self, in_channels=256, out_channels=128):
+        """
+        Projection head for CPC used in Human Activity Recognition (HAR).
+
+        This network projects the encoded representations to a lower-dimensional space
+        to facilitate the contrastive learning process.
+
+        Parameters
+        ----------
+        in_channels : int, optional
+            Number of input channels, by default 256.
+        out_channels : int, optional
+            Number of output channels, by default 128.
+        """
         super(PredictionNetwork, self).__init__()
         self.Wk = nn.Linear(in_channels, out_channels)
 
@@ -140,28 +136,27 @@ class PredictionNetwork(L.LightningModule):
 
 class HARCPCAutoregressive(L.LightningModule):
 
-    """
-    Autoregressive model for CPC used in Human Activity Recognition (HAR).
-
-    This network models the temporal dependencies in the feature space.
-
-    Parameters
-    ----------
-    input_size : int, optional
-        Number of input features, by default 128.
-    hidden_size : int, optional
-        Number of hidden units, by default 256.
-    num_layers : int, optional
-        Number of recurrent layers, by default 2.
-    bidirectional : bool, optional
-        If True, becomes a bidirectional GRU, by default False.
-    batch_first : bool, optional
-        If True, the input and output tensors are provided as (batch, seq, feature), by default True.
-    dropout : float, optional
-        Dropout probability, by default 0.2.
-    """
-
     def __init__(self, input_size=128, hidden_size=256, num_layers=2, bidirectional=False, batch_first=True, dropout=0.2):
+        """
+        Autoregressive model for CPC used in Human Activity Recognition (HAR).
+
+        This network models the temporal dependencies in the feature space.
+
+        Parameters
+        ----------
+        input_size : int, optional
+            Number of input features, by default 128.
+        hidden_size : int, optional
+            Number of hidden units, by default 256.
+        num_layers : int, optional
+            Number of recurrent layers, by default 2.
+        bidirectional : bool, optional
+            If True, becomes a bidirectional GRU, by default False.
+        batch_first : bool, optional
+            If True, the input and output tensors are provided as (batch, seq, feature), by default True.
+        dropout : float, optional
+            Dropout probability, by default 0.2.
+        """
         super(HARCPCAutoregressive, self).__init__()
         self.rnn = nn.GRU(input_size=input_size,
                           hidden_size=hidden_size,
@@ -178,19 +173,18 @@ class HARCPCAutoregressive(L.LightningModule):
 
 class Genc_Gar(L.LightningModule):
 
-    """
-    Combination of the GENC (encoder) and GAR (autoregressive) networks,
-    forming the backbone of the CPC model for HAR.
-
-    Parameters
-    ----------
-    backbone : L.LightningModule
-        Encoder network to extract features from the input data.
-    autoregressive : L.LightningModule
-        Autoregressive network to model temporal dependencies in the feature space.
-    """
-
     def __init__(self, backbone, autoregressive):
+        """
+        Combination of the GENC (encoder) and GAR (autoregressive) networks,
+        forming the backbone of the CPC model for HAR.
+
+        Parameters
+        ----------
+        backbone : L.LightningModule
+            Encoder network to extract features from the input data.
+        autoregressive : L.LightningModule
+            Autoregressive network to model temporal dependencies in the feature space.
+        """
         super(Genc_Gar, self).__init__()
         self.backbone = backbone
         self.autoregressive = autoregressive
@@ -205,19 +199,18 @@ class Genc_Gar(L.LightningModule):
     
 class HARPredictionHead(L.LightningModule):
 
-    """
-    Prediction head for Human Activity Recognition (HAR).
-
-    This network takes the encoded and temporally modeled features and outputs the final
-    activity classification.
-
-    Parameters
-    ----------
-    num_classes : int, optional
-        Number of activity classes to predict, by default 9 (RW_waist).
-    """
-
     def __init__(self, num_classes: int = 9):
+        """
+        Prediction head for Human Activity Recognition (HAR).
+
+        This network takes the encoded and temporally modeled features and outputs the final
+        activity classification.
+
+        Parameters
+        ----------
+        num_classes : int, optional
+            Number of activity classes to predict, by default 9 (RW_waist).
+        """
         super().__init__()
         self.model = nn.Sequential(
             nn.Linear(256, 256),
@@ -237,29 +230,6 @@ class HARPredictionHead(L.LightningModule):
 # Linear Classifier
 class LinearClassifier(L.LightningModule):
 
-    """
-    A linear classifier model built on top of a backbone and a head network, designed for tasks
-    such as classification. This model leverages PyTorch Lightning for easier training and
-    evaluation.
-
-    Parameters
-    ----------
-    backbone : L.LightningModule
-        The backbone network used for feature extraction.
-    head : L.LightningModule
-        The head network used for the final classification.
-    num_classes : int, optional
-        The number of output classes, by default 6.
-    learning_rate : float, optional
-        The learning rate for the optimizer, by default 0.001.
-    flatten : bool, optional
-        Whether to flatten the output of the backbone before passing it to the head, by default True.
-    freeze_backbone : bool, optional
-        Whether to freeze the backbone during training, by default False.
-    loss_fn : torch.nn.modules.loss._Loss, optional
-        The loss function to use, by default CrossEntropyLoss.
-    """
-
     def __init__(
         self,
         backbone: L.LightningModule,
@@ -270,6 +240,28 @@ class LinearClassifier(L.LightningModule):
         freeze_backbone: bool = False,
         loss_fn: torch.nn.modules.loss._Loss = None,
     ):
+        """
+        A linear classifier model built on top of a backbone and a head network, designed for tasks
+        such as classification. This model leverages PyTorch Lightning for easier training and
+        evaluation.
+
+        Parameters
+        ----------
+        backbone : L.LightningModule
+            The backbone network used for feature extraction.
+        head : L.LightningModule
+            The head network used for the final classification.
+        num_classes : int, optional
+            The number of output classes, by default 6.
+        learning_rate : float, optional
+            The learning rate for the optimizer, by default 0.001.
+        flatten : bool, optional
+            Whether to flatten the output of the backbone before passing it to the head, by default True.
+        freeze_backbone : bool, optional
+            Whether to freeze the backbone during training, by default False.
+        loss_fn : torch.nn.modules.loss._Loss, optional
+            The loss function to use, by default CrossEntropyLoss.
+        """
         super().__init__()
         self.backbone = backbone
         self.head = head
