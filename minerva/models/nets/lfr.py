@@ -7,7 +7,13 @@ class RepeatedModuleList(torch.nn.ModuleList):
     A module list with the same module `cls`, instantiated `size` times.
     """
 
-    def __init__(self, size, cls, *args, **kwargs):
+    def __init__(
+        self,
+        size: int,
+        cls: type,
+        *args,
+        **kwargs
+    ):
         """
         Initializes the RepeatedModuleList with multiple instances of a given module class.
 
@@ -81,17 +87,17 @@ class LearnFromRandomnessModel(L.LightningModule):
 
         Parameters
         ----------
-        backbone : torch.nn.Module
+        backbone: torch.nn.Module
             The backbone neural network for feature extraction.
-        projectors : torch.nn.ModuleList
+        projectors: torch.nn.ModuleList
             A list of projector networks.
-        predictors : torch.nn.ModuleList
+        predictors: torch.nn.ModuleList
             A list of predictor networks.
-        loss_fn : torch.nn.Module
+        loss_fn: torch.nn.Module
             The loss function to optimize.
-        learning_rate : Optional[float]
+        learning_rate: float
             The learning rate for the optimizer, by default 1e-3.
-        flatten : Optional[bool]
+        flatten: bool
             Whether to flatten the input tensor or not, by default True.
         """
         super().__init__()
