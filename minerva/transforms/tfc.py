@@ -150,7 +150,7 @@ class TFC_Transforms(_Transform):
             The data with removed frequency components
         """
         # verifica se esta na cpu
-        if x.device == 'cpu':
+        if x.device == torch.device('cpu'):
             mask = torch.FloatTensor(x.shape).uniform_() > maskout_ratio
         else:
             mask = torch.cuda.FloatTensor(x.shape).uniform_() > maskout_ratio # maskout_ratio are False
@@ -176,7 +176,7 @@ class TFC_Transforms(_Transform):
         
         
         """
-        if x.device == 'cpu':
+        if x.device == torch.device('cpu'):
             mask = torch.FloatTensor(x.shape).uniform_() > (1-pertub_ratio)
         else:
             mask = torch.cuda.FloatTensor(x.shape).uniform_() > (1-pertub_ratio) # only pertub_ratio of all values are True

@@ -27,3 +27,6 @@ def test_tfc_transform_tensor():
 
     # Check if the transformed data has the same shape as the input
     assert x.shape == y1.shape == freq.shape == y2.shape == x_original.shape
+
+test_tfc_transform_numpy()
+test_tfc_transform_tensor()
