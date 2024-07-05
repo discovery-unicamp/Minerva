@@ -1,5 +1,5 @@
 import warnings
-from typing import Dict, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Union
 
 import lightning as L
 import torch
@@ -222,7 +222,7 @@ class _SetR_PUP(nn.Module):
 
     def __init__(
         self,
-        image_size: int | tuple[int, int],
+        image_size: Union[int, Tuple[int, int]],
         patch_size: int,
         num_layers: int,
         num_heads: int,
@@ -241,14 +241,14 @@ class _SetR_PUP(nn.Module):
         conv_act: nn.Module,
         align_corners: bool,
         aux_output: bool = False,
-        aux_output_layers: list[int] | None = None,
+        aux_output_layers: Optional[List[int]] = None,
     ):
         """
         Initializes the SETR PUP model.
 
         Parameters
         ----------
-        image_size : int or tuple[int, int]
+        image_size : int or Tuple[int, int]
             The size of the input image.
         patch_size : int
             The size of each patch in the input image.
@@ -388,7 +388,7 @@ class SETR_PUP(L.LightningModule):
 
     def __init__(
         self,
-        image_size: int | tuple[int, int] = 512,
+        image_size: Union[int, Tuple[int, int]] = 512,
         patch_size: int = 16,
         num_layers: int = 24,
         num_heads: int = 16,
@@ -411,15 +411,15 @@ class SETR_PUP(L.LightningModule):
         val_metrics: Optional[Dict[str, Metric]] = None,
         test_metrics: Optional[Dict[str, Metric]] = None,
         aux_output: bool = True,
-        aux_output_layers: list[int] | None = [9, 14, 19],
-        aux_weights: list[float] = [0.3, 0.3, 0.3],
+        aux_output_layers: Optional[List[int]] = [9, 14, 19],
+        aux_weights: List[float] = [0.3, 0.3, 0.3],
     ):
         """
         Initializes the SetR model.
 
         Parameters
         ----------
-        image_size : int or tuple[int, int]
+        image_size : int or Tuple[int, int]
             The input image size. Defaults to 512.
         patch_size : int
             The size of each patch. Defaults to 16.
@@ -465,9 +465,9 @@ class SETR_PUP(L.LightningModule):
             The metrics to be used for testing evaluation. Defaults to None.
         aux_output : bool
             Whether to include auxiliary output heads in the model. Defaults to True.
-        aux_output_layers : list[int] | None
+        aux_output_layers : List[int], optional
             The indices of the layers to output auxiliary predictions. Defaults to [9, 14, 19].
-        aux_weights : list[float]
+        aux_weights : List[float]
             The weights for the auxiliary predictions. Defaults to [0.3, 0.3, 0.3].
 
         """
@@ -536,9 +536,9 @@ class SETR_PUP(L.LightningModule):
 
     def _loss_func(
         self,
-        y_hat: (
-            torch.Tensor | Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]
-        ),
+        y_hat: Union[
+            torch.Tensor, Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]
+        ],
         y: torch.Tensor,
     ) -> torch.Tensor:
         """Calculate the loss between the output and the input data.
@@ -626,7 +626,7 @@ class SETR_PUP(L.LightningModule):
         return self._single_step(batch, batch_idx, "test")
 
     def predict_step(
-        self, batch: torch.Tensor, batch_idx: int, dataloader_idx: int | None = None
+        self, batch: torch.Tensor, batch_idx: int, dataloader_idx: Optional[int] = None
     ):
         x, _ = batch
         return self.model(x)[0]

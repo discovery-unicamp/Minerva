@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 import numpy as np
 
@@ -45,7 +45,7 @@ class SupervisedReconstructionDataset(SimpleDataset):
         ```
     """
 
-    def __init__(self, readers: List[_Reader], transforms: _Transform | None = None):
+    def __init__(self, readers: List[_Reader], transforms: Optional[_Transform] = None):
         """A simple dataset class for supervised reconstruction tasks.
 
         Parameters
@@ -54,7 +54,7 @@ class SupervisedReconstructionDataset(SimpleDataset):
             List of data readers. It must contain exactly 2 readers.
             The first reader for the input data and the second reader for the
             target data.
-        transforms: _Transform | None
+        transforms: Optional[_Transform]
             Optional data transformation pipeline.
 
         Raises
