@@ -4,7 +4,7 @@ import lightning as pl
 from typing import List, Tuple
 from minerva.transforms.tfc import TFC_Transforms
 from minerva.models.nets.tfc import TFC_Conv_Backbone, TFC_PredicionHead
-from minerva.losses.ntxentloss_poly import NTXentLoss_poly
+from minerva.losses.ntxent_loss_poly import NTXentLoss_poly
 from minerva.transforms.transform import _Transform
 from torch.nn.modules.loss import _Loss
 from torch.optim import Optimizer

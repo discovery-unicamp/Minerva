@@ -1,5 +1,5 @@
 import torch
-from minerva.losses.ntxentloss_poly import NTXentLoss_poly
+from minerva.losses.ntxent_loss_poly import NTXentLoss_poly
 
 
 def test_ntxentpoly_loss():
