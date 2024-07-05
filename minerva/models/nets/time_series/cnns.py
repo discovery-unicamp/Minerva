@@ -56,9 +56,7 @@ class CNN_HaEtAl_1D(SimpleSupervisedModel):
             test_metrics={"acc": Accuracy(task="multiclass", num_classes=num_classes)},
         )
 
-    def _create_backbone(
-        self, input_shape: Union[Tuple[int, int], Tuple[int, int, int]]
-    ) -> torch.nn.Module:
+    def _create_backbone(self, input_shape: Tuple[int, int, int]) -> torch.nn.Module:
         return torch.nn.Sequential(
             # First 2D convolutional layer
             torch.nn.Conv2d(
@@ -146,9 +144,7 @@ class CNN_HaEtAl_2D(SimpleSupervisedModel):
             test_metrics={"acc": Accuracy(task="multiclass", num_classes=num_classes)},
         )
 
-    def _create_backbone(
-        self, input_shape: Union[Tuple[int, int], Tuple[int, int, int]]
-    ) -> torch.nn.Module:
+    def _create_backbone(self, input_shape: Tuple[int, int, int]) -> torch.nn.Module:
         first_kernel_size = 4
         return torch.nn.Sequential(
             # Add padding
