@@ -20,7 +20,7 @@ class TFC_Model(pl.LightningModule):
     requeired by pytorch-lightning.
     """
 
-    def __init__(self, input_channels: int, TS_length: int, num_classes: int, single_encoding_size: int, backbone: nn.Module = None, pred_head: nn.Module = True, loss: _Loss = None, learning_rate: float = 3e-4, transform:_Transform = None):
+    def __init__(self, input_channels: int, TS_length: int, num_classes: int, single_encoding_size: int, backbone: nn.Module = None, pred_head: nn.Module = True, loss: _Loss = None, learning_rate: float = 3e-4, transform:_Transform = None, device: str = 'cuda', batch_size: int = 42):
         """
         The constructor of the TFC_Model class.
 
@@ -43,7 +43,11 @@ class TFC_Model(pl.LightningModule):
         - learning_rate: float
             The learning rate of the optimizer
         - transform: _Transform
-            The transformation to be applied to the input data. If None, a default transformation is applied that includes data augmentation and frequency domain transformation        
+            The transformation to be applied to the input data. If None, a default transformation is applied that includes data augmentation and frequency domain transformation  
+        - device: str
+            The device to be used in the training of the model, default is 'cuda'
+        - batch_size: int
+            The batch size of the model      
         """
         super(TFC_Model, self).__init__()
         if backbone:
@@ -61,7 +65,8 @@ class TFC_Model(pl.LightningModule):
             if self.pred_head:
                 self.loss_fn = nn.CrossEntropyLoss()
             else:
-                self.loss_fn = NTXentLoss_poly()
+                device = torch.device("cuda" if torch.cuda.is_available() else "cpu") if device is 'cuda' else torch.device("cpu")
+                self.loss_fn = NTXentLoss_poly(device, batch_size, 0.2, True)
         self.learning_rate = learning_rate
         if transform:
             self.transform = transform

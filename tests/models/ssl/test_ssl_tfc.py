@@ -15,7 +15,7 @@ def test_tfc_forward_arbitrary():
     batch_size = 37
     num_classes = 10
 
-    model = TFC_Model(input_channels = input_shape[0], TS_length = input_shape[1], num_classes = num_classes, single_encoding_size = single_encoding_size)
+    model = TFC_Model(input_channels = input_shape[0], TS_length = input_shape[1], num_classes = num_classes, single_encoding_size = single_encoding_size, batch_size=batch_size)
     assert model is not None, "Impossible to create TFC_Model"
     x = torch.rand(batch_size, *input_shape)
     y, h_time, z_time, h_freq, z_freq = model(x, x, all=True)
@@ -30,7 +30,7 @@ def test_tfc_forward_without_head():
     batch_size = 5
     num_classes = 6
 
-    model = TFC_Model(input_channels = input_shape[0], TS_length = input_shape[1], num_classes = num_classes, single_encoding_size = single_encoding_size, pred_head = False)
+    model = TFC_Model(input_channels = input_shape[0], TS_length = input_shape[1], num_classes = num_classes, single_encoding_size = single_encoding_size, pred_head = False, batch_size=batch_size)
     assert model is not None, "Impossible to create TFC_Model"
     x = torch.rand(batch_size, * input_shape)
     h_time, z_time, h_freq, z_freq = model(x, x)

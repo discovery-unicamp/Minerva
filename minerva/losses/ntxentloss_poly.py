@@ -3,8 +3,28 @@ import numpy as np
 from torch.nn.modules.loss import _Loss
 
 class NTXentLoss_poly(_Loss):
+    """
+    Loss function used on the pretraining of the TFC model. It is based on the NTXentLoss, but it includes a polynomial loss term.
+    """
 
-    def __init__(self, device, batch_size, temperature, use_cosine_similarity):
+
+    def __init__(self, device: str, batch_size: int, temperature: float, use_cosine_similarity: bool):
+
+        """
+        The constructor of the NTXentLoss_poly class.
+
+        Parameters
+        ----------
+        - device: str
+            The device to be used in the training of the model
+        - batch_size: int
+            The batch size of the model
+        - temperature: float
+            The temperature of the softmax function
+        - use_cosine_similarity: bool
+            If True, the cosine similarity is used. If False, the dot product is used
+        
+        """
         super(NTXentLoss_poly, self).__init__()
         self.batch_size = batch_size
         self.temperature = temperature
@@ -14,14 +34,37 @@ class NTXentLoss_poly(_Loss):
         self.similarity_function = self._get_similarity_function(use_cosine_similarity)
         self.criterion = torch.nn.CrossEntropyLoss(reduction="sum")
 
-    def _get_similarity_function(self, use_cosine_similarity):
+    def _get_similarity_function(self, use_cosine_similarity: bool) -> function:
+        """
+        Define the similarity function to be used in the loss calculation.
+
+        Parameters
+        ----------
+        - use_cosine_similarity: bool
+            If True, the cosine similarity is used. If False, the dot product is used
+
+        Returns
+        -------
+        - function
+            The similarity function to be used in the loss calculation
+        
+        """
         if use_cosine_similarity:
             self._cosine_similarity = torch.nn.CosineSimilarity(dim=-1)
             return self._cosine_simililarity
         else:
             return self._dot_simililarity
 
-    def _get_correlated_mask(self):
+    def _get_correlated_mask(self) -> torch.Tensor:
+        """
+        Get the mask of correlated samples.
+
+        Returns
+        -------
+        - torch.Tensor
+            The mask of correlated samples
+            
+        """
         diag = np.eye(2 * self.batch_size)
         l1 = np.eye((2 * self.batch_size), 2 * self.batch_size, k=-self.batch_size)
         l2 = np.eye((2 * self.batch_size), 2 * self.batch_size, k=self.batch_size)
@@ -30,21 +73,71 @@ class NTXentLoss_poly(_Loss):
         return mask.to(self.device)
 
     @staticmethod
-    def _dot_simililarity(x, y):
+    def _dot_simililarity(x, y) -> torch.Tensor:
+        """
+        Function to calculate the dot similarity between two tensors.
+
+        Parameters
+        ----------
+        - x: torch.Tensor
+            The first tensor
+        - y: torch.Tensor
+            The second tensor
+
+        Returns
+        -------
+        - torch.Tensor
+            The dot similarity between the two tensors
+        
+        
+        """
+
         v = torch.tensordot(x.unsqueeze(1), y.T.unsqueeze(0), dims=2)
         # x shape: (N, 1, C)
         # y shape: (1, C, 2N)
         # v shape: (N, 2N)
         return v
 
-    def _cosine_simililarity(self, x, y):
+    def _cosine_simililarity(self, x, y) -> torch.Tensor:
+        """
+        Function to calculate the cosine similarity between two tensors.
+
+        Parameters
+        ----------
+        - x: torch.Tensor
+            The first tensor
+        - y: torch.Tensor
+            The second tensor
+
+        Returns
+        -------
+        - torch.Tensor
+            The cosine similarity between the two tensors
+            
+        """
         # x shape: (N, 1, C)
         # y shape: (1, 2N, C)
         # v shape: (N, 2N)
         v = self._cosine_similarity(x.unsqueeze(1), y.unsqueeze(0))
         return v
 
-    def forward(self, zis, zjs):
+    def forward(self, zis: torch.Tensor, zjs: torch.Tensor) -> _Loss:
+        """
+        The forward method of the NTXentLoss_poly class. It receives the samples and returns the loss of the model.
+
+        Parameters
+        ----------
+        - zis: torch.Tensor
+            The positive samples
+        - zjs: torch.Tensor
+            The negative samples
+
+        Returns
+        -------
+        - _Loss
+            The loss of the model
+        
+        """
         representations = torch.cat([zjs, zis], dim=0)
 
         similarity_matrix = self.similarity_function(representations, representations)
