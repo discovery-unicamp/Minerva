@@ -65,7 +65,7 @@ class TFC_Model(pl.LightningModule):
             if self.pred_head:
                 self.loss_fn = nn.CrossEntropyLoss()
             else:
-                device = torch.device("cuda" if torch.cuda.is_available() else "cpu") if device is 'cuda' else torch.device("cpu")
+                device = torch.device("cuda" if torch.cuda.is_available() else "cpu") if device == 'cuda' else torch.device("cpu")
                 self.loss_fn = NTXentLoss_poly(device, batch_size, 0.2, True)
         self.learning_rate = learning_rate
         if transform:
