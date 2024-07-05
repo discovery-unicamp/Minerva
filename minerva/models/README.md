@@ -21,4 +21,6 @@
 
 # SSL Models
 
-...
+| **Model**                               |  **Authors**  | **Task** | **Type** | **Input Shape** | **Python Class**                             | **Observations**  |
+|-----------------------------------------|---------------|----------|----------|:---------------:|:--------------------------------------------:|-------------------|
+| [LFR](https://arxiv.org/abs/2310.07756) | Yi Sui et al. | Any      | Any      | Any             | minerva.models.nets.LearnFromRandomnessModel |                   |
