@@ -149,7 +149,11 @@ class TFC_Transforms(_Transform):
         - np.ndarray
             The data with removed frequency components
         """
-        mask = torch.cuda.FloatTensor(x.shape).uniform_() > maskout_ratio # maskout_ratio are False
+        # verifica se esta na cpu
+        if x.device == 'cpu':
+            mask = torch.FloatTensor(x.shape).uniform_() > maskout_ratio
+        else:
+            mask = torch.cuda.FloatTensor(x.shape).uniform_() > maskout_ratio # maskout_ratio are False
         mask = mask.to(x.device)
         return x*mask
         
@@ -172,7 +176,10 @@ class TFC_Transforms(_Transform):
         
         
         """
-        mask = torch.cuda.FloatTensor(x.shape).uniform_() > (1-pertub_ratio) # only pertub_ratio of all values are True
+        if x.device == 'cpu':
+            mask = torch.FloatTensor(x.shape).uniform_() > (1-pertub_ratio)
+        else:
+            mask = torch.cuda.FloatTensor(x.shape).uniform_() > (1-pertub_ratio) # only pertub_ratio of all values are True
         mask = mask.to(x.device)
         max_amplitude = x.max()
         random_am = torch.rand(mask.shape)*(max_amplitude*0.1)
