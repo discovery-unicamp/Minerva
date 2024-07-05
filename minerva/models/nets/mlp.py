@@ -21,7 +21,7 @@ class MLP(nn.Sequential):
     )
     """
 
-    def __init__(self, *layer_sizes):
+    def __init__(self, *layer_sizes: int):
         """
         Initializes the MLP with the given layer sizes.
 
