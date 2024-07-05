@@ -30,7 +30,7 @@ class TFC_Conv_Backbone(nn.Module):
             out = encoder(random_input)
         return out.view(out.size(0), -1).size(1)
     
-    def __init__(self, input_channels, TS_length, single_encoding_size = 128):
+    def __init__(self, input_channels: int, TS_length: int, single_encoding_size: int = 128):
         """
         Constructor of the TFC_Conv_Backbone class.
 
@@ -90,7 +90,7 @@ class TFC_Conv_Backbone(nn.Module):
             nn.Linear(256, single_encoding_size)
         )
 
-    def forward(self, x_in_t, x_in_f):
+    def forward(self, x_in_t: torch.Tensor, x_in_f: torch.Tensor) -> torch.Tensor:
         """
         The forward method of the backbone. It receives the input data in the time domain and frequency domain and returns the features extracted in the time domain and frequency domain.
 
@@ -123,7 +123,7 @@ class TFC_PredicionHead(nn.Module):
     The prediction head is composed of a linear layer that receives the features extracted by the backbone and returns the prediction of the model.
     This class implements the forward method that receives the features extracted by the backbone and returns the prediction of the model.
     """
-    def __init__(self, num_classes, connections=2, single_encoding_size=128):
+    def __init__(self, num_classes: int, connections:int =2, single_encoding_size:int =128):
         """
         Constructor of the TFC_PredicionHead class.
 
@@ -142,7 +142,7 @@ class TFC_PredicionHead(nn.Module):
         self.logits = nn.Linear(connections*single_encoding_size, 64)
         self.logits_simple = nn.Linear(64, num_classes)
 
-    def forward(self, emb):
+    def forward(self, emb: torch.Tensor) -> torch.Tensor:
         """
         The forward method of the prediction head. It receives the features extracted by the backbone and returns the prediction of the model.
 

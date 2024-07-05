@@ -4,7 +4,10 @@ import lightning as pl
 from typing import List, Tuple
 from minerva.transforms.tfc import TFC_Transforms
 from minerva.models.nets.tfc import TFC_Conv_Backbone, TFC_PredicionHead
-
+from minerva.losses.ntxentloss_poly import NTXentLoss_poly
+from minerva.transforms.transform import _Transform
+from torch.nn.modules.loss import _Loss
+from torch.optim import Optimizer
 
 class TFC_Model(pl.LightningModule):
     """
@@ -17,7 +20,7 @@ class TFC_Model(pl.LightningModule):
     requeired by pytorch-lightning.
     """
 
-    def __init__(self, input_channels, TS_length, num_classes, single_encoding_size, backbone = None, pred_head = True, loss = None, learning_rate = 3e-4, transform = None):
+    def __init__(self, input_channels: int, TS_length: int, num_classes: int, single_encoding_size: int, backbone: nn.Module = None, pred_head: nn.Module = True, loss: _Loss = None, learning_rate: float = 3e-4, transform:_Transform = None):
         """
         The constructor of the TFC_Model class.
 
@@ -31,15 +34,15 @@ class TFC_Model(pl.LightningModule):
             The number of downstream classes in the dataset
         - single_encoding_size: int
             The size of the encoding in the latent space of frequency or time domain individually
-        - backbone: TFC_Conv_Backbone
+        - backbone: nn.Module
             The backbone of the model. If None, a default backbone is created as a convolutional neural network
         - pred_head: bool
             If True, a prediction head (MLP) is added to the model. If False, the model is trained in a self-supervised learning approach
-        - loss: torch.nn.Module
-            The loss function to be used in the training step. If None, the CrossEntropyLoss is used
+        - loss: _Loss
+            The loss function to be used in the training step. If None, the ntxent_poly is used for pretrain or the CrossEntropyLoss is used for downstream
         - learning_rate: float
             The learning rate of the optimizer
-        - transform: TFC_Transforms
+        - transform: _Transform
             The transformation to be applied to the input data. If None, a default transformation is applied that includes data augmentation and frequency domain transformation        
         """
         super(TFC_Model, self).__init__()
@@ -55,14 +58,17 @@ class TFC_Model(pl.LightningModule):
         if loss:
             self.loss_fn = loss
         else:
-            self.loss_fn = nn.CrossEntropyLoss()
+            if self.pred_head:
+                self.loss_fn = nn.CrossEntropyLoss()
+            else:
+                self.loss_fn = NTXentLoss_poly()
         self.learning_rate = learning_rate
         if transform:
             self.transform = transform
         else:
             self.transform = TFC_Transforms()
     
-    def forward(self, x_t, x_f, all=False): # "all" is useful for validation of acurracy and latent space
+    def forward(self, x_t: torch.Tensor, x_f: torch.Tensor, all:bool=False) -> torch.Tensor: # "all" is useful for validation of acurracy and latent space
         """
         The forward method of the model. It receives the input data in the time domain and frequency domain and returns the prediction of the model.
 
@@ -95,13 +101,13 @@ class TFC_Model(pl.LightningModule):
         else:
             return h_t, z_t, h_f, z_f
 
-    def training_step(self, batch, batch_index):
+    def training_step(self, batch:Tuple[torch.Tensor, torch.Tensor], batch_index: int):
         """
         The training step of the model. It receives a batch of data and returns the loss of the model.
 
         Parameters
         ----------
-        - batch: tuple
+        - batch: Tuple[torch.Tensor, torch.Tensor]
             A tuple with the input data and its labels as X, Y
         - batch_index: int
             The index of the batch in the dataset (not used in this method)
@@ -132,13 +138,13 @@ class TFC_Model(pl.LightningModule):
         self.log("train_loss", loss, prog_bar=False)
         return loss
         
-    def validation_step(self, batch, batch_index):
+    def validation_step(self, batch: Tuple[torch.Tensor, torch.Tensor], batch_index: int) -> torch.Tensor:
         """
         The validation step of the model. It receives a batch of data and returns the loss of the model.
 
         Parameters
         ----------
-        - batch: tuple
+        - batch: Tuple[torch.Tensor, torch.Tensor]
             A tuple with the input data and its labels as X, Y
         - batch_index: int
             The index of the batch in the dataset (not used in this method)
@@ -171,13 +177,13 @@ class TFC_Model(pl.LightningModule):
         return loss
         
 
-    def configure_optimizers(self):
+    def configure_optimizers(self) -> Optimizer:
         """
         Function that configures the optimizer of the model. It returns an Adam optimizer with the learning rate defined in the constructor.
 
         Returns
         -------
-        - torch.optim.Adam
+        - Optimizer
             The optimizer of the model
 
         """
