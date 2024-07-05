@@ -44,7 +44,7 @@ class Pipeline(HyperparametersMixin):
     def __init__(
         self,
         log_dir: Optional[PathLike] = None,
-        ignore: Union[str, List[str], None] = None,
+        ignore: Optional[Union[str, List[str]]] = None,
         cache_result: bool = False,
         save_run_status: bool = False,
     ):
@@ -55,7 +55,7 @@ class Pipeline(HyperparametersMixin):
         log_dir : PathLike, optional
             The default logging directory where all related pipeline files
             should be saved. By default None (uses current working directory)
-        ignore : str | List[str], optional
+        ignore : Union[str, List[str]], optional
             Pipeline __init__ attributes are saved into config attibute. This
             option allows to ignore some attributes from being saved. This is
             quite useful when the attributes are not serializable or very large.

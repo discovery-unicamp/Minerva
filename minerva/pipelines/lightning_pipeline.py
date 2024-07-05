@@ -167,7 +167,7 @@ class SimpleLightningPipeline(Pipeline):
         return results
 
     # Private methods
-    def _fit(self, data: L.LightningDataModule, ckpt_path: Optional[PathLike]):
+    def _fit(self, data: L.LightningDataModule, ckpt_path: Optional[PathLike] = None):
         """Fit the model using the given data.
 
         Parameters
@@ -182,7 +182,7 @@ class SimpleLightningPipeline(Pipeline):
             model=self._model, datamodule=data, ckpt_path=ckpt_path
         )
 
-    def _test(self, data: L.LightningDataModule, ckpt_path: Optional[PathLike]):
+    def _test(self, data: L.LightningDataModule, ckpt_path: Optional[PathLike] = None):
         """Test the model using the given data.
 
         Parameters
