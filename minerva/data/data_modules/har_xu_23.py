@@ -18,7 +18,7 @@ class HarDataModule(L.LightningDataModule):
     ):
         """
         This DataModule handles the loading and preparation of data for training, validation,
-        and testing. The data is expected to be stored in .npy files.
+        and testing. The data is expected to be stored in 3 .npy files named train_data.npy, val_data.npy, and test_data.npy.
 
         This .npy files are of shape (n_samples, n_timesteps, n_channels) and are produced at specific window size by 
         another data processing script available in https://github.com/maxxu05/rebar/blob/main/data/process/har_processdata.py
