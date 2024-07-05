@@ -34,7 +34,7 @@ class NTXentLoss_poly(_Loss):
         self.similarity_function = self._get_similarity_function(use_cosine_similarity)
         self.criterion = torch.nn.CrossEntropyLoss(reduction="sum")
 
-    def _get_similarity_function(self, use_cosine_similarity: bool) -> function:
+    def _get_similarity_function(self, use_cosine_similarity: bool):
         """
         Define the similarity function to be used in the loss calculation.
 
