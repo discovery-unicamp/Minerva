@@ -24,17 +24,12 @@ class TNC(L.LightningModule):
         - learning_rate (float, optional):
             The learning rate for the optimizer (default: 0.00001).
         """
+        super(TNC, self).__init__() 
         self.backbone = backbone
         self.projection_head = projection_head
         self.loss_fn = loss_fn
         self.mc_sample_size = 5
-        self.subseq_size = 128
-        self.epislon = 3
-        self.w = 0.05
-        if learning_rate:
-            self.learning_rate = learning_rate
-        else:
-            self.learning_rate = 0.00001
+        self.learning_rate = learning_rate  
 
 
     def forward(self, x_t, X_close, X_distant):
