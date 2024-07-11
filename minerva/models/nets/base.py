@@ -29,6 +29,7 @@ class SimpleSupervisedModel(L.LightningModule):
         backbone: torch.nn.Module,
         fc: torch.nn.Module,
         loss_fn: torch.nn.Module,
+        adapter: Optional[callable] = None,
         learning_rate: float = 1e-3,
         flatten: bool = True,
         train_metrics: Optional[Dict[str, Metric]] = None,
@@ -69,6 +70,7 @@ class SimpleSupervisedModel(L.LightningModule):
         self.backbone = backbone
         self.fc = fc
         self.loss_fn = loss_fn
+        self.adapter = adapter
         self.learning_rate = learning_rate
         self.flatten = flatten
 
@@ -112,6 +114,8 @@ class SimpleSupervisedModel(L.LightningModule):
         x = self.backbone(x)
         if self.flatten:
             x = x.view(x.size(0), -1)
+        if self.adapter is not None:
+            x = self.adapter(x)
         x = self.fc(x)
         return x
 
