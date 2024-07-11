@@ -1,8 +1,9 @@
-from typing import Dict, Optional
+from typing import Dict, Optional, Union
 
 import lightning as L
 import torch
 from torchmetrics import Metric
+from minerva.models.loaders import FromPretrained
 
 
 class SimpleSupervisedModel(L.LightningModule):
@@ -26,8 +27,8 @@ class SimpleSupervisedModel(L.LightningModule):
 
     def __init__(
         self,
-        backbone: torch.nn.Module,
-        fc: torch.nn.Module,
+        backbone: Union[torch.nn.Module, FromPretrained],
+        fc: Union[torch.nn.Module, FromPretrained],
         loss_fn: torch.nn.Module,
         adapter: Optional[callable] = None,
         learning_rate: float = 1e-3,
@@ -113,7 +114,7 @@ class SimpleSupervisedModel(L.LightningModule):
         """
         x = self.backbone(x)
         if self.flatten:
-            x = x.view(x.size(0), -1)
+            x = x.reshape(x.size(0), -1)
         if self.adapter is not None:
             x = self.adapter(x)
         x = self.fc(x)
