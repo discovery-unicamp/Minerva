@@ -5,11 +5,22 @@ import torch
 import wrapt
 import re
 
+
 class LoadableModule:
     # Interface for loadable modules. This is a dummy class that should be
     # inherited by classes that can be loaded from a file.
     # Allows type hinting for classes that can be loaded from a file.
     pass
+
+
+class ModuleExtractor:
+    # Interface for module extractors. This is a dummy class that should be
+    # inherited by classes that can extract modules from a model.
+    # Allows type hinting for classes that can extract modules from a model.
+    # User should implement the __call__ method.
+
+    def __call__(self, model: torch.nn.Module) -> torch.nn.Module:
+        raise NotImplementedError
 
 
 class ExtractedModel(torch.nn.ModuleDict):
@@ -37,7 +48,7 @@ class ExtractedModel(torch.nn.ModuleDict):
         return x
 
 
-class IntermediateLayerGetter:
+class IntermediateLayerGetter(ModuleExtractor):
     """This class extracts intermediate layers from a model and create a new
     ExtractedModel with the extracted layers. The ExtractedModel allows
     performing a foward pass though extracted layers. Note that, if the model
@@ -158,8 +169,10 @@ class FromPretrained(wrapt.ObjectProxy, LoadableModule):
         self,
         model: torch.nn.Module,
         ckpt_path: PathLike,
-        extractor: Callable[[torch.nn.Module], torch.nn.Module] = None,
+        extractor: ModuleExtractor = None,
         filter_keys: List[str] = None,
+        remove_prefix: bool = True,
+        keys_to_rename: Dict[str, str] = None,
         strict: bool = False,
     ):
         """This class perform the following steps:
@@ -175,10 +188,28 @@ class FromPretrained(wrapt.ObjectProxy, LoadableModule):
             The model to be loaded from the checkpoint file.
         ckpt_path : PathLike
             The path to the checkpoint file from which the model will be loaded.
-        extractor : Callable[[torch.nn.Module], torch.nn.Module], optional
+        extractor : ModuleExtractor, optional
             The extractor function to be used to extract the desired submodel
             from the loaded model. The default is None, that is, use the module
             as it is loaded from the file.
+        filter_keys: List[str], optional
+            A list of regular expressions to filter the keys of the state_dict
+            loaded from the checkpoint file. Only the keys that match any of the
+            regular expressions will be loaded into the model. The default is None.
+        remove_prefix: bool, optional
+            Whether to remove the prefix from the keys matched by the filter_keys
+            regular expressions. This only makes sense if the filter_keys is 
+            provided. The default is True.
+        keys_to_rename: Dict[str, str], optional
+            A dictionary with the keys to be renamed in the state_dict loaded from
+            the checkpoint file. The keys of the dictionary are the keys in the
+            state_dict and the values are the new keys that will be used in the
+            model. The keys can be regular expressions. This is executed after
+            filtering/removing prefix stages. The default is None.
+        strict : bool, optional
+            Whether to strictly enforce that the keys in the state_dict loaded
+            from the checkpoint file match the keys in the model. The default is
+            False.
         """
         super().__init__(model)
         self.__wrapped__ = model
@@ -190,9 +221,20 @@ class FromPretrained(wrapt.ObjectProxy, LoadableModule):
                 for k, v in state_dict.items()
                 if any(re.search(pattern, k) for pattern in filter_keys)
             }
-            
-            for pattern in filter_keys:
-                state_dict = {re.sub(pattern + ".", '', k): v for k, v in state_dict.items()}
+
+            if remove_prefix:
+                for pattern in filter_keys:
+                    state_dict = {
+                        re.sub(pattern + ".", "", k): v
+                        for k, v in state_dict.items()
+                    }
+        
+        if keys_to_rename is not None:
+            for k, v in keys_to_rename.items():
+                state_dict = {
+                    re.sub(k, v, k): v
+                    for k, v in state_dict.items()
+                }
 
         msg = self.__wrapped__.load_state_dict(state_dict, strict=strict)
         print(f"Model loaded from {ckpt_path}: {msg}")
