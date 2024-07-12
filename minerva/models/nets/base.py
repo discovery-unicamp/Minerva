@@ -3,7 +3,7 @@ from typing import Dict, Optional, Union
 import lightning as L
 import torch
 from torchmetrics import Metric
-from minerva.models.loaders import FromPretrained
+from minerva.models.loaders import LoadableModule
 
 
 class SimpleSupervisedModel(L.LightningModule):
@@ -27,8 +27,8 @@ class SimpleSupervisedModel(L.LightningModule):
 
     def __init__(
         self,
-        backbone: Union[torch.nn.Module, FromPretrained],
-        fc: Union[torch.nn.Module, FromPretrained],
+        backbone: Union[torch.nn.Module, LoadableModule],
+        fc: Union[torch.nn.Module, LoadableModule],
         loss_fn: torch.nn.Module,
         adapter: Optional[callable] = None,
         learning_rate: float = 1e-3,

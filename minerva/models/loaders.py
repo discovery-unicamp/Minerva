@@ -5,6 +5,12 @@ import torch
 import wrapt
 import re
 
+class LoadableModule:
+    # Interface for loadable modules. This is a dummy class that should be
+    # inherited by classes that can be loaded from a file.
+    # Allows type hinting for classes that can be loaded from a file.
+    pass
+
 
 class ExtractedModel(torch.nn.ModuleDict):
     """Class representing a submodel extracted from a larger model.
@@ -140,7 +146,7 @@ class IntermediateLayerGetter:
         return ExtractedModel(layers)
 
 
-class FromPretrained(wrapt.ObjectProxy):
+class FromPretrained(wrapt.ObjectProxy, LoadableModule):
     """This class loads a model from a checkpoint file, extract the desired
     submodel and wraps it in a FromPretrained object. The FromPretrained object
     acts as a proxy to the submodel, allowing to call it as if it was the
@@ -210,7 +216,7 @@ class FromPretrained(wrapt.ObjectProxy):
         return self.__wrapped__.__str__()
 
 
-class FromModel(wrapt.ObjectProxy):
+class FromModel(wrapt.ObjectProxy, LoadableModule):
     """This class loads a complete model (pickable) from a model file, extract
     the desired submodel and wraps it in a FromModel object. The FromModel
     object acts as a proxy to the submodel, allowing to call it as if it was the
