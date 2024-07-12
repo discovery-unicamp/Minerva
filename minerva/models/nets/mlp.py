@@ -1,12 +1,14 @@
 from torch import nn
+from typing import Sequence
+
 
 class MLP(nn.Sequential):
     """
     A multilayer perceptron (MLP) implemented as a subclass of nn.Sequential.
-    
-    The MLP consists of a series of linear layers interleaved with ReLU activation functions,
-    except for the last layer which is purely linear.
-    
+
+    This MLP is composed of a sequence of linear layers interleaved with ReLU activation
+    functions, except for the final layer which remains purely linear.
+
     Example
     -------
 
@@ -21,32 +23,51 @@ class MLP(nn.Sequential):
     )
     """
 
-    def __init__(self, *layer_sizes: int):
+    def __init__(
+        self,
+        layer_sizes: Sequence[int],
+        activation_cls: type = nn.ReLU,
+        *args,
+        **kwargs
+    ):
         """
-        Initializes the MLP with the given layer sizes.
+        Initializes the MLP with specified layer sizes.
 
         Parameters
         ----------
-        *layer_sizes: int
-            A variable number of positive integers specifying the size of each layer.
-            There must be at least two integers, representing the input and output layers.
-        
+        layer_sizes : Sequence[int]
+            A sequence of positive integers indicating the size of each layer.
+            At least two integers are required, representing the input and output layers.
+        activation_cls : type
+            The class of the activation function to use between layers. Default is nn.ReLU.
+        *args
+            Additional arguments passed to the activation function.
+        **kwargs
+            Additional keyword arguments passed to the activation function.
+
         Raises
         ------
-        AssertionError: If less than two layer sizes are provided.
-        
-        AssertionError: If any layer size is not a positive integer.
+        AssertionError
+            If fewer than two layer sizes are provided or if any layer size is not a positive integer.
+        AssertionError
+            If activation_cls does not inherit from torch.nn.Module.
         """
+
         assert (
             len(layer_sizes) >= 2
         ), "Multilayer perceptron must have at least 2 layers"
         assert all(
             ls > 0 and isinstance(ls, int) for ls in layer_sizes
-        ), "All layer sizes must be a positive integer"
+        ), "All layer sizes must be positive integers"
+
+        assert issubclass(
+            activation_cls, nn.Module
+        ), "activation_cls must inherit from torch.nn.Module"
 
         layers = []
         for i in range(len(layer_sizes) - 2):
-            layers += [nn.Linear(layer_sizes[i], layer_sizes[i + 1]), nn.ReLU()]
-        layers += [nn.Linear(layer_sizes[-2], layer_sizes[-1])]
+            layers.append(nn.Linear(layer_sizes[i], layer_sizes[i + 1]))
+            layers.append(activation_cls(*args, **kwargs))
+        layers.append(nn.Linear(layer_sizes[-2], layer_sizes[-1]))
 
         super().__init__(*layers)
