@@ -4,7 +4,6 @@ from .image.setr import SETR_PUP
 from .image.unet import UNet
 from .image.wisenet import WiseNet
 from .mlp import MLP
-from .lfr import LearnFromRandomnessModel, RepeatedModuleList
 
 __all__ = [
     "SimpleSupervisedModel",
@@ -12,7 +11,5 @@ __all__ = [
     "SETR_PUP",
     "UNet",
     "WiseNet",
-    "MLP",
-    "LearnFromRandomnessModel",
-    "RepeatedModuleList"
+    "MLP"
 ]

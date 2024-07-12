@@ -2,7 +2,7 @@ import torch
 from torch.nn import Sequential, Conv2d, CrossEntropyLoss
 from torchvision.transforms import Resize
 
-from minerva.models.nets.lfr import RepeatedModuleList, LearnFromRandomnessModel
+from minerva.models.ssl.lfr import RepeatedModuleList, LearnFromRandomnessModel
 from minerva.models.nets.image.deeplabv3 import DeepLabV3Backbone
 
 
@@ -57,4 +57,3 @@ def test_lfr():
     # Test the configure_optimizers method
     optimizer = model.configure_optimizers()
     assert optimizer is not None
-
