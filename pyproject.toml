@@ -31,7 +31,7 @@ requires-python = ">=3.8"
 version = "0.2.2-beta"
 
 dependencies = [
-    "gitpython>=4",
+    "gitpython>=3",
     "jsonargparse>=4.27",
     "lightning>=2.1.9",
     "numpy>=1.23.5",

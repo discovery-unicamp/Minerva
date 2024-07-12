@@ -3,7 +3,7 @@ from typing import Dict, Optional, Union
 import lightning as L
 import torch
 from torchmetrics import Metric
-from minerva.models.loaders import FromPretrained
+from minerva.models.loaders import LoadableModule
 
 
 class SimpleSupervisedModel(L.LightningModule):
@@ -27,8 +27,8 @@ class SimpleSupervisedModel(L.LightningModule):
 
     def __init__(
         self,
-        backbone: Union[torch.nn.Module, FromPretrained],
-        fc: Union[torch.nn.Module, FromPretrained],
+        backbone: Union[torch.nn.Module, LoadableModule],
+        fc: Union[torch.nn.Module, LoadableModule],
         loss_fn: torch.nn.Module,
         adapter: Optional[callable] = None,
         learning_rate: float = 1e-3,
@@ -36,6 +36,7 @@ class SimpleSupervisedModel(L.LightningModule):
         train_metrics: Optional[Dict[str, Metric]] = None,
         val_metrics: Optional[Dict[str, Metric]] = None,
         test_metrics: Optional[Dict[str, Metric]] = None,
+        freeze_backbone: bool = False,
     ):
         """Initialize the model with the backbone, fc, loss function and
         metrics. Metrics are used to evaluate the model during training,
@@ -74,6 +75,7 @@ class SimpleSupervisedModel(L.LightningModule):
         self.adapter = adapter
         self.learning_rate = learning_rate
         self.flatten = flatten
+        self.freeze_backbone = freeze_backbone
 
         self.metrics = {
             "train": train_metrics,
@@ -212,6 +214,10 @@ class SimpleSupervisedModel(L.LightningModule):
         return y_hat
 
     def configure_optimizers(self):
+        if self.freeze_backbone:
+            for param in self.backbone.parameters():
+                param.requires_grad = False
+                
         optimizer = torch.optim.Adam(
             self.parameters(),
             lr=self.learning_rate,
