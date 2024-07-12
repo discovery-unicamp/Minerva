@@ -65,12 +65,13 @@ class HyperParameterSearch(Pipeline):
         return tuner.fit()
 
     def _test(self, data: L.LightningDataModule, ckpt_path: Optional[PathLike]) -> Any:
-
+        # TODO fix this
         return self.trainer.test(self.model, data, ckpt_path=ckpt_path)
 
     def _predict(
         self, data: L.LightningDataModule, ckpt_path: Optional[PathLike]
     ) -> Any:
+        # TODO fix this
         return self.trainer.predict(self.model, data, ckpt_path=ckpt_path)
 
     def _run(
