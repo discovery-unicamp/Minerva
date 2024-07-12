@@ -1,0 +1,234 @@
+import lightning as L
+import torch
+import torch.nn.functional as F
+
+# RNN encoder used by tonekaboni
+
+class RnnEncoder(torch.nn.Module):
+    def __init__(
+        self,
+        hidden_size: int,
+        in_channel: int,
+        encoding_size: int,
+        cell_type: str = 'GRU',
+        num_layers: int = 1,
+        device: str = 'cpu',
+        dropout: int = 0,
+        bidirectional: bool = True
+    ):
+        """
+        This encoder utilizes a recurrent neural network (RNN) to encode sequential data,
+        such as accelerometer and gyroscope readings from human activity recognition tasks.
+
+        Parameters:
+        -----------
+        - hidden_size (int):
+            Size of the hidden state in the RNN.
+        - in_channel (int):
+            Number of input channels (e.g., dimensions of accelerometer and gyroscope data).
+        - encoding_size (int):
+            Desired size of the output encoding.
+        - cell_type (str, optional):
+            Type of RNN cell to use (default: 'GRU').
+        - num_layers (int, optional):
+            Number of RNN layers (default: 1).
+        - device (str, optional):
+            Device to run the model on (default: 'cpu').
+        - dropout (float, optional):
+            Dropout probability (default: 0).
+        - bidirectional (bool, optional):
+            Whether the RNN is bidirectional (default: True).  
+
+        """
+        super(RnnEncoder, self).__init__()
+        self.hidden_size = hidden_size
+        self.in_channel = in_channel
+        self.num_layers = num_layers
+        self.cell_type = cell_type
+        self.encoding_size = encoding_size
+        self.bidirectional = bidirectional
+        self.device = device
+
+        self.nn = torch.nn.Sequential(torch.nn.Linear(self.hidden_size*(int(self.bidirectional) + 1), self.encoding_size)).to(device)
+        self.rnn = torch.nn.GRU(input_size=in_channel, hidden_size=hidden_size, num_layers=num_layers,
+                                batch_first=False, dropout=dropout, bidirectional=bidirectional).to(device)
+
+    def forward(self, x):
+        x = x.permute(1,0,2)
+        past = torch.zeros(self.num_layers * (int(self.bidirectional) + 1), x.shape[1], self.hidden_size).to(self.device)
+        # print(f"Input tensor shape before passing to RNN \n: {x.shape}")  # Print the shape of x
+        out, _ = self.rnn(x.to(self.device), past)
+        # print(f"Input tensor shape after passing to RNN :\n {out.shape}") 
+        encodings = self.nn(out[-1].squeeze(0))  # Process the output of the RNN
+        return encodings
+
+# TS2Vec encoder used by xu
+
+class DilatedConvEncoder(torch.nn.Module):
+    def __init__(
+        self,
+        in_channels: int,
+        channels: list,
+        kernel_size: int
+    ):
+        """
+        This module implements a stack of dilated convolutional blocks for feature extraction
+        from sequential data.
+
+        Parameters:
+        -----------
+        - in_channels (int):
+            Number of input channels to the first convolutional layer.
+        - channels (list):
+            List of integers specifying the number of output channels for each convolutional layer.
+        - kernel_size (int):
+            Size of the convolutional kernel.
+        """
+        super().__init__()
+        self.net = torch.nn.Sequential(*[
+            ConvBlock(
+                channels[i-1] if i > 0 else in_channels,
+                channels[i],
+                kernel_size=kernel_size,
+                dilation=2**i,
+                final=(i == len(channels)-1)
+            )
+            for i in range(len(channels))
+        ])
+        
+    def forward(self, x):
+        return self.net(x)
+
+class ConvBlock(torch.nn.Module):
+    def __init__(
+        self,
+        in_channels: int,
+        out_channels: int,
+        kernel_size: int,
+        dilation: int,
+        final: bool = False
+    ):
+        """
+        A single block of dilated convolutional layers followed by a residual connection and activation.
+
+        Parameters:
+        -----------
+        - in_channels (int):
+            Number of input channels to the first convolutional layer.
+        - out_channels (int):
+            Number of output channels from the final convolutional layer.
+        - kernel_size (int):
+            Size of the convolutional kernel.
+        - dilation (int):
+            Dilation factor for the convolutional layers.
+        - final (bool, optional):
+            Whether this is the final block in the sequence (default: False).
+
+        """
+        super().__init__()
+        self.conv1 = SamePadConv(in_channels, out_channels, kernel_size, dilation=dilation)
+        self.conv2 = SamePadConv(out_channels, out_channels, kernel_size, dilation=dilation)
+        self.projector = torch.nn.Conv1d(in_channels, out_channels, 1) if in_channels != out_channels or final else None
+    
+    def forward(self, x):
+        residual = x if self.projector is None else self.projector(x)
+        x = torch.nn.functional.gelu(x)
+        x = self.conv1(x)
+        x = torch.nn.functional.gelu(x)
+        x = self.conv2(x)
+        return x + residual
+
+class SamePadConv(torch.nn.Module):
+    def __init__(
+        self,
+        in_channels: int,
+        out_channels: int,
+        kernel_size: int,
+        dilation: int = 1,
+        groups: int = 1
+    ):
+        """
+        Purpose:
+        -------
+        Implements a convolutional layer with padding to maintain the same output size as the input.
+
+        Parameters:
+        -----------
+        - in_channels (int):
+            Number of input channels to the convolutional layer.
+        - out_channels (int):
+            Number of output channels from the convolutional layer.
+        - kernel_size (int):
+            Size of the convolutional kernel.
+        - dilation (int, optional):
+            Dilation factor for the convolutional layer (default: 1).
+        - groups (int, optional):
+            Number of blocked connections from input channels to output channels (default: 1).
+        """
+        super().__init__()
+        self.receptive_field = (kernel_size - 1) * dilation + 1
+        padding = self.receptive_field // 2
+        self.conv = torch.nn.Conv1d(
+            in_channels, out_channels, kernel_size,
+            padding=padding,
+            dilation=dilation,
+            groups=groups
+        )
+        self.remove = 1 if self.receptive_field % 2 == 0 else 0
+        
+    def forward(self, x):
+        out = self.conv(x)
+        if self.remove > 0:
+            out = out[:, :, : -self.remove]
+        return out
+
+# Discriminator aka projection head
+
+class Discriminator_TNC(torch.nn.Module):
+    def __init__(self, input_size: int, max_pool: bool = False):
+        """
+        A discriminator model used for contrastive learning tasks, predicting whether two inputs belong
+        to the same neighborhood in the feature space.
+
+        Parameters:
+        -----------
+        - input_size (int):
+            Dimensionality of each input.
+        - max_pool (bool, optional):
+            Whether to apply max pooling before feeding into the projection head (default: False).
+            If using TS2Vec encoder, set to True, if using RNN set to False
+        """
+        super(Discriminator_TNC, self).__init__()
+        self.input_size = input_size
+        self.max_pool = max_pool
+
+        self.model = torch.nn.Sequential(torch.nn.Linear(2*self.input_size, 4*self.input_size),
+                                         torch.nn.ReLU(inplace=True),
+                                         torch.nn.Dropout(0.5),
+                                         torch.nn.Linear(4*self.input_size, 1))
+
+        torch.nn.init.xavier_uniform_(self.model[0].weight)
+        torch.nn.init.xavier_uniform_(self.model[3].weight)
+
+    def forward(self, x, x_tild):
+        """
+        Predict the probability of the two inputs belonging to the same neighborhood.
+        
+        Parameters:
+        -----------
+        - x (torch.Tensor):
+            Input tensor of shape (batch_size, input_size).
+        - x_tild (torch.Tensor):
+            Input tensor of shape (batch_size, input_size).
+
+        Returns:
+        --------
+        - p (torch.Tensor):
+            Output tensor of shape (batch_size,) representing the predicted probabilities.
+        """
+        x_all = torch.cat([x, x_tild], -1)
+        if self.max_pool:
+            x_all = F.max_pool1d(x_all.transpose(1, 2).contiguous(), kernel_size=x_all.size(1)).transpose(1, 2)
+        
+        p = self.model(x_all)
+        return p.view((-1,))
