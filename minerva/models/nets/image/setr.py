@@ -414,6 +414,7 @@ class SETR_PUP(L.LightningModule):
         aux_output: bool = True,
         aux_output_layers: list[int] | None = [9, 14, 19],
         aux_weights: list[float] = [0.3, 0.3, 0.3],
+        config_dict: Optional[Dict] = None,
     ):
         """
         Initializes the SetR model.
@@ -475,58 +476,240 @@ class SETR_PUP(L.LightningModule):
 
         """
         super().__init__()
-        self.loss_fn = loss_fn if loss_fn is not None else nn.CrossEntropyLoss()
-        norm_layer = norm_layer if norm_layer is not None else nn.LayerNorm(hidden_dim)
-        conv_norm = (
-            conv_norm if conv_norm is not None else nn.SyncBatchNorm(decoder_channels)
-        )
-        conv_act = conv_act if conv_act is not None else nn.ReLU()
+        if config_dict is None:
+            print(type(config_dict))
+            print("config_dict is None")
+            self.loss_fn = loss_fn if loss_fn is not None else nn.CrossEntropyLoss()
+            norm_layer = (
+                norm_layer if norm_layer is not None else nn.LayerNorm(hidden_dim)
+            )
+            conv_norm = (
+                conv_norm
+                if conv_norm is not None
+                else nn.SyncBatchNorm(decoder_channels)
+            )
+            conv_act = conv_act if conv_act is not None else nn.ReLU()
 
-        if aux_output:
-            assert aux_output_layers is not None, "aux_output_layers must be provided."
-            assert (
-                len(aux_output_layers) == 3
-            ), "aux_output_layers must have 3 values. Only 3 aux heads are supported."
-            assert len(aux_weights) == len(
-                aux_output_layers
-            ), "aux_weights must have the same length as aux_output_layers."
+            if aux_output:
+                assert (
+                    aux_output_layers is not None
+                ), "aux_output_layers must be provided."
+                assert (
+                    len(aux_output_layers) == 3
+                ), "aux_output_layers must have 3 values. Only 3 aux heads are supported."
+                assert len(aux_weights) == len(
+                    aux_output_layers
+                ), "aux_weights must have the same length as aux_output_layers."
 
-        if optimizer is not None:
             self.optimizer = optimizer
+
+            self.num_classes = num_classes
+            self.aux_weights = aux_weights
+
+            self.metrics = {
+                "train": train_metrics,
+                "val": val_metrics,
+                "test": test_metrics,
+            }
+
+            self.model = _SetR_PUP(
+                image_size=image_size,
+                patch_size=patch_size,
+                num_layers=num_layers,
+                num_heads=num_heads,
+                hidden_dim=hidden_dim,
+                mlp_dim=mlp_dim,
+                num_classes=num_classes,
+                num_convs=num_convs,
+                up_scale=up_scale,
+                kernel_size=kernel_size,
+                conv_norm=conv_norm,
+                conv_act=conv_act,
+                decoder_channels=decoder_channels,
+                encoder_dropout=encoder_dropout,
+                decoder_dropout=decoder_dropout,
+                norm_layer=norm_layer,
+                interpolate_mode=interpolate_mode,
+                align_corners=align_corners,
+                aux_output=aux_output,
+                aux_output_layers=aux_output_layers,
+            )
+
         else:
-            self.optimizer = torch.optim.Adam(self.parameters(), lr=1e-3)
+            self.loss_fn = (
+                config_dict["loss_fn"]
+                if "loss_fn" in config_dict.keys()
+                and config_dict["loss_fn"] is not None
+                else nn.CrossEntropyLoss()
+            )
+            norm_layer = (
+                config_dict["norm_layer"]
+                if "norm_layer" in config_dict.keys()
+                and config_dict["norm_layer"] is not None
+                else nn.LayerNorm(hidden_dim)
+            )
+            conv_norm = (
+                config_dict["conv_norm"]
+                if "conv_norm" in config_dict.keys()
+                and config_dict["conv_norm"] is not None
+                else nn.SyncBatchNorm(decoder_channels)
+            )
+            conv_act = (
+                config_dict["conv_act"]
+                if "conv_act" in config_dict.keys()
+                and config_dict["conv_act"] is not None
+                else nn.ReLU()
+            )
 
-        self.num_classes = num_classes
-        self.aux_weights = aux_weights
+            if "aux_output" in config_dict.keys() and config_dict["aux_output"]:
+                assert (
+                    "aux_output_layers" in config_dict.keys()
+                    and config_dict["aux_output_layers"] is not None
+                ), "aux_output_layers must be provided."
+                assert (
+                    len(config_dict["aux_output_layers"]) == 3
+                ), "aux_output_layers must have 3 values. Only 3 aux heads are supported."
+                assert len(config_dict["aux_weights"]) == len(
+                    config_dict["aux_output_layers"]
+                ), "aux_weights must have the same length as aux_output_layers."
 
-        self.metrics = {
-            "train": train_metrics,
-            "val": val_metrics,
-            "test": test_metrics,
-        }
+            self.optimizer = (
+                config_dict["optimizer"]
+                if "optimizer" in config_dict.keys()
+                else optimizer
+            )
 
-        self.model = _SetR_PUP(
-            image_size=image_size,
-            patch_size=patch_size,
-            num_layers=num_layers,
-            num_heads=num_heads,
-            hidden_dim=hidden_dim,
-            mlp_dim=mlp_dim,
-            num_classes=num_classes,
-            num_convs=num_convs,
-            up_scale=up_scale,
-            kernel_size=kernel_size,
-            conv_norm=conv_norm,
-            conv_act=conv_act,
-            decoder_channels=decoder_channels,
-            encoder_dropout=encoder_dropout,
-            decoder_dropout=decoder_dropout,
-            norm_layer=norm_layer,
-            interpolate_mode=interpolate_mode,
-            align_corners=align_corners,
-            aux_output=aux_output,
-            aux_output_layers=aux_output_layers,
-        )
+            self.num_classes = (
+                config_dict["num_classes"]
+                if "num_classes" in config_dict.keys()
+                else num_classes
+            )
+            self.aux_weights = (
+                config_dict["aux_weights"]
+                if "aux_weights" in config_dict.keys()
+                else aux_weights
+            )
+
+            self.metrics = {
+                "train": (
+                    config_dict["train_metrics"]
+                    if "train_metrics" in config_dict.keys()
+                    else train_metrics
+                ),
+                "val": (
+                    config_dict["val_metrics"]
+                    if "val_metrics" in config_dict.keys()
+                    else val_metrics
+                ),
+                "test": (
+                    config_dict["test_metrics"]
+                    if "test_metrics" in config_dict.keys()
+                    else test_metrics
+                ),
+            }
+
+            self.model = _SetR_PUP(
+                image_size=(
+                    config_dict["image_size"]
+                    if "image_size" in config_dict.keys()
+                    else image_size
+                ),
+                patch_size=(
+                    config_dict["patch_size"]
+                    if "patch_size" in config_dict.keys()
+                    else patch_size
+                ),
+                num_layers=(
+                    config_dict["num_layers"]
+                    if "num_layers" in config_dict.keys()
+                    else num_layers
+                ),
+                num_heads=(
+                    config_dict["num_heads"]
+                    if "num_heads" in config_dict.keys()
+                    else num_heads
+                ),
+                hidden_dim=(
+                    config_dict["hidden_dim"]
+                    if "hidden_dim" in config_dict.keys()
+                    else hidden_dim
+                ),
+                mlp_dim=(
+                    config_dict["mlp_dim"]
+                    if "mlp_dim" in config_dict.keys()
+                    else mlp_dim
+                ),
+                num_classes=(
+                    config_dict["num_classes"]
+                    if "num_classes" in config_dict.keys()
+                    else num_classes
+                ),
+                num_convs=(
+                    config_dict["num_convs"]
+                    if "num_convs" in config_dict.keys()
+                    else num_convs
+                ),
+                up_scale=(
+                    config_dict["up_scale"]
+                    if "up_scale" in config_dict.keys()
+                    else up_scale
+                ),
+                kernel_size=(
+                    config_dict["kernel_size"]
+                    if "kernel_size" in config_dict.keys()
+                    else kernel_size
+                ),
+                conv_norm=(
+                    config_dict["conv_norm"]
+                    if "conv_norm" in config_dict.keys()
+                    else conv_norm
+                ),
+                conv_act=(
+                    config_dict["conv_act"]
+                    if "conv_act" in config_dict.keys()
+                    else conv_act
+                ),
+                decoder_channels=(
+                    config_dict["decoder_channels"]
+                    if "decoder_channels" in config_dict.keys()
+                    else decoder_channels
+                ),
+                encoder_dropout=(
+                    config_dict["encoder_dropout"]
+                    if "encoder_dropout" in config_dict.keys()
+                    else encoder_dropout
+                ),
+                decoder_dropout=(
+                    config_dict["decoder_dropout"]
+                    if "decoder_dropout" in config_dict.keys()
+                    else decoder_dropout
+                ),
+                norm_layer=(
+                    config_dict["norm_layer"]
+                    if "norm_layer" in config_dict.keys()
+                    else norm_layer
+                ),
+                interpolate_mode=(
+                    config_dict["interpolate_mode"]
+                    if "interpolate_mode" in config_dict.keys()
+                    else interpolate_mode
+                ),
+                align_corners=(
+                    config_dict["align_corners"]
+                    if "align_corners" in config_dict.keys()
+                    else align_corners
+                ),
+                aux_output=(
+                    config_dict["aux_output"]
+                    if "aux_output" in config_dict.keys()
+                    else aux_output
+                ),
+                aux_output_layers=(
+                    config_dict["aux_output_layers"]
+                    if "aux_output_layers" in config_dict.keys()
+                    else aux_output_layers
+                ),
+            )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.model(x)
@@ -640,4 +823,8 @@ class SETR_PUP(L.LightningModule):
         return self.model(x)[0]
 
     def configure_optimizers(self):
-        return self.optimizer
+        return (
+            self.optimizer
+            if self.optimizer is not None
+            else torch.optim.Adam(self.model.parameters(), lr=1e-3)
+        )

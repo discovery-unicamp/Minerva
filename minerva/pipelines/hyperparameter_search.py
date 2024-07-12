@@ -1,3 +1,4 @@
+from copy import deepcopy
 from typing import Any, Dict, Literal, Optional
 
 import lightning.pytorch as L
@@ -30,16 +31,6 @@ class HyperParameterSearch(Pipeline):
         super().__init__(log_dir=log_dir, save_run_status=save_run_status)
         self.model = model
         self.search_space = search_space
-        self.trainer = prepare_trainer(
-            L.Trainer(
-                devices="auto",
-                accelerator="auto",
-                strategy=RayDDPStrategy(),
-                callbacks=[RayTrainReportCallback],
-                plugins=[RayLightningEnvironment()],
-                enable_progress_bar=False,
-            )
-        )
         self.num_epochs = num_epochs
         self.num_samples = num_samples
 
@@ -47,8 +38,18 @@ class HyperParameterSearch(Pipeline):
         self, data: L.LightningDataModule, ckpt_path: Optional[PathLike]
     ) -> Any:
         def _tuner_train_func(config):
-            model = self.model(config)
-            self.trainer.fit(model, data, ckpt_path=ckpt_path)
+            dm = deepcopy(data)
+            model = self.model(config_dict=config)
+            trainer = L.Trainer(
+                devices="auto",
+                accelerator="auto",
+                strategy=RayDDPStrategy(),
+                callbacks=[RayTrainReportCallback()],
+                plugins=[RayLightningEnvironment()],
+                enable_progress_bar=False,
+            )
+            trainer = prepare_trainer(trainer)
+            trainer.fit(model, dm, ckpt_path=ckpt_path)
 
         scheduler = ASHAScheduler(max_t=self.num_epochs, grace_period=1)
         tuner = tune.Tuner(
