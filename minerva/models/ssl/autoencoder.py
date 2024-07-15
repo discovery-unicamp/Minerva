@@ -43,12 +43,14 @@ class Autoencoder(L.LightningModule):
         x, _ = batch
         x_hat = self(x)
         loss = self.reconstruction_loss(x, x_hat)
+        self.log('train_loss', loss)
         return loss
     
     def validation_step(self, batch, batch_idx):
         x, _ = batch
         x_hat = self(x)
         loss = self.reconstruction_loss(x, x_hat)
+        self.log('val_loss', loss)
         return loss
 
     def configure_optimizers(self):
