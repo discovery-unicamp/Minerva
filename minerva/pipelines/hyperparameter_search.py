@@ -3,12 +3,14 @@ from typing import Any, Dict, Literal, Optional
 
 import lightning.pytorch as L
 from ray import tune
+from ray.train import CheckpointConfig, RunConfig, ScalingConfig
 from ray.train.lightning import (
     RayDDPStrategy,
     RayLightningEnvironment,
     RayTrainReportCallback,
     prepare_trainer,
 )
+from ray.train.torch import TorchTrainer
 from ray.tune.schedulers import ASHAScheduler
 from ray.tune.search.sample import Categorical, Float, Integer
 from torchmetrics import Metric
@@ -47,14 +49,33 @@ class HyperParameterSearch(Pipeline):
                 callbacks=[RayTrainReportCallback()],
                 plugins=[RayLightningEnvironment()],
                 enable_progress_bar=False,
+                num_nodes=0,
             )
             trainer = prepare_trainer(trainer)
             trainer.fit(model, dm, ckpt_path=ckpt_path)
 
         scheduler = ASHAScheduler(max_t=self.num_epochs, grace_period=1)
-        tuner = tune.Tuner(
+
+        scaling_config = ScalingConfig(
+            num_workers=1, use_gpu=True, resources_per_worker={"GPU": 1}
+        )
+
+        run_config = RunConfig(
+            checkpoint_config=CheckpointConfig(
+                num_to_keep=2,
+                checkpoint_score_attribute="ptl/val_accuracy",
+                checkpoint_score_order="max",
+            ),
+        )
+
+        ray_trainer = TorchTrainer(
             _tuner_train_func,
-            param_space=self.search_space,
+            scaling_config=scaling_config,
+            run_config=run_config,
+        )
+        tuner = tune.Tuner(
+            ray_trainer,
+            param_space={"train_loop_config": self.search_space},
             tune_config=tune.TuneConfig(
                 metric="ptl/val_miou",
                 mode="max",
