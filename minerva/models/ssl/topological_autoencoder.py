@@ -53,6 +53,7 @@ class TopologicalAutoencoder(L.LightningModule):
         x_encoded = self.encoder(x)
         x_hat = self.decoder(x_encoded)
         loss = self.reconstruction_loss(x, x_encoded) + self.lambda_param*self.topological_loss(x, x_hat)
+        self.log('train_loss', loss)
         return loss
     
     def validation_step(self, batch, batch_idx):
@@ -60,6 +61,7 @@ class TopologicalAutoencoder(L.LightningModule):
         x_encoded = self.encoder(x)
         x_hat = self.decoder(x_encoded)
         loss = self.reconstruction_loss(x, x_encoded) + self.lambda_param*self.topological_loss(x, x_hat)
+        self.log('val_loss', loss)
         return loss
 
     def configure_optimizers(self):
