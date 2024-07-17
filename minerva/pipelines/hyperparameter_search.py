@@ -77,7 +77,7 @@ class HyperParameterSearch(Pipeline):
             ray_trainer,
             param_space={"train_loop_config": self.search_space},
             tune_config=tune.TuneConfig(
-                metric="ptl/val_miou",
+                metric="val_loss",
                 mode="max",
                 num_samples=self.num_samples,
                 scheduler=scheduler,
