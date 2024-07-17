@@ -477,8 +477,6 @@ class SETR_PUP(L.LightningModule):
         """
         super().__init__()
         if config_dict is None:
-            print(type(config_dict))
-            print("config_dict is None")
             self.loss_fn = loss_fn if loss_fn is not None else nn.CrossEntropyLoss()
             norm_layer = (
                 norm_layer if norm_layer is not None else nn.LayerNorm(hidden_dim)
