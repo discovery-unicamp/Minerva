@@ -30,6 +30,7 @@ class TNC(L.LightningModule):
         self.loss_fn = loss_fn
         self.mc_sample_size = 5
         self.learning_rate = learning_rate  
+        self.w = 0.05
 
 
     def forward(self, x_t, X_close, X_distant):

@@ -1,6 +1,7 @@
 import lightning as L
 import torch
 import torch.nn.functional as F
+import numpy as np
 
 # RNN encoder used by tonekaboni
 
@@ -64,6 +65,69 @@ class RnnEncoder(torch.nn.Module):
 
 # TS2Vec encoder used by xu
 
+class TSEncoder(torch.nn.Module):
+    def __init__(self, input_dims, output_dims, hidden_dims=64, depth=10):
+        """
+        Encoder utilizing dilated convolutional layers for encoding sequential data.
+
+        Parameters:
+        -----------
+        - input_dims (int): 
+            Dimensionality of the input features.
+        - output_dims (int): 
+            Desired dimensionality of the output features.
+        - hidden_dims (int, optional): 
+            Number of hidden dimensions in the convolutional layers (default: 64).
+        - depth (int, optional): 
+            Number of convolutional layers (default: 10).
+        """
+        super().__init__()
+        self.input_dims = input_dims
+        self.output_dims = output_dims
+        self.hidden_dims = hidden_dims
+        self.input_fc = torch.nn.Linear(input_dims, hidden_dims)
+        self.feature_extractor = DilatedConvEncoder(
+            hidden_dims,
+            [hidden_dims] * depth + [output_dims],
+            kernel_size=3
+        )
+        self.repr_dropout = torch.nn.Dropout(p=0.1)
+        
+    def forward(self, x, mask=None):
+        """
+        Forward pass of the encoder.
+
+        Parameters:
+        -----------
+        - x (torch.Tensor): 
+            Input tensor of shape (batch_size, seq_len, input_dims).
+        - mask (str, optional): 
+            Type of masking to apply (default: None).
+
+        Returns:
+        --------
+        - torch.Tensor: 
+            Encoded features of shape (batch_size, seq_len, output_dims).
+        """
+        nan_mask = ~x.isnan().any(axis=-1)
+        x[~nan_mask] = 0
+
+        x = self.input_fc(x)
+        
+        if mask == 'binomial':
+            mask = torch.from_numpy(
+                np.random.binomial(1, 0.5, size=(x.size(0), x.size(1)))
+            ).to(x.device)
+            mask &= nan_mask
+            x[~mask] = 0
+        
+        x = x.transpose(1, 2)  # B x Ch x T
+        # print("shape of x before feature extractor",x.shape)
+        x = self.repr_dropout(self.feature_extractor(x)) # B x Co x T
+        # print("shape of x after feature extractor",x.shape)
+        x = x.transpose(1, 2) # B x T x Co
+        
+        return x
 class DilatedConvEncoder(torch.nn.Module):
     def __init__(
         self,
