@@ -45,11 +45,11 @@ class HyperParameterSearch(Pipeline):
             trainer = L.Trainer(
                 devices="auto",
                 accelerator="auto",
-                strategy=RayDDPStrategy(),
+                strategy=RayDDPStrategy(find_unused_parameters=True),
                 callbacks=[RayTrainReportCallback()],
                 plugins=[RayLightningEnvironment()],
                 enable_progress_bar=False,
-                num_nodes=0,
+                num_nodes=1,
             )
             trainer = prepare_trainer(trainer)
             trainer.fit(model, dm, ckpt_path=ckpt_path)
