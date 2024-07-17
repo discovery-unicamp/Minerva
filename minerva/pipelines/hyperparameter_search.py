@@ -63,7 +63,7 @@ class HyperParameterSearch(Pipeline):
         run_config = RunConfig(
             checkpoint_config=CheckpointConfig(
                 num_to_keep=2,
-                checkpoint_score_attribute="ptl/val_accuracy",
+                checkpoint_score_attribute="val_loss",
                 checkpoint_score_order="max",
             ),
         )
