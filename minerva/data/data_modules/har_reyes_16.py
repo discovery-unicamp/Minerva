@@ -93,6 +93,7 @@ class ReyesDataset(Dataset):
         dataset = np.asarray(dataset)
         X = torch.tensor(dataset[:, :tamanho*ncanais],dtype=torch.float64)
         Y = torch.tensor(dataset[:,tamanho*ncanais],dtype=torch.int32)
+        
         X = X.reshape(X.shape[0], ncanais, -1)
         return X,Y
 
@@ -119,6 +120,7 @@ class ReyesModule(L.LightningDataModule):
         # DataLoader parameters
         batch_size: int = 42,
         percentage: float = 1.0,
+        num_workers: int = 2,
     ):
         """
         Builder of the ReyesModule class.
@@ -131,6 +133,8 @@ class ReyesModule(L.LightningDataModule):
             The batch size of the dataloaders, default is 42
         percentage : float
             The percentage of the dataset to be used, default is 1.0
+        num_workers : int
+            The number of workers to be used in the dataloaders, default is 2
 
         """
         super().__init__()
@@ -142,18 +146,13 @@ class ReyesModule(L.LightningDataModule):
             "test": os.path.join(self.root_data_dir, "test.csv"),
         }
         self.percentage = percentage
-        self.setup()
+        self.num_workers = num_workers
 
-    def setup(self) -> None:
-        """
-        Setup the datamodule, verifying if the dataset files are available.
-        Raises an error if the files defined in the builder are missing.
-        """
         # Verify that the data is available. If not, raise an error.
         for k, v in self.csv_files.items():
             if not os.path.exists(v):
                 print(v, "file is missing")
-                raise FileNotFoundError
+                raise FileNotFoundError        
 
 
     def _get_dataset_dataloader(
@@ -193,7 +192,7 @@ class ReyesModule(L.LightningDataModule):
             dataset,
             batch_size=self.batch_size,
             shuffle=shuffle,
-            num_workers=2,
+            num_workers=self.num_workers,
             drop_last=True,
         )
         return dataloader
