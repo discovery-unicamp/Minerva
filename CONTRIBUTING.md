@@ -26,7 +26,7 @@ Any other discussion should be done in the [Discussions](https://github.com/disc
 
 ## Getting started
 
-For changes bigger than one or two line fix:
+For changes or fixes:
 
 1. Create a new fork for your changes
 2. Make the changes needed in this fork
@@ -35,8 +35,6 @@ For changes bigger than one or two line fix:
    2. All tests pass, new and old
    3. Your code is well documented
 4. Make your PR
-
-Small contributions such as fixing spelling errors, where the content is small enough don't need to be made from another fork.
 
 As a rule of thumb, changes are obvious fixes if they do not introduce any new functionality or creative thinking. As long as the change does not affect functionality, some likely examples include the following:
 
@@ -47,6 +45,41 @@ As a rule of thumb, changes are obvious fixes if they do not introduce any new f
 * Adding logging messages or debugging output
 * Changes to ‘metadata’ files like Gemfile, .gitignore, build scripts, etc.
 * Moving source files from one directory or package to another
+
+## Making Code Contributions
+
+Every code contribution should be made through a pull request. This applies to all changes, including bug fixes and new features. This allows the maintainers to review the code and discuss it with you before merging it. It also allows the community to discuss the changes and learn from them.
+
+You code should follow the following guidelines:
+
+* **Documentation**: Make sure to document your code. This includes docstrings for functions and classes, as well as comments in the code when necessary. For the documentation, we use the numpydoc style. Also make sure to update the `README` file or other metadata files if necessary.
+* **Tests**: Make sure to write tests for your code. We use `pytest` for testing. You can run the tests with `python -m pytest` in the root directory of the project.
+* **Commit messages**: Make sure to write clear and concise commit messages. Include the issue number if you are fixing a bug.
+* **Dependencies**: Make sure to include any new dependencies in the `requirements.txt` and `pyproject.toml` file. If you are adding a new dependency, make sure to include a brief description of why it is needed.
+* **Code formatting**: Make sure to run a code formatter on your code before submitting the PR. We use `black` for this.
+
+You should also try to avoid rewriting functionality, or adding dependencies that are already present on one of our dependencies. This would make the codebase more bloated and harder to maintain.
+
+If you are contributing code that you did not write, you must ensure that the code is licensed under an [MIT License](https://opensource.org/licenses/MIT). If the code is not licensed under an MIT License, you must get permission from the original author to license the code under the MIT License. Also make sure to credit the original author in a comment in the code.
+
+### Module Specific Guidelines
+
+#### `models` module
+
+Our models are based on the `lightning.LightningModule` class. This class is a PyTorch Lightning module that simplifies the training process. You should follow the PyTorch Lightning guidelines for writing your models. You can find more information [here](https://pytorch-lightning.readthedocs.io/en/latest/common/lightning_module.html).
+
+As a rule of thumb, all front facing model classes should inherit from the `LightningModule` class. Subclasses of this class can be only `torch.nn.Module` classes.
+
+In the same way, all front facing model classes should have default parameters for the `__init__` method. This classes also should be able to receive a `config` parameter that will be used to configure the model. The config parameter should be a dictionary with the parameters needed to configure the model.
+
+The `models` module is divided into `nets` and `ssl`:
+
+* The `nets` module contains model architectures that can be trained in a supervised way.
+* The `ssl` module contains logic and implementations for self-supervised learning techniques.
+
+In a general way, you should be able to use a `nets` model in to a `ssl` implementation to train a model in a self-supervised way.
+
+We strongly recommend that, when possible, you divide your model into a backbone and a head. This division allows for more flexibility when using the model in different tasks and with different ssl techniques.
 
 ## How to report a bug
 
