@@ -14,7 +14,7 @@ This project aims to provide a robust and flexible framework for researchers wor
 
 Minerva offers a wide range of features to help you with your machine learning projects:
 
-- **Model Creation**: Minerva offers a variety of models and architectures to choose from, including pre-trained models and custom models.
+- **Model Creation**: Minerva offers a variety of models and architectures to choose from.
 - **Training and Evaluation**: Minerva provides tools to train and evaluate your models, including loss functions, optimizers, and evaluation metrics.
 - **Data Transformation**: Minerva provides tools to preprocess and transform your data, including data loaders, data augmentation, and data normalization.
 - **Command-Line Interface (CLI)**: Minerva offers a CLI to streamline the process of training and evaluating models.
@@ -27,6 +27,7 @@ Minerva offers a wide range of features to help you with your machine learning p
 
 - **Hyperparameter Optimization**: Minerva will offer tools for hyperparameter optimization powered by Ray Tune.
 - **PyPI Package**: Minerva will be available as a PyPI package for easy installation.
+- **Pre-trained Models**: Minerva will offer pre-trained models for common tasks and datasets.
 
 ## Installation
 
