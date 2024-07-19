@@ -58,7 +58,7 @@ You code should follow the following guidelines:
 * **Dependencies**: Make sure to include any new dependencies in the `requirements.txt` and `pyproject.toml` file. If you are adding a new dependency, make sure to include a brief description of why it is needed.
 * **Code formatting**: Make sure to run a code formatter on your code before submitting the PR. We use `black` for this.
 
-You should also try to avoid rewriting functionality, or adding dependencies that are already present on one of our dependencies. This would make the codebase more bloated and harder to maintain.
+You should also try to avoid rewriting functionality, or adding dependencies for functionalities that are already present on one of our dependencies. This would make the codebase more bloated and harder to maintain.
 
 If you are contributing code that you did not write, you must ensure that the code is licensed under an [MIT License](https://opensource.org/licenses/MIT). If the code is not licensed under an MIT License, you must get permission from the original author to license the code under the MIT License. Also make sure to credit the original author in a comment in the code.
 
