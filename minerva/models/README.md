@@ -1,6 +1,16 @@
 
 # Models
 
+The models module is a collection of models that can be used for various tasks. I has two main submodules: `nets` and `ssl`. The `nets` submodule contains architectures for neural networks that can be trained in a supervised manner. The `ssl` submodule contains implementations of semi-supervised learning techniques, usually requiring a architecture from the `nets` submodule to run.
+
+Both `nets` and `ssl` submodules are further divided into areas of use (e.g. `image` and `time_series`). This division is made to make it easier to find the right model for the right task. It's not uncommon for a model to be used in more than one area of use, in that case it will be in the main area of use in it's original paper.
+
+In the case of a architecture or semi-supervised learning technique been agnostic to the type of data, it will be in the root of the submodule.
+
+## Nets
+
+These are the models implemented in the `nets` submodule:
+
 | **Model**                                                                  | **Authors**                      |    **Task**    |       **Type**        |       **Input Shape**       |   **Python Class**    | **Observations**                                                                                                            |
 | -------------------------------------------------------------------------- | -------------------------------- | :------------: | :-------------------: | :-------------------------: | :-------------------: | --------------------------------------------------------------------------------------------------------------------------- |
 | [Deep Conv LSTM](https://www.mdpi.com/1424-8220/16/1/115)                  | Ordóñez and Roggen               | Classification |    2D Conv + LSTM     |     (C,&#160;S,&#160;T)     |     DeepConvLSTM      | --                                                                                                                          |
@@ -18,7 +28,9 @@
 | [1D ResNet SE 5](https://ieeexplore.ieee.org/document/9771436)             | Mekruksavanich *et al.*          | Classification |        1D Conv        |         (S,&#160;T)         |     ResNetSE1D_5      | ResNet with Squeeze and Excitation. Uses ReLU and 8 residual  blocks                                                        |
 | [MCNN](https://ieeexplore.ieee.org/document/8975649)                       | Sikder *et al.*                  | Classification |        2D Conv        | (2,&#160;C,&#160;S,&#160;T) |  MultiChannelCNN_HAR  | First dimension is FFT data and second is Welch Power Density periodgram data. Must adapt dataset to return data like this. |
 
-# SSL Models
+## SSL Models
+
+These are the models implemented in the `ssl` submodule:
 
 | **Model**                               | **Authors**     | **Task** | **Type** | **Input Shape** |     **Python Class**     | **Observations** |
 | --------------------------------------- | --------------- | -------- | -------- | :-------------: | :----------------------: | ---------------- |
