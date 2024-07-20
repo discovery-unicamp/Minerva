@@ -85,11 +85,11 @@ Moreover both `nets` and `ssl` are divided into the model's use area (e.g. image
 
 #### `data` module
 
-The `data` module is responsible for handling the data used in the models. This module is divided into `datasets`, `readers` and `data_modules`.
+The `data` module is responsible for handling the data used by the models. This module is divided into `datasets`, `readers` and `data_modules`.
 
-`readers` are the lowest level in our data pipeline. It is responsible to read the data in it's format and return it in a format that can be used by the `datasets`. Every reader should know both the method for reading the data from the file it self and the file structure of the data if applicable.
+`readers` are the lowest level in our data pipeline. It is responsible to read the right data requested by a dataset in it's format and return it in a format that can be used. Every reader should know both the method for reading the data from the file it self and the file structure of the data if applicable. Every reader should inherit from the `_Reader` class.
 
-`datasets` are the middle level in our data pipeline. It is composed by one or more readers and is responsible to transform the data read by the readers if necessary. Datasets usually are composed by a slice, of partition of the data (e.g. train, validation, test). The datasets and its partitions will be created and managed by a data module.
+`datasets` are the middle level in our data pipeline. It is composed by one or more readers and is responsible to transform the data read by the readers if necessary. Datasets usually are composed by a slice, of partition of the data (e.g. train, validation, test). The datasets and its partitions will be created and managed by a data module. Every dataset should inherit from the `torch.utils.data.Dataset` class.
 
 `data_modules` are the front facing classes of the data pipeline. It is responsible for receiving all the parameters needed to create all datasets and readers. Data modules should inherit from the `lightning.LightningDataModule` class. This class is a PyTorch Lightning class that simplifies the data loading process. You should follow the PyTorch Lightning guidelines for writing your data modules. You can find more information [here](https://pytorch-lightning.readthedocs.io/en/latest/common/lightning_module.html).
 
