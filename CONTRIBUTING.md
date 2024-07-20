@@ -81,6 +81,40 @@ In a general way, you should be able to use a `nets` model in to a `ssl` impleme
 
 We strongly recommend that, when possible, you divide your model into a backbone and a head. This division allows for more flexibility when using the model in different tasks and with different ssl techniques.
 
+Moreover both `nets` and `ssl` are divided into the model's use area (e.g. image, time series, etc.). This division allows for a more organized codebase and easier maintenance. If you are adding a new model, make sure to add it to the correct area. If the model does not fit in any of the areas, you can create a new one (make sure to justify it on your PR). To determine the area of the model you should follow the area used in its original proposal or the area where it is most used.
+
+#### `data` module
+
+The `data` module is responsible for handling the data used in the models. This module is divided into `datasets`, `readers` and `data_modules`.
+
+`readers` are the lowest level in our data pipeline. It is responsible to read the data in it's format and return it in a format that can be used by the `datasets`. Every reader should know both the method for reading the data from the file it self and the file structure of the data if applicable.
+
+`datasets` are the middle level in our data pipeline. It is composed by one or more readers and is responsible to transform the data read by the readers if necessary. Datasets usually are composed by a slice, of partition of the data (e.g. train, validation, test). The datasets and its partitions will be created and managed by a data module.
+
+`data_modules` are the front facing classes of the data pipeline. It is responsible for receiving all the parameters needed to create all datasets and readers. Data modules should inherit from the `lightning.LightningDataModule` class. This class is a PyTorch Lightning class that simplifies the data loading process. You should follow the PyTorch Lightning guidelines for writing your data modules. You can find more information [here](https://pytorch-lightning.readthedocs.io/en/latest/common/lightning_module.html).
+
+#### `losses` module
+
+The `losses` module houses loss functions that can be used by the modules. As stated before, you should avoid rewriting functionality that is already present in one of our dependencies. If you are adding a new loss function, make sure to include a brief description of why it is needed. Every loss function should inherit from the `torch.nn.modules.loss._Loss` class.
+
+#### `transforms` module
+
+The `transforms` module houses transformations that can be used by a dataset. Every transformation should inherit from our `_Transform` class. If you are adding a new transformation, make sure to include a brief description of why it is needed.
+
+#### `analysis` module
+
+The `analysis` module have both metrics and visualizations that can be used to analyze the models. If you are adding a new metric or visualization, make sure to include a brief description of why it is needed. Again you should avoid rewriting functionality that is already present in one of our dependencies. All metrics should inherit from the `torchmetrics.Metric` class.
+
+#### `pipelines` module
+
+Pipelines are the core of minerva. They are responsible for training and evaluating the models. Pipelines should be able to receive a config file that will be used to configure the pipeline. The config file should be a yaml file with the parameters needed to configure the pipeline. All pipelines should inherit from the our `Pipeline` class.
+
+Pipelines are meant to be reusable and are usually complex. If you are adding a new pipeline, make sure to include a description of why it is needed, how it works and why you can't accomplish the same thing with existing ones.
+
+#### `utils` module
+
+The `utils` module is a temporary module that houses functions that don't fit in any of the other modules. '`utils` will cease to exist in the future, so if you are adding a new function to it, make sure to justify it on your PR.
+
 ## How to report a bug
 
 ### Security Vulnerabilities
