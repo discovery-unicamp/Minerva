@@ -13,4 +13,3 @@ perlin-noise
 torchmetrics
 torchvision
 timm
-scikit-learn

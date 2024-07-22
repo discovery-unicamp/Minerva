@@ -8,7 +8,7 @@ from minerva.losses.ntxent_loss_poly import NTXentLoss_poly
 from minerva.transforms.transform import _Transform
 from torch.nn.modules.loss import _Loss
 from torch.optim import Optimizer
-from sklearn.metrics import accuracy_score, f1_score
+from torchmetrics import F1Score, Accuracy
 
 class TFC_Model(pl.LightningModule):
     """
@@ -51,6 +51,7 @@ class TFC_Model(pl.LightningModule):
             The batch size of the model      
         """
         super(TFC_Model, self).__init__()
+        self.num_classes = num_classes
         if backbone:
             self.backbone = backbone
         else:
@@ -213,8 +214,8 @@ class TFC_Model(pl.LightningModule):
             pred = self.forward(data,data_f)
             labels = labels.long()
             loss = self.loss_fn(pred, labels)
-            f1 = f1_score(labels.cpu(), pred.cpu().argmax(dim=1), average='weighted')
-            acc = accuracy_score(labels.cpu(), pred.cpu().argmax(dim=1))
+            f1 = F1Score(task="multiclass", num_classes=self.num_classes)(pred.cpu().argmax(dim=1),labels.cpu())
+            acc = Accuracy(task="multiclass", num_classes=self.num_classes)(pred.cpu().argmax(dim=1),labels.cpu())
 
         else:
             h_t, z_t, h_f, z_f = self.forward(data, data_f)
