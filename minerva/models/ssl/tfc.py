@@ -8,6 +8,7 @@ from minerva.losses.ntxent_loss_poly import NTXentLoss_poly
 from minerva.transforms.transform import _Transform
 from torch.nn.modules.loss import _Loss
 from torch.optim import Optimizer
+from torchmetrics import F1Score, Accuracy
 
 class TFC_Model(pl.LightningModule):
     """
@@ -20,7 +21,7 @@ class TFC_Model(pl.LightningModule):
     requeired by pytorch-lightning.
     """
 
-    def __init__(self, input_channels: int, TS_length: int, num_classes: int, single_encoding_size: int, backbone: nn.Module = None, pred_head: nn.Module = True, loss: _Loss = None, learning_rate: float = 3e-4, transform:_Transform = None, device: str = 'cuda', batch_size: int = 42):
+    def __init__(self, input_channels: int, TS_length: int, num_classes: int, single_encoding_size: int = 128, backbone: nn.Module = None, pred_head: bool = True, loss: _Loss = None, learning_rate: float = 3e-4, transform:_Transform = None, device: str = 'cuda', batch_size: int = 42):
         """
         The constructor of the TFC_Model class.
 
@@ -50,6 +51,7 @@ class TFC_Model(pl.LightningModule):
             The batch size of the model      
         """
         super(TFC_Model, self).__init__()
+        self.num_classes = num_classes
         if backbone:
             self.backbone = backbone
         else:
@@ -73,7 +75,7 @@ class TFC_Model(pl.LightningModule):
         else:
             self.transform = TFC_Transforms()
     
-    def forward(self, x_t: torch.Tensor, x_f: torch.Tensor, all:bool=False) -> torch.Tensor: # "all" is useful for validation of acurracy and latent space
+    def forward(self, x_t: torch.Tensor, x_f: torch.Tensor = None, all:bool=False) -> torch.Tensor: # "all" is useful for validation of acurracy and latent space
         """
         The forward method of the model. It receives the input data in the time domain and frequency domain and returns the prediction of the model.
 
@@ -96,6 +98,8 @@ class TFC_Model(pl.LightningModule):
             If the model has a prediction head and parameter "all" is True, the method returns a tuple with the prediction of the model and the features extracted by the backbone, following the format prediction, h_t, z_t, h_f, z_f.
         
         """
+        if x_f is None:
+            x_t, _ , x_f, _ = self.transform(x_t)
         h_t, z_t, h_f, z_f = self.backbone(x_t, x_f)
         if self.pred_head:
             fea_concat = torch.cat((z_t, z_f), dim=1)
@@ -179,6 +183,56 @@ class TFC_Model(pl.LightningModule):
             lam = 0.2
             loss = lam *(loss_t + loss_f) + (1- lam)*loss_c
         self.log("val_loss", loss, prog_bar=True)
+        return loss
+
+    def test_step(self, batch: Tuple[torch.Tensor, torch.Tensor], batch_index: int) -> torch.Tensor:
+        """
+        The test step of the model. It receives a batch of data and returns the loss of the model and f1 score and accuracy if a prediction head is provided.
+
+        Parameters
+        ----------
+        - batch: Tuple[torch.Tensor, torch.Tensor]
+            A tuple with the input data and its labels as X, Y
+        - batch_index: int
+            The index of the batch in the dataset (not used in this method)
+
+        Returns
+        -------
+        - loss
+            The loss of the model in this test step
+        can also return f1 score and accuracy if a prediction head is provided:
+        - Tuple[loss, f1, accuracy] types: Tuple[torch.Tensor, float, float]
+        
+        
+        """
+        x = batch[0]
+        labels = batch[1]
+        data, aug1, data_f, aug1_f = self.transform(x)
+
+        f1, acc = None, None
+        if self.pred_head:
+            pred = self.forward(data,data_f)
+            labels = labels.long()
+            loss = self.loss_fn(pred, labels)
+            f1 = F1Score(task="multiclass", num_classes=self.num_classes)(pred.cpu().argmax(dim=1),labels.cpu())
+            acc = Accuracy(task="multiclass", num_classes=self.num_classes)(pred.cpu().argmax(dim=1),labels.cpu())
+
+        else:
+            h_t, z_t, h_f, z_f = self.forward(data, data_f)
+            h_t_aug, z_t_aug, h_f_aug, z_f_aug = self.forward(aug1, aug1_f)
+            loss_t = self.loss_fn(h_t, h_t_aug)
+            loss_f = self.loss_fn(h_f, h_f_aug)
+            l_TF = self.loss_fn(z_t, z_f)
+            l_1, l_2, l_3 = self.loss_fn(z_t, z_f_aug), self.loss_fn(z_t_aug, z_f), self.loss_fn(z_t_aug, z_f_aug)
+            loss_c = (1+ l_TF -l_1) + (1+ l_TF -l_2) + (1+ l_TF -l_3)
+            lam = 0.2
+            loss = lam *(loss_t + loss_f) + (1- lam)*loss_c
+        self.log("test_loss", loss, prog_bar=True)
+
+        if f1 is not None and acc is not None:
+            self.log("F1-score", f1, prog_bar=True)
+            self.log("accuracy", acc, prog_bar=True)
+            return loss, f1, acc
         return loss
         
 
