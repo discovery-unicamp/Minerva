@@ -4,11 +4,8 @@ import lightning as L
 import numpy as np
 from torch.utils.data import DataLoader
 from minerva.utils.typing import PathLike
-from minerva.data.datasets.har_xu_23 import TNCDataset
-
-from typing import List, Tuple, Union
-from torch.utils.data import  Dataset
-import torch
+from minerva.data.datasets.har_xu_23 import TNCDataset,HarDataset
+from typing import List
 
 class HarDataModule(L.LightningDataModule):
     def __init__(
@@ -58,17 +55,22 @@ class HarDataModule(L.LightningDataModule):
         self.adf = adf
         self.window_size = window_size
 
-        self.setup()
+        # processedharpath = self.processed_data_dir
 
-    def setup(self):
-        """
-        Loads the training, validation, and test datasets from the processed .npy files.
-        """
-        processedharpath = self.processed_data_dir
+        self.har_train = np.load(os.path.join(self.processed_data_dir, "train_data.npy"))
+        self.har_val = np.load(os.path.join(self.processed_data_dir, "val_data.npy"))
+        self.har_test = np.load(os.path.join(self.processed_data_dir, "test_data.npy"))
+        # self.setup()
 
-        self.har_train = np.load(os.path.join(processedharpath, "train_data.npy"))
-        self.har_val = np.load(os.path.join(processedharpath, "val_data.npy"))
-        self.har_test = np.load(os.path.join(processedharpath, "test_data.npy"))
+    # def setup(self):
+    #     """
+    #     Loads the training, validation, and test datasets from the processed .npy files.
+    #     """
+    #     processedharpath = self.processed_data_dir
+
+    #     self.har_train = np.load(os.path.join(processedharpath, "train_data.npy"))
+    #     self.har_val = np.load(os.path.join(processedharpath, "val_data.npy"))
+    #     self.har_test = np.load(os.path.join(processedharpath, "test_data.npy"))
 
     def train_dataloader(self):
         """
@@ -133,86 +135,12 @@ class HarDataModule(L.LightningDataModule):
             shuffle=False,
         )
 
-#TODO move to dataset, 
 #TODO replace path for Pathlike and review docs
-class HarDataset(Dataset):
-    def __init__(
-        self,
-        data_path: Union[Path, str],
-        annotate: str,
-        feature_column_prefixes: List[str] = [
-            "accel-x",
-            "accel-y",
-            "accel-z",
-            "gyro-x",
-            "gyro-y",
-            "gyro-z",
-        ],
-        target_column: str = "standard activity code",
-        flatten: bool = False,
-    ):
-        """
-        Dataset class for loading and preparing human activity recognition data.
-
-        Parameters
-        ----------
-        data_path : Union[Path, str]
-            Path to the directory containing the dataset files.
-        annotate : str
-            Annotation type for the dataset (e.g., 'train', 'val', 'test').
-        feature_column_prefixes : List[str], optional
-            Prefixes for the feature columns in the dataset. Defaults to accelerometer and gyroscope data.
-        target_column : str, optional
-            Column name for the target variable. Defaults to 'standard activity code'.
-        flatten : bool, optional
-            Whether to flatten the input data. Defaults to False.
-        """
-        super().__init__()
-        self.data_path = Path(data_path)
-        self.annotate = annotate
-        self.feature_column_prefixes = feature_column_prefixes
-        self.target_column = target_column
-        self.flatten = flatten
-
-        # Load data
-        self.data = np.load(self.data_path / f"{self.annotate}_data_subseq.npy")
-        self.labels = np.load(self.data_path / f"{self.annotate}_labels_subseq.npy")
-        assert len(self.data) == len(self.labels), "Data and labels must have the same length"
-
-    def __len__(self):
-        return len(self.data)
-
-    def __getitem__(self, idx: int) -> Tuple[torch.Tensor, int]:
-        """
-        Get a sample from the dataset.
-
-        Parameters
-        ----------
-        idx : int
-            Index of the sample to retrieve.
-
-        Returns
-        -------
-        Tuple[torch.Tensor, int]
-            Tuple containing the features and the target label.
-        """
-        data = self.data[idx]
-        if self.flatten:
-            data = data.flatten()
-
-        features = data
-        target = self.labels[idx]
-
-        # Convert to torch.FloatTensor and torch.LongTensor
-        features = torch.FloatTensor(features)
-        target = torch.tensor(target, dtype=torch.long)
-
-        return features, target
 
 class HarDataModule_Downstream(L.LightningDataModule):
     def __init__(
         self,
-        root_data_dir: Union[Path, str],
+        root_data_dir: PathLike,
         feature_column_prefixes: List[str] = [
             "accel-x",
             "accel-y",
@@ -230,7 +158,7 @@ class HarDataModule_Downstream(L.LightningDataModule):
 
         Parameters
         ----------
-        root_data_dir : Union[Path, str]
+        root_data_dir : PathLike
             Root directory containing the dataset files.
         feature_column_prefixes : List[str], optional
             Prefixes for the feature columns in the dataset. Defaults to accelerometer and gyroscope data.
@@ -242,17 +170,12 @@ class HarDataModule_Downstream(L.LightningDataModule):
             Batch size for the DataLoader. Defaults to 16.
         """
         super().__init__()
-        self.root_data_dir = Path(root_data_dir)
+        self.root_data_dir = root_data_dir
         self.feature_column_prefixes = feature_column_prefixes
         self.target_column = target_column
         self.flatten = flatten
         self.batch_size = batch_size
 
-    def setup(self) -> None:
-        """
-        Setup method for the DataModule. No setup needed for loading .npy files.
-        """
-        pass
 
     def _get_dataset_dataloader(self, annotate: str, shuffle: bool) -> DataLoader[HarDataset]:
         """
@@ -294,7 +217,7 @@ class HarDataModule_Downstream(L.LightningDataModule):
         DataLoader[HarDataset]
             DataLoader for the training dataset.
         """
-        return self._get_dataset_dataloader("train", shuffle=True)
+        return self._get_dataset_dataloader("train", shuffle=False)
 
     def val_dataloader(self) -> DataLoader[HarDataset]:
         """

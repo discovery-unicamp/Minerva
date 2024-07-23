@@ -3,6 +3,9 @@ from torch.utils.data import Dataset
 from statsmodels.tsa.stattools import adfuller
 from sklearn.metrics.pairwise import cosine_similarity
 import torch
+from minerva.utils.typing import PathLike
+from typing import List, Tuple
+import os
 
 class TNCDataset(Dataset):
     def __init__(
@@ -195,3 +198,81 @@ class TNCDataset(Dataset):
             else:
                 x_n = x[:, T - rand_t - self.window_size:T - rand_t].unsqueeze(0)
         return x_n
+    
+class HarDataset(Dataset):
+    def __init__(
+        self,
+        data_path: PathLike,
+        annotate: str,
+        feature_column_prefixes: List[str] = [
+            "accel-x",
+            "accel-y",
+            "accel-z",
+            "gyro-x",
+            "gyro-y",
+            "gyro-z",
+        ],
+        target_column: str = "standard activity code",
+        flatten: bool = False,
+    ):
+        """
+        Dataset class for loading and preparing human activity recognition data.
+
+        Parameters
+        ----------
+        data_path : PathLike
+            Path to the directory containing the dataset files.
+        annotate : str
+            Annotation type for the dataset (e.g., 'train', 'val', 'test').
+        feature_column_prefixes : List[str], optional
+            Prefixes for the feature columns in the dataset. Defaults to accelerometer and gyroscope data.
+        target_column : str, optional
+            Column name for the target variable. Defaults to 'standard activity code'.
+        flatten : bool, optional
+            Whether to flatten the input data. Defaults to False.
+        """
+        super().__init__()
+        self.data_path = data_path
+        self.annotate = annotate
+        self.feature_column_prefixes = feature_column_prefixes
+        self.target_column = target_column
+        self.flatten = flatten
+
+        # Load data
+        # self.data = np.load(self.data_path / f"{self.annotate}_data_subseq.npy")
+
+        self.data = np.load(os.path.join(self.data_path, f"{self.annotate}_data_subseq.npy"))
+        self.labels = np.load(os.path.join(self.data_path, f"{self.annotate}_labels_subseq.npy"))
+
+        # self.labels = np.load(self.data_path / f"{self.annotate}_labels_subseq.npy")
+        assert len(self.data) == len(self.labels), "Data and labels must have the same length"
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, idx: int) -> Tuple[torch.Tensor, int]:
+        """
+        Get a sample from the dataset.
+
+        Parameters
+        ----------
+        idx : int
+            Index of the sample to retrieve.
+
+        Returns
+        -------
+        Tuple[torch.Tensor, int]
+            Tuple containing the features and the target label.
+        """
+        data = self.data[idx]
+        if self.flatten:
+            data = data.flatten()
+
+        features = data
+        target = self.labels[idx]
+
+        # Convert to torch.FloatTensor and torch.LongTensor
+        features = torch.FloatTensor(features)
+        target = torch.tensor(target, dtype=torch.long)
+
+        return features, target

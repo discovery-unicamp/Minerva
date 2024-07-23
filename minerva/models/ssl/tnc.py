@@ -7,7 +7,8 @@ class TNC(L.LightningModule):
         backbone: torch.nn.Module, 
         projection_head: torch.nn.Module,
         loss_fn: torch.nn.Module = torch.nn.BCEWithLogitsLoss(),
-        learning_rate: float = 0.00001
+        learning_rate: float = 0.00001,
+        w: float = 0.05
     ):
         """
         This class defines a the TNC technique using a backbone neural network (backbone)
@@ -30,7 +31,7 @@ class TNC(L.LightningModule):
         self.loss_fn = loss_fn
         self.mc_sample_size = 5
         self.learning_rate = learning_rate  
-        self.w = 0.05
+        self.w = w
 
 
     def forward(self, x_t, X_close, X_distant):
