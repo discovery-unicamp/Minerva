@@ -24,6 +24,8 @@ class TNC(L.LightningModule):
             The loss function used for training (default: torch.nn.BCEWithLogitsLoss()).
         - learning_rate (float, optional):
             The learning rate for the optimizer (default: 0.00001).
+        - w (float, optional):
+            The weight for the negative loss term (default: 0.05).
         """
         super(TNC, self).__init__() 
         self.backbone = backbone

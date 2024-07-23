@@ -20,6 +20,7 @@ class HarDataModule(L.LightningDataModule):
         """
         This DataModule handles the loading and preparation of data for training, validation,
         and testing. The data is expected to be stored in 3 .npy files named train_data.npy, val_data.npy, and test_data.npy.
+        They are NumPy arrays storing the concatenated accelerometer and gyroscope data.
 
         This .npy files are of shape (n_samples, n_timesteps, n_channels) and are produced at specific window size by 
         another data processing script available in https://github.com/maxxu05/rebar/blob/main/data/process/har_processdata.py
@@ -55,22 +56,9 @@ class HarDataModule(L.LightningDataModule):
         self.adf = adf
         self.window_size = window_size
 
-        # processedharpath = self.processed_data_dir
-
         self.har_train = np.load(os.path.join(self.processed_data_dir, "train_data.npy"))
         self.har_val = np.load(os.path.join(self.processed_data_dir, "val_data.npy"))
         self.har_test = np.load(os.path.join(self.processed_data_dir, "test_data.npy"))
-        # self.setup()
-
-    # def setup(self):
-    #     """
-    #     Loads the training, validation, and test datasets from the processed .npy files.
-    #     """
-    #     processedharpath = self.processed_data_dir
-
-    #     self.har_train = np.load(os.path.join(processedharpath, "train_data.npy"))
-    #     self.har_val = np.load(os.path.join(processedharpath, "val_data.npy"))
-    #     self.har_test = np.load(os.path.join(processedharpath, "test_data.npy"))
 
     def train_dataloader(self):
         """
@@ -135,8 +123,6 @@ class HarDataModule(L.LightningDataModule):
             shuffle=False,
         )
 
-#TODO replace path for Pathlike and review docs
-
 class HarDataModule_Downstream(L.LightningDataModule):
     def __init__(
         self,
@@ -154,12 +140,19 @@ class HarDataModule_Downstream(L.LightningDataModule):
         batch_size: int = 16,
     ):
         """
-        DataModule for downstream tasks in human activity recognition.
+        DataModule for downstream tasks in human activity recognition for UCI.
 
         Parameters
         ----------
         root_data_dir : PathLike
             Root directory containing the dataset files.
+            It must have 6 files, named:
+            train_data_subseq.npy, train_labels_subseq.npy,
+            val_data.npy, val_labels_subseq.npy,
+            test_data.npy, and test_labels_subseq.npy.
+            This files corresponds to data segmented into subsequences of a fixed length (e.g., 128 samples). 
+            These data subsequences are used for the downstream model, allowing it to learn patterns within these smaller segments.
+            The labels are the labels for each subsequence in each set, going drom 0 to 5.
         feature_column_prefixes : List[str], optional
             Prefixes for the feature columns in the dataset. Defaults to accelerometer and gyroscope data.
         target_column : str, optional

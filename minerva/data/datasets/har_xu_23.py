@@ -222,6 +222,13 @@ class HarDataset(Dataset):
         ----------
         data_path : PathLike
             Path to the directory containing the dataset files.
+            It must have 6 files, named:
+            train_data_subseq.npy, train_labels_subseq.npy,
+            val_data.npy, val_labels_subseq.npy,
+            test_data.npy, and test_labels_subseq.npy.
+            This files corresponds to data segmented into subsequences of a fixed length (e.g., 128 samples). 
+            These data subsequences are used for the downstream model, allowing it to learn patterns within these smaller segments.
+            The labels are the labels for each subsequence in each set, going drom 0 to 5.
         annotate : str
             Annotation type for the dataset (e.g., 'train', 'val', 'test').
         feature_column_prefixes : List[str], optional
@@ -237,9 +244,6 @@ class HarDataset(Dataset):
         self.feature_column_prefixes = feature_column_prefixes
         self.target_column = target_column
         self.flatten = flatten
-
-        # Load data
-        # self.data = np.load(self.data_path / f"{self.annotate}_data_subseq.npy")
 
         self.data = np.load(os.path.join(self.data_path, f"{self.annotate}_data_subseq.npy"))
         self.labels = np.load(os.path.join(self.data_path, f"{self.annotate}_labels_subseq.npy"))
