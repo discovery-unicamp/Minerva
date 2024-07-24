@@ -13,12 +13,13 @@ class ClassicMLModel(L.LightningModule):
     the head is trained on the features extracted by the backbone. More complex models,
     that do not follow this pipeline, should not inherit from this class.
     """
+
     def __init__(
         self,
         backbone: nn.Module,
         head: BaseEstimator,
         use_only_train_data: bool = False,
-        test_metrics: Optional[Dict[str, Metric]] = None
+        test_metrics: Optional[Dict[str, Metric]] = None,
     ):
         """
         Initialize the model with the backbone and head. The backbone is frozen and the head
@@ -39,7 +40,7 @@ class ClassicMLModel(L.LightningModule):
         test_metrics : Dict[str, Metric], optional
             The metrics to be used during testing, by default None
         """
-        super().__init__()        
+        super().__init__()
         self.backbone = backbone
         for param in self.backbone.parameters():
             param.requires_grad = False
@@ -52,7 +53,7 @@ class ClassicMLModel(L.LightningModule):
         self.use_only_train_data = use_only_train_data
         self.tensor1 = torch.tensor(1.0, requires_grad=True)
         self.test_metrics = test_metrics
-    
+
     def forward(self, x):
         """
         Forward pass of the model. Extracts features from the backbone and predicts the
@@ -72,7 +73,7 @@ class ClassicMLModel(L.LightningModule):
         z = z.flatten(start_dim=1)
         y_pred = self.head.predict(z.cpu())
         return y_pred
-    
+
     def training_step(self, batch, batch_index):
         """
         Training step of the model. Collects all the training batchs into one variable
@@ -85,7 +86,7 @@ class ClassicMLModel(L.LightningModule):
         self.train_data.append(self.backbone(batch[0]).flatten(start_dim=1))
         self.train_y.append(batch[1])
         return self.tensor1
-    
+
     def on_train_epoch_end(self):
         """
         At the end of the first epoch, the model is trained on the concatenated training
@@ -100,8 +101,6 @@ class ClassicMLModel(L.LightningModule):
         self.train_data = self.train_data.flatten(start_dim=1).cpu()
         self.train_y = torch.concat(self.train_y).cpu()
         self.head.fit(self.train_data, self.train_y)
-        print("\nTraining data shape:", self.train_data.shape, "\nTraining y shape:", self.train_y.shape, end="\n\n")
-        
 
     def validation_step(self, batch, batch_index):
         """
@@ -109,12 +108,12 @@ class ClassicMLModel(L.LightningModule):
         and logs a dummy loss to keep track of the validation process.
         """
         self.log("val_loss", self.tensor1)
-        if self.current_epoch != 1:    
+        if self.current_epoch != 1:
             return self.tensor1
         self.val_data.append(self.backbone(batch[0]).flatten(start_dim=1))
         self.val_y.append(batch[1])
         return self.tensor1
-    
+
     def test_step(self, batch: torch.Tensor, batch_idx: int):
         """
         Test step of the model.
@@ -123,7 +122,14 @@ class ClassicMLModel(L.LightningModule):
         y_hat = torch.tensor(self.forward(x)).to(self.device)
         for metric_name, metric in self.test_metrics.items():
             metric_value = metric.to(self.device)(y_hat, y)
-            self.log(f"test_{metric_name}", metric_value, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+            self.log(
+                f"test_{metric_name}",
+                metric_value,
+                on_step=False,
+                on_epoch=True,
+                prog_bar=True,
+                logger=True,
+            )
         return self.tensor1
 
     def predict_step(self, batch, batch_idx, dataloader_idx=None):
@@ -133,6 +139,6 @@ class ClassicMLModel(L.LightningModule):
         x, _ = batch
         y_hat = self.forward(x)
         return y_hat
-        
+
     def configure_optimizers(self):
         return None
