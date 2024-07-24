@@ -37,7 +37,7 @@ class ClassicMLModel(L.LightningModule):
             implements the `predict` and `fit` methods.
         use_only_train_data : bool, optional
             If `True`, the model will be trained using only the training data, by default False.
-            If `False`, the model will be trained using both training and validation data.
+            If `False`, the model will be trained using both training and validation data, concatenated.
         test_metrics : Dict[str, Metric], optional
             The metrics to be used during testing, by default None
         """
