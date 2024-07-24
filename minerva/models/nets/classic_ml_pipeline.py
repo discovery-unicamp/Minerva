@@ -18,7 +18,7 @@ class ClassicMLModel(L.LightningModule):
         backbone: nn.Module,
         head: BaseEstimator,
         use_only_train_data: bool = False,
-        test_metrics: Optional[Metric] = None
+        test_metrics: Optional[Dict[str, Metric]] = None
     ):
         """
         Initialize the model with the backbone and head. The backbone is frozen and the head
@@ -36,7 +36,7 @@ class ClassicMLModel(L.LightningModule):
             implements the `predict` and `fit` methods.
         use_only_train_data : bool, optional
             If `True` the model will be trained using only the training data, by default False
-        test_metrics : Optional[Metric], optional
+        test_metrics : Dict[str, Metric], optional
             The metrics to be used during testing, by default None
         """
         super().__init__()        
@@ -121,8 +121,9 @@ class ClassicMLModel(L.LightningModule):
         """
         x, y = batch
         y_hat = torch.tensor(self.forward(x)).to(self.device)
-        metrics = self.test_metrics.to(self.device)(y_hat, y)
-        self.log("test_acc", metrics, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+        for metric_name, metric in self.test_metrics.items():
+            metric_value = metric.to(self.device)(y_hat, y)
+            self.log(f"test_{metric_name}", metric_value, on_step=False, on_epoch=True, prog_bar=True, logger=True)
         return self.tensor1
 
     def predict_step(self, batch, batch_idx, dataloader_idx=None):
