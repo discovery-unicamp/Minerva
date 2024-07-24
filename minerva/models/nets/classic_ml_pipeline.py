@@ -36,7 +36,8 @@ class ClassicMLModel(L.LightningModule):
             The head model. Usually, a scikit-learn model, like a classifier or regressor that
             implements the `predict` and `fit` methods.
         use_only_train_data : bool, optional
-            If `True` the model will be trained using only the training data, by default False
+            If `True`, the model will be trained using only the training data, by default False.
+            If `False`, the model will be trained using both training and validation data.
         test_metrics : Dict[str, Metric], optional
             The metrics to be used during testing, by default None
         """
