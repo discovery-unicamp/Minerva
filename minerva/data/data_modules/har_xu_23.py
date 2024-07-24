@@ -234,5 +234,16 @@ class HarDataModule_Downstream(L.LightningDataModule):
         """
         return self._get_dataset_dataloader("test", shuffle=False)
 
+    def predict_dataloader(self) -> DataLoader[HarDataset]:
+        """
+        Returns the DataLoader for the test dataset.
+
+        Returns
+        -------
+        DataLoader[HarDataset]
+            DataLoader for the test dataset.
+        """
+        # Reuse the test_dataloader logic for predict
+        return self.test_dataloader()
 
 
