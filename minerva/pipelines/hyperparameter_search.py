@@ -28,7 +28,7 @@ class HyperParameterSearch(Pipeline):
         log_dir: Optional[PathLike] = None,
         save_run_status: bool = False,
         num_epochs: int = 2,
-        num_samples: int = 2,
+        num_samples: int = 15,
     ):
         super().__init__(log_dir=log_dir, save_run_status=save_run_status)
         self.model = model
@@ -63,7 +63,8 @@ class HyperParameterSearch(Pipeline):
             trainer.fit(model, dm, ckpt_path=ckpt_path)
 
         scheduler = configs.get(
-            "scheduler", ASHAScheduler(max_t=self.num_epochs, grace_period=1)
+            "scheduler",
+            ASHAScheduler(max_t=configs.get("num_epochs", 2), grace_period=1),
         )
 
         scaling_config = configs.get(
@@ -76,8 +77,8 @@ class HyperParameterSearch(Pipeline):
             RunConfig(
                 checkpoint_config=CheckpointConfig(
                     num_to_keep=2,
-                    checkpoint_score_attribute="val_loss",
-                    checkpoint_score_order="max",
+                    checkpoint_score_attribute=configs.get("tuner_metric", "val_loss"),
+                    checkpoint_score_order=configs.get("tuner_mode", "min"),
                 ),
             ),
         )
@@ -103,25 +104,18 @@ class HyperParameterSearch(Pipeline):
         # TODO fix this
         return self.trainer.test(self.model, data, ckpt_path=ckpt_path)
 
-    def _predict(
-        self, data: L.LightningDataModule, ckpt_path: Optional[PathLike]
-    ) -> Any:
-        # TODO fix this
-        return self.trainer.predict(self.model, data, ckpt_path=ckpt_path)
-
     def _run(
         self,
         data: L.LightningDataModule,
         task: Optional[Literal["search", "test", "predict"]],
         ckpt_path: Optional[PathLike] = None,
+        configs: Dict[str, Any] = {},
     ) -> Any:
         if task == "search":
-            return self._search(data, ckpt_path)
+            return self._search(data, ckpt_path, configs)
         elif task == "test":
             return self._test(data, ckpt_path)
-        elif task == "predict":
-            return self._predict(data, ckpt_path)
         elif task is None:
-            search = self._search(data, ckpt_path)
+            search = self._search(data, ckpt_path, configs)
             test = self._test(data, ckpt_path)
             return search, test
