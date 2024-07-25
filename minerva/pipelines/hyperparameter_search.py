@@ -37,34 +37,48 @@ class HyperParameterSearch(Pipeline):
         self.num_samples = num_samples
 
     def _search(
-        self, data: L.LightningDataModule, ckpt_path: Optional[PathLike]
+        self,
+        data: L.LightningDataModule,
+        ckpt_path: Optional[PathLike],
+        configs: Dict[str, Any],
     ) -> Any:
         def _tuner_train_func(config):
             dm = deepcopy(data)
             model = self.model(config_dict=config)
             trainer = L.Trainer(
-                devices="auto",
-                accelerator="auto",
-                strategy=RayDDPStrategy(find_unused_parameters=True),
-                callbacks=[RayTrainReportCallback()],
-                plugins=[RayLightningEnvironment()],
+                devices=configs.get("devices", "auto"),
+                accelerator=configs.get("accelerator", "auto"),
+                strategy=configs.get(
+                    "strategy", RayDDPStrategy(find_unused_parameters=True)
+                ),
+                callbacks=configs.get("callbacks", [RayTrainReportCallback()]),
+                plugins=configs.get("plugins", [RayLightningEnvironment()]),
                 enable_progress_bar=False,
-                num_nodes=1,
+                num_nodes=configs.get("num_nodes", 1),
+                enable_checkpointing=(
+                    False if configs.get("debug_mode") is True else None
+                ),
             )
             trainer = prepare_trainer(trainer)
             trainer.fit(model, dm, ckpt_path=ckpt_path)
 
-        scheduler = ASHAScheduler(max_t=self.num_epochs, grace_period=1)
-
-        scaling_config = ScalingConfig(
-            num_workers=1, use_gpu=True, resources_per_worker={"GPU": 1}
+        scheduler = configs.get(
+            "scheduler", ASHAScheduler(max_t=self.num_epochs, grace_period=1)
         )
 
-        run_config = RunConfig(
-            checkpoint_config=CheckpointConfig(
-                num_to_keep=2,
-                checkpoint_score_attribute="val_loss",
-                checkpoint_score_order="max",
+        scaling_config = configs.get(
+            "scaling_config",
+            ScalingConfig(num_workers=1, use_gpu=True, resources_per_worker={"GPU": 1}),
+        )
+
+        run_config = configs.get(
+            "run_config",
+            RunConfig(
+                checkpoint_config=CheckpointConfig(
+                    num_to_keep=2,
+                    checkpoint_score_attribute="val_loss",
+                    checkpoint_score_order="max",
+                ),
             ),
         )
 
@@ -77,8 +91,8 @@ class HyperParameterSearch(Pipeline):
             ray_trainer,
             param_space={"train_loop_config": self.search_space},
             tune_config=tune.TuneConfig(
-                metric="val_loss",
-                mode="max",
+                metric=configs.get("tuner_metric", "val_loss"),
+                mode=configs.get("tuner_mode", "min"),
                 num_samples=self.num_samples,
                 scheduler=scheduler,
             ),
