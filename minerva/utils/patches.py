@@ -231,7 +231,7 @@ class BasePatchInferencer:
             results.append(self.model(patch_set))
             indexes.append(patch_idx)
         output_slice = tuple(
-            [slice(0, lenght - 2 * pad) for lenght, pad in zip(x.shape, base)]
+            [slice(0, lenght) for lenght in x.shape]
         )
         return self._combine_patches(results, offsets, indexes)[output_slice]
 
@@ -273,12 +273,12 @@ class VotingPatchInferencer(BasePatchInferencer):
     def __init__(
         self,
         model: L.LightningModule,
+        num_classes: int,
         input_shape: Tuple,
         output_shape: Optional[Tuple] = None,
         weight_function: Optional[callable] = None,
         offsets: Optional[List[Tuple]] = None,
         padding: Optional[Dict[str, Any]] = None,
-        num_classes: int = None,
         voting: str = "soft",
     ):
         """Initialize the patch inference auxiliary class
@@ -287,6 +287,8 @@ class VotingPatchInferencer(BasePatchInferencer):
         ----------
         model : L.LightningModule
             Model used in inference.
+        num_classes: int
+            number of classes of the classification task
         input_shape : Tuple
             Expected input shape of the model
         output_shape : Tuple, optional
@@ -301,8 +303,6 @@ class VotingPatchInferencer(BasePatchInferencer):
                 pad: tuple with pad width (int) for each dimension, e.g. (0, 3, 3) when working with a tensor with 3 dimensions
                 mode (optional): 'constant', 'reflect', 'replicate' or 'cicular'. Defaults to 'constant'.
                 value (optional): fill value for 'constante'. Defaults to 0.
-        num_classes: int
-            number of classes of the classification task
         voting: str
             voting method to use, can be either 'soft'or 'hard'. Defaults to 'soft'.
         """
