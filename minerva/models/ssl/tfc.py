@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 import lightning as pl
-from typing import List, Tuple
+from typing import List, Tuple, Union
 from minerva.transforms.tfc import TFC_Transforms
 from minerva.models.nets.tfc import TFC_Conv_Backbone, TFC_PredicionHead
 from minerva.losses.ntxent_loss_poly import NTXentLoss_poly
@@ -21,7 +21,7 @@ class TFC_Model(pl.LightningModule):
     requeired by pytorch-lightning.
     """
 
-    def __init__(self, input_channels: int, TS_length: int, num_classes: int, single_encoding_size: int = 128, backbone: nn.Module = None, pred_head: bool = True, loss: _Loss = None, learning_rate: float = 3e-4, transform:_Transform = None, device: str = 'cuda', batch_size: int = 42):
+    def __init__(self, input_channels: int, TS_length: int, num_classes: int = None, single_encoding_size: int = 128, backbone: nn.Module = None, pred_head: Union[bool, nn.Module] = True, loss: _Loss = None, learning_rate: float = 3e-4, transform:_Transform = None, device: str = 'cuda', batch_size: int = 42):
         """
         The constructor of the TFC_Model class.
 
@@ -31,14 +31,14 @@ class TFC_Model(pl.LightningModule):
             The number of channels in the input data
         - TS_length: int
             The number of time steps in the input data
-        - num_classes: int
-            The number of downstream classes in the dataset
+        - num_classes: Union(int, None)
+            The number of downstream classes in the dataset, if none, the model is trained in a self-supervised learning approach
         - single_encoding_size: int
             The size of the encoding in the latent space of frequency or time domain individually
         - backbone: nn.Module
             The backbone of the model. If None, a default backbone is created as a convolutional neural network
-        - pred_head: bool
-            If True, a prediction head (MLP) is added to the model. If False, the model is trained in a self-supervised learning approach
+        - pred_head: Union(bool, nn.Module)
+            If True, a prediction head (MLP) is added to the model. If False or None, the model is trained in a self-supervised learning approach. If a nn.Module is provided, it is used as the prediction head
         - loss: _Loss
             The loss function to be used in the training step. If None, the ntxent_poly is used for pretrain or the CrossEntropyLoss is used for downstream
         - learning_rate: float
@@ -56,8 +56,11 @@ class TFC_Model(pl.LightningModule):
             self.backbone = backbone
         else:
             self.backbone = TFC_Conv_Backbone(input_channels, TS_length, single_encoding_size = single_encoding_size)
-        if pred_head:
-            self.pred_head = TFC_PredicionHead(num_classes=num_classes, single_encoding_size=single_encoding_size)
+        if pred_head and num_classes:
+            if pred_head == True:
+                self.pred_head = TFC_PredicionHead(num_classes=num_classes, single_encoding_size=single_encoding_size)
+            else:
+                self.pred_head = pred_head
         else:
             self.pred_head = None
 
@@ -166,6 +169,7 @@ class TFC_Model(pl.LightningModule):
         
         """
         x = batch[0]
+        x = x.to(self.device)
         labels = batch[1]
         data, aug1, data_f, aug1_f = self.transform(x)
         if self.pred_head:
@@ -206,6 +210,7 @@ class TFC_Model(pl.LightningModule):
         
         """
         x = batch[0]
+        x = x.to(self.device)
         labels = batch[1]
         data, aug1, data_f, aug1_f = self.transform(x)
 
