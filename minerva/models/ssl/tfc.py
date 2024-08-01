@@ -21,7 +21,7 @@ class TFC_Model(pl.LightningModule):
     requeired by pytorch-lightning.
     """
 
-    def __init__(self, input_channels: int, TS_length: int, num_classes: int = None, single_encoding_size: int = 128, backbone: nn.Module = None, pred_head: Union[bool, nn.Module] = True, loss: _Loss = None, learning_rate: float = 3e-4, transform:_Transform = None, device: str = 'cuda', batch_size: int = 42):
+    def __init__(self, input_channels: int, TS_length: int, num_classes: int = None, single_encoding_size: int = 128, backbone: nn.Module = None, pred_head: Union[bool, nn.Module] = True, loss: _Loss = None, learning_rate: float = 3e-4, transform:_Transform = None, device: str = 'cuda', batch_size: int = 42, pipeline: str = 'both'):
         """
         The constructor of the TFC_Model class.
 
@@ -48,17 +48,21 @@ class TFC_Model(pl.LightningModule):
         - device: str
             The device to be used in the training of the model, default is 'cuda'
         - batch_size: int
-            The batch size of the model      
+            The batch size of the model
+        - pipeline: str
+            The pipeline to be used in the training of the model. It can be 'both', 'time' or 'freq'. Default is 'both'
         """
         super(TFC_Model, self).__init__()
         self.num_classes = num_classes
+        self.pipeline = pipeline
         if backbone:
             self.backbone = backbone
         else:
             self.backbone = TFC_Conv_Backbone(input_channels, TS_length, single_encoding_size = single_encoding_size)
         if pred_head and num_classes:
             if pred_head == True:
-                self.pred_head = TFC_PredicionHead(num_classes=num_classes, single_encoding_size=single_encoding_size)
+                conections = 2 if pipeline == 'both' else 1
+                self.pred_head = TFC_PredicionHead(num_classes=num_classes, single_encoding_size=single_encoding_size, connections=conections)
             else:
                 self.pred_head = pred_head
         else:
@@ -105,7 +109,14 @@ class TFC_Model(pl.LightningModule):
             x_t, _ , x_f, _ = self.transform(x_t)
         h_t, z_t, h_f, z_f = self.backbone(x_t, x_f)
         if self.pred_head:
-            fea_concat = torch.cat((z_t, z_f), dim=1)
+            if self.pipeline == 'both':
+                fea_concat = torch.cat((z_t, z_f), dim=1)
+            elif self.pipeline == 'time':
+                fea_concat = z_t
+            elif self.pipeline == 'freq':
+                fea_concat = z_f
+            else:
+                raise ValueError("Invalid pipeline")
             pred = self.pred_head(fea_concat)
             if all:
                 return pred, h_t, z_t, h_f, z_f
