@@ -16,7 +16,7 @@ class ClassicMLModel(L.LightningModule):
 
     def __init__(
         self,
-        backbone: nn.Module,
+        backbone: Union[torch.nn.Module, LoadableModule],
         head: BaseEstimator,
         use_only_train_data: bool = False,
         test_metrics: Optional[Dict[str, Metric]] = None,
