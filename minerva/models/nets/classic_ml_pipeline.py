@@ -4,7 +4,9 @@ from torchmetrics import Metric
 import torch
 from torch import nn
 import lightning as L
-
+import pickle
+import os
+from minerva.models.loaders import LoadableModule
 
 class ClassicMLModel(L.LightningModule):
     """
@@ -20,6 +22,7 @@ class ClassicMLModel(L.LightningModule):
         head: BaseEstimator,
         use_only_train_data: bool = False,
         test_metrics: Optional[Dict[str, Metric]] = None,
+        filename: Optional[str] = None,
     ):
         """
         Initialize the model with the backbone and head. The backbone is frozen and the head
@@ -27,7 +30,6 @@ class ClassicMLModel(L.LightningModule):
         `BaseEstimator` interface. The model can be trained using only the training data or
         using both training and validation data. The test metrics are used to evaluate the
         model during testing. It will be logged using lightning logger at the end of each epoch.
-
         Parameters
         ----------
         backbone : torch.nn.Module
@@ -54,17 +56,20 @@ class ClassicMLModel(L.LightningModule):
         self.use_only_train_data = use_only_train_data
         self.tensor1 = torch.tensor(1.0, requires_grad=True)
         self.test_metrics = test_metrics
+        self.filename = filename
+        if filename and os.path.exists(filename):
+            with open(filename, "rb") as file:
+                self.head = pickle.load(file)
+
 
     def forward(self, x):
         """
         Forward pass of the model. Extracts features from the backbone and predicts the
         target using the head.
-
         Parameters
         ----------
         x : torch.Tensor
             The input data.
-
         Returns
         -------
         torch.Tensor
@@ -72,7 +77,7 @@ class ClassicMLModel(L.LightningModule):
         """
         z = self.backbone(x)
         z = z.flatten(start_dim=1)
-        y_pred = self.head.predict(z.cpu())
+        y_pred = self.head.predict_proba(z.cpu())
         return y_pred
 
     def training_step(self, batch, batch_index):
@@ -102,6 +107,9 @@ class ClassicMLModel(L.LightningModule):
         self.train_data = self.train_data.flatten(start_dim=1).cpu()
         self.train_y = torch.concat(self.train_y).cpu()
         self.head.fit(self.train_data, self.train_y)
+        with open(self.filename, "wb") as file:
+            pickle.dump(self.head, file)
+        
 
     def validation_step(self, batch, batch_index):
         """
@@ -139,7 +147,7 @@ class ClassicMLModel(L.LightningModule):
         """
         x, _ = batch
         y_hat = self.forward(x)
-        return y_hat
+        return torch.tensor(y_hat)
 
     def configure_optimizers(self):
         return None
