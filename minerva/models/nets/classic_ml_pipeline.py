@@ -7,6 +7,7 @@ import lightning as L
 import pickle
 import os
 from minerva.models.loaders import LoadableModule
+from typing import Callable
 
 class ClassicMLModel(L.LightningModule):
     """
@@ -23,6 +24,8 @@ class ClassicMLModel(L.LightningModule):
         use_only_train_data: bool = False,
         test_metrics: Optional[Dict[str, Metric]] = None,
         filename: Optional[str] = None,
+        flatten: bool = True,
+        adapter: Optional[Callable[[torch.Tensor], torch.Tensor]] = None,
     ):
         """
         Initialize the model with the backbone and head. The backbone is frozen and the head
@@ -42,6 +45,13 @@ class ClassicMLModel(L.LightningModule):
             If `False`, the model will be trained using both training and validation data, concatenated.
         test_metrics : Dict[str, Metric], optional
             The metrics to be used during testing, by default None
+        filename:   str, optional
+            The filename to save the model weights, by default None
+        flatten : bool, optional
+            If `True` the input data will be flattened before passing through
+            the model, by default True
+        adapter : Callable[[torch.Tensor], torch.Tensor], optional
+            An adapter to be used from the backbone to the head, by default None.
         """
         super().__init__()
         self.backbone = backbone
@@ -55,6 +65,8 @@ class ClassicMLModel(L.LightningModule):
         self.val_y = []
         self.use_only_train_data = use_only_train_data
         self.tensor1 = torch.tensor(1.0, requires_grad=True)
+        self.flatten = flatten
+        self.adapter = adapter
         self.test_metrics = test_metrics
         self.filename = filename
         if filename and os.path.exists(filename):
@@ -76,7 +88,10 @@ class ClassicMLModel(L.LightningModule):
             The predicted target.
         """
         z = self.backbone(x)
-        z = z.flatten(start_dim=1)
+        if self.flatten:
+            z = z.flatten(start_dim=1)
+        if self.adapter is not None:
+            z = self.adapter(z)
         y_pred = self.head.predict_proba(z.cpu())
         return y_pred
 
@@ -88,8 +103,14 @@ class ClassicMLModel(L.LightningModule):
         self.log("train_loss", self.tensor1)
         if self.current_epoch != 1:
             return self.tensor1
+        if self.flatten:
+            features = self.train_data.append(self.backbone(batch[0]).flatten(start_dim=1))
+        else:
+            features = self.backbone(batch[0])
+        if self.adapter is not None:
+            features = self.adapter(features)
 
-        self.train_data.append(self.backbone(batch[0]).flatten(start_dim=1))
+        self.train_data.append(features)
         self.train_y.append(batch[1])
         return self.tensor1
 
@@ -104,7 +125,10 @@ class ClassicMLModel(L.LightningModule):
             self.train_data.extend(self.val_data)
             self.train_y.extend(self.val_y)
         self.train_data = torch.concat(self.train_data)
-        self.train_data = self.train_data.flatten(start_dim=1).cpu()
+        if self.flatten:
+            self.train_data = self.train_data.flatten(start_dim=1).cpu()
+        else:
+            self.train_data = self.train_data.cpu()
         self.train_y = torch.concat(self.train_y).cpu()
         self.head.fit(self.train_data, self.train_y)
         with open(self.filename, "wb") as file:
@@ -119,7 +143,14 @@ class ClassicMLModel(L.LightningModule):
         self.log("val_loss", self.tensor1)
         if self.current_epoch != 1:
             return self.tensor1
-        self.val_data.append(self.backbone(batch[0]).flatten(start_dim=1))
+        if self.flatten:
+            features = self.backbone(batch[0]).flatten(start_dim=1)
+        else:
+            features = self.backbone(batch[0])
+        if self.adapter is not None:
+            features = self.adapter(features)
+
+        self.val_data.append(features)
         self.val_y.append(batch[1])
         return self.tensor1
 
