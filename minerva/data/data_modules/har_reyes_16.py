@@ -240,3 +240,18 @@ class ReyesModule(L.LightningDataModule):
             self.root_data_dir / "test.csv", shuffle=False
         )
         return dataloader
+    
+    def predict_dataloader(self):
+        """
+
+        Get the predict dataloader by location defined by root_data_dir/test.csv, equivalent to the test dataloader.
+        
+        Returns
+        -------
+        DataLoader
+            A DataLoader with the test dataset
+        """
+        dataloader = self._get_dataset_dataloader(
+            self.root_data_dir / "test.csv", shuffle=False
+        )
+        return dataloader

@@ -28,9 +28,12 @@ class TFC_Transforms(_Transform):
         if isinstance(x, np.ndarray):
             x = torch.from_numpy(x).type(torch.FloatTensor)
             device = torch.device("cpu")
-        else:
+        elif isinstance(x, torch.Tensor):
             device = x.device
             x = x.type(torch.FloatTensor)
+        else:
+            print("The type of the input is: ", type(x), "It is ", x)
+            raise TypeError("The input data must be a numpy array or a torch tensor")
         freq = fft.fft(x).abs()
         y1 = self.DataTransform_TD(x)
         y2 = self.DataTransform_FD(freq)
