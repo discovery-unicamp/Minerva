@@ -298,6 +298,41 @@ class TFC_Model(pl.LightningModule):
             self.log("accuracy", acc, prog_bar=True)
             return loss, f1, acc
         return loss
+    
+    def predict_step(
+        self, batch: Tuple[torch.Tensor, torch.Tensor], batch_index: int
+    ) -> torch.Tensor:
+        """
+        The predict step of the model. It receives a batch of data and returns the torch tensor of probability of prediction or the latent space if a prediction head is not provided.
+
+        Parameters
+        ----------
+        - batch: Tuple[torch.Tensor, torch.Tensor]
+            A tuple with the input data and its labels as X, Y
+        - batch_index: int
+            The index of the batch in the dataset (not used in this method)
+
+        Returns
+        -------
+        - loss
+            The loss of the model in this test step
+        can also return f1 score and accuracy if a prediction head is provided:
+        - Tuple[loss, f1, accuracy] types: Tuple[torch.Tensor, float, float]
+
+
+        """
+        x = batch[0]
+        x = x.to(self.device)
+        data, _, data_f, _ = self.transform(x)
+
+        if self.pred_head:
+            pred = self.forward(data, data_f)
+            return pred
+
+        else:
+            _, z_t, _, z_f = self.forward(data, data_f)
+            z = torch.cat((z_t, z_f), dim=1)
+            return z
 
     def configure_optimizers(self) -> Optimizer:
         """
