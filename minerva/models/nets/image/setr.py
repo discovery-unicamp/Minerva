@@ -384,6 +384,7 @@ class _SetR_PUP(nn.Module):
         return x
 
 
+# region SETR_PUP
 class SETR_PUP(L.LightningModule):
 
     def __init__(
