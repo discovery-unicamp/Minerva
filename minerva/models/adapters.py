@@ -1,7 +1,7 @@
 import torch
 import torch.nn.functional as F
 
-class MaxPooling_Transposing_Squeezing_Adapter:
+class MaxPoolingTransposingSqueezingAdapter:
     def __init__(
         self,
         kernel_size: int = 128
