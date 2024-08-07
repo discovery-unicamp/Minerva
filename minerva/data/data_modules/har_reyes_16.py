@@ -121,6 +121,7 @@ class ReyesModule(L.LightningDataModule):
         batch_size: int = 42,
         percentage: float = 1.0,
         num_workers: int = 2,
+        seed: int = 42,
         balanced_division: bool = True,
     ):
         """
@@ -136,6 +137,8 @@ class ReyesModule(L.LightningDataModule):
             The percentage of the dataset to be used, default is 1.0
         num_workers : int
             The number of workers to be used in the dataloaders, default is 2
+        seed : int
+            The seed to be used in the random functions, default is 42
         balanced_division : bool
             If True and percentage is smaller than 1.0, the dataloader will have all classes with same number of samples (or differ by 1). If False the subset is chosen randomly. Default is True
 
@@ -150,6 +153,7 @@ class ReyesModule(L.LightningDataModule):
         }
         self.percentage = percentage
         self.num_workers = num_workers
+        self.seed = seed
         self.balanced_division = balanced_division
 
         # Verify that the data is available. If not, raise an error.
@@ -205,7 +209,8 @@ class ReyesModule(L.LightningDataModule):
                                 break
             else:
                 indices = list(range(len(dataset)))
-                indices = random.sample(
+                random.seed(self.seed)
+            indices = random.sample(
                     indices, int(len(indices) * percentage)
                 )
             dataset = Subset(dataset, indices)
