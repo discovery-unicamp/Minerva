@@ -25,6 +25,11 @@ class HarDataModule(L.LightningDataModule):
         This .npy files are of shape (n_samples, n_timesteps, n_channels) and are produced at specific window size by 
         another data processing script available in https://github.com/maxxu05/rebar/blob/main/data/process/har_processdata.py
 
+        The original files have exact shape of:
+        - `train_data.npy`: `(41, 15038, 6)`
+        - `val_data.npy`: `(9, 15038, 6)`
+        - `test_data.npy`: `(9, 15038, 6)`
+
         The Python script performs a series of tasks to facilitate the preprocessing and organization of dataset, processing
         The raw accelerometer and gyroscope data for each participant are, filtering out sequences shorter than a set threshold. 
         The data is then split into training, validation, and test sets, which are saved as NumPy arrays along with corresponding participant names.
@@ -46,6 +51,37 @@ class HarDataModule(L.LightningDataModule):
             Flag indicating whether to use ADF (Augmented Dickey-Fuller) testing for finding neighbors. Defaults to True.
         window_size : int, optional
             The size of the windows to be used for each sample in the TNC dataset. Defaults to 128.
+
+        Example Usage
+        -------------
+        ```python
+        import os
+        import numpy as np
+        import torch
+        from torch.utils.data import DataLoader
+        import pytorch_lightning as pl
+
+        # Example configuration
+        processed_data_dir = "path/to/processed/data"
+
+        # Instantiate the DataModule
+        data_module = HarDataModule(
+            processed_data_dir=processed_data_dir,
+        )
+
+        # Prepare the data loaders
+        train_loader = data_module.train_dataloader()
+        val_loader = data_module.val_dataloader()
+        test_loader = data_module.test_dataloader()
+
+        # Iterate over a batch of data
+        for batch in train_loader:
+            central_window, close_neighbors, non_neighbors = batch
+            print("Central Window Shape:", central_window.shape)  # (batch_size, window_size, n_channels)
+            print("Close Neighbors Shape:", close_neighbors.shape)  # (batch_size, mc_sample_size, window_size, n_channels)
+            print("Non-Neighbors Shape:", non_neighbors.shape)  # (batch_size, mc_sample_size, window_size, n_channels)
+            break
+        ```
 
         """        
         super().__init__()
@@ -140,27 +176,40 @@ class HarDataModule_Downstream(L.LightningDataModule):
         batch_size: int = 16,
     ):
         """
-        DataModule for downstream tasks in human activity recognition for UCI.
+        DataModule for downstream tasks in human activity recognition (HAR) using the UCI dataset.
+
+        This module handles loading and batching of data for training, validation, and testing.
+        It relies on the `HarDataset` class to load the dataset from `.npy` files.
 
         Parameters
         ----------
         root_data_dir : PathLike
-            Root directory containing the dataset files.
-            It must have 6 files, named:
-            train_data_subseq.npy, train_labels_subseq.npy,
-            val_data.npy, val_labels_subseq.npy,
-            test_data.npy, and test_labels_subseq.npy.
-            This files corresponds to data segmented into subsequences of a fixed length (e.g., 128 samples). 
-            These data subsequences are used for the downstream model, allowing it to learn patterns within these smaller segments.
-            The labels are the labels for each subsequence in each set, going drom 0 to 5.
+            Directory containing the dataset files. The directory should have the following files:
+            - train_data_subseq.npy
+            - train_labels_subseq.npy
+            - val_data.npy
+            - val_labels_subseq.npy
+            - test_data.npy
+            - test_labels_subseq.npy
+
+            These files should contain subsequences of data (e.g., 128 samples per subsequence) and their corresponding labels.
         feature_column_prefixes : List[str], optional
-            Prefixes for the feature columns in the dataset. Defaults to accelerometer and gyroscope data.
+            List of prefixes for feature columns. Defaults to accelerometer and gyroscope data prefixes:
+            ["accel-x", "accel-y", "accel-z", "gyro-x", "gyro-y", "gyro-z"].
         target_column : str, optional
-            Column name for the target variable. Defaults to 'standard activity code'.
+            Name of the column for the target variable. Defaults to 'standard activity code'.
         flatten : bool, optional
-            Whether to flatten the input data. Defaults to False.
+            If True, flattens the input data. Defaults to False.
         batch_size : int, optional
-            Batch size for the DataLoader. Defaults to 16.
+            Number of samples per batch. Defaults to 16.
+
+        Example method
+        -------
+        train_dataloader() -> DataLoader
+            Returns the DataLoader for the training dataset.
+            The shape of each batch is:
+            - Features: [batch_size, num_timesteps, num_features]
+            - Labels: [batch_size]
         """
         super().__init__()
         self.root_data_dir = root_data_dir

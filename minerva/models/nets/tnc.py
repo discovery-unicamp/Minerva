@@ -18,28 +18,45 @@ class RnnEncoder(torch.nn.Module):
         bidirectional: bool = True
     ):
         """
+        Initializes an RnnEncoder instance.
+
         This encoder utilizes a recurrent neural network (RNN) to encode sequential data,
         such as accelerometer and gyroscope readings from human activity recognition tasks.
 
-        Parameters:
-        -----------
-        - hidden_size (int):
+        Parameters
+        ----------
+        hidden_size : int
             Size of the hidden state in the RNN.
-        - in_channel (int):
+        in_channel : int
             Number of input channels (e.g., dimensions of accelerometer and gyroscope data).
-        - encoding_size (int):
+        encoding_size : int
             Desired size of the output encoding.
-        - cell_type (str, optional):
-            Type of RNN cell to use (default: 'GRU').
-        - num_layers (int, optional):
-            Number of RNN layers (default: 1).
-        - device (str, optional):
-            Device to run the model on (default: 'cpu').
-        - dropout (float, optional):
-            Dropout probability (default: 0).
-        - bidirectional (bool, optional):
-            Whether the RNN is bidirectional (default: True).  
+        cell_type : str, optional
+            Type of RNN cell to use (default is 'GRU'). Options include 'GRU', 'LSTM', etc.
+        num_layers : int, optional
+            Number of RNN layers (default is 1).
+        device : str, optional
+            Device to run the model on (default is 'cpu'). Options include 'cpu' and 'cuda'.
+        dropout : float, optional
+            Dropout probability (default is 0.0).
+        bidirectional : bool, optional
+            Whether the RNN is bidirectional (default is True).
 
+        Examples
+        --------
+        >>> device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        >>> encoder = RnnEncoder(hidden_size=100, in_channel=6, encoding_size=320, 
+                                 cell_type='GRU', num_layers=1, device=device, 
+                                 dropout=0.0, bidirectional=True).to(device)
+        >>> element1 = torch.randn(32, 50, 6)  # Batch size: 32, Time steps: 50, Input channels: 6
+        >>> encoding = encoder(element1.to(device))
+        >>> print(encoding.shape)
+        torch.Size([32, 320])
+
+        Notes
+        -----
+        - The input tensor should have the shape (batch_size, time_steps, in_channel).
+        - The output tensor will have the shape (batch_size, encoding_size).
         """
         super(RnnEncoder, self).__init__()
         self.hidden_size = hidden_size
@@ -55,6 +72,19 @@ class RnnEncoder(torch.nn.Module):
                                 batch_first=False, dropout=dropout, bidirectional=bidirectional).to(device)
 
     def forward(self, x):
+        """
+        Forward pass for the RnnEncoder.
+
+        Parameters
+        ----------
+        x : torch.Tensor
+            Input tensor of shape (batch_size, time_steps, in_channel).
+
+        Returns
+        -------
+        torch.Tensor
+            Encoded tensor of shape (batch_size, encoding_size).
+        """
         x = x.permute(1,0,2)
         past = torch.zeros(self.num_layers * (int(self.bidirectional) + 1), x.shape[1], self.hidden_size).to(self.device)
         # print(f"Input tensor shape before passing to RNN \n: {x.shape}")  # Print the shape of x
@@ -74,16 +104,32 @@ class TSEncoder(torch.nn.Module):
         """
         Encoder utilizing dilated convolutional layers for encoding sequential data.
 
-        Parameters:
-        -----------
-        - input_dims (int): 
+        Parameters
+        ----------
+        input_dims : int
             Dimensionality of the input features.
-        - output_dims (int): 
+        output_dims : int
             Desired dimensionality of the output features.
-        - hidden_dims (int, optional): 
-            Number of hidden dimensions in the convolutional layers (default: 64).
-        - depth (int, optional): 
-            Number of convolutional layers (default: 10).
+        hidden_dims : int, optional
+            Number of hidden dimensions in the convolutional layers (default is 64).
+        depth : int, optional
+            Number of convolutional layers (default is 10).
+
+        Examples
+        --------
+        >>> device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        >>> encoder = TSEncoder(input_dims=6, output_dims=320, hidden_dims=64, depth=10).to(device)
+        >>> element1 = torch.randn(12, 128, 6)  # Batch size: 12, Time steps: 128, Input channels: 6
+        >>> encoded_features = encoder(element1.to(device))
+        >>> print(encoded_features.shape)
+        torch.Size([12, 128, 320])
+
+        Notes
+        -----
+        - The input tensor should have the shape (batch_size, seq_len, input_dims).
+        - The output tensor will have the shape (batch_size, seq_len, output_dims).
+        - If the expected output tensor is of shape (batch_size, output_dims), consider using a pooling layer.
+        One option is to use the `MaxPoolingTransposingSqueezingAdapter` adapter. at minerva/models/adapters.py
         """
         super().__init__()
         self.input_dims = input_dims
@@ -258,13 +304,38 @@ class Discriminator_TNC(torch.nn.Module):
         A discriminator model used for contrastive learning tasks, predicting whether two inputs belong
         to the same neighborhood in the feature space.
 
-        Parameters:
-        -----------
-        - input_size (int):
+        Parameters
+        ----------
+        input_size : int
             Dimensionality of each input.
-        - max_pool (bool, optional):
-            Whether to apply max pooling before feeding into the projection head (default: False).
-            If using TS2Vec encoder, set to True, if using RNN set to False
+        max_pool : bool, optional
+            Whether to apply max pooling before feeding into the projection head (default is False).
+            If using TS2Vec encoder, set to True; if using RNN, set to False.
+
+        Examples
+        --------
+        >>> device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        >>> discriminator = Discriminator_TNC(input_size=320, max_pool=True).to(device)
+        >>> forward_ts2vec1 = torch.randn(12, 128, 320)  # Example tensor with shape (batch_size, timesteps, encoding_size)
+        >>> forward_ts2vec3 = torch.randn(12, 128, 320)  # Another example tensor with shape (batch_size, timesteps, encoding_size)
+        >>> output = discriminator(forward_ts2vec1, forward_ts2vec3)
+        >>> print(output.shape)
+        torch.Size([12])
+
+        >>> # Example with RNN encoder
+        >>> rnn_encoder = RnnEncoder(hidden_size=100, in_channel=6, encoding_size=320, cell_type='GRU', num_layers=1, device=device, dropout=0.0, bidirectional=True).to(device)
+        >>> element1 = torch.randn(12, 128, 6)  # Batch size: 12, Time steps: 128, Input channels: 6
+        >>> forward_rnn1 = rnn_encoder(element1.to(device))
+        >>> forward_rnn2 = rnn_encoder(element1.to(device))
+        >>> discriminator = Discriminator_TNC(input_size=320, max_pool=False).to(device)
+        >>> output = discriminator(forward_rnn1, forward_rnn2)
+        >>> print(output.shape)
+        torch.Size([12])
+
+        Notes
+        -----
+        - The input tensors should have the shape (batch_size, input_size).
+        - The output tensor will have the shape (batch_size,) representing the predicted probabilities.
         """
         super(Discriminator_TNC, self).__init__()
         self.input_size = input_size

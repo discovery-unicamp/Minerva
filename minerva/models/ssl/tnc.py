@@ -26,7 +26,17 @@ class TNC(L.LightningModule):
             The learning rate for the optimizer (default: 0.00001).
         - w (float, optional):
             The weight for the negative loss term (default: 0.05).
+        Examples:
+        ----------
+        >>> backbone = RnnEncoder(hidden_size=100, in_channel=6, encoding_size=320, cell_type='GRU', num_layers=1)
+        >>> projection_head = Discriminator_TNC(input_size=320, max_pool=False)
+        >>> model = TNC(backbone=backbone, projection_head=projection_head, learning_rate=0.0001, w=0.1)
+
+        >>> backbone = TSEncoder(input_dims=6, output_dims=320, hidden_dims=64, depth=10)
+        >>> projection_head = Discriminator_TNC(input_size=320, max_pool=True)
+        >>> model = TNC(backbone=backbone, projection_head=projection_head, loss_fn=torch.nn.CrossEntropyLoss(), learning_rate=0.001, w=0.05)
         """
+        
         super(TNC, self).__init__() 
         self.backbone = backbone
         self.projection_head = projection_head
@@ -42,18 +52,18 @@ class TNC(L.LightningModule):
 
         Parameters:
         -----------
-        - x_t (torch.Tensor):
+        x_t : torch.Tensor
             Tensor of shape (batch_size, seq_length, feature_size) representing the primary input.
-        - X_close (torch.Tensor):
+        X_close : torch.Tensor
             Tensor of shape (batch_size, seq_length, feature_size) representing close samples.
-        - X_distant (torch.Tensor):
+        X_distant : torch.Tensor
             Tensor of shape (batch_size, seq_length, feature_size) representing distant samples.
 
         Returns:
         --------
-        - d_p (torch.Tensor):
+        d_p : torch.Tensor
             Projection head output for positive (x_t, X_close) pairs.
-        - d_n (torch.Tensor):
+        d_n : torch.Tensor
             Projection head output for negative (x_t, X_distant) pairs.
         """
         x_t_encoded = self.backbone(x_t)
