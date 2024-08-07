@@ -66,7 +66,11 @@ class RnnEncoder(torch.nn.Module):
 # TS2Vec encoder used by xu
 
 class TSEncoder(torch.nn.Module):
-    def __init__(self, input_dims, output_dims, hidden_dims=64, depth=10):
+    def __init__(self, 
+        input_dims: int,
+        output_dims: int,
+        hidden_dims: int = 64,
+        depth: int = 10):
         """
         Encoder utilizing dilated convolutional layers for encoding sequential data.
 

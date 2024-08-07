@@ -104,6 +104,36 @@ class TNC(L.LightningModule):
         self.log("train_loss", loss)
         return loss
 
+    def validation_step(self, batch, batch_idx):
+        """
+        Single validation step using contrastive loss.
+
+        Parameters:
+        -----------
+        - batch (tuple of torch.Tensor):
+            Batch of input data consisting of (x_t, X_close, X_distant).
+
+        Returns:
+        --------
+        - val_loss (torch.Tensor):
+            Calculated contrastive loss for the current batch.
+        """
+        x_t, X_close, X_distant = batch
+        batch_size = x_t.size(0)
+        
+        neighbors = torch.ones((batch_size * self.mc_sample_size), device=self.device)
+        non_neighbors = torch.zeros((batch_size * self.mc_sample_size), device=self.device)
+        
+        d_p, d_n = self.forward(x_t, X_close, X_distant)
+        p_loss = self.loss_fn(d_p, neighbors)
+        n_loss = self.loss_fn(d_n, non_neighbors)
+        n_loss_u = self.loss_fn(d_n, neighbors)
+
+        val_loss = (p_loss + self.w * n_loss_u + (1 - self.w) * n_loss) / 2
+        
+        self.log("val_loss", val_loss)
+        return val_loss
+
     def configure_optimizers(self):
         optim = torch.optim.AdamW(self.parameters(), lr=self.learning_rate)
         return optim
