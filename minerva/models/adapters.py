@@ -24,9 +24,9 @@ class MaxPoolingTransposingSqueezingAdapter:
         Examples
         --------
         >>> import torch
-        >>> from adapters import MaxPoolingAdapter
+        >>> from minerva.models.adapters import MaxPoolingTransposingSqueezingAdapter
         >>> tensor = torch.randn(10, 128, 64)  # Example input tensor with shape (batch_size, time_steps, features)
-        >>> adapter = MaxPoolingAdapter(kernel_size=128)
+        >>> adapter = MaxPoolingTransposingSqueezingAdapter(kernel_size=128)
         >>> result = adapter(tensor)
         >>> print(result.shape)
         torch.Size([10, 64])
