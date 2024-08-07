@@ -1,4 +1,4 @@
-from typing import Dict, Optional, Union
+from typing import Dict, Optional, Union, Callable
 
 import lightning as L
 import torch
@@ -30,7 +30,7 @@ class SimpleSupervisedModel(L.LightningModule):
         backbone: Union[torch.nn.Module, LoadableModule],
         fc: Union[torch.nn.Module, LoadableModule],
         loss_fn: torch.nn.Module,
-        adapter: Optional[callable] = None,
+        adapter: Optional[Callable[[torch.Tensor], torch.Tensor]] = None,
         learning_rate: float = 1e-3,
         flatten: bool = True,
         train_metrics: Optional[Dict[str, Metric]] = None,
