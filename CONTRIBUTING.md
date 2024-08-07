@@ -16,8 +16,19 @@ First of all, make sure to follow our [Code of Conduct](https://github.com/disco
 
 * **Bug reports** should be as detailed as possible. Include the steps to reproduce the bug, the expected behavior and the actual behavior. If possible, include screenshots. There is a template available for bug reports. You should follow it as closely as possible.
 * **Feature requests** should be more concise. Include the problem you are facing, the solution you are thinking about and any other information that you think is relevant. There is also a template available for feature requests you should follow as close as possible.
+* **Fix requests** should be as detailed as possible. Fix requests should be used for small styling and cosmetic changes that don't require a new feature to be implemented. Include the problem you are facing, the solution you are thinking about and any other information that you think is relevant. There is also a template available for fix requests you should follow as close as possible.
 
-Any other discussion should be done in the [Discussions](https://github.com/discovery-unicamp/Minerva/discussions) tab.
+### Issue Pipeline
+
+* **New Issues** are issues that have not been assigned to anyone yet. They need to be reviewed before being assigned to someone.
+* **On Review** are issues that got a slot at the weekly meeting. It means that the issue creator should be present at the meeting to discuss the issue.
+* **Ready for Development** are issues that have been reviewed and are ready to be developed. They can be assigned to anyone.
+
+### Recommendations
+
+* Users are not allowed to assign other users to issues unless they are mentioned in the issue and have prior knowledge of the issue.
+
+Any other discussion should be done in the [Discussions](https://github.com/discovery-unicamp/Minerva-Dev/discussions) tab.
 
 ### Pull Requests
 
