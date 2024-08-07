@@ -158,6 +158,8 @@ class MultiModalSeriesCSVDataset:
 
         # If label is specified, return the data and the labels
         if self.label:
+            if self.label == "return_index_as_label":
+                return data, np.arange(len(data))
             labels = df[self.label].to_numpy()
             return data, labels
         # If label is not specified, return only the data
