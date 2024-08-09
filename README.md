@@ -8,17 +8,38 @@ Minerva is a framework for training machine learning models for researchers.
 
 This project aims to provide a robust and flexible framework for researchers working on machine learning projects. It includes various utilities and modules for data transformation, model creation, and analysis metrics.
 
+### Features
+
+Minerva offers a wide range of features to help you with your machine learning projects:
+
+- **Model Creation**: Minerva offers a variety of models and architectures to choose from.
+- **Training and Evaluation**: Minerva provides tools to train and evaluate your models, including loss functions, optimizers, and evaluation metrics.
+- **Data Transformation**: Minerva provides tools to preprocess and transform your data, including data loaders, data augmentation, and data normalization.
+- **Command-Line Interface (CLI)**: Minerva offers a CLI to streamline the process of training and evaluating models.
+- **Modular Design**: Minerva is designed to be modular and extensible, allowing you to easily add new features and functionalities.
+- **Reproducibility**: Minerva ensures reproducibility by providing tools for versioning, configuration, and logging of experiments.
+- **Experiment Management**: Minerva allows you to manage your experiments, including versioning, configuration, and logging.
+- **SSL Support**: Minerva supports SSL (Semi-Supervised Learning) for training models with limited labeled data.
+
+### Near Future Features
+
+- **Hyperparameter Optimization**: Minerva will offer tools for hyperparameter optimization powered by Ray Tune.
+- **PyPI Package**: Minerva will be available as a PyPI package for easy installation.
+- **Pre-trained Models**: Minerva will offer pre-trained models for common tasks and datasets.
+
 ## Installation
 
-### Intall Locally
+### Install Locally
+
 To install Minerva, you can use pip:
 
 ```sh
 pip install .
 ```
+
 ### Get container from Docker Hub
 
-```
+```sh
 docker pull gabrielbg0/minerva:latest
 ```
 

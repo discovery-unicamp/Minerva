@@ -1,11 +1,12 @@
-from typing import Tuple
+from typing import Optional, Tuple, Union
+
+import lightning as L
 import torch
 from torch.utils.data import DataLoader
-import lightning as L
 
 
 class SimpleDataset:
-    def __init__(self, data: torch.Tensor, label: torch.Tensor = None):
+    def __init__(self, data: torch.Tensor, label: Optional[torch.Tensor] = None):
         self.data = data
         self.label = label
 
@@ -23,8 +24,8 @@ class RandomDataModule(L.LightningDataModule):
     def __init__(
         self,
         data_shape: Tuple[int, ...],
-        label_shape: int | Tuple[int, ...] = None,
-        num_classes: int = None,
+        label_shape: Union[int, Tuple[int, ...], None] = None,
+        num_classes: Optional[int] = None,
         num_train_samples: int = 128,
         num_val_samples: int = 8,
         num_test_samples: int = 8,
@@ -54,17 +55,13 @@ class RandomDataModule(L.LightningDataModule):
             delattr(self, "val_dataloader")
 
         if num_test_samples is not None:
-            assert (
-                num_test_samples > 0
-            ), "num_test_samples must be greater than 0"
+            assert num_test_samples > 0, "num_test_samples must be greater than 0"
         else:
             delattr(self, "test_dataloader")
 
         # label_shape and num_classes are mutually exclusive
         if label_shape is not None and num_classes is not None:
-            raise ValueError(
-                "label_shape and num_classes are mutually exclusive"
-            )
+            raise ValueError("label_shape and num_classes are mutually exclusive")
 
     def _generate_data(self, num_samples, data_shape, label_shape, num_classes):
         data = torch.rand((num_samples, *data_shape))
@@ -103,7 +100,6 @@ class RandomDataModule(L.LightningDataModule):
                     self.num_classes,
                 )
                 self.test_data = SimpleDataset(data, label)
-                
         elif stage == "predict":
             if self.num_predict_samples is not None:
                 data, label = self._generate_data(
@@ -113,34 +109,23 @@ class RandomDataModule(L.LightningDataModule):
                     self.num_classes,
                 )
                 self.predict_data = SimpleDataset(data, label)
-                
         else:
             raise ValueError(f"Invalid stage: {stage}")
 
     def train_dataloader(self):
-        return DataLoader(
-            self.train_data, batch_size=self.batch_size, shuffle=True
-        )
+        return DataLoader(self.train_data, batch_size=self.batch_size, shuffle=True)
 
     def val_dataloader(self):
-        return DataLoader(
-            self.val_data, batch_size=self.batch_size, shuffle=False
-        )
+        return DataLoader(self.val_data, batch_size=self.batch_size, shuffle=False)
 
     def test_dataloader(self):
-        return DataLoader(
-            self.test_data, batch_size=self.batch_size, shuffle=False
-        )
-        
+        return DataLoader(self.test_data, batch_size=self.batch_size, shuffle=False)
+
     def predict_dataloader(self):
-        return DataLoader(
-            self.predict_data, batch_size=self.batch_size, shuffle=False
-        )
+        return DataLoader(self.predict_data, batch_size=self.batch_size, shuffle=False)
 
 
-def get_split_dataloader(
-    stage: str, data_module: L.LightningDataModule
-) -> DataLoader:
+def get_split_dataloader(stage: str, data_module: L.LightningDataModule) -> DataLoader:
     if stage == "train":
         data_module.setup("fit")
         return data_module.train_dataloader()
