@@ -3,7 +3,7 @@ from torchmetrics import Metric
 
 
 class PixelAccuracy(Metric):
-    def __init__(self, dist_sync_on_step=False):
+    def __init__(self, dist_sync_on_step: bool = False):
         """
         Initializes a PixelAccuracy metric object.
 

@@ -26,7 +26,7 @@ Welcome to the Pipelines section! Here, we'll explore the core functionalities a
 
 ## 5. Clonability
 
-- **Cloning Pipelines**: Pipelines are cloneable, enabling the creation of independent instances from existing ones. The `clone` method initializes a deep copy, providing a clean slate for each clone.
+- **Cloning Pipelines**: Pipelines are clonable, enabling the creation of independent instances from existing ones. The `clone` method initializes a deep copy, providing a clean slate for each clone.
 
 ## 6. Parallel and Distributed Environments
 

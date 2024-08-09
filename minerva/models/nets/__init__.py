@@ -1,8 +1,9 @@
 from .base import SimpleSupervisedModel
-from .deeplabv3 import DeepLabV3
-from .setr import SETR_PUP
-from .unet import UNet
-from .wisenet import WiseNet
+from .image.deeplabv3 import DeepLabV3
+from .image.setr import SETR_PUP
+from .image.unet import UNet
+from .image.wisenet import WiseNet
+from .mlp import MLP
 
 __all__ = [
     "SimpleSupervisedModel",
@@ -10,4 +11,5 @@ __all__ = [
     "SETR_PUP",
     "UNet",
     "WiseNet",
+    "MLP"
 ]
