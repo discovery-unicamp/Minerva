@@ -1,14 +1,14 @@
 ---
-name: Bug report
-about: Create a report to help us improve
-title: '[Bug]'
+name: Fix Request
+about: Create a request to fix a bug or issue with the code
+title: '[Fix Request]'
 labels: bug
 assignees: ''
 
 ---
 
-**Describe the bug**
-A clear and concise description of what the bug is.
+**Describe the problem**
+A clear and concise description of what the what do you need to be fixed.
 
 **To Reproduce**
 Steps to reproduce the behavior:
