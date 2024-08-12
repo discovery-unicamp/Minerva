@@ -29,9 +29,7 @@ class LFR_HAR_Backbone(nn.Module):
         )
         
     def forward(self, x):
-        x = self.model(x)
-        print('BACKBONE', x.shape)
-        return x
+        return self.model(x)
     
 class LFR_HAR_Projector(nn.Module):
     def __init__(
@@ -53,9 +51,7 @@ class LFR_HAR_Projector(nn.Module):
         )
 
     def forward(self, x):
-        x = self.model(x)
-        print('PROJECTOR', x.shape)
-        return x
+        return self.model(x)
 
 class LFR_HAR_Predictor(nn.Module):
     def __init__(
@@ -90,6 +86,4 @@ class LFR_HAR_Predictor(nn.Module):
             raise ValueError("Invalid number of layers")
 
     def forward(self, z):
-        z = self.model(z)
-        print('PREDICTOR', z.shape)
-        return z
+        return self.model(z)
