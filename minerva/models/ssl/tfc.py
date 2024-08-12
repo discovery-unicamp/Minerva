@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 import lightning as pl
-from typing import List, Tuple, Union
+from typing import List, Tuple, Union, Optional
 from minerva.transforms.tfc import TFC_Transforms
 from minerva.models.nets.tfc import TFC_Conv_Backbone, TFC_PredicionHead
 from minerva.losses.ntxent_loss_poly import NTXentLoss_poly
@@ -27,7 +27,7 @@ class TFC_Model(pl.LightningModule):
         self,
         input_channels: int,
         TS_length: int,
-        num_classes: int = None,
+        num_classes: Optional[int] = None,
         single_encoding_size: int = 128,
         backbone: Union[nn.Module, LoadableModule] = None,
         pred_head: Union[bool, nn.Module] = True,
@@ -47,13 +47,13 @@ class TFC_Model(pl.LightningModule):
             The number of channels in the input data
         - TS_length: int
             The number of time steps in the input data
-        - num_classes: Union(int, None)
+        - num_classes: Optional[int]
             The number of downstream classes in the dataset, if none, the model is trained in a self-supervised learning approach
         - single_encoding_size: int
             The size of the encoding in the latent space of frequency or time domain individually
-        - backbone: nn.Module
+        - backbone: Union[nn.Module, LoadableModule]
             The backbone of the model. If None, a default backbone is created as a convolutional neural network
-        - pred_head: Union(bool, nn.Module)
+        - pred_head: Union[bool, nn.Module]
             If True, a prediction head (MLP) is added to the model. If False or None, the model is trained in a self-supervised learning approach. If a nn.Module is provided, it is used as the prediction head
         - loss: _Loss
             The loss function to be used in the training step. If None, the ntxent_poly is used for pretrain or the CrossEntropyLoss is used for downstream
@@ -66,7 +66,9 @@ class TFC_Model(pl.LightningModule):
         - batch_size: int
             The batch size of the model
         - pipeline: str
-            The pipeline to be used in the training of the model. It can be 'both', 'time' or 'freq'. Default is 'both'
+            The pipeline to be used in the training of the model. It can be 'both', 'time' or 'freq'. Default is 'both'. If 'both', the model is trained with both time and frequency domain data as default described in tfc paper.
+             If 'time', the model is trained with only time domain data. If 'freq', the model is trained with only frequency domain data obtained by fft. At these scenarios, the input data must have the time and frequency domain
+             but the prediction head will be used only for the selected one. Also is necesssary to adapt the prediction head input half size of expected (only single_encoding_size instead of single_encoding_size*2)
         """
         super(TFC_Model, self).__init__()
         self.num_classes = num_classes
