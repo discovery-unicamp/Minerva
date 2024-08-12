@@ -3,6 +3,9 @@ from torch.utils.data import Dataset
 from statsmodels.tsa.stattools import adfuller
 from sklearn.metrics.pairwise import cosine_similarity
 import torch
+from minerva.utils.typing import PathLike
+from typing import List, Tuple
+import os
 
 class TNCDataset(Dataset):
     def __init__(
@@ -18,6 +21,12 @@ class TNCDataset(Dataset):
         (Temporal Neighborhood Coding) task. It includes methods to load data, find close neighbors 
         using ADF testing or cosine similarity, and find distant non-neighbors.
         The dataset returns a tuple of the central window, close neighbors, and distant non-neighbors for each sample.
+
+        The `time_series` input should have the shape (n_samples, n_channels, n_timesteps).
+        The `__getitem__` method returns:
+        - `central_window`: (n_channels, window_size)
+        - `close_neighbors`: (mc_sample_size, n_channels, window_size)
+        - `non_neighbors`: (mc_sample_size, n_channels, window_size)
 
         Parameters
         ----------
@@ -65,7 +74,35 @@ class TNCDataset(Dataset):
             time steps are selected to be either before or after the `delta` range.
             - A fallback mechanism ensures at least one non-neighbor segment is returned, 
             even if the primary selection fails.
-             
+        Example Usage
+        -------------
+        ```python
+        # Example configuration
+        from minerva.data.datasets.har_xu_23 import TNCDataset
+        import numpy as np
+
+        original_time_series = np.random.randn(100, 1000, 6)  # (n_samples, n_channels, n_timesteps)
+
+        time_series_data=  np.transpose(original_time_series, (0, 2, 1)) #(n_samples, n_channels, n_timesteps)
+
+
+        # Instantiate the dataset
+        tnc_dataset = TNCDataset(
+            x=time_series_data,
+            mc_sample_size=mc_sample_size,
+            window_size=window_size,
+            epsilon=epsilon,
+            adf=adf
+        )
+
+        # Retrieve a sample from the dataset
+        sample_index = 0
+        central_window, close_neighbors, non_neighbors = tnc_dataset[sample_index]
+
+        print("Central Window Shape:", central_window.shape)  # (window_size,n_channels)
+        print("Close Neighbors Shape:", close_neighbors.shape)  # (mc_sample_size,window_size, n_channels, )
+        print("Non-Neighbors Shape:", non_neighbors.shape)  # (mc_sample_size, n_channels, window_size)
+        ```             
         """
         super(TNCDataset, self).__init__()
         self.time_series = x
@@ -195,3 +232,122 @@ class TNCDataset(Dataset):
             else:
                 x_n = x[:, T - rand_t - self.window_size:T - rand_t].unsqueeze(0)
         return x_n
+    
+class HarDataset(Dataset):
+    def __init__(
+        self,
+        data_path: PathLike,
+        annotate: str,
+        feature_column_prefixes: List[str] = [
+            "accel-x",
+            "accel-y",
+            "accel-z",
+            "gyro-x",
+            "gyro-y",
+            "gyro-z",
+        ],
+        target_column: str = "standard activity code",
+        flatten: bool = False,
+    ):
+        """
+        Dataset class for human activity recognition (HAR) data.
+
+        Loads and prepares data from `.npy` files and returns features and labels.
+
+        Parameters
+        ----------
+        data_path : PathLike
+            Path to the directory containing dataset files. The directory should contain the following files:
+            - train_data_subseq.npy
+            - train_labels_subseq.npy
+            - val_data.npy
+            - val_labels_subseq.npy
+            - test_data.npy
+            - test_labels_subseq.npy
+
+            These files should correspond to data segmented into subsequences and their labels.
+        annotate : str
+            Annotation type, indicating which subset of the data to load ('train', 'val', or 'test').
+        feature_column_prefixes : List[str], optional
+            List of prefixes for feature columns. Defaults to:
+            ["accel-x", "accel-y", "accel-z", "gyro-x", "gyro-y", "gyro-z"].
+        target_column : str, optional
+            Name of the column for the target variable. Defaults to 'standard activity code'.
+        flatten : bool, optional
+            If True, flattens the input data. Defaults to False.
+
+        Attributes
+        ----------
+        data : numpy.ndarray
+            Array of features with shape (num_samples, num_timesteps, num_features).
+            - num_samples: Total number of samples in the dataset.
+            - num_timesteps: Length of each subsequence (e.g., 128).
+            - num_features: Number of features per timestep (e.g., 6 for accelerometer and gyroscope data).
+        labels : numpy.ndarray
+            Array of labels with shape (num_samples,).
+            - num_samples: Total number of samples in the dataset.
+
+        Methods
+        -------
+        __len__() -> int
+            Returns the number of samples in the dataset.
+        __getitem__(idx: int) -> Tuple[torch.Tensor, int]
+            Retrieves a sample from the dataset.
+            - Features shape: [num_timesteps, num_features] if `flatten` is False, otherwise [num_timesteps * num_features].
+            - Label shape: Scalar.
+
+        Examples
+        --------
+        from minerva.data.datasets.har_xu_23 import HarDataset
+        >>> dataset = HarDataset(data_path="/path/to/data", annotate="train")
+        >>> len(dataset)
+        3178
+        >>> sample = dataset[0]
+        >>> features, label = sample
+        >>> features.shape
+        torch.Size([128, 6])
+        >>> label
+        tensor(4)
+        """
+        super().__init__()
+        self.data_path = data_path
+        self.annotate = annotate
+        self.feature_column_prefixes = feature_column_prefixes
+        self.target_column = target_column
+        self.flatten = flatten
+
+        self.data = np.load(os.path.join(self.data_path, f"{self.annotate}_data_subseq.npy"))
+        self.labels = np.load(os.path.join(self.data_path, f"{self.annotate}_labels_subseq.npy"))
+
+        # self.labels = np.load(self.data_path / f"{self.annotate}_labels_subseq.npy")
+        assert len(self.data) == len(self.labels), "Data and labels must have the same length"
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, idx: int) -> Tuple[torch.Tensor, int]:
+        """
+        Get a sample from the dataset.
+
+        Parameters
+        ----------
+        idx : int
+            Index of the sample to retrieve.
+
+        Returns
+        -------
+        Tuple[torch.Tensor, int]
+            Tuple containing the features and the target label.
+        """
+        data = self.data[idx]
+        if self.flatten:
+            data = data.flatten()
+
+        features = data
+        target = self.labels[idx]
+
+        # Convert to torch.FloatTensor and torch.LongTensor
+        features = torch.FloatTensor(features)
+        target = torch.tensor(target, dtype=torch.long)
+
+        return features, target

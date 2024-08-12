@@ -1,14 +1,10 @@
 """ Full assembly of the parts to form the complete network """
 
-import time
-from typing import Dict, Optional
+from typing import Optional
 
-import lightning as L
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import torch.optim as optim
-from torch.optim.lr_scheduler import CyclicLR, StepLR
 
 from minerva.models.nets.base import SimpleSupervisedModel
 
@@ -227,5 +223,5 @@ class UNet(SimpleSupervisedModel):
             loss_fn=loss_fn or torch.nn.MSELoss(),
             learning_rate=learning_rate,
             flatten=False,
-            **kwargs
+            **kwargs,
         )

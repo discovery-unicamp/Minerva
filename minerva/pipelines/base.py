@@ -1,22 +1,22 @@
-from abc import abstractmethod
 import copy
 import os
-from pathlib import Path
-from typing import Any, List, Dict
-from uuid import uuid4
-from time import time
-import traceback
+import platform
 import sys
-from lightning.pytorch.core.mixins import HyperparametersMixin
-import pkg_resources
-import yaml
+import traceback
+from abc import abstractmethod
 from datetime import datetime
+from functools import cached_property
+from pathlib import Path
+from time import time
+from typing import Any, Dict, List, Optional, Union
+from uuid import uuid4
 
 import git
-import sys
-import platform
-from functools import cached_property
+import pkg_resources
+import yaml
+from lightning.pytorch.core.mixins import HyperparametersMixin
 from lightning.pytorch.utilities import rank_zero_only
+
 from minerva.utils.typing import PathLike
 
 
@@ -43,8 +43,8 @@ class Pipeline(HyperparametersMixin):
 
     def __init__(
         self,
-        log_dir: Path | str = None,
-        ignore: str | List[str] = None,
+        log_dir: Optional[PathLike] = None,
+        ignore: Optional[Union[str, List[str]]] = None,
         cache_result: bool = False,
         save_run_status: bool = False,
     ):
@@ -52,10 +52,10 @@ class Pipeline(HyperparametersMixin):
 
         Parameters
         ----------
-        log_dir : Path | str, optional
-            The default logging directory where all related pipeline files 
+        log_dir : PathLike, optional
+            The default logging directory where all related pipeline files
             should be saved. By default None (uses current working directory)
-        ignore : str | List[str], optional
+        ignore : Union[str, List[str]], optional
             Pipeline __init__ attributes are saved into config attibute. This
             option allows to ignore some attributes from being saved. This is
             quite useful when the attributes are not serializable or very large.
@@ -132,9 +132,9 @@ class Pipeline(HyperparametersMixin):
             Path to the pipeline's log_dir
         """
         return self._log_dir
-    
+
     @log_dir.setter
-    def log_dir(self, value: Path | str):
+    def log_dir(self, value: PathLike):
         """Set the log_dir.
 
         Parameters
@@ -216,8 +216,7 @@ class Pipeline(HyperparametersMixin):
 
         # ---------- Add python information ----------
         packages = [
-            f"{pkg.project_name}=={pkg.version}"
-            for pkg in pkg_resources.working_set
+            f"{pkg.project_name}=={pkg.version}" for pkg in pkg_resources.working_set
         ]
         d["python"] = {
             "pip_packages": packages,
@@ -342,9 +341,7 @@ class Pipeline(HyperparametersMixin):
 
         if self._save_run_status:
             self._cached_run_status.append(self.run_status)
-            self._save_pipeline_info(
-                self._log_dir / f"run_{self.pipeline_id}.yaml"
-            )
+            self._save_pipeline_info(self._log_dir / f"run_{self.pipeline_id}.yaml")
 
         return result
 
