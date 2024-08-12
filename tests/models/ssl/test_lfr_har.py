@@ -11,7 +11,7 @@ def test_lfr_har():
         predictors=torch.nn.ModuleList([LFR_HAR_Predictor(encoding_size=256, middle_dim=128, num_layers=3) for _ in range(8)]),
         loss_fn=None,
         learning_rate=1e-3,
-        flatten=True,
+        flatten=False,
         predictor_training_epochs=7
     )
     assert model is not None
