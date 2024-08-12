@@ -1,5 +1,5 @@
 from itertools import product
-from typing import Any, List, Sequence
+from typing import Any, List, Sequence, Union
 
 import numpy as np
 import torch
@@ -50,7 +50,7 @@ class TransformPipeline(_Transform):
 class Flip(_Transform):
     """Flip the input data along the specified axis."""
 
-    def __init__(self, axis: int | List[int] = 0):
+    def __init__(self, axis: Union[int, List[int]] = 0):
         """Flip the input data along the specified axis.
 
         Parameters
@@ -95,9 +95,7 @@ class PerlinMasker(_Transform):
             Optionally rescale the Perlin noise. Default is 1 (no rescaling)
         """
         if octaves <= 0:
-            raise ValueError(
-                f"Number of octaves must be positive, but got {octaves=}"
-            )
+            raise ValueError(f"Number of octaves must be positive, but got {octaves=}")
         if scale == 0:
             raise ValueError(f"Scale can't be 0")
         self.octaves = octaves
@@ -161,7 +159,7 @@ class Unsqueeze(_Transform):
 class CastTo(_Transform):
     """Cast the input data to the specified data type."""
 
-    def __init__(self, dtype: type | str):
+    def __init__(self, dtype: Union[type, str]):
         """Cast the input data to the specified data type.
 
         Parameters

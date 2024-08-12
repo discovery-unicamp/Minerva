@@ -1,5 +1,7 @@
 import torch
-from minerva.models.nets.inception_time import InceptionTime
+
+from minerva.models.nets.time_series.inception_time import InceptionTime
+
 
 def test_inception_time_forward():
     input_shape = (6, 60)

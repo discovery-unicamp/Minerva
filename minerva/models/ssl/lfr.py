@@ -84,7 +84,7 @@ class LearnFromRandomnessModel(L.LightningModule):
         loss_fn: torch.nn.Module = None,
         learning_rate: float = 1e-3,
         flatten: bool = True,
-        predictor_training_epochs: Optional[int] = 7,
+        predictor_training_epochs: Optional[int] = None,
     ):
         """
         Initialize the LFR_Model.

@@ -1,29 +1,19 @@
-import numpy as np
-import time
+from typing import Optional, Tuple
 
-
-from functools import partial
-from typing import Literal, Tuple
 import torch
-from torch import nn
-from torch.nn import TransformerEncoder, TransformerEncoderLayer
 from torchmetrics import Accuracy
+
 from minerva.models.nets.base import SimpleSupervisedModel
-import lightning as L
 
 
 class ConvolutionalBlock(torch.nn.Module):
-    def __init__(
-        self, in_channels: int, activation_cls: torch.nn.Module = None
-    ):
+    def __init__(self, in_channels: int, activation_cls: torch.nn.Module):
         super().__init__()
         self.in_channels = in_channels
         self.activation_cls = activation_cls
 
         self.block = torch.nn.Sequential(
-            torch.nn.Conv1d(
-                in_channels, out_channels=64, kernel_size=5, stride=1
-            ),
+            torch.nn.Conv1d(in_channels, out_channels=64, kernel_size=5, stride=1),
             torch.nn.BatchNorm1d(64),
             activation_cls(),
             torch.nn.MaxPool1d(2),
@@ -120,9 +110,7 @@ class _ResNet1D(torch.nn.Module):
         )
         self.residual_blocks = torch.nn.Sequential(
             *[
-                residual_block_cls(
-                    in_channels=64, activation_cls=activation_cls
-                )
+                residual_block_cls(in_channels=64, activation_cls=activation_cls)
                 for _ in range(num_residual_blocks)
             ]
         )
@@ -146,7 +134,6 @@ class ResNet1DBase(SimpleSupervisedModel):
         num_residual_blocks: int = 5,
         reduction_ratio=2,
         learning_rate: float = 1e-3,
-        **kwargs
     ):
         backbone = _ResNet1D(
             input_shape=input_shape,
@@ -167,7 +154,8 @@ class ResNet1DBase(SimpleSupervisedModel):
             learning_rate=learning_rate,
             flatten=True,
             loss_fn=torch.nn.CrossEntropyLoss(),
-            **kwargs,
+            val_metrics={"acc": Accuracy(task="multiclass", num_classes=num_classes)},
+            test_metrics={"acc": Accuracy(task="multiclass", num_classes=num_classes)},
         )
 
     def _calculate_fc_input_features(
@@ -204,8 +192,8 @@ class ResNet1D_8(ResNet1DBase):
             activation_cls=torch.nn.ELU,
             num_residual_blocks=8,
         )
-        
-        
+
+
 # Deep Residual Network for Smartwatch-Based User Identification through Complex Hand Movements (ResNetSE1D)
 class ResNetSE1D_8(ResNet1DBase):
     def __init__(self, *args, **kwargs):
@@ -216,6 +204,7 @@ class ResNetSE1D_8(ResNet1DBase):
             activation_cls=torch.nn.ELU,
             num_residual_blocks=8,
         )
+
 
 # resnet-se: Channel Attention-Based Deep Residual Network for Complex Activity Recognition Using Wrist-Worn Wearable Sensors
 # Changes the activation function to ReLU and the number of residual blocks to 5 (compared to ResNetSE1D_8)
@@ -228,72 +217,3 @@ class ResNetSE1D_5(ResNet1DBase):
             activation_cls=torch.nn.ReLU,
             num_residual_blocks=5,
         )
-
-
-# def test_resnet_8():
-#     input_shape = (6, 60)
-#     data_module = RandomDataModule(
-#         num_samples=8,
-#         num_classes=6,
-#         input_shape=input_shape,
-#         batch_size=8,
-#     )
-#     model = ResNet1D_8(
-#         input_shape=input_shape,
-#         num_classes=6,
-#         learning_rate=1e-3,
-#     )
-#     print(model)
-
-#     trainer = L.Trainer(
-#         max_epochs=1, logger=False, devices=1, accelerator="cpu"
-#     )
-#     trainer.fit(model, datamodule=data_module)
-
-
-# def test_resnet_se_8():
-#     input_shape = (6, 60)
-#     data_module = RandomDataModule(
-#         num_samples=8,
-#         num_classes=6,
-#         input_shape=input_shape,
-#         batch_size=8,
-#     )
-#     model = ResNetSE1D_8(
-#         input_shape=input_shape,
-#         num_classes=6,
-#         learning_rate=1e-3,
-#     )
-#     print(model)
-
-#     trainer = L.Trainer(
-#         max_epochs=1, logger=False, devices=1, accelerator="cpu"
-#     )
-#     trainer.fit(model, datamodule=data_module)
-
-
-# def test_resnet_se_5():
-#     input_shape = (6, 60)
-#     data_module = RandomDataModule(
-#         num_samples=8,
-#         num_classes=6,
-#         input_shape=input_shape,
-#         batch_size=8,
-#     )
-#     model = ResNetSE1D_5(
-#         input_shape=input_shape,
-#         num_classes=6,
-#         learning_rate=1e-3,
-#     )
-#     print(model)
-
-#     trainer = L.Trainer(
-#         max_epochs=1, logger=False, devices=1, accelerator="cpu"
-#     )
-#     trainer.fit(model, datamodule=data_module)
-
-
-# if __name__ == "__main__":
-#     test_resnet_8()
-#     test_resnet_se_8()
-#     test_resnet_se_5()
