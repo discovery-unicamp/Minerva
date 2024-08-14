@@ -76,33 +76,23 @@ class LearnFromRandomnessModel(L.LightningModule):
     def __init__(
         self,
         backbone: torch.nn.Module,
-        pseudolabelers: torch.nn.ModuleList,
         projectors: torch.nn.ModuleList,
+        predictors: torch.nn.ModuleList,
         loss_fn: torch.nn.Module,
         learning_rate: float = 1e-3,
         flatten: bool = True,
     ):
         """
-        Initialize the LearnFromRandomnessModel.
-
-        Terminology Warning
-        -------
-        The paper by Yi Sui et. al. that describes this self-supervised technique names the modules responsible
-        for generating the pseudo-labels as "projectors" and the projection heads that predict the pseudolabels
-        from the features extracted by the backbone as "predictors".
-        However, in order to keep a consistent naming convention across Minerva and to avoid any equivocation
-        between projectors and projection heads, we dub the pseudo-label generating modules the "pseudolabelers"
-        and the projection heads that perform the prediction as "projectors" in this module.
-
+        Initialize the LFR_Model.
 
         Parameters
         ----------
         backbone: torch.nn.Module
             The backbone neural network for feature extraction.
-        pseudolabelers: torch.nn.ModuleList
-            A list of pseudolabeler networks.
         projectors: torch.nn.ModuleList
             A list of projector networks.
+        predictors: torch.nn.ModuleList
+            A list of predictor networks.
         loss_fn: torch.nn.Module
             The loss function to optimize.
         learning_rate: float
@@ -112,16 +102,16 @@ class LearnFromRandomnessModel(L.LightningModule):
         """
         super().__init__()
         self.backbone = backbone
-        self.pseudolabelers = pseudolabelers
         self.projectors = projectors
+        self.predictors = predictors
         self.loss_fn = loss_fn
         self.learning_rate = learning_rate
         self.flatten = flatten
 
-        for param in self.pseudolabelers.parameters():
+        for param in self.projectors.parameters():
             param.requires_grad = False
 
-        for proj in self.pseudolabelers:
+        for proj in self.projectors:
             proj.eval()
 
     def _loss_func(self, y_hat: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
@@ -155,7 +145,7 @@ class LearnFromRandomnessModel(L.LightningModule):
         Returns
         -------
         torch.Tensor
-            The projected output and the pseudolabel.
+            The predicted output and projected input.
         """
         z: torch.Tensor = self.backbone(x)
 
@@ -163,10 +153,10 @@ class LearnFromRandomnessModel(L.LightningModule):
             z = z.view(z.size(0), -1)
             x = x.view(x.size(0), -1)
 
-        y_proj = torch.stack([projector(z) for projector in self.projectors], 1)
-        y_pseudo = torch.stack([pseudolabeler(x) for pseudolabeler in self.pseudolabelers], 1)
+        y_pred = torch.stack([predictor(z) for predictor in self.predictors], 1)
+        y_proj = torch.stack([projector(x) for projector in self.projectors], 1)
 
-        return y_proj, y_pseudo
+        return y_pred, y_proj
 
     def _single_step(
         self, batch: torch.Tensor, batch_idx: int, step_name: str
@@ -189,8 +179,8 @@ class LearnFromRandomnessModel(L.LightningModule):
             The loss value for the batch.
         """
         x = batch
-        y_proj, y_pseudo = self.forward(x)
-        loss = self._loss_func(y_proj, y_pseudo)
+        y_pred, y_proj = self.forward(x)
+        loss = self._loss_func(y_pred, y_proj)
         self.log(
             f"{step_name}_loss",
             loss,
