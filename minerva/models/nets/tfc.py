@@ -1,7 +1,8 @@
 import torch
 import torch.nn as nn
 from typing import Tuple
-
+from minerva.models.nets.tnc import TSEncoder
+from minerva.models.adapters import MaxPoolingTransposingSqueezingAdapter
 class TFC_Conv_Backbone(nn.Module):
     """
     A convolutional version of backbone of the Temporal-Frequency Convolutional (TFC) model.
@@ -161,3 +162,57 @@ class TFC_PredicionHead(nn.Module):
         emb = torch.sigmoid(self.logits(emb_flat))
         pred = self.logits_simple(emb)
         return pred
+
+
+class TFC_Conv_TSE_Backbone(nn.Module):
+
+    def _calculate_fc_input_features(self, encoder: torch.nn.Module, input_shape: Tuple[int, int]) -> int:
+
+        random_input = torch.randn(1, *input_shape)
+        # permute from (batch_size, channels, timesteps) to (batch_size, timesteps, channels)
+        random_input = random_input.permute(0, 2, 1)
+        print(random_input.shape)
+        with torch.no_grad():
+            out = encoder(random_input)
+            adapter = MaxPoolingTransposingSqueezingAdapter(kernel_size=128)
+            out = adapter(out)
+        return out.view(out.size(0), -1).size(1)
+    
+    def __init__(self, input_channels: int, TS_length: int, single_encoding_size: int = 128):
+
+        super(TFC_Conv_TSE_Backbone, self).__init__()
+        self.conv_block_t = TSEncoder(input_dims=input_channels, output_dims=TS_length)
+
+        self.conv_block_f = TSEncoder(input_dims=input_channels, output_dims=TS_length)
+
+        self.projector_t = nn.Sequential(
+            nn.Linear(self._calculate_fc_input_features(self.conv_block_t, (input_channels, TS_length)), 256),
+            nn.BatchNorm1d(256),
+            nn.ReLU(),
+            nn.Linear(256, single_encoding_size)
+        )
+
+        self.projector_f = nn.Sequential(
+            nn.Linear(self._calculate_fc_input_features(self.conv_block_f, (input_channels, TS_length)), 256),
+            nn.BatchNorm1d(256),
+            nn.ReLU(),
+            nn.Linear(256, single_encoding_size)
+        )
+
+    def forward(self, x_in_t: torch.Tensor, x_in_f: torch.Tensor) -> torch.Tensor:
+
+        x_in_t = x_in_t.permute(0, 2, 1)
+        x = self.conv_block_t(x_in_t)
+        adapter = MaxPoolingTransposingSqueezingAdapter(kernel_size=128)
+        x = adapter(x)
+        h_time = x.reshape(x.shape[0], -1)
+
+        z_time = self.projector_t(h_time)
+
+        x_in_f = x_in_f.permute(0, 2, 1)
+        f = self.conv_block_f(x_in_f)
+        f = adapter(f)
+        h_freq = f.reshape(f.shape[0], -1)
+        z_freq = self.projector_f(h_freq)
+
+        return h_time, z_time, h_freq, z_freq
