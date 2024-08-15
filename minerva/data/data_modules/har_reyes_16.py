@@ -121,6 +121,7 @@ class ReyesModule(L.LightningDataModule):
         batch_size: int = 42,
         percentage: float = 1.0,
         num_workers: int = 2,
+        balanced_division: bool = True,
     ):
         """
         Builder of the ReyesModule class.
@@ -135,6 +136,8 @@ class ReyesModule(L.LightningDataModule):
             The percentage of the dataset to be used, default is 1.0
         num_workers : int
             The number of workers to be used in the dataloaders, default is 2
+        balanced_division : bool
+            If True and percentage is smaller than 1.0, the dataloader will have all classes with same number of samples (or differ by 1). If False the subset is chosen randomly. Default is True
 
         """
         super().__init__()
@@ -147,6 +150,7 @@ class ReyesModule(L.LightningDataModule):
         }
         self.percentage = percentage
         self.num_workers = num_workers
+        self.balanced_division = balanced_division
 
         # Verify that the data is available. If not, raise an error.
         for k, v in self.csv_files.items():
@@ -183,10 +187,27 @@ class ReyesModule(L.LightningDataModule):
 
         # if percentage is set, chose random len*percentage samples and build a subset
         if percentage < 1.0:
-            indices = list(range(len(dataset)))
-            indices = random.sample(
-                indices, int(len(indices) * percentage)
-            )
+            if self.balanced_division:
+                indices = []
+                amostras = {}
+                for i in range(len(dataset)):
+                    amostra = dataset[i]
+                    if amostra[1] not in amostras:
+                        amostras[amostra[1]] = []
+                    amostras[amostra[1]].append(i)
+                
+                maximo = int(len(indices) * percentage)
+                for _ in range(maximo):
+                    for key in amostras:
+                        if len(amostras[key]) > 0:
+                            indices.append(amostras[key].pop())
+                            if len(indices) >= maximo:
+                                break
+            else:
+                indices = list(range(len(dataset)))
+                indices = random.sample(
+                    indices, int(len(indices) * percentage)
+                )
             dataset = Subset(dataset, indices)
         dataloader = DataLoader(
             dataset,
