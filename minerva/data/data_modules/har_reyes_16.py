@@ -197,14 +197,14 @@ class ReyesModule(L.LightningDataModule):
                 for i in range(len(dataset)):
                     amostra = dataset[i]
                     if amostra[1] not in amostras:
-                        amostras[amostra[1]] = []
-                    amostras[amostra[1]].append(i)
+                        amostras[amostra[1].item()] = []
+                    amostras[amostra[1].item()].append(i)
                 
                 random.seed(self.seed)
                 if shuffle:
                     for key in amostras:
                         random.shuffle(amostras[key])
-                maximo = int(len(indices) * percentage)
+                maximo = int(len(dataset) * percentage)
                 for _ in range(maximo):
                     for key in amostras:
                         if len(amostras[key]) > 0:
