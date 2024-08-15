@@ -201,8 +201,9 @@ class ReyesModule(L.LightningDataModule):
                     amostras[amostra[1]].append(i)
                 
                 random.seed(self.seed)
-                for key in amostras:
-                    random.shuffle(amostras[key])
+                if shuffle:
+                    for key in amostras:
+                        random.shuffle(amostras[key])
                 maximo = int(len(indices) * percentage)
                 for _ in range(maximo):
                     for key in amostras:
@@ -212,10 +213,10 @@ class ReyesModule(L.LightningDataModule):
                                 break
             else:
                 indices = list(range(len(dataset)))
-            random.seed(self.seed)
-            indices = random.sample(
-                    indices, int(len(indices) * percentage)
-                )
+                random.seed(self.seed)
+                indices = random.sample(
+                        indices, int(len(indices) * percentage)
+                    )
             dataset = Subset(dataset, indices)
         dataloader = DataLoader(
             dataset,
