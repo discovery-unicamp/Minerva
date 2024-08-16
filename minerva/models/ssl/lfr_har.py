@@ -159,8 +159,8 @@ class LearnFromRandomnessModel(L.LightningModule):
             z = z.view(z.size(0), -1)
             x = x.view(x.size(0), -1)
 
-        y_pred = torch.stack([predictor(z) for predictor in self.predictors], 0)
-        y_proj = torch.stack([projector(x) for projector in self.projectors], 0)
+        y_pred = torch.stack([predictor(z) for predictor in self.predictors], 1)
+        y_proj = torch.stack([projector(x) for projector in self.projectors], 1)
 
         return y_pred, y_proj
 
@@ -189,8 +189,8 @@ class LearnFromRandomnessModel(L.LightningModule):
         x = batch
         y_pred, y_proj = self.forward(x)
         loss = 0
-        for i in range(len(y_pred)):
-            loss += self._loss_func(y_pred[i], y_proj[i])
+        for i in range(y_pred.shape[1]):
+            loss += self._loss_func(y_pred[:,i,:], y_proj[:,i,:])
         loss /= len(y_pred)
         # loss = self._loss_func(y_pred, y_proj)
         self.log(
