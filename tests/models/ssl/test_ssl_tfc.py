@@ -37,9 +37,18 @@ def test_tfc_forward_without_head():
     assert len(h_time) == len(z_time) == len(h_freq) == len(z_freq) == batch_size, f"Expected shape ({batch_size}), got {len(h_time), len(z_time), len(h_freq), len(z_freq)}"
     assert z_time.shape[-1] + z_freq.shape[-1] == single_encoding_size*2, f"Expected shape {single_encoding_size*2}, got {z_time.shape[-1] + z_freq.shape[-1]}"
 
+def test_tfc_given_conv_backbone():
+    raise NotImplementedError
 
-""" TODO:
-"If a backbone is provided, the encoders and projectors must be None"
+def test_tfc_invalid_passed_backbone():
+    # "If a backbone is provided, the encoders and projectors must be None"
+    raise NotImplementedError
 
+def test_tfc_given_encoder():
+    raise NotImplementedError
 
-"""
+def test_tfc_given_projector():
+    raise NotImplementedError
+
+def test_tfc_given_ts2vec_encoder():
+    raise NotImplementedError
