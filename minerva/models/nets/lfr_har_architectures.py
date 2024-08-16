@@ -4,8 +4,8 @@ from torch import nn
 class LFR_HAR_Backbone(nn.Module):
     def __init__(
             self,
-            encoding_size=128,
-            input_channel=9
+            encoding_size: int = 128,
+            input_channel:int = 9
         ):
         super().__init__()
         self.model = nn.Sequential(
@@ -34,8 +34,8 @@ class LFR_HAR_Backbone(nn.Module):
 class LFR_HAR_Projector(nn.Module):
     def __init__(
             self,
-            encoding_size=512,
-            input_channel=9):
+            encoding_size: int = 512,
+            input_channel: int = 9):
         super().__init__()
         self.model = nn.Sequential(
             nn.Conv1d(input_channel, 16, kernel_size=8,
