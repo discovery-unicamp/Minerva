@@ -3,7 +3,7 @@ from torch import nn
 import lightning as pl
 from typing import List, Tuple, Union, Optional
 from minerva.transforms.tfc import TFC_Transforms
-from minerva.models.nets.tfc import TFC_Conv_Backbone, TFC_PredicionHead
+from minerva.models.nets.tfc import TFC_Backbone, TFC_PredicionHead
 from minerva.losses.ntxent_loss_poly import NTXentLoss_poly
 from minerva.transforms.transform import _Transform
 from torch.nn.modules.loss import _Loss
@@ -29,7 +29,7 @@ class TFC_Model(pl.LightningModule):
         TS_length: int,
         num_classes: Optional[int] = None,
         single_encoding_size: int = 128,
-        backbone: Union[nn.Module, LoadableModule] = None,
+        backbone: Optional[Union[TFC_Backbone, LoadableModule]] = None,
         pred_head: Union[bool, nn.Module] = True,
         loss: _Loss = None,
         learning_rate: float = 3e-4,
@@ -37,6 +37,10 @@ class TFC_Model(pl.LightningModule):
         device: str = "cuda",
         batch_size: int = 42,
         pipeline: str = "both",
+        time_encoder: Optional[nn.Module] = None,
+        frequency_encoder: Optional[nn.Module] = None,
+        time_projector: Optional[nn.Module] = None,
+        frequency_projector: Optional[nn.Module] = None,
     ):
         """
         The constructor of the TFC_Model class.
@@ -51,8 +55,9 @@ class TFC_Model(pl.LightningModule):
             The number of downstream classes in the dataset, if none, the model is trained in a self-supervised learning approach
         - single_encoding_size: int
             The size of the encoding in the latent space of frequency or time domain individually
-        - backbone: Union[nn.Module, LoadableModule]
-            The backbone of the model. If None, a default backbone is created as a convolutional neural network
+        - backbone: Optional[Union[nn.Module, LoadableModule]]
+            The backbone of the model. If None, a default backbone is created with the encoders and projectors provided. If a LoadableModule is provided, it is used as the backbone. 
+            If provided, make sure you really know what you are doing.
         - pred_head: Union[bool, nn.Module]
             If True, a prediction head (MLP) is added to the model. If False or None, the model is trained in a self-supervised learning approach. If a nn.Module is provided, it is used as the prediction head
         - loss: _Loss
@@ -75,9 +80,12 @@ class TFC_Model(pl.LightningModule):
         self.pipeline = pipeline
         if backbone:
             self.backbone = backbone
+            assert time_encoder is None and frequency_encoder is None and time_projector is None and frequency_projector is None, "If a backbone is provided, the encoders and projectors must be None"
         else:
-            self.backbone = TFC_Conv_Backbone(
-                input_channels, TS_length, single_encoding_size=single_encoding_size
+            self.backbone = TFC_Backbone(
+                input_channels, TS_length, single_encoding_size=single_encoding_size,
+                time_encoder=time_encoder, frequency_encoder=frequency_encoder,
+                time_projector=time_projector, frequency_projector=frequency_projector
             )
         if pred_head and num_classes:
             if pred_head == True:
