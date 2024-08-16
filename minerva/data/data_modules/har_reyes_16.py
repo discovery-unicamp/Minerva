@@ -121,6 +121,7 @@ class ReyesModule(L.LightningDataModule):
         batch_size: int = 42,
         percentage: float = 1.0,
         num_workers: int = 2,
+        seed: int = 42,
     ):
         """
         Builder of the ReyesModule class.
@@ -135,6 +136,8 @@ class ReyesModule(L.LightningDataModule):
             The percentage of the dataset to be used, default is 1.0
         num_workers : int
             The number of workers to be used in the dataloaders, default is 2
+        seed : int
+            The seed to be used in the random functions, default is 42
 
         """
         super().__init__()
@@ -147,6 +150,7 @@ class ReyesModule(L.LightningDataModule):
         }
         self.percentage = percentage
         self.num_workers = num_workers
+        self.seed = seed
 
         # Verify that the data is available. If not, raise an error.
         for k, v in self.csv_files.items():
@@ -184,6 +188,7 @@ class ReyesModule(L.LightningDataModule):
         # if percentage is set, chose random len*percentage samples and build a subset
         if percentage < 1.0:
             indices = list(range(len(dataset)))
+            random.seed(self.seed)
             indices = random.sample(
                 indices, int(len(indices) * percentage)
             )
@@ -230,6 +235,21 @@ class ReyesModule(L.LightningDataModule):
         """
 
         Get the test dataloader by location defined by root_data_dir/test.csv.
+        
+        Returns
+        -------
+        DataLoader
+            A DataLoader with the test dataset
+        """
+        dataloader = self._get_dataset_dataloader(
+            self.root_data_dir / "test.csv", shuffle=False
+        )
+        return dataloader
+    
+    def predict_dataloader(self):
+        """
+
+        Get the predict dataloader by location defined by root_data_dir/test.csv, equivalent to the test dataloader.
         
         Returns
         -------

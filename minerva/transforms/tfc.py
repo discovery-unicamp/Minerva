@@ -28,14 +28,16 @@ class TFC_Transforms(_Transform):
         if isinstance(x, np.ndarray):
             x = torch.from_numpy(x).type(torch.FloatTensor)
             device = torch.device("cpu")
-        else:
+        elif isinstance(x, torch.Tensor):
             device = x.device
             x = x.type(torch.FloatTensor)
+        else:
+            print("The type of the input is: ", type(x), "It is ", x)
+            raise TypeError("The input data must be a numpy array or a torch tensor")
         freq = fft.fft(x).abs()
         y1 = self.DataTransform_TD(x)
         y2 = self.DataTransform_FD(freq)
-        x, y1, freq, y2 = x.to(device), y1.to(device), freq.to(device), y2.to(device)
-        return x, y1, freq, y2
+        return x.type(torch.FloatTensor).to(device), y1.type(torch.FloatTensor).to(device), freq.type(torch.FloatTensor).to(device), y2.type(torch.FloatTensor).to(device)
 
 
     def one_hot_encoding(self, X: np.ndarray, n_values: int = None):
@@ -57,7 +59,8 @@ class TFC_Transforms(_Transform):
         X = [int(x) for x in X]
         if n_values is None:
             n_values = np.max(X) + 1
-        b = np.eye(n_values)[X]
+        # b = np.eye(n_values)[X]
+        b = torch.eye(n_values)[X]
         return b
 
     def DataTransform_TD(self, sample: np.ndarray, jitter_ratio: float = 0.8) -> np.ndarray:
@@ -80,9 +83,12 @@ class TFC_Transforms(_Transform):
         """
         aug_1 = self.jitter(sample, jitter_ratio)
 
-        li = np.random.randint(0, 4, size=[sample.shape[0]]) # there are two augmentations in Frequency domain
+        # li = np.random.randint(0, 4, size=[sample.shape[0]]) # there are two augmentations in Frequency domain
+        li = torch.randint(0, 4, (sample.shape[0],))
         li_onehot = self.one_hot_encoding(li)
-        aug_1[1-li_onehot[:, 0].astype(np.bool_)] = 0 # the rows are not selected are set as zero.
+        # aug_1[1-li_onehot[:, 0].astype(np.bool_)] = 0 # the rows are not selected are set as zero.
+        aug_1[(1 - li_onehot[:, 0]).bool()] = 0
+
         return aug_1
 
 
@@ -104,10 +110,13 @@ class TFC_Transforms(_Transform):
         """
         aug_1 =  self.remove_frequency(sample, 0.1)
         aug_2 = self.add_frequency(sample, 0.1)
-        li = np.random.randint(0, 2, size=[sample.shape[0]]) # there are two augmentations in Frequency domain
+        # li = np.random.randint(0, 2, size=[sample.shape[0]]) # there are two augmentations in Frequency domain
+        li = torch.randint(0, 2, (sample.shape[0],))
         li_onehot = self.one_hot_encoding(li,2)
-        aug_1[1-li_onehot[:, 0].astype(np.bool_)] = 0 # the rows are not selected are set as zero.
-        aug_2[1 - li_onehot[:, 1].astype(np.bool_)] = 0
+        # aug_1[1-li_onehot[:, 0].astype(np.bool_)] = 0 # the rows are not selected are set as zero.
+        # aug_2[1 - li_onehot[:, 1].astype(np.bool_)] = 0
+        aug_1[(1 - li_onehot[:, 0]).bool()] = 0
+        aug_2[(1 - li_onehot[:, 1]).bool()] = 0
         aug_F = aug_1 + aug_2
         return aug_F
 
@@ -131,7 +140,8 @@ class TFC_Transforms(_Transform):
         
         """
         # https://arxiv.org/pdf/1706.00527.pdf
-        return x + np.random.normal(loc=0., scale=sigma, size=x.shape)
+        # return x + np.random.normal(loc=0., scale=sigma, size=x.shape)
+        return x + torch.normal(0., sigma, x.shape)
 
     def remove_frequency(self, x:np.ndarray, maskout_ratio: float=0):
         """

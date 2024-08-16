@@ -35,3 +35,4 @@ These are the models implemented in the `ssl` submodule:
 | **Model**                               | **Authors**     | **Task** | **Type** | **Input Shape** |     **Python Class**     | **Observations** |
 | --------------------------------------- | --------------- | -------- | -------- | :-------------: | :----------------------: | ---------------- |
 | [LFR](https://arxiv.org/abs/2310.07756) | Yi Sui *et al.* | Any      | Any      |       Any       | LearnFromRandomnessModel |                  |
+|[TF-C](https://arxiv.org/abs/2206.08496) | Zhang et al.    | Classification 	| 1D Conv	| (C, S, T)     	| TFC_Model 	| Default backbone is the convolutional with a MLP as prediction head |
