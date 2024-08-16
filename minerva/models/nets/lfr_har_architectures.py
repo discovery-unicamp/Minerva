@@ -5,7 +5,7 @@ class LFR_HAR_Backbone(nn.Module):
     def __init__(
             self,
             encoding_size: int = 128,
-            input_channel:int = 9
+            input_channel: int = 9
         ):
         super().__init__()
         self.model = nn.Sequential(
