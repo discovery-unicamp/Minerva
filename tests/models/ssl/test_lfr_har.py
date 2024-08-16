@@ -1,4 +1,4 @@
-from minerva.models.ssl.lfr_har import LearnFromRandomnessModel
+from minerva.models.ssl.lfr import LearnFromRandomnessModel
 from minerva.models.nets.lfr_har_architectures import LFR_HAR_Backbone, LFR_HAR_Projector, LFR_HAR_Predictor
 import torch
 
