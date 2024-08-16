@@ -141,6 +141,9 @@ class ReyesModule(L.LightningDataModule):
             The seed to be used in the random functions, default is 42
         balanced_division : bool
             If True and percentage is smaller than 1.0, the dataloader will have all classes with same number of samples (or differ by 1). If False the subset is chosen randomly. Default is True
+            There is still a possibliity of some class not being present by the loader, if all samples have been selected as not being part of any batch on the shuffle of data loader.
+            Example: perfectly balanced dataset: 0 1 2 3 4 0 1 2 3 4 with batch size 4 and batches selected by dataloader: [0 1 2 3] [0 1 2 3] (all 2 samples of class 4 are not present), or a batch size of 6:
+            [0 1 2 3 0 1] (all 2 sample of class 4 are not present). This is a limitation of the dataloader, and not of the datamodule.
 
         """
         super().__init__()
@@ -196,7 +199,7 @@ class ReyesModule(L.LightningDataModule):
                 amostras = {}
                 for i in range(len(dataset)):
                     amostra = dataset[i]
-                    if amostra[1] not in amostras:
+                    if amostra[1].item() not in amostras:
                         amostras[amostra[1].item()] = []
                     amostras[amostra[1].item()].append(i)
                 
@@ -205,12 +208,14 @@ class ReyesModule(L.LightningDataModule):
                     for key in amostras:
                         random.shuffle(amostras[key])
                 maximo = int(len(dataset) * percentage)
-                for _ in range(maximo):
+                for i in range(maximo):
                     for key in amostras:
                         if len(amostras[key]) > 0:
                             indices.append(amostras[key].pop())
-                            if len(indices) >= maximo:
-                                break
+                        if len(indices) >= maximo:
+                            break
+                    if len(indices) >= maximo:
+                        break
             else:
                 indices = list(range(len(dataset)))
                 random.seed(self.seed)
