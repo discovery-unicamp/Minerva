@@ -158,6 +158,7 @@ class TFC_Conv_Block(nn.Module):
         - input_channels: int
             The number of channels in the input data
         """
+        super(TFC_Conv_Block, self).__init__()
         self.block = nn.Sequential(
             nn.Conv1d(input_channels, 32, kernel_size=8, stride=1, bias=False, padding=4),
             nn.BatchNorm1d(32),
@@ -208,6 +209,7 @@ class TFC_Standard_Projector(nn.Module):
         - single_encoding_size: int
             The size of the encoding in the latent space of frequency or time domain individually
         """
+        super(TFC_Standard_Projector, self).__init__()
         self.projector = nn.Sequential(
             nn.Linear(input_channels, 256),
             nn.BatchNorm1d(256),
