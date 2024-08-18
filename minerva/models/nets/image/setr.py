@@ -383,6 +383,9 @@ class _SetR_PUP(nn.Module):
         x = self.decoder(x)
         return x
 
+    def load_backbone(self, path: str):
+        self.encoder.load_state_dict(torch.load(path))
+
 
 class SETR_PUP(L.LightningModule):
 
@@ -630,6 +633,9 @@ class SETR_PUP(L.LightningModule):
     ):
         x, _ = batch
         return self.model(x)[0]
+
+    def load_backbone(self, path: str):
+        self.model.load_backbone(path)
 
     def configure_optimizers(self):
         return torch.optim.Adam(self.model.parameters(), lr=1e-3)
