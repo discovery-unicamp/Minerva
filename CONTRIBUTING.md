@@ -26,7 +26,7 @@ Any other discussion should be done in the [Discussions](https://github.com/disc
 
 ## Getting started
 
-For changes bigger than one or two line fix:
+For changes or fixes:
 
 1. Create a new fork for your changes
 2. Make the changes needed in this fork
@@ -35,8 +35,6 @@ For changes bigger than one or two line fix:
    2. All tests pass, new and old
    3. Your code is well documented
 4. Make your PR
-
-Small contributions such as fixing spelling errors, where the content is small enough don't need to be made from another fork.
 
 As a rule of thumb, changes are obvious fixes if they do not introduce any new functionality or creative thinking. As long as the change does not affect functionality, some likely examples include the following:
 
@@ -47,6 +45,75 @@ As a rule of thumb, changes are obvious fixes if they do not introduce any new f
 * Adding logging messages or debugging output
 * Changes to ‘metadata’ files like Gemfile, .gitignore, build scripts, etc.
 * Moving source files from one directory or package to another
+
+## Making Code Contributions
+
+Every code contribution should be made through a pull request. This applies to all changes, including bug fixes and new features. This allows the maintainers to review the code and discuss it with you before merging it. It also allows the community to discuss the changes and learn from them.
+
+You code should follow the following guidelines:
+
+* **Documentation**: Make sure to document your code. This includes docstrings for functions and classes, as well as comments in the code when necessary. For the documentation, we use the numpydoc style. Also make sure to update the `README` file or other metadata files if necessary.
+* **Tests**: Make sure to write tests for your code. We use `pytest` for testing. You can run the tests with `python -m pytest` in the root directory of the project.
+* **Commit messages**: Make sure to write clear and concise commit messages. Include the issue number if you are fixing a bug.
+* **Dependencies**: Make sure to include any new dependencies in the `requirements.txt` and `pyproject.toml` file. If you are adding a new dependency, make sure to include a brief description of why it is needed.
+* **Code formatting**: Make sure to run a code formatter on your code before submitting the PR. We use `black` for this.
+
+You should also try to avoid rewriting functionality, or adding dependencies for functionalities that are already present on one of our dependencies. This would make the codebase more bloated and harder to maintain.
+
+If you are contributing code that you did not write, you must ensure that the code is licensed under an [MIT License](https://opensource.org/licenses/MIT). If the code is not licensed under an MIT License, you must get permission from the original author to license the code under the MIT License. Also make sure to credit the original author in a comment in the code.
+
+### Module Specific Guidelines
+
+#### `models` module
+
+Our models are based on the `lightning.LightningModule` class. This class is a PyTorch Lightning module that simplifies the training process. You should follow the PyTorch Lightning guidelines for writing your models. You can find more information [here](https://pytorch-lightning.readthedocs.io/en/latest/common/lightning_module.html).
+
+As a rule of thumb, all front facing model classes should inherit from the `LightningModule` class. Subclasses of this class can be only `torch.nn.Module` classes.
+
+In the same way, all front facing model classes should have default parameters for the `__init__` method. This classes also should be able to receive a `config` parameter that will be used to configure the model. The config parameter should be a dictionary with the parameters needed to configure the model.
+
+The `models` module is divided into `nets` and `ssl`:
+
+* The `nets` module contains model architectures that can be trained in a supervised way.
+* The `ssl` module contains logic and implementations for self-supervised learning techniques.
+
+In a general way, you should be able to use a `nets` model in to a `ssl` implementation to train a model in a self-supervised way.
+
+We strongly recommend that, when possible, you divide your model into a backbone and a head. This division allows for more flexibility when using the model in different tasks and with different ssl techniques.
+
+Moreover both `nets` and `ssl` are divided into the model's use area (e.g. image, time series, etc.). This division allows for a more organized codebase and easier maintenance. If you are adding a new model, make sure to add it to the correct area. If the model does not fit in any of the areas, you can create a new one (make sure to justify it on your PR). To determine the area of the model you should follow the area used in its original proposal or the area where it is most used.
+
+#### `data` module
+
+The `data` module is responsible for handling the data used by the models. This module is divided into `datasets`, `readers` and `data_modules`.
+
+`readers` are the lowest level in our data pipeline. It is responsible to read the right data requested by a dataset in it's format and return it in a format that can be used. Every reader should know both the method for reading the data from the file it self and the file structure of the data if applicable. Every reader should inherit from the `_Reader` class.
+
+`datasets` are the middle level in our data pipeline. It is composed by one or more readers and is responsible to transform the data read by the readers if necessary. Datasets usually are composed by a slice, of partition of the data (e.g. train, validation, test). The datasets and its partitions will be created and managed by a data module. Every dataset should inherit from the `torch.utils.data.Dataset` class.
+
+`data_modules` are the front facing classes of the data pipeline. It is responsible for receiving all the parameters needed to create all datasets and readers. Data modules should inherit from the `lightning.LightningDataModule` class. This class is a PyTorch Lightning class that simplifies the data loading process. You should follow the PyTorch Lightning guidelines for writing your data modules. You can find more information [here](https://pytorch-lightning.readthedocs.io/en/latest/common/lightning_module.html).
+
+#### `losses` module
+
+The `losses` module houses loss functions that can be used by the modules. As stated before, you should avoid rewriting functionality that is already present in one of our dependencies. If you are adding a new loss function, make sure to include a brief description of why it is needed. Every loss function should inherit from the `torch.nn.modules.loss._Loss` class.
+
+#### `transforms` module
+
+The `transforms` module houses transformations that can be used by a dataset. Every transformation should inherit from our `_Transform` class. If you are adding a new transformation, make sure to include a brief description of why it is needed.
+
+#### `analysis` module
+
+The `analysis` module have both metrics and visualizations that can be used to analyze the models. If you are adding a new metric or visualization, make sure to include a brief description of why it is needed. Again you should avoid rewriting functionality that is already present in one of our dependencies. All metrics should inherit from the `torchmetrics.Metric` class.
+
+#### `pipelines` module
+
+Pipelines are the core of minerva. They are responsible for training and evaluating the models. Pipelines should be able to receive a config file that will be used to configure the pipeline. The config file should be a yaml file with the parameters needed to configure the pipeline. All pipelines should inherit from the our `Pipeline` class.
+
+Pipelines are meant to be reusable and are usually complex. If you are adding a new pipeline, make sure to include a description of why it is needed, how it works and why you can't accomplish the same thing with existing ones.
+
+#### `utils` module
+
+The `utils` module is a temporary module that houses functions that don't fit in any of the other modules. '`utils` will cease to exist in the future, so if you are adding a new function to it, make sure to justify it on your PR.
 
 ## How to report a bug
 

@@ -1,7 +1,7 @@
 import math
 from collections import OrderedDict
 from functools import partial
-from typing import Callable, List, Optional
+from typing import Callable, List, Optional, Tuple, Union
 
 import lightning as L
 import torch
@@ -31,7 +31,7 @@ class _Encoder(nn.Module):
         dropout: float,
         attention_dropout: float,
         aux_output: bool = False,
-        aux_output_layers: List[int] | None = None,
+        aux_output_layers: Optional[List[int]] = None,
         norm_layer: Callable[..., torch.nn.Module] = partial(nn.LayerNorm, eps=1e-6),
     ):
         super().__init__()
@@ -81,7 +81,7 @@ class _VisionTransformerBackbone(nn.Module):
 
     def __init__(
         self,
-        image_size: int | tuple[int, int],
+        image_size: Union[int, Tuple[int, int]],
         patch_size: int,
         num_layers: int,
         num_heads: int,
@@ -91,7 +91,7 @@ class _VisionTransformerBackbone(nn.Module):
         attention_dropout: float = 0.0,
         num_classes: int = 1000,
         aux_output: bool = False,
-        aux_output_layers: List[int] | None = None,
+        aux_output_layers: Optional[List[int]] = None,
         norm_layer: Callable[..., torch.nn.Module] = partial(nn.LayerNorm, eps=1e-6),
         conv_stem_configs: Optional[List[ConvStemConfig]] = None,
     ):
@@ -100,7 +100,7 @@ class _VisionTransformerBackbone(nn.Module):
 
         Parameters
         ----------
-        image_size : int or tuple[int, int]
+        image_size : int or Tuple[int, int]
             The size of the input image. If an int is provided, it is assumed
             to be a square image. If a tuple of ints is provided, it represents the height and width of the image.
         patch_size : int
@@ -234,14 +234,14 @@ class _VisionTransformerBackbone(nn.Module):
             if self.conv_proj.conv_last.bias is not None:
                 nn.init.zeros_(self.conv_proj.conv_last.bias)
 
-    def _process_input(self, x: torch.Tensor) -> tuple[torch.Tensor, int, int]:
+    def _process_input(self, x: torch.Tensor) -> Tuple[torch.Tensor, int, int]:
         """Process the input tensor and return the reshaped tensor and dimensions.
 
         Args:
             x (torch.Tensor): The input tensor.
 
         Returns:
-            tuple[torch.Tensor, int, int]: The reshaped tensor, number of rows, and number of columns.
+            Tuple[torch.Tensor, int, int]: The reshaped tensor, number of rows, and number of columns.
         """
         n, c, h, w = x.shape
         p = self.patch_size

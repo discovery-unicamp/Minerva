@@ -8,13 +8,13 @@ from datetime import datetime
 from functools import cached_property
 from pathlib import Path
 from time import time
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 from uuid import uuid4
 
 import git
 import pkg_resources
 import yaml
-from lightning.pytorch.core.mixins.hparams_mixin import HyperparametersMixin
+from lightning.pytorch.core.mixins import HyperparametersMixin
 from lightning.pytorch.utilities import rank_zero_only
 
 from minerva.utils.typing import PathLike
@@ -43,8 +43,8 @@ class Pipeline(HyperparametersMixin):
 
     def __init__(
         self,
-        log_dir: Optional[Path | str] = None,
-        ignore: Optional[str | List[str]] = None,
+        log_dir: Optional[PathLike] = None,
+        ignore: Optional[Union[str, List[str]]] = None,
         cache_result: bool = False,
         save_run_status: bool = False,
     ):
@@ -52,10 +52,10 @@ class Pipeline(HyperparametersMixin):
 
         Parameters
         ----------
-        log_dir : Path | str, optional
+        log_dir : PathLike, optional
             The default logging directory where all related pipeline files
             should be saved. By default None (uses current working directory)
-        ignore : str | List[str], optional
+        ignore : Union[str, List[str]], optional
             Pipeline __init__ attributes are saved into config attibute. This
             option allows to ignore some attributes from being saved. This is
             quite useful when the attributes are not serializable or very large.
@@ -134,7 +134,7 @@ class Pipeline(HyperparametersMixin):
         return self._log_dir
 
     @log_dir.setter
-    def log_dir(self, value: Path | str):
+    def log_dir(self, value: PathLike):
         """Set the log_dir.
 
         Parameters
