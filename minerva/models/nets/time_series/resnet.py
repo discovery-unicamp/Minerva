@@ -13,7 +13,9 @@ class ConvolutionalBlock(torch.nn.Module):
         self.activation_cls = activation_cls
 
         self.block = torch.nn.Sequential(
-            torch.nn.Conv1d(in_channels, out_channels=64, kernel_size=5, stride=1),
+            torch.nn.Conv1d(
+                in_channels, out_channels=64, kernel_size=5, stride=1
+            ),
             torch.nn.BatchNorm1d(64),
             activation_cls(),
             torch.nn.MaxPool1d(2),
@@ -110,7 +112,9 @@ class _ResNet1D(torch.nn.Module):
         )
         self.residual_blocks = torch.nn.Sequential(
             *[
-                residual_block_cls(in_channels=64, activation_cls=activation_cls)
+                residual_block_cls(
+                    in_channels=64, activation_cls=activation_cls
+                )
                 for _ in range(num_residual_blocks)
             ]
         )
@@ -134,6 +138,9 @@ class ResNet1DBase(SimpleSupervisedModel):
         num_residual_blocks: int = 5,
         reduction_ratio=2,
         learning_rate: float = 1e-3,
+        # Arguments passed to the SimpleSupervisedModel constructor
+        *args,
+        **kwargs,
     ):
         backbone = _ResNet1D(
             input_shape=input_shape,
@@ -154,8 +161,8 @@ class ResNet1DBase(SimpleSupervisedModel):
             learning_rate=learning_rate,
             flatten=True,
             loss_fn=torch.nn.CrossEntropyLoss(),
-            val_metrics={"acc": Accuracy(task="multiclass", num_classes=num_classes)},
-            test_metrics={"acc": Accuracy(task="multiclass", num_classes=num_classes)},
+            *args,
+            **kwargs,
         )
 
     def _calculate_fc_input_features(
@@ -185,6 +192,16 @@ class ResNet1DBase(SimpleSupervisedModel):
 # Deep Residual Network for Smartwatch-Based User Identification through Complex Hand Movements (ResNet1D)
 class ResNet1D_8(ResNet1DBase):
     def __init__(self, *args, **kwargs):
+        if (
+            "num_residual_blocks" in kwargs
+            or "activation_cls" in kwargs
+            or "resnet_block_cls" in kwargs
+        ):
+            raise ValueError(
+                "`num_residual_blocks`, `activation_cls`, and `resnet_block_cls` "
+                " should not be passed as arguments. Use ResNet1DBase instead."
+            )
+
         super().__init__(
             *args,
             **kwargs,
@@ -197,6 +214,16 @@ class ResNet1D_8(ResNet1DBase):
 # Deep Residual Network for Smartwatch-Based User Identification through Complex Hand Movements (ResNetSE1D)
 class ResNetSE1D_8(ResNet1DBase):
     def __init__(self, *args, **kwargs):
+        if (
+            "num_residual_blocks" in kwargs
+            or "activation_cls" in kwargs
+            or "resnet_block_cls" in kwargs
+        ):
+            raise ValueError(
+                "`num_residual_blocks`, `activation_cls`, and `resnet_block_cls` "
+                " should not be passed as arguments. Use ResNet1DBase instead."
+            )
+
         super().__init__(
             *args,
             **kwargs,
@@ -210,6 +237,16 @@ class ResNetSE1D_8(ResNet1DBase):
 # Changes the activation function to ReLU and the number of residual blocks to 5 (compared to ResNetSE1D_8)
 class ResNetSE1D_5(ResNet1DBase):
     def __init__(self, *args, **kwargs):
+        if (
+            "num_residual_blocks" in kwargs
+            or "activation_cls" in kwargs
+            or "resnet_block_cls" in kwargs
+        ):
+            raise ValueError(
+                "`num_residual_blocks`, `activation_cls`, and `resnet_block_cls` "
+                " should not be passed as arguments. Use ResNet1DBase instead."
+            )
+
         super().__init__(
             *args,
             **kwargs,

@@ -11,3 +11,9 @@ def test_inception_time_forward():
     x = torch.rand(1, *input_shape)
     y = model(x)
     assert y is not None
+
+
+def test_inception_time_creation(simple_torchmetrics):
+    input_shape = (6, 60)
+    # with metrics
+    model = InceptionTime(input_shape=input_shape, **simple_torchmetrics)
