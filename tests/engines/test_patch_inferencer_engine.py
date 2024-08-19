@@ -1,6 +1,6 @@
 import torch
 import lightning as L
-from minerva.emgines.patch_inferencer_engine import WeightedAvgPatchInferencer, VotingPatchInferencer
+from minerva.engines.patch_inferencer_engine import WeightedAvgPatchInferencer, VotingPatchInferencer
 
 pyramid = [
     [
