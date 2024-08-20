@@ -3,6 +3,8 @@ import torch.nn as nn
 from typing import Tuple, Optional
 from minerva.models.nets.tnc import TSEncoder
 from minerva.models.adapters import MaxPoolingTransposingSqueezingAdapter
+from typing import Callable
+
 class TFC_Backbone(nn.Module):
     """
     A convolutional version of backbone of the Temporal-Frequency Convolutional (TFC) model.
@@ -10,7 +12,8 @@ class TFC_Backbone(nn.Module):
     The features are then projected to a latent space.
     This class implements the forward method that receives the input data and returns the features extracted in the time domain and frequency domain.
     """
-    def _calculate_fc_input_features(self, encoder: torch.nn.Module, input_shape: Tuple[int, int]) -> int:
+    def _calculate_fc_input_features(self, encoder: torch.nn.Module, input_shape: Tuple[int, int],
+                                    permute: bool = False, adapter: Optional[Callable[[torch.Tensor], torch.Tensor]] = None) -> int:
         """
         Calculate the input features of the fully connected layer after the encoders (conv blocks).
 
@@ -20,6 +23,11 @@ class TFC_Backbone(nn.Module):
             The encoder to calculate the input features
         - input_shape: Tuple[int, int]
             The input shape of the data
+        - permute : bool, optional
+            If `True` the input data will be permuted before passing through
+            the model, by default False
+        - adapter : Callable[[torch.Tensor], torch.Tensor], optional
+            An adapter to be used from the backbone to the head, by default None.
 
         Returns
         -------
@@ -27,13 +35,18 @@ class TFC_Backbone(nn.Module):
             The number of features to be passed to the fully connected layer
         """
         random_input = torch.randn(1, *input_shape)
+        if self.permute:
+            random_input = random_input.permute(0, 2, 1)
         with torch.no_grad():
             out = encoder(random_input)
+            if self.adapter is not None:
+                out = self.adapter(out)
         return out.view(out.size(0), -1).size(1)
     
     def __init__(self, input_channels: int, TS_length: int, single_encoding_size: int = 128,
                 time_encoder: Optional[nn.Module] = None, frequency_encoder: Optional[nn.Module] = None,
-                time_projector: Optional[nn.Module] = None, frequency_projector: Optional[nn.Module] = None):
+                time_projector: Optional[nn.Module] = None, frequency_projector: Optional[nn.Module] = None,
+                permute: bool = False, adapter: Optional[Callable[[torch.Tensor], torch.Tensor]] = None):
         """
         Constructor of the TFC_Backbone class.
 
@@ -53,8 +66,16 @@ class TFC_Backbone(nn.Module):
             The projector for the time domain. If None, a default projector is used. If passing, make sure to correct calculate the input features by backbone
         - frequency_projector: Optional[nn.Module]
             The projector for the frequency domain. If None, a default projector is used. If passing, make sure to correct calculate the input features by backbone
+        - permute : bool, optional
+            If `True` the input data will be permuted before passing through
+            the model, by default False
+        - adapter : Callable[[torch.Tensor], torch.Tensor], optional
+            An adapter to be used from the backbone to the head, by default None.
         """
         super(TFC_Backbone, self).__init__()
+        self.permute = permute
+        self.adapter = adapter
+
         self.time_encoder = time_encoder
         if time_encoder is None:
             self.time_encoder = TFC_Conv_Block(input_channels)
@@ -71,7 +92,8 @@ class TFC_Backbone(nn.Module):
         if frequency_projector is None:
             self.frequency_projector = TFC_Standard_Projector(self._calculate_fc_input_features(self.frequency_encoder, (input_channels, TS_length)), single_encoding_size)
         
-    def forward(self, x_in_t: torch.Tensor, x_in_f: torch.Tensor) -> torch.Tensor:
+    def forward(self, x_in_t: torch.Tensor, x_in_f: torch.Tensor,
+                permute: bool = False, adapter: Optional[Callable[[torch.Tensor], torch.Tensor]] = None) -> torch.Tensor:
         """
         The forward method of the backbone. It receives the input data in the time domain and frequency domain and returns the features extracted in the time domain and frequency domain.
 
@@ -81,17 +103,32 @@ class TFC_Backbone(nn.Module):
             The input data in the time domain
         - x_in_f: torch.Tensor
             The input data in the frequency domain
+        - permute : bool, optional
+            If `True` the input data will be permuted before passing through
+            the model, by default False
+        - adapter : Callable[[torch.Tensor], torch.Tensor], optional
+            An adapter to be used from the backbone to the head, by default None.
 
         Returns
         -------
         - tuple
             A tuple with the features extracted in the time domain and frequency domain, h_time, z_time, h_freq, z_freq respectively
         """
+        if self.permute:
+            x_in_t = x_in_t.permute(0, 2, 1)
+            x_in_f = x_in_f.permute(0, 2, 1)
+
         x = self.time_encoder(x_in_t)
+        if self.adapter is not None:
+            x = self.adapter(x)
+
         h_time = x.reshape(x.shape[0], -1)
         z_time = self.time_projector(h_time)
 
         f = self.frequency_encoder(x_in_f)
+        if self.adapter is not None:
+            f = self.adapter(f)
+            
         h_freq = f.reshape(f.shape[0], -1)
         z_freq = self.frequency_projector(h_freq)
 
@@ -232,57 +269,3 @@ class TFC_Standard_Projector(nn.Module):
             The features extracted by the projector
         """
         return self.projector(x)
-
-
-class TFC_Conv_TSE_Backbone(nn.Module):
-
-    def _calculate_fc_input_features(self, encoder: torch.nn.Module, input_shape: Tuple[int, int]) -> int:
-
-        random_input = torch.randn(1, *input_shape)
-        # permute from (batch_size, channels, timesteps) to (batch_size, timesteps, channels)
-        random_input = random_input.permute(0, 2, 1)
-        print(random_input.shape)
-        with torch.no_grad():
-            out = encoder(random_input)
-            adapter = MaxPoolingTransposingSqueezingAdapter(kernel_size=128)
-            out = adapter(out)
-        return out.view(out.size(0), -1).size(1)
-    
-    def __init__(self, input_channels: int, TS_length: int, single_encoding_size: int = 128):
-
-        super(TFC_Conv_TSE_Backbone, self).__init__()
-        self.conv_block_t = TSEncoder(input_dims=input_channels, output_dims=TS_length)
-
-        self.conv_block_f = TSEncoder(input_dims=input_channels, output_dims=TS_length)
-
-        self.projector_t = nn.Sequential(
-            nn.Linear(self._calculate_fc_input_features(self.conv_block_t, (input_channels, TS_length)), 256),
-            nn.BatchNorm1d(256),
-            nn.ReLU(),
-            nn.Linear(256, single_encoding_size)
-        )
-
-        self.projector_f = nn.Sequential(
-            nn.Linear(self._calculate_fc_input_features(self.conv_block_f, (input_channels, TS_length)), 256),
-            nn.BatchNorm1d(256),
-            nn.ReLU(),
-            nn.Linear(256, single_encoding_size)
-        )
-
-    def forward(self, x_in_t: torch.Tensor, x_in_f: torch.Tensor) -> torch.Tensor:
-
-        x_in_t = x_in_t.permute(0, 2, 1)
-        x = self.conv_block_t(x_in_t)
-        adapter = MaxPoolingTransposingSqueezingAdapter(kernel_size=128)
-        x = adapter(x)
-        h_time = x.reshape(x.shape[0], -1)
-
-        z_time = self.projector_t(h_time)
-
-        x_in_f = x_in_f.permute(0, 2, 1)
-        f = self.conv_block_f(x_in_f)
-        f = adapter(f)
-        h_freq = f.reshape(f.shape[0], -1)
-        z_freq = self.projector_f(h_freq)
-
-        return h_time, z_time, h_freq, z_freq
