@@ -13,7 +13,7 @@ class TFC_Backbone(nn.Module):
     This class implements the forward method that receives the input data and returns the features extracted in the time domain and frequency domain.
     """
     def _calculate_fc_input_features(self, encoder: torch.nn.Module, input_shape: Tuple[int, int],
-                                    permute: bool = False, adapter: Optional[Callable[[torch.Tensor], torch.Tensor]] = None) -> int:
+                                     adapter: Optional[Callable[[torch.Tensor], torch.Tensor]] = None) -> int:
         """
         Calculate the input features of the fully connected layer after the encoders (conv blocks).
 
@@ -23,9 +23,6 @@ class TFC_Backbone(nn.Module):
             The encoder to calculate the input features
         - input_shape: Tuple[int, int]
             The input shape of the data
-        - permute : bool, optional
-            If `True` the input data will be permuted before passing through
-            the model, by default False
         - adapter : Callable[[torch.Tensor], torch.Tensor], optional
             An adapter to be used from the backbone to the head, by default None.
 
@@ -35,8 +32,6 @@ class TFC_Backbone(nn.Module):
             The number of features to be passed to the fully connected layer
         """
         random_input = torch.randn(1, *input_shape)
-        if self.permute:
-            random_input = random_input.permute(0, 2, 1)
         with torch.no_grad():
             out = encoder(random_input)
             if self.adapter is not None:
@@ -46,7 +41,7 @@ class TFC_Backbone(nn.Module):
     def __init__(self, input_channels: int, TS_length: int, single_encoding_size: int = 128,
                 time_encoder: Optional[nn.Module] = None, frequency_encoder: Optional[nn.Module] = None,
                 time_projector: Optional[nn.Module] = None, frequency_projector: Optional[nn.Module] = None,
-                permute: bool = False, adapter: Optional[Callable[[torch.Tensor], torch.Tensor]] = None):
+                adapter: Optional[Callable[[torch.Tensor], torch.Tensor]] = None):
         """
         Constructor of the TFC_Backbone class.
 
@@ -66,14 +61,10 @@ class TFC_Backbone(nn.Module):
             The projector for the time domain. If None, a default projector is used. If passing, make sure to correct calculate the input features by backbone
         - frequency_projector: Optional[nn.Module]
             The projector for the frequency domain. If None, a default projector is used. If passing, make sure to correct calculate the input features by backbone
-        - permute : bool, optional
-            If `True` the input data will be permuted before passing through
-            the model, by default False
         - adapter : Callable[[torch.Tensor], torch.Tensor], optional
             An adapter to be used from the backbone to the head, by default None.
         """
         super(TFC_Backbone, self).__init__()
-        self.permute = permute
         self.adapter = adapter
 
         self.time_encoder = time_encoder
@@ -93,7 +84,7 @@ class TFC_Backbone(nn.Module):
             self.frequency_projector = TFC_Standard_Projector(self._calculate_fc_input_features(self.frequency_encoder, (input_channels, TS_length)), single_encoding_size)
         
     def forward(self, x_in_t: torch.Tensor, x_in_f: torch.Tensor,
-                permute: bool = False, adapter: Optional[Callable[[torch.Tensor], torch.Tensor]] = None) -> torch.Tensor:
+                adapter: Optional[Callable[[torch.Tensor], torch.Tensor]] = None) -> torch.Tensor:
         """
         The forward method of the backbone. It receives the input data in the time domain and frequency domain and returns the features extracted in the time domain and frequency domain.
 
@@ -103,9 +94,6 @@ class TFC_Backbone(nn.Module):
             The input data in the time domain
         - x_in_f: torch.Tensor
             The input data in the frequency domain
-        - permute : bool, optional
-            If `True` the input data will be permuted before passing through
-            the model, by default False
         - adapter : Callable[[torch.Tensor], torch.Tensor], optional
             An adapter to be used from the backbone to the head, by default None.
 
@@ -114,9 +102,6 @@ class TFC_Backbone(nn.Module):
         - tuple
             A tuple with the features extracted in the time domain and frequency domain, h_time, z_time, h_freq, z_freq respectively
         """
-        if self.permute:
-            x_in_t = x_in_t.permute(0, 2, 1)
-            x_in_f = x_in_f.permute(0, 2, 1)
 
         x = self.time_encoder(x_in_t)
         if self.adapter is not None:

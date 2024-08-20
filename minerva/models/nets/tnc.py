@@ -100,7 +100,8 @@ class TSEncoder(torch.nn.Module):
         input_dims: int,
         output_dims: int,
         hidden_dims: int = 64,
-        depth: int = 10):
+        depth: int = 10,
+        permute: bool = False):
         """
         Encoder utilizing dilated convolutional layers for encoding sequential data.
 
@@ -114,6 +115,9 @@ class TSEncoder(torch.nn.Module):
             Number of hidden dimensions in the convolutional layers (default is 64).
         depth : int, optional
             Number of convolutional layers (default is 10).
+        - permute : bool, optional
+            If `True` the input data will be permuted before passing through
+            the model, by default False. This should be removed after the encoder receives data in the shape bsxchannelsxtimesteps
 
         Examples
         --------
@@ -142,6 +146,7 @@ class TSEncoder(torch.nn.Module):
             kernel_size=3
         )
         self.repr_dropout = torch.nn.Dropout(p=0.1)
+        self.permute = permute
         
     def forward(self, x, mask=None):
         """
@@ -159,6 +164,8 @@ class TSEncoder(torch.nn.Module):
         - torch.Tensor: 
             Encoded features of shape (batch_size, seq_len, output_dims).
         """
+        if self.permute:
+            x = x.permute(0, 2, 1)
         nan_mask = ~x.isnan().any(axis=-1)
         x[~nan_mask] = 0
 
