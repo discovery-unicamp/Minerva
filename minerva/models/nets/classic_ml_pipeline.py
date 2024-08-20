@@ -23,7 +23,7 @@ class ClassicMLModel(L.LightningModule):
         head: BaseEstimator,
         use_only_train_data: bool = False,
         test_metrics: Optional[Dict[str, Metric]] = None,
-        pkl_path: Optional[str] = None,
+        sklearn_model_save_path: Optional[str] = None,
         flatten: bool = True,
         adapter: Optional[Callable[[torch.Tensor], torch.Tensor]] = None,
     ):
@@ -45,8 +45,8 @@ class ClassicMLModel(L.LightningModule):
             If `False`, the model will be trained using both training and validation data, concatenated.
         test_metrics : Dict[str, Metric], optional
             The metrics to be used during testing, by default None
-        pkl_path:   str, optional
-            The pkl_path to save the model weights, by default None
+        sklearn_model_save_path:   str, optional
+            The path to save the sklearn model weights, by default None
         flatten : bool, optional
             If `True` the input data will be flattened before passing through
             the model, by default True
@@ -68,11 +68,9 @@ class ClassicMLModel(L.LightningModule):
         self.flatten = flatten
         self.adapter = adapter
         self.test_metrics = test_metrics
-        self.pkl_path = pkl_path
-        print(f"\n pkl_path: {pkl_path}")
-        if pkl_path and os.path.exists(pkl_path):
-            print("Loading model from pkl file: {}".format(pkl_path))
-            with open(pkl_path, "rb") as file:
+        self.sklearn_model_save_path = sklearn_model_save_path
+        if sklearn_model_save_path and os.path.exists(sklearn_model_save_path):
+            with open(sklearn_model_save_path, "rb") as file:
                 self.head = pickle.load(file)
 
 
@@ -133,8 +131,7 @@ class ClassicMLModel(L.LightningModule):
             self.train_data = self.train_data.cpu()
         self.train_y = torch.concat(self.train_y).cpu()
         self.head.fit(self.train_data, self.train_y)
-        print(f"\n save model to pkl file: {self.pkl_path}")
-        with open(self.pkl_path, "wb") as file:
+        with open(self.sklearn_model_save_path, "wb") as file:
             pickle.dump(self.head, file)
         
 
