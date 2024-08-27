@@ -1,4 +1,4 @@
-from minerva.models.nets.tfc import TFC_Conv_Backbone, TFC_PredicionHead
+from minerva.models.nets.tfc import TFC_Backbone, TFC_PredicionHead
 import torch
 
 def test_tfc_backbone_forward_default():
@@ -6,7 +6,7 @@ def test_tfc_backbone_forward_default():
     single_encoding_size = 128
     batch_size = 42
 
-    model = TFC_Conv_Backbone(input_channels=input_shape[0], TS_length=input_shape[1], single_encoding_size=single_encoding_size)
+    model = TFC_Backbone(input_channels=input_shape[0], TS_length=input_shape[1], single_encoding_size=single_encoding_size)
     assert model is not None
     x = torch.rand(batch_size, *input_shape)
     y = model(x, x)
@@ -20,7 +20,7 @@ def test_tfc_backbone_forward_arbitrary():
     single_encoding_size = 128
     batch_size = 37
 
-    model = TFC_Conv_Backbone(input_channels=input_shape[0], TS_length=input_shape[1], single_encoding_size=single_encoding_size)
+    model = TFC_Backbone(input_channels=input_shape[0], TS_length=input_shape[1], single_encoding_size=single_encoding_size)
     assert model is not None
     x = torch.rand(batch_size, *input_shape)
     y = model(x, x)
@@ -39,3 +39,8 @@ def test_tfc_prediction_head():
     x = torch.rand(batch_size, single_encoding_size*2)
     y = model(x)
     assert y.shape == (batch_size, num_classes)
+
+
+test_tfc_backbone_forward_arbitrary()
+test_tfc_backbone_forward_default()
+test_tfc_prediction_head()
