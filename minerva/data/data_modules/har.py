@@ -428,9 +428,8 @@ class MultiModalHARSeriesDataModule(L.LightningDataModule):
 
             if split_name == "train" and self.data_percentage < 1.0:
                 indices = list(range(len(dataset)))
-                indices = random.sample(
-                    indices, int(len(indices) * self.data_percentage)
-                )
+                random.shuffle(indices)
+                indices = indices[: int(self.data_percentage * len(dataset))]
                 dataset = Subset(dataset, indices)
 
             datasets.append(dataset)
