@@ -383,8 +383,11 @@ class _SetR_PUP(nn.Module):
         x = self.decoder(x)
         return x
 
-    def load_backbone(self, path: str):
+    def load_backbone(self, path: str, freeze: bool = False):
         self.encoder.load_state_dict(torch.load(path))
+        if freeze:
+            for param in self.encoder.parameters():
+                param.requires_grad = False
 
 
 # region SETR_PUP
@@ -419,6 +422,10 @@ class SETR_PUP(L.LightningModule):
         aux_output_layers: list[int] | None = [9, 14, 19],
         aux_weights: list[float] = [0.3, 0.3, 0.3],
         config_dict: Optional[Dict] = None,
+        load_backbone_path: Optional[str] = None,
+        freeze_backbone_on_load: bool = True,
+        learning_rate: float = 1e-3,
+        loss_weights: Optional[list[float]] = None,
     ):
         """
         Initializes the SetR model.
@@ -481,7 +488,11 @@ class SETR_PUP(L.LightningModule):
         """
         super().__init__()
         if config_dict is None:
-            self.loss_fn = loss_fn if loss_fn is not None else nn.CrossEntropyLoss()
+            self.loss_fn = (
+                loss_fn
+                if loss_fn is not None
+                else nn.CrossEntropyLoss(weight=torch.tensor(loss_weights) if loss_weights is not None else None)
+            )
             norm_layer = (
                 norm_layer if norm_layer is not None else nn.LayerNorm(hidden_dim)
             )
@@ -536,13 +547,23 @@ class SETR_PUP(L.LightningModule):
                 aux_output=aux_output,
                 aux_output_layers=aux_output_layers,
             )
+            if load_backbone_path is not None:
+                self.model.load_backbone(load_backbone_path, freeze_backbone_on_load)
+
+            self.learning_rate = learning_rate
 
         else:
             self.loss_fn = (
                 config_dict["loss_fn"]
                 if "loss_fn" in config_dict.keys()
                 and config_dict["loss_fn"] is not None
-                else nn.CrossEntropyLoss()
+                else nn.CrossEntropyLoss(
+                    weight=(
+                        torch.tensor(config_dict["loss_weights"])
+                        if config_dict.get("loss_weights", None) is not None
+                        else None
+                    )
+                )
             )
             norm_layer = (
                 config_dict["norm_layer"]
@@ -712,6 +733,13 @@ class SETR_PUP(L.LightningModule):
                     else aux_output_layers
                 ),
             )
+            if "load_backbone_path" in config_dict.keys():
+                self.model.load_backbone(
+                    config_dict["load_backbone_path"],
+                    config_dict.get("freeze_backbone_on_load", True),
+                )
+
+            self.learning_rate = config_dict.get("learning_rate", learning_rate)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.model(x)
@@ -824,12 +852,12 @@ class SETR_PUP(L.LightningModule):
         x, _ = batch
         return self.model(x)[0]
 
-    def load_backbone(self, path: str):
-        self.model.load_backbone(path)
+    def load_backbone(self, path: str, freeze: bool = False):
+        self.model.load_backbone(path, freeze)
 
     def configure_optimizers(self):
         return (
             self.optimizer
             if self.optimizer is not None
-            else torch.optim.Adam(self.model.parameters(), lr=1e-3)
+            else torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
         )

@@ -28,7 +28,7 @@ class HyperParameterSearch(Pipeline):
         log_dir: Optional[PathLike] = None,
         save_run_status: bool = False,
         num_epochs: int = 2,
-        num_samples: int = 3,
+        num_samples: int = 10,
     ):
         super().__init__(log_dir=log_dir, save_run_status=save_run_status)
         self.model = model
@@ -65,9 +65,9 @@ class HyperParameterSearch(Pipeline):
         scheduler = configs.get(
             "scheduler",
             ASHAScheduler(
-                time_attr="training_epoch",
-                max_t=configs.get("num_epochs", 2),
-                grace_period=2,
+                time_attr="training_iteration",
+                max_t=configs.get("max_t", 2),
+                grace_period=configs.get("grace_period", 1),
             ),
         )
 
