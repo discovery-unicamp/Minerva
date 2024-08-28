@@ -69,7 +69,7 @@ class Flip(_Transform):
         """
 
         if isinstance(self.axis, int):
-            return np.flip(x, axis=self.axis)
+            return np.flip(x, axis=self.axis).copy()
 
         assert (
             len(self.axis) <= x.ndim
@@ -78,7 +78,7 @@ class Flip(_Transform):
         for axis in self.axis:
             x = np.flip(x, axis=axis)
 
-        return x
+        return x.copy()
 
 
 class PerlinMasker(_Transform):
