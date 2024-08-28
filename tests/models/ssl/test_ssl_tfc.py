@@ -1,5 +1,6 @@
 from minerva.models.ssl.tfc import TFC_Model
 import torch
+from torchmetrics import F1Score, Accuracy
 
 def test_tfc_forward_default():
     model = TFC_Model(input_channels = 9, TS_length = 128, num_classes = 6, single_encoding_size = 128)
@@ -37,18 +38,11 @@ def test_tfc_forward_without_head():
     assert len(h_time) == len(z_time) == len(h_freq) == len(z_freq) == batch_size, f"Expected shape ({batch_size}), got {len(h_time), len(z_time), len(h_freq), len(z_freq)}"
     assert z_time.shape[-1] + z_freq.shape[-1] == single_encoding_size*2, f"Expected shape {single_encoding_size*2}, got {z_time.shape[-1] + z_freq.shape[-1]}"
 
-def test_tfc_given_conv_backbone():
-    raise NotImplementedError
+def test_tfc_metrics_argument():
+    num_classes = 6
+    train_metrics = {"f1": F1Score(task="multiclass", num_classes=num_classes), "accuracy": Accuracy(task="multiclass", num_classes=num_classes)}
+    val_metrics = {"f1": F1Score(task="multiclass", num_classes=num_classes), "accuracy": Accuracy(task="multiclass", num_classes=num_classes)}
+    test_metrics = {"f1": F1Score(task="multiclass", num_classes=num_classes), "accuracy": Accuracy(task="multiclass", num_classes=num_classes)}
 
-def test_tfc_invalid_passed_backbone():
-    # "If a backbone is provided, the encoders and projectors must be None"
-    raise NotImplementedError
-
-def test_tfc_given_encoder():
-    raise NotImplementedError
-
-def test_tfc_given_projector():
-    raise NotImplementedError
-
-def test_tfc_given_ts2vec_encoder():
-    raise NotImplementedError
+    model = TFC_Model(input_channels = 9, TS_length = 128, num_classes = num_classes, single_encoding_size = 128, train_metrics = train_metrics, val_metrics = val_metrics, test_metrics = test_metrics)
+    assert model is not None, "Impossible to create TFC_Model with metrics"
