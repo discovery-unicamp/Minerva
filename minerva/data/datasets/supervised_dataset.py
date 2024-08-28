@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple
+from typing import Any, List, Optional, Tuple
 
 import numpy as np
 
@@ -67,7 +67,7 @@ class SupervisedReconstructionDataset(SimpleDataset):
             len(self.readers) == 2
         ), "SupervisedReconstructionDataset requires exactly 2 readers"
 
-    def __getitem__(self, index: int) -> Tuple[np.ndarray, np.ndarray]:
+    def __getitem__(self, index: int) -> Tuple[Any, Any]:
         """Load data from sources and apply specified transforms. The same
         transform is applied to both input and target data.
 
@@ -78,8 +78,8 @@ class SupervisedReconstructionDataset(SimpleDataset):
 
         Returns
         -------
-        Tuple[np.ndarray, np.ndarray]
-            A tuple containing two numpy arrays representing the data.
+        Tuple[Any, Any]
+            A tuple containing two elements: the input data and the target data.
 
         """
         data = super().__getitem__(index)
