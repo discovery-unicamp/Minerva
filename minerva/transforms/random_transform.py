@@ -67,14 +67,12 @@ class RandomFlip(_RandomSyncedTransform):
                 flip_axis = [
                     bool(random.getrandbits(1)) for _ in range(len(self.possible_axis))
                 ]
-                print(flip_axis)
                 if True in flip_axis:
                     chosen_axis = [
                         axis
                         for axis, flip in zip(self.possible_axis, flip_axis)
                         if flip
                     ]
-                    print(chosen_axis)
                     self.flip = Flip(axis=chosen_axis)
                     return self.flip(data)
                 else:
