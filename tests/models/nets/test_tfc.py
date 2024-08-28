@@ -1,15 +1,16 @@
 from minerva.models.nets.tfc import TFC_Backbone, TFC_PredicionHead
 import torch
+from minerva.transforms.tfc import TFC_Transforms
 
 def test_tfc_backbone_forward_default():
     input_shape = (9, 128)
     single_encoding_size = 128
     batch_size = 42
 
-    model = TFC_Backbone(input_channels=input_shape[0], TS_length=input_shape[1], single_encoding_size=single_encoding_size)
+    model = TFC_Backbone(input_channels=input_shape[0], TS_length=input_shape[1], single_encoding_size=single_encoding_size, act_independent=False)
     assert model is not None
     x = torch.rand(batch_size, *input_shape)
-    y = model(x, x)
+    y = model(x)
     assert len(y) == 4
     h_time, z_time, h_freq, z_freq = y 
     assert len(h_time) == len(z_time) == len(h_freq) == len(z_freq) == batch_size
@@ -20,10 +21,10 @@ def test_tfc_backbone_forward_arbitrary():
     single_encoding_size = 128
     batch_size = 37
 
-    model = TFC_Backbone(input_channels=input_shape[0], TS_length=input_shape[1], single_encoding_size=single_encoding_size)
+    model = TFC_Backbone(input_channels=input_shape[0], TS_length=input_shape[1], single_encoding_size=single_encoding_size, act_independent=False)
     assert model is not None
     x = torch.rand(batch_size, *input_shape)
-    y = model(x, x)
+    y = model(x)
     assert len(y) == 4
     h_time, z_time, h_freq, z_freq = y 
     assert len(h_time) == len(z_time) == len(h_freq) == len(z_freq) == batch_size
@@ -40,7 +41,7 @@ def test_tfc_prediction_head():
     y = model(x)
     assert y.shape == (batch_size, num_classes)
 
-
-test_tfc_backbone_forward_arbitrary()
-test_tfc_backbone_forward_default()
-test_tfc_prediction_head()
+def test_transforms_param():
+    transforms = TFC_Transforms()
+    backbone = TFC_Backbone(input_channels=3, TS_length=128, single_encoding_size=128, transform=transforms, act_independent=False)
+    assert backbone is not None

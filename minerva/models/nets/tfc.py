@@ -4,6 +4,8 @@ from typing import Tuple, Optional
 from minerva.models.nets.tnc import TSEncoder
 from minerva.models.adapters import MaxPoolingTransposingSqueezingAdapter
 from typing import Callable
+from minerva.transforms.transform import _Transform
+from minerva.transforms.tfc import TFC_Transforms
 
 class TFC_Backbone(nn.Module):
     """
@@ -42,10 +44,10 @@ class TFC_Backbone(nn.Module):
             out = out.reshape(out.size(0), -1).size(1)
         return out
     
-    def __init__(self, input_channels: int, TS_length: int, single_encoding_size: int = 128,
+    def __init__(self, input_channels: int, TS_length: int, single_encoding_size: int = 128, transform: _Transform = None,
                 time_encoder: Optional[nn.Module] = None, frequency_encoder: Optional[nn.Module] = None,
                 time_projector: Optional[nn.Module] = None, frequency_projector: Optional[nn.Module] = None,
-                adapter: Optional[Callable[[torch.Tensor], torch.Tensor]] = None):
+                adapter: Optional[Callable[[torch.Tensor], torch.Tensor]] = None, act_independent: Optional[bool] = True):
         """
         Constructor of the TFC_Backbone class.
 
@@ -57,6 +59,8 @@ class TFC_Backbone(nn.Module):
             The number of time steps in the input data
         - single_encoding_size: int
             The size of the encoding in the latent space of frequency or time domain individually
+        - transform: _Transform
+            The transformation to be applied to the input data. If None, a default transformation is applied that includes data augmentation and frequency domain transformation
         - time_encoder: Optional[nn.Module]
             The encoder for the time domain. If None, a default encoder is used
         - frequency_encoder: Optional[nn.Module]
@@ -67,9 +71,17 @@ class TFC_Backbone(nn.Module):
             The projector for the frequency domain. If None, a default projector is used. If passing, make sure to correct calculate the input features by backbone
         - adapter : Callable[[torch.Tensor], torch.Tensor], optional
             An adapter to be used from the backbone to the head, by default None.
+        - act_independent: Optional[bool]
+            False values means the tfc_backbone is linked to a TFC-Model class. This way, the forward method will return intermedial features ht, hf, zt and zf.
+            True values means the tfc_backbone is not linked to a TFC-Model class and should act as a standalone model. This way, the forward method will return the final features z concatened.
         """
         super(TFC_Backbone, self).__init__()
         self.adapter = adapter
+        self.transform = transform
+        self.act_independent = act_independent
+
+        if transform is None:
+            self.transform = TFC_Transforms()
 
         self.time_encoder = time_encoder
         if time_encoder is None:
@@ -87,25 +99,22 @@ class TFC_Backbone(nn.Module):
         if frequency_projector is None:
             self.frequency_projector = TFC_Standard_Projector(self._calculate_fc_input_features(self.frequency_encoder, (input_channels, TS_length)), single_encoding_size)
         
-    def forward(self, x_in_t: torch.Tensor, x_in_f: torch.Tensor,
-                adapter: Optional[Callable[[torch.Tensor], torch.Tensor]] = None) -> torch.Tensor:
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         The forward method of the backbone. It receives the input data in the time domain and frequency domain and returns the features extracted in the time domain and frequency domain.
 
         Parameters
         ----------
-        - x_in_t: torch.Tensor
-            The input data in the time domain
-        - x_in_f: torch.Tensor
-            The input data in the frequency domain
-        - adapter : Callable[[torch.Tensor], torch.Tensor], optional
-            An adapter to be used from the backbone to the head, by default None.
+        - x: torch.Tensor
+            The input data
 
         Returns
         -------
         - tuple
             A tuple with the features extracted in the time domain and frequency domain, h_time, z_time, h_freq, z_freq respectively
         """
+
+        x_in_t, _, x_in_f, _ = self.transform(x)
 
         x = self.time_encoder(x_in_t)
         if self.adapter is not None:
@@ -121,6 +130,8 @@ class TFC_Backbone(nn.Module):
         h_freq = f.reshape(f.shape[0], -1)
         z_freq = self.frequency_projector(h_freq)
 
+        if self.act_independent:
+            return torch.cat((z_time, z_freq), dim=1)
         return h_time, z_time, h_freq, z_freq
     
 
@@ -224,7 +235,7 @@ class TFC_Standard_Projector(nn.Module):
 
     This class implements the forward method that receives the input data and returns the features extracted by the projector.
     """
-    def __init__(self, input_channels: int, single_encoding_size: int):
+    def __init__(self, input_channels: int, single_encoding_size: int, argmax: bool = False):
         """
         Constructor of the TFC_Standard_Projector class.
 
@@ -236,6 +247,7 @@ class TFC_Standard_Projector(nn.Module):
             The size of the encoding in the latent space of frequency or time domain individually
         """
         super(TFC_Standard_Projector, self).__init__()
+        self.argmax = argmax
         self.projector = nn.Sequential(
             nn.Linear(input_channels, 256),
             nn.BatchNorm1d(256),

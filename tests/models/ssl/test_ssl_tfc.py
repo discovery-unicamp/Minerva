@@ -7,7 +7,7 @@ def test_tfc_forward_default():
     model = TFC_Model(input_channels = 9, TS_length = 128, num_classes = 6, single_encoding_size = 128)
     assert model is not None, "Impossible to create TFC_Model with default input"
     x = torch.rand(42, *(9,128))
-    y = model(x, x)
+    y = model(x)
     assert y.shape == (42, 6), f"Expected shape (42, 6), got {y.shape}"
 
 
@@ -20,7 +20,7 @@ def test_tfc_forward_arbitrary():
     model = TFC_Model(input_channels = input_shape[0], TS_length = input_shape[1], num_classes = num_classes, single_encoding_size = single_encoding_size, batch_size=batch_size)
     assert model is not None, "Impossible to create TFC_Model with arbitrary input"
     x = torch.rand(batch_size, *input_shape)
-    y, h_time, z_time, h_freq, z_freq = model(x, x, all=True)
+    y, h_time, z_time, h_freq, z_freq = model(x, all=True)
     assert y.shape == (batch_size, num_classes), f"Expected shape ({batch_size}, {num_classes}), got {y.shape}"
 
     assert len(h_time) == len(z_time) == len(h_freq) == len(z_freq) == batch_size, f"Expected shape ({batch_size}), got {len(h_time), len(z_time), len(h_freq), len(z_freq)}"
@@ -35,7 +35,7 @@ def test_tfc_forward_without_head():
     model = TFC_Model(input_channels = input_shape[0], TS_length = input_shape[1], num_classes = num_classes, single_encoding_size = single_encoding_size, pred_head = False, batch_size=batch_size)
     assert model is not None, "Impossible to create TFC_Model without prediction head"
     x = torch.rand(batch_size, * input_shape)
-    h_time, z_time, h_freq, z_freq = model(x, x)
+    h_time, z_time, h_freq, z_freq = model(x)
     assert len(h_time) == len(z_time) == len(h_freq) == len(z_freq) == batch_size, f"Expected shape ({batch_size}), got {len(h_time), len(z_time), len(h_freq), len(z_freq)}"
     assert z_time.shape[-1] + z_freq.shape[-1] == single_encoding_size*2, f"Expected shape {single_encoding_size*2}, got {z_time.shape[-1] + z_freq.shape[-1]}"
 
@@ -48,7 +48,7 @@ def test_tfc_only_time():
     model = TFC_Model(input_channels = input_shape[0], TS_length = input_shape[1], num_classes = num_classes, single_encoding_size = single_encoding_size, pipeline= "time", batch_size=batch_size, pred_head = True)
     assert model is not None, "Impossible to create TFC_Model with only time pipeline"
     x = torch.rand(batch_size, * input_shape)
-    y, h_time, z_time, h_freq, z_freq = model(x, x, all=True)
+    y, h_time, z_time, h_freq, z_freq = model(x, all=True)
     assert y.shape == (batch_size, num_classes), f"Expected shape ({batch_size}, {num_classes}), got {y.shape}"
     assert len(h_time) == len(z_time) == batch_size, f"Expected shape ({batch_size}), got {len(h_time), len(z_time)}"
 
@@ -61,7 +61,7 @@ def test_tfc_only_freq():
     model = TFC_Model(input_channels = input_shape[0], TS_length = input_shape[1], num_classes = num_classes, single_encoding_size = single_encoding_size, pipeline= "freq", batch_size=batch_size, pred_head = True)
     assert model is not None, "Impossible to create TFC_Model with only frequency pipeline"
     x = torch.rand(batch_size, * input_shape)
-    y, h_time, z_time, h_freq, z_freq = model(x, x, all=True)
+    y, h_time, z_time, h_freq, z_freq = model(x, all=True)
     assert y.shape == (batch_size, num_classes), f"Expected shape ({batch_size}, {num_classes}), got {y.shape}"
     assert len(h_time) == len(z_time) == batch_size, f"Expected shape ({batch_size}), got {len(h_time), len(z_time)}"
     
@@ -94,7 +94,7 @@ def test_tfc_given_encoder():
     model = TFC_Model(input_channels = input_shape[0], TS_length = input_shape[1], num_classes = num_classes, single_encoding_size = single_encoding_size, time_encoder = time_encoder, frequency_encoder = frequency_encoder, batch_size=batch_size, pred_head = True)
     assert model is not None, "Impossible to create TFC_Model with given conv_backbone"
     x = torch.rand(batch_size, * input_shape)
-    y, h_time, z_time, h_freq, z_freq = model(x, x, all=True)
+    y, h_time, z_time, h_freq, z_freq = model(x, all=True)
     assert y.shape == (batch_size, num_classes), f"Expected shape ({batch_size}, {num_classes}), got {y.shape}"
     assert len(h_time) == len(z_time) == len(h_freq) == len(z_freq) == batch_size, f"Expected shape ({batch_size}), got {len(h_time), len(z_time), len(h_freq), len(z_freq)}"
 
@@ -110,7 +110,7 @@ def test_tfc_given_projector():
     model = TFC_Model(input_channels = input_shape[0], TS_length = input_shape[1], num_classes = num_classes, single_encoding_size = single_encoding_size, time_projector = time_projector, frequency_projector = frequency_projector, batch_size=batch_size, pred_head = True)
     assert model is not None, "Impossible to create TFC_Model with given projectors"
     x = torch.rand(batch_size, * input_shape)
-    y, h_time, z_time, h_freq, z_freq = model(x, x, all=True)
+    y, h_time, z_time, h_freq, z_freq = model(x, all=True)
     assert y.shape == (batch_size, num_classes), f"Expected shape ({batch_size}, {num_classes}), got {y.shape}"
     assert len(h_time) == len(z_time) == len(h_freq) == len(z_freq) == batch_size, f"Expected shape ({batch_size}), got {len(h_time), len(z_time), len(h_freq), len(z_freq)}"
 
@@ -126,6 +126,16 @@ def test_tfc_given_ts2vec_encoder():
     model = TFC_Model(input_channels = input_shape[0], TS_length = input_shape[1], num_classes = num_classes, single_encoding_size = single_encoding_size, time_encoder = time_encoder, frequency_encoder = frequency_encoder, batch_size=batch_size, pred_head = True)
     assert model is not None, "Impossible to create TFC_Model with given conv_backbone"
     x = torch.rand(batch_size, * input_shape)
-    y, h_time, z_time, h_freq, z_freq = model(x, x, all=True)
+    y, h_time, z_time, h_freq, z_freq = model(x, all=True)
     assert y.shape == (batch_size, num_classes), f"Expected shape ({batch_size}, {num_classes}), got {y.shape}"
     assert len(h_time) == len(z_time) == len(h_freq) == len(z_freq) == batch_size, f"Expected shape ({batch_size}), got {len(h_time), len(z_time), len(h_freq), len(z_freq)}"
+
+test_tfc_forward_default()
+test_tfc_forward_arbitrary()
+test_tfc_forward_without_head()
+test_tfc_only_time()
+test_tfc_only_freq()
+test_tfc_invalid_passed_backbone()
+test_tfc_given_encoder()
+test_tfc_given_projector()
+test_tfc_given_ts2vec_encoder()

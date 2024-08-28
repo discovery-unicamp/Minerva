@@ -85,7 +85,7 @@ class TFC_Model(pl.LightningModule):
             self.backbone = TFC_Backbone(
                 input_channels, TS_length, single_encoding_size=single_encoding_size,
                 time_encoder=time_encoder, frequency_encoder=frequency_encoder,
-                time_projector=time_projector, frequency_projector=frequency_projector
+                time_projector=time_projector, frequency_projector=frequency_projector, act_independent=False
             )
         if pred_head and num_classes:
             if pred_head == True:
@@ -119,17 +119,15 @@ class TFC_Model(pl.LightningModule):
             self.transform = TFC_Transforms()
 
     def forward(
-        self, x_t: torch.Tensor, x_f: torch.Tensor = None, all: bool = False
+        self, x: torch.Tensor, all: bool = False
     ) -> torch.Tensor:  # "all" is useful for validation of acurracy and latent space
         """
         The forward method of the model. It receives the input data in the time domain and frequency domain and returns the prediction of the model.
 
         Parameters
         ----------
-        - x_t: torch.Tensor
-            The input data in the time domain
-        - x_f: torch.Tensor
-            The input data in the frequency domain
+        - x: torch.Tensor
+            The input data
         - all: bool
             If True, the method returns the prediction of the model and the features extracted by the backbone. If False, only the prediction is returned
 
@@ -143,9 +141,7 @@ class TFC_Model(pl.LightningModule):
             If the model has a prediction head and parameter "all" is True, the method returns a tuple with the prediction of the model and the features extracted by the backbone, following the format prediction, h_t, z_t, h_f, z_f.
 
         """
-        if x_f is None:
-            x_t, _, x_f, _ = self.transform(x_t)
-        h_t, z_t, h_f, z_f = self.backbone(x_t, x_f)
+        h_t, z_t, h_f, z_f = self.backbone(x)
         if self.pred_head:
             if self.pipeline == "both":
                 fea_concat = torch.cat((z_t, z_f), dim=1)
@@ -183,12 +179,12 @@ class TFC_Model(pl.LightningModule):
         labels = batch[1]
         data, aug1, data_f, aug1_f = self.transform(x)
         if self.pred_head:
-            pred = self.forward(data, data_f)
+            pred = self.forward(data)
             labels = labels.long()
             loss = self.loss_fn(pred, labels)
         else:
-            h_t, z_t, h_f, z_f = self.forward(data, data_f)
-            h_t_aug, z_t_aug, h_f_aug, z_f_aug = self.forward(aug1, aug1_f)
+            h_t, z_t, h_f, z_f = self.forward(data)
+            h_t_aug, z_t_aug, h_f_aug, z_f_aug = self.forward(aug1)
             loss_t = self.loss_fn(h_t, h_t_aug)
             loss_f = self.loss_fn(h_f, h_f_aug)
             l_TF = self.loss_fn(z_t, z_f)
