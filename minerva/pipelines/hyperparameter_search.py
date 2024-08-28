@@ -27,14 +27,10 @@ class HyperParameterSearch(Pipeline):
         search_space: Dict[str, Any],
         log_dir: Optional[PathLike] = None,
         save_run_status: bool = False,
-        num_epochs: int = 2,
-        num_samples: int = 10,
     ):
         super().__init__(log_dir=log_dir, save_run_status=save_run_status)
         self.model = model
         self.search_space = search_space
-        self.num_epochs = num_epochs
-        self.num_samples = num_samples
 
     def _search(
         self,
@@ -65,7 +61,7 @@ class HyperParameterSearch(Pipeline):
         scheduler = configs.get(
             "scheduler",
             ASHAScheduler(
-                time_attr="training_iteration",
+                time_attr=configs.get("time_attr", "training_iteration"),
                 max_t=configs.get("max_t", 2),
                 grace_period=configs.get("grace_period", 1),
             ),
@@ -81,7 +77,7 @@ class HyperParameterSearch(Pipeline):
             RunConfig(
                 checkpoint_config=(
                     CheckpointConfig(
-                        num_to_keep=1,
+                        num_to_keep=configs.get("num_to_keep", 1),
                         checkpoint_score_attribute=configs.get(
                             "tuner_metric", "val_loss"
                         ),
@@ -104,7 +100,7 @@ class HyperParameterSearch(Pipeline):
             tune_config=tune.TuneConfig(
                 metric=configs.get("tuner_metric", "val_loss"),
                 mode=configs.get("tuner_mode", "min"),
-                num_samples=self.num_samples,
+                num_samples=configs.get("num_samples", 10),
                 scheduler=scheduler,
             ),
         )
