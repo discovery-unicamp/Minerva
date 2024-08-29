@@ -1,5 +1,8 @@
 import lightning as L
 import torch
+import torch.nn.functional as F
+from minerva.losses.batchwise_barlowtwins_loss import BatchWiseBarlowTwinLoss
+from typing import Optional
 
 
 class RepeatedModuleList(torch.nn.ModuleList):
@@ -78,9 +81,10 @@ class LearnFromRandomnessModel(L.LightningModule):
         backbone: torch.nn.Module,
         projectors: torch.nn.ModuleList,
         predictors: torch.nn.ModuleList,
-        loss_fn: torch.nn.Module,
+        loss_fn: torch.nn.Module = None,
         learning_rate: float = 1e-3,
-        flatten: bool = True,
+        flatten: bool = False,
+        predictor_training_epochs: Optional[int] = None,
     ):
         """
         Initialize the LFR_Model.
@@ -94,19 +98,21 @@ class LearnFromRandomnessModel(L.LightningModule):
         predictors: torch.nn.ModuleList
             A list of predictor networks.
         loss_fn: torch.nn.Module
-            The loss function to optimize.
+            The loss function to optimize, by default None. If None, the BatchWiseBarlowTwinLoss is used.
         learning_rate: float
             The learning rate for the optimizer, by default 1e-3.
         flatten: bool
-            Whether to flatten the input tensor or not, by default True.
+            Whether to flatten the input tensor or not, by default False.
         """
         super().__init__()
         self.backbone = backbone
         self.projectors = projectors
         self.predictors = predictors
-        self.loss_fn = loss_fn
+        self.loss_fn = loss_fn if loss_fn is not None else BatchWiseBarlowTwinLoss()
         self.learning_rate = learning_rate
         self.flatten = flatten
+
+        self.predictor_training_epochs = predictor_training_epochs
 
         for param in self.projectors.parameters():
             param.requires_grad = False
@@ -178,9 +184,15 @@ class LearnFromRandomnessModel(L.LightningModule):
         torch.Tensor
             The loss value for the batch.
         """
+        if isinstance(batch, tuple) or isinstance(batch, list):
+            batch = batch[0]
         x = batch
         y_pred, y_proj = self.forward(x)
-        loss = self._loss_func(y_pred, y_proj)
+        loss = 0
+        for i in range(y_pred.shape[1]):
+            loss += self._loss_func(y_pred[:,i,:], y_proj[:,i,:])
+        loss /= len(y_pred)
+        # loss = self._loss_func(y_pred, y_proj)
         self.log(
             f"{step_name}_loss",
             loss,
@@ -197,6 +209,13 @@ class LearnFromRandomnessModel(L.LightningModule):
 
     def validation_step(self, batch: torch.Tensor, batch_idx: int):
         return self._single_step(batch, batch_idx, step_name="val")
+    
+    def on_train_epoch_end(self):
+        if self.predictor_training_epochs is not None and self.predictor_training_epochs != 0:
+            if self.current_epoch % self.predictor_training_epochs == 0:
+                self.backbone.eval()
+            if self.current_epoch % self.predictor_training_epochs == self.predictor_training_epochs - 1:
+                self.backbone.train()
 
     def test_step(self, batch: torch.Tensor, batch_idx: int):
         return self._single_step(batch, batch_idx, step_name="test")
