@@ -141,7 +141,7 @@ class TFC_PredicionHead(nn.Module):
     The prediction head is composed of a linear layer that receives the features extracted by the backbone and returns the prediction of the model.
     This class implements the forward method that receives the features extracted by the backbone and returns the prediction of the model.
     """
-    def __init__(self, num_classes: int, connections:int =2, single_encoding_size:int =128):
+    def __init__(self, num_classes: int, connections:int =2, single_encoding_size:int =128, argmax_output: bool = False):
         """
         Constructor of the TFC_PredicionHead class.
 
@@ -153,12 +153,15 @@ class TFC_PredicionHead(nn.Module):
             The number of pipelines in the backbone. If 1, only the time or frequency domain is used. If 2, both domains are used. Other values are treated as 1.
         - single_encoding_size: int
             The size of the encoding in the latent space of frequency or time domain individually
+        - argmax: bool
+            If True, the argmax function is applied to the prediction. If False, the prediction returns the logits
         """
         super(TFC_PredicionHead, self).__init__()
         if connections != 2:
             print(f"Only one pipeline is on: {connections} connection.")
         self.logits = nn.Linear(connections*single_encoding_size, 64)
         self.logits_simple = nn.Linear(64, num_classes)
+        self.argmax_output = argmax_output
 
     def forward(self, emb: torch.Tensor) -> torch.Tensor:
         """
@@ -178,6 +181,8 @@ class TFC_PredicionHead(nn.Module):
         emb_flat = emb.reshape(emb.shape[0], -1)
         emb = torch.sigmoid(self.logits(emb_flat))
         pred = self.logits_simple(emb)
+        if self.argmax_output:
+            pred = pred.argmax(dim=1)
         return pred
 
 class TFC_Conv_Block(nn.Module):
@@ -235,7 +240,7 @@ class TFC_Standard_Projector(nn.Module):
 
     This class implements the forward method that receives the input data and returns the features extracted by the projector.
     """
-    def __init__(self, input_channels: int, single_encoding_size: int, argmax: bool = False):
+    def __init__(self, input_channels: int, single_encoding_size: int):
         """
         Constructor of the TFC_Standard_Projector class.
 
@@ -247,7 +252,6 @@ class TFC_Standard_Projector(nn.Module):
             The size of the encoding in the latent space of frequency or time domain individually
         """
         super(TFC_Standard_Projector, self).__init__()
-        self.argmax = argmax
         self.projector = nn.Sequential(
             nn.Linear(input_channels, 256),
             nn.BatchNorm1d(256),
