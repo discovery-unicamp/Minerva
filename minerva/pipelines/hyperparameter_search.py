@@ -64,6 +64,7 @@ class HyperParameterSearch(Pipeline):
                 time_attr=configs.get("time_attr", "training_iteration"),
                 max_t=configs.get("max_t", 2),
                 grace_period=configs.get("grace_period", 1),
+                brackets=configs.get("brackets", 1),
             ),
         )
 
