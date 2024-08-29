@@ -13,10 +13,11 @@ class ZeroPadder2D(torch.nn.Module):
         self.padding_size = padding_size
 
     def forward(self, x):
-
         for i in self.pad_at:
             left = x[:, :, :i, :]
-            zeros = torch.zeros(x.shape[0], x.shape[1], self.padding_size, x.shape[3])
+            zeros = torch.zeros(
+                x.shape[0], x.shape[1], self.padding_size, x.shape[3]
+            )
             right = x[:, :, i:, :]
 
             x = torch.cat([left, zeros, right], dim=2)
@@ -31,12 +32,14 @@ class ZeroPadder2D(torch.nn.Module):
 
 
 class CNN_HaEtAl_1D(SimpleSupervisedModel):
-
     def __init__(
         self,
         input_shape: Tuple[int, int, int] = (1, 6, 60),
         num_classes: int = 6,
         learning_rate: float = 1e-3,
+        # Arguments passed to the SimpleSupervisedModel constructor
+        *args,
+        **kwargs,
     ):
         self.input_shape = input_shape
         self.num_classes = num_classes
@@ -52,11 +55,13 @@ class CNN_HaEtAl_1D(SimpleSupervisedModel):
             learning_rate=learning_rate,
             flatten=True,
             loss_fn=torch.nn.CrossEntropyLoss(),
-            val_metrics={"acc": Accuracy(task="multiclass", num_classes=num_classes)},
-            test_metrics={"acc": Accuracy(task="multiclass", num_classes=num_classes)},
+            *args,
+            **kwargs,
         )
 
-    def _create_backbone(self, input_shape: Tuple[int, int, int]) -> torch.nn.Module:
+    def _create_backbone(
+        self, input_shape: Tuple[int, int, int]
+    ) -> torch.nn.Module:
         return torch.nn.Sequential(
             # First 2D convolutional layer
             torch.nn.Conv2d(
@@ -107,7 +112,9 @@ class CNN_HaEtAl_1D(SimpleSupervisedModel):
             out = backbone(random_input)
         return out.view(out.size(0), -1).size(1)
 
-    def _create_fc(self, input_features: int, num_classes: int) -> torch.nn.Module:
+    def _create_fc(
+        self, input_features: int, num_classes: int
+    ) -> torch.nn.Module:
         return torch.nn.Sequential(
             torch.nn.Linear(in_features=input_features, out_features=128),
             torch.nn.ReLU(),
@@ -124,6 +131,9 @@ class CNN_HaEtAl_2D(SimpleSupervisedModel):
         input_shape: Tuple[int, int, int] = (1, 6, 60),
         num_classes: int = 6,
         learning_rate: float = 1e-3,
+        # Arguments passed to the SimpleSupervisedModel constructor
+        *args,
+        **kwargs,
     ):
         self.pad_at = pad_at
         self.input_shape = input_shape
@@ -140,11 +150,13 @@ class CNN_HaEtAl_2D(SimpleSupervisedModel):
             learning_rate=learning_rate,
             flatten=True,
             loss_fn=torch.nn.CrossEntropyLoss(),
-            val_metrics={"acc": Accuracy(task="multiclass", num_classes=num_classes)},
-            test_metrics={"acc": Accuracy(task="multiclass", num_classes=num_classes)},
+            *args,
+            **kwargs,
         )
 
-    def _create_backbone(self, input_shape: Tuple[int, int, int]) -> torch.nn.Module:
+    def _create_backbone(
+        self, input_shape: Tuple[int, int, int]
+    ) -> torch.nn.Module:
         first_kernel_size = 4
         return torch.nn.Sequential(
             # Add padding
@@ -204,7 +216,9 @@ class CNN_HaEtAl_2D(SimpleSupervisedModel):
             out = backbone(random_input)
         return out.view(out.size(0), -1).size(1)
 
-    def _create_fc(self, input_features: int, num_classes: int) -> torch.nn.Module:
+    def _create_fc(
+        self, input_features: int, num_classes: int
+    ) -> torch.nn.Module:
         return torch.nn.Sequential(
             torch.nn.Linear(in_features=input_features, out_features=128),
             torch.nn.ReLU(),
@@ -309,7 +323,9 @@ class CNN_PF_Backbone(torch.nn.Module):
         # upper slice (8, 1, 5, 60)
         upper_x = x[:, :, : self.pad_at + self.first_pad_size, :]
         upper_x = self.upper_part(upper_x)
-        zeros_1 = torch.zeros(upper_x.size(0), upper_x.size(1), 3 - 1, upper_x.size(3))
+        zeros_1 = torch.zeros(
+            upper_x.size(0), upper_x.size(1), 3 - 1, upper_x.size(3)
+        )
 
         upper_x = torch.cat(
             [upper_x, zeros_1],
@@ -319,7 +335,9 @@ class CNN_PF_Backbone(torch.nn.Module):
         # lower slice (8, 1, 5, 60)
         lower_x = x[:, :, self.pad_at :, :]
         lower_x = self.lower_part(lower_x)
-        zeros_2 = torch.zeros(lower_x.size(0), lower_x.size(1), 3 - 1, lower_x.size(3))
+        zeros_2 = torch.zeros(
+            lower_x.size(0), lower_x.size(1), 3 - 1, lower_x.size(3)
+        )
 
         lower_x = torch.cat(
             [zeros_2, lower_x],
@@ -347,6 +365,9 @@ class CNN_PF_2D(SimpleSupervisedModel):
         num_classes: int = 6,
         learning_rate: float = 1e-3,
         include_middle: bool = False,
+        # Arguments passed to the SimpleSupervisedModel constructor
+        *args,
+        **kwargs,
     ):
         self.pad_at = pad_at
         self.input_shape = input_shape
@@ -369,8 +390,8 @@ class CNN_PF_2D(SimpleSupervisedModel):
             learning_rate=learning_rate,
             flatten=True,
             loss_fn=torch.nn.CrossEntropyLoss(),
-            val_metrics={"acc": Accuracy(task="multiclass", num_classes=num_classes)},
-            test_metrics={"acc": Accuracy(task="multiclass", num_classes=num_classes)},
+            *args,
+            **kwargs,
         )
 
     def _calculate_fc_input_features(
@@ -396,7 +417,9 @@ class CNN_PF_2D(SimpleSupervisedModel):
             out = backbone(random_input)
         return out.view(out.size(0), -1).size(1)
 
-    def _create_fc(self, input_features: int, num_classes: int) -> torch.nn.Module:
+    def _create_fc(
+        self, input_features: int, num_classes: int
+    ) -> torch.nn.Module:
         return torch.nn.Sequential(
             torch.nn.Linear(in_features=input_features, out_features=512),
             torch.nn.ReLU(),

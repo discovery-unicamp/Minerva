@@ -1,28 +1,31 @@
 ---
 name: Fix Request
 about: Create a request to fix a bug or issue with the code
-title: '[Fix Request]'
+title: '[Fix Request] '
 labels: bug
 assignees: ''
 
 ---
 
 **Describe the problem**
-A clear and concise description of what the what do you need to be fixed.
+A clear and concise description of the problem you are facing.
 
-**To Reproduce**
+**Proposed Solution**
+A clear and concise description of the solution you are thinking about.
+
+**Additional Context**
+Add any other information that you think is relevant, including steps to reproduce the issue, expected behavior, and screenshots if applicable.
+
+**Steps to Reproduce**
 Steps to reproduce the behavior:
 
 1. Go to '...'
 2. Click on '....'
 3. Scroll down to '....'
-4. See error
+4. See error/issue
 
-**Expected behavior**
+**Expected Behavior**
 A clear and concise description of what you expected to happen.
 
 **Screenshots**
 If applicable, add screenshots to help explain your problem.
-
-**Additional context**
-Add any other context about the problem here.

@@ -205,6 +205,9 @@ class InceptionTime(SimpleSupervisedModel):
         kernel_size: int = 41,
         num_classes: int = 6,
         learning_rate: float = 1e-3,
+        # Arguments passed to the SimpleSupervisedModel constructor
+        *args,
+        **kwargs
     ):
         backbone = _InceptionTime(
             input_shape,
@@ -224,8 +227,8 @@ class InceptionTime(SimpleSupervisedModel):
             learning_rate=learning_rate,
             flatten=True,
             loss_fn=torch.nn.CrossEntropyLoss(),
-            val_metrics={"acc": Accuracy(task="multiclass", num_classes=num_classes)},
-            test_metrics={"acc": Accuracy(task="multiclass", num_classes=num_classes)},
+            *args,
+            **kwargs
         )
 
     def _calculate_fc_input_features(
