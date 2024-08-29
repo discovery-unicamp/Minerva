@@ -175,12 +175,8 @@ class SimpleSupervisedModel(L.LightningModule):
             A tensor with the loss value.
         """
         x, y = batch
-        print("vou fazer forward", end="")
         y_hat = self.forward(x)
-        print("fiz forward", end="")
-        print(f" y_hat: {y_hat.shape}, y: {y.shape}", end="")
         loss = self._loss_func(y_hat, y)
-        print("fiz loss", end="")
         self.log(
             f"{step_name}_loss",
             loss,
@@ -189,10 +185,8 @@ class SimpleSupervisedModel(L.LightningModule):
             prog_bar=True,
             logger=True,
         )
-        print("fiz log", end="")
 
         metrics = self._compute_metrics(y_hat, y, step_name)
-        print("fiz calculei metricas", end="")
         for metric_name, metric_value in metrics.items():
             self.log(
                 metric_name,
@@ -202,7 +196,6 @@ class SimpleSupervisedModel(L.LightningModule):
                 prog_bar=True,
                 logger=True,
             )
-        print("fiz loguei metricas", end="")
 
         return loss
 
