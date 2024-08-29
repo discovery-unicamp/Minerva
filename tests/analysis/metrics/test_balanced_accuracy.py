@@ -2,36 +2,74 @@ import torch
 from minerva.analysis.metrics import BalancedAccuracy
 
 def test_balanced_accuracy():
-    # Test case for binary classification
-    y_true_binary = torch.tensor([0, 1, 0, 0, 1, 0])
-    y_pred_binary = torch.tensor([0, 1, 0, 0, 0, 1])
-    num_classes_binary = 2
-    task_binary = 'binary'
-    expected_output_binary = 0.625
+    # Test case 1: Basic binary classification with perfect accuracy
+    y_true = torch.tensor([0, 1, 0, 1])
+    y_pred = torch.tensor([0, 1, 0, 1])
+    metric = BalancedAccuracy(num_classes=2, task='binary')
+    metric.update(y_pred, y_true)
+    expected = 1.0
+    assert torch.isclose(metric.compute().float(), torch.tensor(expected).float()), "Test case 1 failed"
 
-    metric_binary = BalancedAccuracy(num_classes=num_classes_binary, task=task_binary)
-    metric_binary.update(y_pred_binary, y_true_binary)
-    output_binary = metric_binary.compute()
-    
-    print(expected_output_binary, output_binary)
+    # Test case 2: Basic binary classification with random accuracy
+    y_true = torch.tensor([0, 1, 0, 1])
+    y_pred = torch.tensor([1, 0, 1, 0])
+    metric = BalancedAccuracy(num_classes=2, task='binary')
+    metric.update(y_pred, y_true)
+    expected = 0.0
+    assert torch.isclose(metric.compute().float(), torch.tensor(expected).float()), "Test case 2 failed"
 
-    assert (
-        abs(output_binary - expected_output_binary) < 1e-6
-    ), f"Expected output {expected_output_binary}, but got {output_binary}"
+    # Test case 3: Multiclass classification with perfect accuracy
+    y_true = torch.tensor([0, 1, 2, 0, 1, 2])
+    y_pred = torch.tensor([0, 1, 2, 0, 1, 2])
+    metric = BalancedAccuracy(num_classes=3, task='multiclass')
+    metric.update(y_pred, y_true)
+    expected = 1.0
+    assert torch.isclose(metric.compute().float(), torch.tensor(expected).float()), "Test case 3 failed"
 
-    # Test case for multiclass classification
-    y_true_multiclass = torch.tensor([0, 1, 2, 0, 1, 2])
-    y_pred_multiclass = torch.tensor([0, 2, 1, 0, 0, 1])
-    num_classes_multiclass = 3
-    task_multiclass = 'multiclass'
-    expected_output_multiclass = 1 / 3  # In this example, only one class is predicted correctly
+    # Test case 4: Multiclass classification with missing classes in y_pred
+    y_true = torch.tensor([0, 1, 2, 0, 1, 2])
+    y_pred = torch.tensor([0, 1, 0, 0, 1, 0])  # class 2 missing in y_pred
+    metric = BalancedAccuracy(num_classes=3, task='multiclass')
+    metric.update(y_pred, y_true)
+    expected = 0.6666666666666666
+    assert torch.isclose(metric.compute().float(), torch.tensor(expected).float()), "Test case 4 failed"
 
-    metric_multiclass = BalancedAccuracy(num_classes=num_classes_multiclass, task=task_multiclass)
-    metric_multiclass.update(y_pred_multiclass, y_true_multiclass)
-    output_multiclass = metric_multiclass.compute()
-    
-    print(expected_output_multiclass, output_multiclass)
+    # Test case 5: Multiclass classification with some classes not present in the batch
+    y_true = torch.tensor([0, 0, 0, 0, 0, 0])
+    y_pred = torch.tensor([0, 0, 0, 0, 0, 0])  # only one class present
+    metric = BalancedAccuracy(num_classes=3, task='multiclass')
+    metric.update(y_pred, y_true)
+    expected = 1.0
+    assert torch.isclose(metric.compute().float(), torch.tensor(expected).float()), "Test case 5 failed"
 
-    assert (
-        abs(output_multiclass - expected_output_multiclass) < 1e-6
-    ), f"Expected output {expected_output_multiclass}, but got {output_multiclass}"
+    # Test case 6: Multiclass classification with NaN values
+    y_true = torch.tensor([0, 1, 0, 1])
+    y_pred = torch.tensor([0, 0, 0, 0])  # class 1 not predicted
+    metric = BalancedAccuracy(num_classes=2, task='multiclass')
+    metric.update(y_pred, y_true)
+    expected = 0.5
+    assert torch.isclose(metric.compute().float(), torch.tensor(expected).float()), f"Test case 6 failed with result {metric.compute()}"
+
+    # Test case 7: Multiclass classification with a complex case of missing classes
+    y_true = torch.tensor([0, 1, 2, 3, 4, 5])
+    y_pred = torch.tensor([0, 0, 2, 2, 4, 5])  # missing classes 1 and 3 in y_pred
+    metric = BalancedAccuracy(num_classes=6, task='multiclass')
+    metric.update(y_pred, y_true)
+    expected = 0.6666666666666666
+    assert torch.isclose(metric.compute().float(), torch.tensor(expected).float()), f"Test case 7 failed with result {metric.compute()}"
+
+    # Test case 8: Multiclass classification where y_true has classes not in y_pred
+    y_true = torch.tensor([0, 1, 2, 3, 4, 5])
+    y_pred = torch.tensor([0, 0, 2, 3, 4, 4])  # class 1 and 5 not predicted
+    metric = BalancedAccuracy(num_classes=6, task='multiclass')
+    metric.update(y_pred, y_true)
+    expected = 0.6666666666666666
+    assert torch.isclose(metric.compute().float(), torch.tensor(expected).float()), f"Test case 8 failed with result {metric.compute()}"
+
+    # Test case 9: Complex case with missing classes
+    y_true = torch.tensor([4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 3, 3, 3, 3])
+    y_pred = torch.tensor([3, 3, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 3, 3, 3, 3])
+    metric = BalancedAccuracy(num_classes=6, task='multiclass')
+    metric.update(y_pred, y_true)
+    expected = 0.6666666666666666
+    assert torch.isclose(metric.compute().float(), torch.tensor(expected).float()), f"Test case 9 failed with result {metric.compute()}"
