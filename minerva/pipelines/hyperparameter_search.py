@@ -1,3 +1,4 @@
+import os
 from copy import deepcopy
 from typing import Any, Dict, Literal, Optional
 
@@ -38,6 +39,8 @@ class HyperParameterSearch(Pipeline):
         ckpt_path: Optional[PathLike],
         configs: Dict[str, Any],
     ) -> Any:
+        os.environ["TUNE_MAX_PENDING_TRIALS_PG"] = "1"
+
         def _tuner_train_func(config):
             dm = deepcopy(data)
             model = self.model(config_dict=config)
