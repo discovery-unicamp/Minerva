@@ -57,6 +57,7 @@ class HyperParameterSearch(Pipeline):
                 enable_checkpointing=(
                     False if configs.get("debug_mode") is True else None
                 ),
+                check_val_every_n_epoch=10,
             )
             trainer = prepare_trainer(trainer)
             trainer.fit(model, dm, ckpt_path=ckpt_path)
@@ -86,9 +87,12 @@ class HyperParameterSearch(Pipeline):
                             "tuner_metric", "val_loss"
                         ),
                         checkpoint_score_order=configs.get("tuner_mode", "min"),
+                        checkpoint_frequency=(
+                            configs.get("checkpoint_frequency", 10)
+                            if configs.get("debug_mode", False) is False
+                            else 0
+                        ),
                     )
-                    if configs.get("debug_mode", False) is True
-                    else None
                 ),
             ),
         )
