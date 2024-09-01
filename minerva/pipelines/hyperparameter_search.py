@@ -5,17 +5,13 @@ from typing import Any, Dict, Literal, Optional
 import lightning.pytorch as L
 from ray import tune
 from ray.train import CheckpointConfig, RunConfig, ScalingConfig
-from ray.train.lightning import (
-    RayDDPStrategy,
-    RayLightningEnvironment,
-    RayTrainReportCallback,
-    prepare_trainer,
-)
+from ray.train.lightning import RayDDPStrategy, RayLightningEnvironment, prepare_trainer
 from ray.train.torch import TorchTrainer
 from ray.tune.schedulers import ASHAScheduler
 from ray.tune.search.sample import Categorical, Float, Integer
 from torchmetrics import Metric
 
+from minerva.callbacks.HyperSearchCallbacks import TrainerReportOnIntervalCallback
 from minerva.pipelines.base import Pipeline
 from minerva.utils.typing import PathLike
 
@@ -39,7 +35,6 @@ class HyperParameterSearch(Pipeline):
         ckpt_path: Optional[PathLike],
         configs: Dict[str, Any],
     ) -> Any:
-        os.environ["TUNE_MAX_PENDING_TRIALS_PG"] = "1"
 
         def _tuner_train_func(config):
             dm = deepcopy(data)
@@ -50,14 +45,15 @@ class HyperParameterSearch(Pipeline):
                 strategy=configs.get(
                     "strategy", RayDDPStrategy(find_unused_parameters=True)
                 ),
-                callbacks=configs.get("callbacks", [RayTrainReportCallback()]),
+                callbacks=configs.get(
+                    "callbacks", [TrainerReportOnIntervalCallback(interval=10)]
+                ),
                 plugins=configs.get("plugins", [RayLightningEnvironment()]),
                 enable_progress_bar=False,
                 num_nodes=configs.get("num_nodes", 1),
                 enable_checkpointing=(
                     False if configs.get("debug_mode") is True else None
                 ),
-                check_val_every_n_epoch=10,
             )
             trainer = prepare_trainer(trainer)
             trainer.fit(model, dm, ckpt_path=ckpt_path)
