@@ -1,15 +1,16 @@
 import torch
 from torch import nn
 import lightning as pl
-from typing import List, Tuple, Union, Optional
+from typing import List, Tuple, Union, Optional, Dict
 from minerva.transforms.tfc import TFC_Transforms
-from minerva.models.nets.tfc import TFC_Conv_Backbone, TFC_PredicionHead
+from minerva.models.nets.tfc import TFC_Backbone, TFC_PredicionHead
 from minerva.losses.ntxent_loss_poly import NTXentLoss_poly
 from minerva.transforms.transform import _Transform
 from torch.nn.modules.loss import _Loss
 from torch.optim import Optimizer
 from torchmetrics import F1Score, Accuracy
 from minerva.models.loaders import LoadableModule
+from torchmetrics import Metric
 
 
 class TFC_Model(pl.LightningModule):
@@ -29,7 +30,7 @@ class TFC_Model(pl.LightningModule):
         TS_length: int,
         num_classes: Optional[int] = None,
         single_encoding_size: int = 128,
-        backbone: Union[nn.Module, LoadableModule] = None,
+        backbone: Optional[Union[TFC_Backbone, LoadableModule]] = None,
         pred_head: Union[bool, nn.Module] = True,
         loss: _Loss = None,
         learning_rate: float = 3e-4,
@@ -37,6 +38,14 @@ class TFC_Model(pl.LightningModule):
         device: str = "cuda",
         batch_size: int = 42,
         pipeline: str = "both",
+        time_encoder: Optional[nn.Module] = None,
+        frequency_encoder: Optional[nn.Module] = None,
+        time_projector: Optional[nn.Module] = None,
+        frequency_projector: Optional[nn.Module] = None,
+        train_metrics: Optional[Dict[str, Metric]] = None,
+        val_metrics: Optional[Dict[str, Metric]] = None,
+        test_metrics: Optional[Dict[str, Metric]] = None,
+
     ):
         """
         The constructor of the TFC_Model class.
@@ -51,8 +60,9 @@ class TFC_Model(pl.LightningModule):
             The number of downstream classes in the dataset, if none, the model is trained in a self-supervised learning approach
         - single_encoding_size: int
             The size of the encoding in the latent space of frequency or time domain individually
-        - backbone: Union[nn.Module, LoadableModule]
-            The backbone of the model. If None, a default backbone is created as a convolutional neural network
+        - backbone: Optional[Union[nn.Module, LoadableModule]]
+            The backbone of the model. If None, a default backbone is created with the encoders and projectors provided. If a LoadableModule is provided, it is used as the backbone. 
+            If provided, make sure you really know what you are doing.
         - pred_head: Union[bool, nn.Module]
             If True, a prediction head (MLP) is added to the model. If False or None, the model is trained in a self-supervised learning approach. If a nn.Module is provided, it is used as the prediction head
         - loss: _Loss
@@ -69,15 +79,35 @@ class TFC_Model(pl.LightningModule):
             The pipeline to be used in the training of the model. It can be 'both', 'time' or 'freq'. Default is 'both'. If 'both', the model is trained with both time and frequency domain data as default described in tfc paper.
              If 'time', the model is trained with only time domain data. If 'freq', the model is trained with only frequency domain data obtained by fft. At these scenarios, the input data must have the time and frequency domain
              but the prediction head will be used only for the selected one. Also is necesssary to adapt the prediction head input half size of expected (only single_encoding_size instead of single_encoding_size*2)
+        - train_metrics : Dict[str, Metric], optional
+            The metrics to be used during training, by default None
+        - val_metrics : Dict[str, Metric], optional
+            The metrics to be used during validation, by default None
+        - test_metrics : Dict[str, Metric], optional
+            The metrics to be used during testing, by default None
+        
         """
         super(TFC_Model, self).__init__()
         self.num_classes = num_classes
         self.pipeline = pipeline
+
+        if test_metrics is None:
+            test_metrics = {"f1": F1Score(task="multiclass", num_classes=self.num_classes), "accuracy": Accuracy(task="multiclass", num_classes=self.num_classes)}
+        
+
+        self.metrics = {
+            "train": train_metrics,
+            "val": val_metrics,
+            "test": test_metrics,
+        }
         if backbone:
             self.backbone = backbone
+            assert time_encoder is None and frequency_encoder is None and time_projector is None and frequency_projector is None, "If a backbone is provided, the encoders and projectors must be None"
         else:
-            self.backbone = TFC_Conv_Backbone(
-                input_channels, TS_length, single_encoding_size=single_encoding_size
+            self.backbone = TFC_Backbone(
+                input_channels, TS_length, single_encoding_size=single_encoding_size,
+                time_encoder=time_encoder, frequency_encoder=frequency_encoder,
+                time_projector=time_projector, frequency_projector=frequency_projector
             )
         if pred_head and num_classes:
             if pred_head == True:
@@ -109,6 +139,34 @@ class TFC_Model(pl.LightningModule):
             self.transform = transform
         else:
             self.transform = TFC_Transforms()
+
+    def _compute_metrics(
+        self, y_hat: torch.Tensor, y: torch.Tensor, step_name: str
+    ) -> Dict[str, torch.Tensor]:
+        """Calculate the metrics for the given step.
+
+        Parameters
+        ----------
+        y_hat : torch.Tensor
+            The output data from the forward pass.
+        y : torch.Tensor
+            The input data/label.
+        step_name : str
+            Name of the step. It will be used to get the metrics from the
+            `self.metrics` attribute.
+
+        Returns
+        -------
+        Dict[str, torch.Tensor]
+            A dictionary with the metrics values.
+        """
+        if self.metrics[step_name] is None:
+            return {}
+
+        return {
+            f"{step_name}_{metric_name}": metric.to(self.device)(y_hat, y)
+            for metric_name, metric in self.metrics[step_name].items()
+        }
 
     def forward(
         self, x_t: torch.Tensor, x_f: torch.Tensor = None, all: bool = False
@@ -178,6 +236,9 @@ class TFC_Model(pl.LightningModule):
             pred = self.forward(data, data_f)
             labels = labels.long()
             loss = self.loss_fn(pred, labels)
+            if self.metrics["train"]:
+                metrics = self._compute_metrics(pred, labels, "train")
+                self.log_dict(metrics, prog_bar=False)
         else:
             h_t, z_t, h_f, z_f = self.forward(data, data_f)
             h_t_aug, z_t_aug, h_f_aug, z_f_aug = self.forward(aug1, aug1_f)
@@ -192,6 +253,7 @@ class TFC_Model(pl.LightningModule):
             loss_c = (1 + l_TF - l_1) + (1 + l_TF - l_2) + (1 + l_TF - l_3)
             lam = 0.2
             loss = lam * (loss_t + loss_f) + (1 - lam) * loss_c
+        
         self.log("train_loss", loss, prog_bar=False)
         return loss
 
@@ -223,6 +285,9 @@ class TFC_Model(pl.LightningModule):
             pred = self.forward(data, data_f)
             labels = labels.long()
             loss = self.loss_fn(pred, labels)
+            if self.metrics["val"]:
+                metrics = self._compute_metrics(pred, labels, "val")
+                self.log_dict(metrics, prog_bar=False)
         else:
             h_t, z_t, h_f, z_f = self.forward(data, data_f)
             h_t_aug, z_t_aug, h_f_aug, z_f_aug = self.forward(aug1, aug1_f)
@@ -272,12 +337,9 @@ class TFC_Model(pl.LightningModule):
             pred = self.forward(data, data_f)
             labels = labels.long()
             loss = self.loss_fn(pred, labels)
-            f1 = F1Score(task="multiclass", num_classes=self.num_classes)(
-                pred.cpu().argmax(dim=1), labels.cpu()
-            )
-            acc = Accuracy(task="multiclass", num_classes=self.num_classes)(
-                pred.cpu().argmax(dim=1), labels.cpu()
-            )
+
+            metrics = self._compute_metrics(pred, labels, "test")
+            self.log_dict(metrics, prog_bar=True)
 
         else:
             h_t, z_t, h_f, z_f = self.forward(data, data_f)
@@ -295,10 +357,6 @@ class TFC_Model(pl.LightningModule):
             loss = lam * (loss_t + loss_f) + (1 - lam) * loss_c
         self.log("test_loss", loss, prog_bar=True)
 
-        if f1 is not None and acc is not None:
-            self.log("F1-score", f1, prog_bar=True)
-            self.log("accuracy", acc, prog_bar=True)
-            return loss, f1, acc
         return loss
     
     def predict_step(
