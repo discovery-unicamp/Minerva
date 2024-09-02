@@ -83,8 +83,7 @@ class TFC_Backbone(nn.Module):
         if frequency_projector is None:
             self.frequency_projector = TFC_Standard_Projector(self._calculate_fc_input_features(self.frequency_encoder, (input_channels, TS_length)), single_encoding_size)
         
-    def forward(self, x_in_t: torch.Tensor, x_in_f: torch.Tensor,
-                adapter: Optional[Callable[[torch.Tensor], torch.Tensor]] = None) -> torch.Tensor:
+    def forward(self, x_in_t: torch.Tensor, x_in_f: torch.Tensor) -> torch.Tensor:
         """
         The forward method of the backbone. It receives the input data in the time domain and frequency domain and returns the features extracted in the time domain and frequency domain.
 
@@ -94,8 +93,6 @@ class TFC_Backbone(nn.Module):
             The input data in the time domain
         - x_in_f: torch.Tensor
             The input data in the frequency domain
-        - adapter : Callable[[torch.Tensor], torch.Tensor], optional
-            An adapter to be used from the backbone to the head, by default None.
 
         Returns
         -------
