@@ -92,7 +92,7 @@ class ReyesDataset(Dataset):
         """
         dataset = np.asarray(dataset)
         X = torch.tensor(dataset[:, :tamanho*ncanais],dtype=torch.float64)
-        Y = torch.tensor(dataset[:,tamanho*ncanais],dtype=torch.int32)
+        Y = torch.tensor(dataset[:,tamanho*ncanais],dtype=torch.long)
         
         X = X.reshape(X.shape[0], ncanais, -1)
         return X,Y
