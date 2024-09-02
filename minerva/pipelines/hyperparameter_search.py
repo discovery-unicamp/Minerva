@@ -11,7 +11,10 @@ from ray.tune.schedulers import ASHAScheduler
 from ray.tune.search.sample import Categorical, Float, Integer
 from torchmetrics import Metric
 
-from minerva.callbacks.HyperSearchCallbacks import TrainerReportOnIntervalCallback
+from minerva.callbacks.HyperSearchCallbacks import (
+    TrainerReportOnIntervalCallback,
+    TrainerReportKeepOnlyLastCallback,
+)
 from minerva.pipelines.base import Pipeline
 from minerva.utils.typing import PathLike
 
@@ -46,7 +49,7 @@ class HyperParameterSearch(Pipeline):
                     "strategy", RayDDPStrategy(find_unused_parameters=True)
                 ),
                 callbacks=configs.get(
-                    "callbacks", [TrainerReportOnIntervalCallback(interval=10)]
+                    "callbacks", [TrainerReportKeepOnlyLastCallback()]
                 ),
                 plugins=configs.get("plugins", [RayLightningEnvironment()]),
                 enable_progress_bar=False,

@@ -28,7 +28,6 @@ class TrainerReportOnIntervalCallback(L.Callback):
     def on_train_epoch_end(
         self, trainer: L.Trainer, pl_module: L.LightningModule
     ) -> None:
-        self.step += 1
 
         # Fetch metrics
         metrics = trainer.callback_metrics
@@ -38,23 +37,28 @@ class TrainerReportOnIntervalCallback(L.Callback):
         metrics["epoch"] = trainer.current_epoch
         metrics["step"] = trainer.global_step
 
+        tmpdir = Path(self.tmpdir_prefix, str(trainer.current_epoch)).as_posix()
+        os.makedirs(tmpdir, exist_ok=True)
+
         if self.step % self.interval == 0:
-            tmpdir = Path(self.tmpdir_prefix, str(trainer.current_epoch)).as_posix()
-            os.makedirs(tmpdir, exist_ok=True)
 
             # Save checkpoint to local
             ckpt_path = Path(tmpdir, self.CHECKPOINT_NAME).as_posix()
             trainer.save_checkpoint(ckpt_path, weights_only=False)
 
-        # Report to train session
-        checkpoint = Checkpoint.from_directory(tmpdir)
-        train.report(metrics=metrics, checkpoint=checkpoint)
+            # Report to train session
+            checkpoint = Checkpoint.from_directory(tmpdir)
+            train.report(metrics=metrics, checkpoint=checkpoint)
+        else:
+            train.report(metrics=metrics)
 
         # Add a barrier to ensure all workers finished reporting here
         trainer.strategy.barrier()
 
         if self.local_rank == 0:
             shutil.rmtree(tmpdir)
+
+        self.step += 1
 
 
 class TrainerReportKeepOnlyLastCallback(L.Callback):
