@@ -278,15 +278,15 @@ class TFC_Model(pl.LightningModule):
         labels = batch[1]
         data, aug1, data_f, aug1_f = self.transform(x)
         if self.pred_head:
-            pred = self.forward(data, data_f)
+            pred = self.forward(data)
             labels = labels.long()
             loss = self.loss_fn(pred, labels)
             if self.metrics["val"]:
                 metrics = self._compute_metrics(pred, labels, "val")
                 self.log_dict(metrics, prog_bar=False)
         else:
-            h_t, z_t, h_f, z_f = self.forward(data, data_f)
-            h_t_aug, z_t_aug, h_f_aug, z_f_aug = self.forward(aug1, aug1_f)
+            h_t, z_t, h_f, z_f = self.forward(data)
+            h_t_aug, z_t_aug, h_f_aug, z_f_aug = self.forward(aug1)
             loss_t = self.loss_fn(h_t, h_t_aug)
             loss_f = self.loss_fn(h_f, h_f_aug)
             l_TF = self.loss_fn(z_t, z_f)
@@ -330,7 +330,7 @@ class TFC_Model(pl.LightningModule):
 
         f1, acc = None, None
         if self.pred_head:
-            pred = self.forward(data, data_f)
+            pred = self.forward(data)
             labels = labels.long()
             loss = self.loss_fn(pred, labels)
 
@@ -338,8 +338,8 @@ class TFC_Model(pl.LightningModule):
             self.log_dict(metrics, prog_bar=True)
 
         else:
-            h_t, z_t, h_f, z_f = self.forward(data, data_f)
-            h_t_aug, z_t_aug, h_f_aug, z_f_aug = self.forward(aug1, aug1_f)
+            h_t, z_t, h_f, z_f = self.forward(data)
+            h_t_aug, z_t_aug, h_f_aug, z_f_aug = self.forward(aug1)
             loss_t = self.loss_fn(h_t, h_t_aug)
             loss_f = self.loss_fn(h_f, h_f_aug)
             l_TF = self.loss_fn(z_t, z_f)
@@ -382,11 +382,11 @@ class TFC_Model(pl.LightningModule):
         data, _, data_f, _ = self.transform(x)
 
         if self.pred_head:
-            pred = self.forward(data, data_f)
+            pred = self.forward(data)
             return pred
 
         else:
-            _, z_t, _, z_f = self.forward(data, data_f)
+            _, z_t, _, z_f = self.forward(data)
             z = torch.cat((z_t, z_f), dim=1)
             return z
 
