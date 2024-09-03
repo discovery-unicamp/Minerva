@@ -19,13 +19,14 @@ class ClassicMLModel(L.LightningModule):
 
     def __init__(
         self,
-        backbone: Union[torch.nn.Module, LoadableModule],
         head: BaseEstimator,
+        backbone: Union[torch.nn.Module, LoadableModule] = nn.Identity(),
         use_only_train_data: bool = False,
         test_metrics: Optional[Dict[str, Metric]] = None,
         sklearn_model_save_path: Optional[str] = None,
         flatten: bool = True,
         adapter: Optional[Callable[[torch.Tensor], torch.Tensor]] = None,
+        predict_proba: bool = True,
     ):
         """
         Initialize the model with the backbone and head. The backbone is frozen and the head
@@ -36,7 +37,7 @@ class ClassicMLModel(L.LightningModule):
         Parameters
         ----------
         backbone : torch.nn.Module
-            The backbone model.
+            The backbone model. By default, it is an identity function that does not change the input. It is used when the head is a classic ML model.
         head : BaseEstimator
             The head model. Usually, a scikit-learn model, like a classifier or regressor that
             implements the `predict` and `fit` methods.
@@ -52,6 +53,8 @@ class ClassicMLModel(L.LightningModule):
             the model, by default True
         adapter : Callable[[torch.Tensor], torch.Tensor], optional
             An adapter to be used from the backbone to the head, by default None.
+        predict_proba : bool, optional
+            If `True`, the head will use the `predict_proba` method in the head, otherwise it will use `predict`. By default True.
         """
         super().__init__()
         self.backbone = backbone
@@ -69,6 +72,7 @@ class ClassicMLModel(L.LightningModule):
         self.adapter = adapter
         self.test_metrics = test_metrics
         self.sklearn_model_save_path = sklearn_model_save_path
+        self.predict_proba = predict_proba
         if sklearn_model_save_path and os.path.exists(sklearn_model_save_path):
             with open(sklearn_model_save_path, "rb") as file:
                 self.head = pickle.load(file)
@@ -92,7 +96,8 @@ class ClassicMLModel(L.LightningModule):
             z = z.flatten(start_dim=1)
         if self.adapter is not None:
             z = self.adapter(z)
-        y_pred = self.head.predict_proba(z.cpu())
+        z = z.view(z.shape[0], -1)
+        y_pred = self.head.predict_proba(z.cpu()) if self.predict_proba else self.head.predict(z.cpu())
         return y_pred
 
     def training_step(self, batch, batch_index):
@@ -130,6 +135,8 @@ class ClassicMLModel(L.LightningModule):
         else:
             self.train_data = self.train_data.cpu()
         self.train_y = torch.concat(self.train_y).cpu()
+        print(self.train_data.shape)
+        self.train_data = self.train_data.view(self.train_data.shape[0], -1)
         self.head.fit(self.train_data, self.train_y)
         with open(self.sklearn_model_save_path, "wb") as file:
             pickle.dump(self.head, file)
