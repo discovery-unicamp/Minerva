@@ -79,6 +79,14 @@ class TFC_Model(pl.LightningModule):
             The pipeline to be used in the training of the model. It can be 'both', 'time' or 'freq'. Default is 'both'. If 'both', the model is trained with both time and frequency domain data as default described in tfc paper.
              If 'time', the model is trained with only time domain data. If 'freq', the model is trained with only frequency domain data obtained by fft. At these scenarios, the input data must have the time and frequency domain
              but the prediction head will be used only for the selected one. Also is necesssary to adapt the prediction head input half size of expected (only single_encoding_size instead of single_encoding_size*2)
+        - time_encoder: Optional[nn.Module]
+            The encoder to be used in the time domain. If None, a default encoder is used. time_encoder can not be passed if backbone is passed.
+        - frequency_encoder: Optional[nn.Module]
+            The encoder to be used in the frequency domain. If None, a default encoder is used. frequency_encoder can not be passed if backbone is passed.
+        - time_projector: Optional[nn.Module]
+            The projector to be used in the time domain. If None, a default projector is used. time_projector can not be passed if backbone is passed.
+        - frequency_projector: Optional[nn.Module]
+            The projector to be used in the frequency domain. If None, a default projector is used. frequency_projector can not be passed if backbone is passed.
         - train_metrics : Dict[str, Metric], optional
             The metrics to be used during training, by default None
         - val_metrics : Dict[str, Metric], optional

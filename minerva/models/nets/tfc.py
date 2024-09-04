@@ -39,7 +39,7 @@ class TFC_Backbone(nn.Module):
         try:
             out = out.view(out.size(0), -1).size(1)
         except :
-            out = out.reshape(out.size(0), -1).size(1)
+            out = out.reshape(out.size(0), -1).size(1)  # some inputs have not .view method, but reshape. This try-except block can also raise a error if this case fails
         return out
     
     def __init__(self, input_channels: int, TS_length: int, single_encoding_size: int = 128,
