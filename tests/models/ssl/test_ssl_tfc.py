@@ -2,6 +2,7 @@ from minerva.models.ssl.tfc import TFC_Model
 from minerva.models.nets.tfc import TFC_Backbone, TFC_Conv_Block, TFC_Standard_Projector
 from minerva.models.nets.tnc import TSEncoder
 import torch
+from torchmetrics import F1Score, Accuracy
 
 def test_tfc_forward_default():
     model = TFC_Model(input_channels = 9, TS_length = 128, num_classes = 6, single_encoding_size = 128)
@@ -129,3 +130,13 @@ def test_tfc_given_ts2vec_encoder():
     y, h_time, z_time, h_freq, z_freq = model(x, x, all=True)
     assert y.shape == (batch_size, num_classes), f"Expected shape ({batch_size}, {num_classes}), got {y.shape}"
     assert len(h_time) == len(z_time) == len(h_freq) == len(z_freq) == batch_size, f"Expected shape ({batch_size}), got {len(h_time), len(z_time), len(h_freq), len(z_freq)}"
+
+def test_tfc_metrics_argument():
+    num_classes = 6
+    train_metrics = {"f1": F1Score(task="multiclass", num_classes=num_classes), "accuracy": Accuracy(task="multiclass", num_classes=num_classes)}
+    val_metrics = {"f1": F1Score(task="multiclass", num_classes=num_classes), "accuracy": Accuracy(task="multiclass", num_classes=num_classes)}
+    test_metrics = {"f1": F1Score(task="multiclass", num_classes=num_classes), "accuracy": Accuracy(task="multiclass", num_classes=num_classes)}
+
+    model = TFC_Model(input_channels = 9, TS_length = 128, num_classes = num_classes, single_encoding_size = 128, train_metrics = train_metrics, val_metrics = val_metrics, test_metrics = test_metrics)
+    assert model is not None, "Impossible to create TFC_Model with metrics"
+

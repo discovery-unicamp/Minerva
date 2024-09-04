@@ -121,6 +121,9 @@ class IMUTransformerEncoder(SimpleSupervisedModel):
         num_encoder_layers: int = 6,
         num_classes: int = 6,
         learning_rate: float = 1e-3,
+        # Arguments passed to the SimpleSupervisedModel constructor
+        *args,
+        **kwargs,
     ):
         self.input_shape = input_shape
 
@@ -142,6 +145,8 @@ class IMUTransformerEncoder(SimpleSupervisedModel):
             fc=fc,
             learning_rate=learning_rate,
             loss_fn=torch.nn.CrossEntropyLoss(),
+            *args,
+            **kwargs,
         )
 
     def _create_backbone(
@@ -186,6 +191,9 @@ class IMUCNN(SimpleSupervisedModel):
         num_classes: int = 6,
         dropout_factor: float = 0.1,
         learning_rate: float = 1e-3,
+        # Arguments passed to the SimpleSupervisedModel constructor
+        *args,
+        **kwargs,
     ):
         self.input_shape = input_shape
         self.hidden_dim = hidden_dim
@@ -207,6 +215,8 @@ class IMUCNN(SimpleSupervisedModel):
             learning_rate=learning_rate,
             loss_fn=torch.nn.CrossEntropyLoss(),
             flatten=True,
+            *args,
+            **kwargs,
         )
 
     def _create_backbone(self, input_shape, hidden_dim, dropout_factor):

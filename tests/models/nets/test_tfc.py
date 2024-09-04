@@ -39,8 +39,3 @@ def test_tfc_prediction_head():
     x = torch.rand(batch_size, single_encoding_size*2)
     y = model(x)
     assert y.shape == (batch_size, num_classes)
-
-
-test_tfc_backbone_forward_arbitrary()
-test_tfc_backbone_forward_default()
-test_tfc_prediction_head()
