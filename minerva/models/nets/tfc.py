@@ -36,11 +36,7 @@ class TFC_Backbone(nn.Module):
             out = encoder(random_input)
             if self.adapter is not None:
                 out = self.adapter(out)
-        try:
-            out = out.view(out.size(0), -1).size(1)
-        except :
-            out = out.reshape(out.size(0), -1).size(1)  # some inputs have not .view method, but reshape. This try-except block can also raise a error if this case fails
-        return out
+        return out.view(out.size(0), -1).size(1)
     
     def __init__(self, input_channels: int, TS_length: int, single_encoding_size: int = 128,
                 time_encoder: Optional[nn.Module] = None, frequency_encoder: Optional[nn.Module] = None,
