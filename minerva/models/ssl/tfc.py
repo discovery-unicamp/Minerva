@@ -92,7 +92,8 @@ class TFC_Model(pl.LightningModule):
         self.pipeline = pipeline
 
         if test_metrics is None:
-            test_metrics = {"f1": F1Score(task="multiclass", num_classes=self.num_classes), "accuracy": Accuracy(task="multiclass", num_classes=self.num_classes)}
+            if num_classes: # If num_classes is not provided, the model is trained in a self-supervised learning approach, so there is no test metrics
+                test_metrics = {"f1": F1Score(task="multiclass", num_classes=self.num_classes), "accuracy": Accuracy(task="multiclass", num_classes=self.num_classes)}
         
 
         self.metrics = {
