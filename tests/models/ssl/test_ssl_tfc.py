@@ -139,3 +139,8 @@ def test_tfc_metrics_argument():
 
     model = TFC_Model(input_channels = 9, TS_length = 128, num_classes = num_classes, single_encoding_size = 128, train_metrics = train_metrics, val_metrics = val_metrics, test_metrics = test_metrics)
     assert model is not None, "Impossible to create TFC_Model with metrics"
+
+def test_tfc_pretrain_not_test():
+    model = TFC_Model(input_channels = 9, TS_length = 128, single_encoding_size = 128)
+    assert model is not None, "Impossible to create TFC_Model with pretrain and no test metrics"
+    assert model.metrics["test"] == None, "Test metrics should be None when there is no num_classes, that means pretrain"
