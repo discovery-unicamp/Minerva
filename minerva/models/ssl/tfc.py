@@ -60,7 +60,7 @@ class TFC_Model(pl.LightningModule):
             The number of downstream classes in the dataset, if none, the model is trained in a self-supervised learning approach
         - single_encoding_size: int
             The size of the encoding in the latent space of frequency or time domain individually
-        - backbone: Optional[Union[nn.Module, LoadableModule]]
+        - backbone: Optional[Union[TFC_Backbone, LoadableModule]]
             The backbone of the model. If None, a default backbone is created with the encoders and projectors provided. If a LoadableModule is provided, it is used as the backbone. 
             If provided, make sure you really know what you are doing.
         - pred_head: Union[bool, nn.Module]
@@ -107,7 +107,7 @@ class TFC_Model(pl.LightningModule):
             self.backbone = TFC_Backbone(
                 input_channels, TS_length, single_encoding_size=single_encoding_size,
                 time_encoder=time_encoder, frequency_encoder=frequency_encoder,
-                time_projector=time_projector, frequency_projector=frequency_projector, act_independent=False
+                time_projector=time_projector, frequency_projector=frequency_projector
             )
         if pred_head and num_classes:
             if pred_head == True:
@@ -191,7 +191,8 @@ class TFC_Model(pl.LightningModule):
             If the model has a prediction head and parameter "all" is True, the method returns a tuple with the prediction of the model and the features extracted by the backbone, following the format prediction, h_t, z_t, h_f, z_f.
 
         """
-        h_t, z_t, h_f, z_f = self.backbone(x)
+        self.backbone(x)
+        h_t, z_t, h_f, z_f = self.backbone.get_representations()
         if self.pred_head:
             if self.pipeline == "both":
                 fea_concat = torch.cat((z_t, z_f), dim=1)

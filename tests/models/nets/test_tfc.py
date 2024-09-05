@@ -7,10 +7,11 @@ def test_tfc_backbone_forward_default():
     single_encoding_size = 128
     batch_size = 42
 
-    model = TFC_Backbone(input_channels=input_shape[0], TS_length=input_shape[1], single_encoding_size=single_encoding_size, act_independent=False)
+    model = TFC_Backbone(input_channels=input_shape[0], TS_length=input_shape[1], single_encoding_size=single_encoding_size)
     assert model is not None
     x = torch.rand(batch_size, *input_shape)
-    y = model(x)
+    model(x)
+    y = model.get_representations()
     assert len(y) == 4
     h_time, z_time, h_freq, z_freq = y 
     assert len(h_time) == len(z_time) == len(h_freq) == len(z_freq) == batch_size
@@ -21,10 +22,11 @@ def test_tfc_backbone_forward_arbitrary():
     single_encoding_size = 128
     batch_size = 37
 
-    model = TFC_Backbone(input_channels=input_shape[0], TS_length=input_shape[1], single_encoding_size=single_encoding_size, act_independent=False)
+    model = TFC_Backbone(input_channels=input_shape[0], TS_length=input_shape[1], single_encoding_size=single_encoding_size)
     assert model is not None
     x = torch.rand(batch_size, *input_shape)
-    y = model(x)
+    model(x)
+    y = model.get_representations()
     assert len(y) == 4
     h_time, z_time, h_freq, z_freq = y 
     assert len(h_time) == len(z_time) == len(h_freq) == len(z_freq) == batch_size
@@ -43,5 +45,5 @@ def test_tfc_prediction_head():
 
 def test_transforms_param():
     transforms = TFC_Transforms()
-    backbone = TFC_Backbone(input_channels=3, TS_length=128, single_encoding_size=128, transform=transforms, act_independent=False)
+    backbone = TFC_Backbone(input_channels=3, TS_length=128, single_encoding_size=128, transform=transforms)
     assert backbone is not None

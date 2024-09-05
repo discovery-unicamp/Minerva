@@ -1,8 +1,6 @@
 import torch
 import torch.nn as nn
 from typing import Tuple, Optional
-from minerva.models.nets.tnc import TSEncoder
-from minerva.models.adapters import MaxPoolingTransposingSqueezingAdapter
 from typing import Callable
 from minerva.transforms.transform import _Transform
 from minerva.transforms.tfc import TFC_Transforms
@@ -47,7 +45,7 @@ class TFC_Backbone(nn.Module):
     def __init__(self, input_channels: int, TS_length: int, single_encoding_size: int = 128, transform: _Transform = None,
                 time_encoder: Optional[nn.Module] = None, frequency_encoder: Optional[nn.Module] = None,
                 time_projector: Optional[nn.Module] = None, frequency_projector: Optional[nn.Module] = None,
-                adapter: Optional[Callable[[torch.Tensor], torch.Tensor]] = None, act_independent: Optional[bool] = True):
+                adapter: Optional[Callable[[torch.Tensor], torch.Tensor]] = None):
         """
         Constructor of the TFC_Backbone class.
 
@@ -71,14 +69,10 @@ class TFC_Backbone(nn.Module):
             The projector for the frequency domain. If None, a default projector is used. If passing, make sure to correct calculate the input features by backbone
         - adapter : Callable[[torch.Tensor], torch.Tensor], optional
             An adapter to be used from the backbone to the head, by default None.
-        - act_independent: Optional[bool]
-            False values means the tfc_backbone is linked to a TFC-Model class. This way, the forward method will return intermedial features ht, hf, zt and zf.
-            True values means the tfc_backbone is not linked to a TFC-Model class and should act as a standalone model. This way, the forward method will return the final features z concatened.
         """
         super(TFC_Backbone, self).__init__()
         self.adapter = adapter
         self.transform = transform
-        self.act_independent = act_independent
 
         if transform is None:
             self.transform = TFC_Transforms()
@@ -98,6 +92,7 @@ class TFC_Backbone(nn.Module):
         self.frequency_projector = frequency_projector
         if frequency_projector is None:
             self.frequency_projector = TFC_Standard_Projector(self._calculate_fc_input_features(self.frequency_encoder, (input_channels, TS_length)), single_encoding_size)
+        self.h_time, self.z_time, self.h_freq, self.z_freq = None, None, None, None
         
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
@@ -130,9 +125,23 @@ class TFC_Backbone(nn.Module):
         h_freq = f.reshape(f.shape[0], -1)
         z_freq = self.frequency_projector(h_freq)
 
-        if self.act_independent:
-            return torch.cat((z_time, z_freq), dim=1)
-        return h_time, z_time, h_freq, z_freq
+        self.h_time, self.z_time, self.h_freq, self.z_freq = h_time, z_time, h_freq, z_freq
+        
+        return torch.cat((z_time, z_freq), dim=1)
+    
+    def get_representations(self):
+        """
+        This function returns the representations of the time and frequency domain extracted by the backbone.
+        The h and z representations, after ther encoder and after the projector, respectively.
+        This function must be called after the forward method.
+        
+        
+        Returns
+        -------
+        - Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]
+        
+        """
+        return self.h_time, self.z_time, self.h_freq, self.z_freq
     
 
 class TFC_PredicionHead(nn.Module):
