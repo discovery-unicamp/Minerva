@@ -31,8 +31,6 @@ requires-python = ">=3.8"
 version = "0.2.2-beta"
 
 dependencies = [
-    "julius>=0.2",
-    "torchaudio>=2.0",
     "gitpython>=3",
     "jsonargparse>=4.27",
     "lightning>=2.1.9",
