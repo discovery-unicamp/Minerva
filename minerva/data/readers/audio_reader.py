@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Union, Literal
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from collections import OrderedDict
@@ -15,7 +15,7 @@ def _compute_metadata(
     track_dir: Path,
     target_stem: str = "mixture",
     stems: Optional[List[str]] = None,
-    extension: str = "wav",
+    extension: Literal["wav", "flac", "ogg", "opus", "mp3"] = "wav",
 ) -> Dict:
     """Computes the mean and standard deviation for a target stem in a given directory
     of the dataset. The directory must have the structure
@@ -37,8 +37,11 @@ def _compute_metadata(
         `"mixture"`
     stems : List[str], optional
         If set, will ensure all stems have the same length and sample rate
-    extension : str
-        The extension for the audio files. Defaults to `"wav"`
+    extension : Literal["wav", "flac", "ogg", "opus", "mp3"]
+        The extension of the audio files. The formats this class can handle may vary
+        according to the torchaudio backend. Notably, mp3 is unsuported by the default
+        backend on Windows. Check torchaudio documentation for further details. Defaults
+        to `"wav"`.
 
     Returns
     -------
@@ -107,7 +110,7 @@ def build_metadata(
     path: Union[str, Path],
     target_stem: str = "mixture",
     stems: Optional[List[str]] = None,
-    extension: str = "wav",
+    extension: Literal["wav", "flac", "ogg", "opus", "mp3"] = "wav",
 ) -> Dict:
     """Builds the metadata for an audio dataset, containing the name, length, mean,
     standard deviation and sample rate for each directory in the dataset. The directory
@@ -137,8 +140,11 @@ def build_metadata(
         `"mixture"`
     stems : List[str], optional
         If set, will ensure all stems have the same length and sample rate
-    extension : str
-        The extension for the audio files. Defaults to `"wav"`
+    extension : Literal["wav", "flac", "ogg", "opus", "mp3"]
+        The extension of the audio files. The formats this class can handle may vary
+        according to the torchaudio backend. Notably, mp3 is unsuported by the default
+        backend on Windows. Check torchaudio documentation for further details. Defaults
+        to `"wav"`.
 
     Returns
     -------
@@ -207,7 +213,7 @@ class AudioReader(_Reader):
         sample_rate: int = 44_100,
         channels: int = 2,
         normalize: bool = True,
-        extension: str = "wav",
+        extension: Literal["wav", "flac", "ogg", "opus", "mp3"] = "wav",
     ):
         """Loads audio files from a directory. See class documentation for the required
         directory structure.
@@ -235,13 +241,16 @@ class AudioReader(_Reader):
         channels : int
             The number of audio channels for all samples. If set to 1 and file is
             stereo, audio is converted to mono on the fly. If set to n and file is mono,
-            the mono channel is copied n times. Otherwise, selects the n first channels.
+            the mono channel is stacked n times. Otherwise, selects the n first channels.
             Defaults to 2.
         normalize : bool
             Whether or not to normalize audio (mean 0, standard deviation 1) before
-            yielding reader entry.
-        extension : str
-            The extension of the audio files. Defaults to `"wav"`.
+            yielding reader entry. Defaults to True.
+        extension : Literal["wav", "flac", "ogg", "opus", "mp3"]
+            The extension of the audio files. The formats this class can handle may vary
+            according to the torchaudio backend. Notably, mp3 is unsuported by the
+            default backend on Windows. Check torchaudio documentation for further 
+            details. Defaults to `"wav"`.
         """
 
         self.root = Path(root)
@@ -253,10 +262,10 @@ class AudioReader(_Reader):
         self.normalize = normalize
         self.extension = extension
 
-        if isinstance(metadata, dict):
-            self.metadata = OrderedDict(metadata)
-        else:
+        if not isinstance(metadata, dict):
             self.metadata = self._load_metadata(metadata)
+        
+        self.metadata = OrderedDict(metadata)
 
         self.num_samples = []
 
@@ -372,7 +381,10 @@ class AudioReader(_Reader):
             A tensor representing audio. Shape must be (*, C, L) where C are the
             channels and L is the length in frames.
         channels : int
-            The number of channels of the output.
+            The number of audio channels for all samples. If set to 1 and file is
+            stereo, audio is converted to mono on the fly. If set to n and file is mono,
+            the mono channel is stacked n times. Otherwise, selects the n first channels.
+            Defaults to 2.
         
         Returns
         -------
