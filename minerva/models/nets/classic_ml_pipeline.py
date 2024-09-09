@@ -1,5 +1,6 @@
 from sklearn.base import BaseEstimator
-from typing import Dict, Optional, Union
+from sklearn.pipeline import Pipeline
+from typing import Tuple, List, Dict, Optional, Union
 from torchmetrics import Metric
 import torch
 from torch import nn
@@ -8,6 +9,7 @@ import pickle
 import os
 from minerva.models.loaders import LoadableModule
 from typing import Callable
+
 
 class ClassicMLModel(L.LightningModule):
     """
@@ -73,7 +75,6 @@ class ClassicMLModel(L.LightningModule):
             with open(sklearn_model_save_path, "rb") as file:
                 self.head = pickle.load(file)
 
-
     def forward(self, x):
         """
         Forward pass of the model. Extracts features from the backbone and predicts the
@@ -104,7 +105,9 @@ class ClassicMLModel(L.LightningModule):
         if self.current_epoch != 1:
             return self.tensor1
         if self.flatten:
-            features = self.train_data.append(self.backbone(batch[0]).flatten(start_dim=1))
+            features = self.train_data.append(
+                self.backbone(batch[0]).flatten(start_dim=1)
+            )
         else:
             features = self.backbone(batch[0])
         if self.adapter is not None:
@@ -133,7 +136,6 @@ class ClassicMLModel(L.LightningModule):
         self.head.fit(self.train_data, self.train_y)
         with open(self.sklearn_model_save_path, "wb") as file:
             pickle.dump(self.head, file)
-        
 
     def validation_step(self, batch, batch_index):
         """
@@ -182,3 +184,15 @@ class ClassicMLModel(L.LightningModule):
 
     def configure_optimizers(self):
         return None
+
+
+class SklearnPipeline(Pipeline):
+    def __init__(
+        self,
+        steps: List[Tuple[str, object]],
+        *,
+        memory: str = None,
+        verbose: bool = False,
+        **kwargs,
+    ):
+        super().__init__(steps=steps, memory=memory, verbose=verbose, **kwargs)
