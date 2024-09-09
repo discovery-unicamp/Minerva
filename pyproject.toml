@@ -34,6 +34,7 @@ dependencies = [
     "gitpython>=3",
     "jsonargparse>=4.27",
     "lightning>=2.1.9",
+    "scikit-learn>=1.2.0",
     "numpy>=1.23.5",
     "pandas>=2.2.2",
     "perlin-noise>=1.12",
