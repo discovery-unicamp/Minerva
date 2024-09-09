@@ -22,7 +22,7 @@ class ClassicMLModel(L.LightningModule):
     def __init__(
         self,
         backbone: Union[torch.nn.Module, LoadableModule],
-        head: BaseEstimator,
+        head: Union[BaseEstimator, Pipeline],
         use_only_train_data: bool = False,
         test_metrics: Optional[Dict[str, Metric]] = None,
         sklearn_model_save_path: Optional[str] = None,
@@ -30,21 +30,24 @@ class ClassicMLModel(L.LightningModule):
         adapter: Optional[Callable[[torch.Tensor], torch.Tensor]] = None,
     ):
         """
-        Initialize the model with the backbone and head. The backbone is frozen and the head
-        is trained on the features extracted by the backbone. The head should implement the
-        `BaseEstimator` interface. The model can be trained using only the training data or
-        using both training and validation data. The test metrics are used to evaluate the
-        model during testing. It will be logged using lightning logger at the end of each epoch.
+        Initialize the model with the backbone and head. The backbone is frozen 
+        and the head is trained on the features extracted by the backbone. The 
+        head should implement the `BaseEstimator` interface. The model can be 
+        trained using only the training data or using both training and 
+        validation data. The test metrics are used to evaluate the model during 
+        testing. It will be logged using lightning logger at the end of each 
+        epoch.
         Parameters
         ----------
         backbone : torch.nn.Module
             The backbone model.
-        head : BaseEstimator
-            The head model. Usually, a scikit-learn model, like a classifier or regressor that
-            implements the `predict` and `fit` methods.
+        head : Union[BaseEstimator, Pipeline]
+            The head model. Usually, a scikit-learn model, like a classifier or 
+            regressor that implements the `predict` and `fit` methods.
         use_only_train_data : bool, optional
-            If `True`, the model will be trained using only the training data, by default False.
-            If `False`, the model will be trained using both training and validation data, concatenated.
+            If `True`, the model will be trained using only the training data- 
+            If `False`, the model will be trained using both training and 
+            validation data, concatenated.
         test_metrics : Dict[str, Metric], optional
             The metrics to be used during testing, by default None
         sklearn_model_save_path:   str, optional
@@ -53,7 +56,8 @@ class ClassicMLModel(L.LightningModule):
             If `True` the input data will be flattened before passing through
             the model, by default True
         adapter : Callable[[torch.Tensor], torch.Tensor], optional
-            An adapter to be used from the backbone to the head, by default None.
+            An adapter to be used from the backbone to the head, by default 
+            None.
         """
         super().__init__()
         self.backbone = backbone
@@ -77,8 +81,8 @@ class ClassicMLModel(L.LightningModule):
 
     def forward(self, x):
         """
-        Forward pass of the model. Extracts features from the backbone and predicts the
-        target using the head.
+        Forward pass of the model. Extracts features from the backbone and predicts 
+        the target using the head.
         Parameters
         ----------
         x : torch.Tensor
@@ -98,8 +102,8 @@ class ClassicMLModel(L.LightningModule):
 
     def training_step(self, batch, batch_index):
         """
-        Training step of the model. Collects all the training batchs into one variable
-        and logs a dummy loss to keep track of the training process.
+        Training step of the model. Collects all the training batchs into one 
+        variable and logs a dummy loss to keep track of the training process.
         """
         self.log("train_loss", self.tensor1)
         if self.current_epoch != 1:
@@ -119,8 +123,9 @@ class ClassicMLModel(L.LightningModule):
 
     def on_train_epoch_end(self):
         """
-        At the end of the first epoch, the model is trained on the concatenated training
-        and validation data. The training data is flattened and the head is trained on it.
+        At the end of the first epoch, the model is trained on the 
+        concatenated training and validation data. The training data is 
+        flattened and the head is trained on it.
         """
         if self.current_epoch != 1:
             return
@@ -139,8 +144,9 @@ class ClassicMLModel(L.LightningModule):
 
     def validation_step(self, batch, batch_index):
         """
-        Validation step of the model. Collects all the validation batchs into one variable
-        and logs a dummy loss to keep track of the validation process.
+        Validation step of the model. Collects all the validation batchs into 
+        one variable and logs a dummy loss to keep track of the validation 
+        process.
         """
         self.log("val_loss", self.tensor1)
         if self.current_epoch != 1:
