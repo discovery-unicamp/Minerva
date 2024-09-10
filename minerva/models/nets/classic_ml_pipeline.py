@@ -20,7 +20,7 @@ class ClassicMLModel(L.LightningModule):
     def __init__(
         self,
         head: BaseEstimator,
-        backbone: Union[torch.nn.Module, LoadableModule] = nn.Identity(),
+        backbone: Union[torch.nn.Module, LoadableModule] = None,
         use_only_train_data: bool = False,
         test_metrics: Optional[Dict[str, Metric]] = None,
         sklearn_model_save_path: Optional[str] = None,
@@ -36,11 +36,11 @@ class ClassicMLModel(L.LightningModule):
         model during testing. It will be logged using lightning logger at the end of each epoch.
         Parameters
         ----------
-        backbone : torch.nn.Module
-            The backbone model. By default, it is an identity function that does not change the input. It is used when the head is a classic ML model.
         head : BaseEstimator
             The head model. Usually, a scikit-learn model, like a classifier or regressor that
             implements the `predict` and `fit` methods.
+        backbone : torch.nn.Module
+            The backbone model. By default, it is an identity function that does not change the input. It is used when the head is a classic ML model.
         use_only_train_data : bool, optional
             If `True`, the model will be trained using only the training data, by default False.
             If `False`, the model will be trained using both training and validation data, concatenated.
@@ -96,7 +96,7 @@ class ClassicMLModel(L.LightningModule):
             z = z.flatten(start_dim=1)
         if self.adapter is not None:
             z = self.adapter(z)
-        z = z.view(z.shape[0], -1)
+        z = z.reshape(z.shape[0], -1)
         y_pred = self.head.predict_proba(z.cpu()) if self.predict_proba else self.head.predict(z.cpu())
         return y_pred
 
@@ -135,7 +135,6 @@ class ClassicMLModel(L.LightningModule):
         else:
             self.train_data = self.train_data.cpu()
         self.train_y = torch.concat(self.train_y).cpu()
-        print(self.train_data.shape)
         self.train_data = self.train_data.view(self.train_data.shape[0], -1)
         self.head.fit(self.train_data, self.train_y)
         with open(self.sklearn_model_save_path, "wb") as file:
