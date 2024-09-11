@@ -208,16 +208,16 @@ class TFC_Conv_Block(nn.Module):
         super(TFC_Conv_Block, self).__init__()
         self.block = nn.Sequential(
             nn.Conv1d(input_channels, 32, kernel_size=8, stride=1, bias=False, padding=4),
-            nn.BatchNorm1d(32),
+            IgnoreWhenBatch1(nn.BatchNorm1d(32)),
             nn.ReLU(),
             nn.MaxPool1d(kernel_size=2, stride=2, padding=1),
             nn.Dropout(0.35),
             nn.Conv1d(32, 64, kernel_size=8, stride=1, bias=False, padding=4),
-            nn.BatchNorm1d(64),
+            IgnoreWhenBatch1(nn.BatchNorm1d(64)),
             nn.ReLU(),
             nn.MaxPool1d(kernel_size=2, stride=2, padding=1),
             nn.Conv1d(64, 60, kernel_size=8, stride=1, bias=False, padding=4),
-            nn.BatchNorm1d(60),
+            IgnoreWhenBatch1(nn.BatchNorm1d(60)),
             nn.ReLU(),
             nn.MaxPool1d(kernel_size=2, stride=2, padding=1),
         )
@@ -259,7 +259,7 @@ class TFC_Standard_Projector(nn.Module):
         super(TFC_Standard_Projector, self).__init__()
         self.projector = nn.Sequential(
             nn.Linear(input_channels, 256),
-            nn.BatchNorm1d(256),
+            IgnoreWhenBatch1(nn.BatchNorm1d(256)),
             nn.ReLU(),
             nn.Linear(256, single_encoding_size)
         )
@@ -279,3 +279,13 @@ class TFC_Standard_Projector(nn.Module):
             The features extracted by the projector
         """
         return self.projector(x)
+    
+class IgnoreWhenBatch1(nn.Module):
+    def __init__(self, module):
+        super().__init__()
+        self.module = module
+
+    def forward(self, x):
+        if x.shape[0] == 1:
+            return x
+        return self.module(x)
