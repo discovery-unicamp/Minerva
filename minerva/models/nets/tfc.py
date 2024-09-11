@@ -281,11 +281,37 @@ class TFC_Standard_Projector(nn.Module):
         return self.projector(x)
     
 class IgnoreWhenBatch1(nn.Module):
+    """
+    This class is used to ignore some processes when the batch size is 1. It is necessary in Batch Normalization.
+    
+    """
     def __init__(self, module):
-        super().__init__()
+        """
+        Parameters
+        ----------
+        - module: nn.Module
+            The module to be used in the forward method that will be ignored when the batch size is 1.
+        
+        """
+        super().__init__() # necessary to instantiate backward hooks
         self.module = module
 
     def forward(self, x):
+        """
+        The forward method of the IgnoreWhenBatch1 class. It receives the input data and returns the 
+        output of the module if the batch size is greater than 1. Otherwise, it returns the input data.
+
+        Parameters
+        ----------
+        - x: torch.Tensor
+            The input data
+        
+        Returns
+        -------
+        - torch.Tensor
+            The output of the module if the batch size is greater than 1. Otherwise, the input data.
+        
+        """
         if x.shape[0] == 1:
             return x
         return self.module(x)
