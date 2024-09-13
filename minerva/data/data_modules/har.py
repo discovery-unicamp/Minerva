@@ -314,6 +314,7 @@ class MultiModalHARSeriesDataModule(L.LightningDataModule):
         batch_size: int = 1,
         num_workers: int = None,
         data_percentage: float = 1.0,
+        drop_last: bool = True,
     ):
         """Define the dataloaders for train, validation and test splits for
         HAR datasets. This datasets assumes that the data is in a single CSV
@@ -375,6 +376,11 @@ class MultiModalHARSeriesDataModule(L.LightningDataModule):
             The size of the batch
         num_workers : int, optional
             Number of workers to load data. If None, then use all cores
+        data_percentage : float, optional
+            Percentage of the data to use. If less than 1.0, a random subset
+            of the data will be used.
+        drop_last : bool, optional
+            Drop the last batch if it is smaller than the batch size        
         """
         super().__init__()
         self.data_path = (
@@ -390,6 +396,7 @@ class MultiModalHARSeriesDataModule(L.LightningDataModule):
         self.num_workers = parse_num_workers(num_workers)
         self.data_percentage = data_percentage
         self.datasets = {}
+        self.drop_last = drop_last
 
     def _load_dataset(self, split_name: str) -> MultiModalSeriesCSVDataset:
         """Create a ``MultiModalSeriesCSVDataset`` dataset with the given split.
@@ -489,6 +496,7 @@ class MultiModalHARSeriesDataModule(L.LightningDataModule):
             num_workers=self.num_workers,
             shuffle=shuffle,
             pin_memory=True,
+            drop_last=self.drop_last,
         )
 
     def train_dataloader(self) -> DataLoader:
