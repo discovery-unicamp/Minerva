@@ -1,4 +1,4 @@
-from minerva.models.nets.tfc import TFC_Backbone, TFC_PredicionHead
+from minerva.models.nets.tfc import TFC_Backbone, TFC_PredicionHead, IgnoreWhenBatch1
 import torch
 from minerva.transforms.tfc import TFC_Transforms
 
@@ -47,3 +47,17 @@ def test_transforms_param():
     transforms = TFC_Transforms()
     backbone = TFC_Backbone(input_channels=3, TS_length=128, single_encoding_size=128, transform=transforms)
     assert backbone is not None
+
+def test_ignore_batch():
+    x = torch.tensor([[[3,1]]])
+
+    class verify_batch_size(torch.nn.Module):
+        def forward(self, x):
+            if x.shape[0] == 1:
+                return 0
+    model = IgnoreWhenBatch1(verify_batch_size())
+
+    assert model(x) == 0
+
+    model2 = IgnoreWhenBatch1(verify_batch_size(), active=True)
+    assert model2(x) is x

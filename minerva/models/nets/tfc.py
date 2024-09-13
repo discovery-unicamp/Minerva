@@ -41,7 +41,7 @@ class TFC_Backbone(nn.Module):
     def __init__(self, input_channels: int, TS_length: int, single_encoding_size: int = 128, transform: _Transform = None,
                 time_encoder: Optional[nn.Module] = None, frequency_encoder: Optional[nn.Module] = None,
                 time_projector: Optional[nn.Module] = None, frequency_projector: Optional[nn.Module] = None,
-                adapter: Optional[Callable[[torch.Tensor], torch.Tensor]] = None):
+                adapter: Optional[Callable[[torch.Tensor], torch.Tensor]] = None, batch_1_correction: bool = False):
         """
         Constructor of the TFC_Backbone class.
 
@@ -65,6 +65,11 @@ class TFC_Backbone(nn.Module):
             The projector for the frequency domain. If None, a default projector is used. If passing, make sure to correct calculate the input features by backbone
         - adapter : Callable[[torch.Tensor], torch.Tensor], optional
             An adapter to be used from the backbone to the head, by default None.
+        - batch_1_correction: bool
+            If True, the batch normalization is ignored when the batch size is 1,
+            If False, a runtime error is raised when the batch size is 1
+            Standard is False
+        
         """
         super(TFC_Backbone, self).__init__()
         self.adapter = adapter
@@ -75,19 +80,19 @@ class TFC_Backbone(nn.Module):
 
         self.time_encoder = time_encoder
         if time_encoder is None:
-            self.time_encoder = TFC_Conv_Block(input_channels)
+            self.time_encoder = TFC_Conv_Block(input_channels, batch_1_correction = batch_1_correction)
 
         self.frequency_encoder = frequency_encoder
         if frequency_encoder is None:
-            self.frequency_encoder = TFC_Conv_Block(input_channels)
+            self.frequency_encoder = TFC_Conv_Block(input_channels, batch_1_correction = batch_1_correction)
 
         self.time_projector = time_projector
         if time_projector is None:
-            self.time_projector = TFC_Standard_Projector(self._calculate_fc_input_features(self.time_encoder, (input_channels, TS_length)), single_encoding_size)
+            self.time_projector = TFC_Standard_Projector(self._calculate_fc_input_features(self.time_encoder, (input_channels, TS_length)), single_encoding_size, batch_1_correction = batch_1_correction)
 
         self.frequency_projector = frequency_projector
         if frequency_projector is None:
-            self.frequency_projector = TFC_Standard_Projector(self._calculate_fc_input_features(self.frequency_encoder, (input_channels, TS_length)), single_encoding_size)
+            self.frequency_projector = TFC_Standard_Projector(self._calculate_fc_input_features(self.frequency_encoder, (input_channels, TS_length)), single_encoding_size, batch_1_correction = batch_1_correction)
         self.h_time, self.z_time, self.h_freq, self.z_freq = None, None, None, None
         
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -196,7 +201,7 @@ class TFC_Conv_Block(nn.Module):
 
     This class implements the forward method that receives the input data and returns the features extracted by the block.
     """
-    def __init__(self, input_channels: int):
+    def __init__(self, input_channels: int, batch_1_correction: bool = False):
         """
         Constructor of the TFC_Conv_Block class.
 
@@ -204,20 +209,24 @@ class TFC_Conv_Block(nn.Module):
         ----------
         - input_channels: int
             The number of channels in the input data
+        - batch_1_correction: bool
+            If True, the batch normalization is ignored when the batch size is 1,
+            If False, a runtime error is raised when the batch size is 1
+            Standard is False
         """
         super(TFC_Conv_Block, self).__init__()
         self.block = nn.Sequential(
             nn.Conv1d(input_channels, 32, kernel_size=8, stride=1, bias=False, padding=4),
-            IgnoreWhenBatch1(nn.BatchNorm1d(32)),
+            IgnoreWhenBatch1(nn.BatchNorm1d(32), active=batch_1_correction),
             nn.ReLU(),
             nn.MaxPool1d(kernel_size=2, stride=2, padding=1),
             nn.Dropout(0.35),
             nn.Conv1d(32, 64, kernel_size=8, stride=1, bias=False, padding=4),
-            IgnoreWhenBatch1(nn.BatchNorm1d(64)),
+            IgnoreWhenBatch1(nn.BatchNorm1d(64), active=batch_1_correction),
             nn.ReLU(),
             nn.MaxPool1d(kernel_size=2, stride=2, padding=1),
             nn.Conv1d(64, 60, kernel_size=8, stride=1, bias=False, padding=4),
-            IgnoreWhenBatch1(nn.BatchNorm1d(60)),
+            IgnoreWhenBatch1(nn.BatchNorm1d(60), active=batch_1_correction),
             nn.ReLU(),
             nn.MaxPool1d(kernel_size=2, stride=2, padding=1),
         )
@@ -245,7 +254,7 @@ class TFC_Standard_Projector(nn.Module):
 
     This class implements the forward method that receives the input data and returns the features extracted by the projector.
     """
-    def __init__(self, input_channels: int, single_encoding_size: int):
+    def __init__(self, input_channels: int, single_encoding_size: int, batch_1_correction: bool = False):
         """
         Constructor of the TFC_Standard_Projector class.
 
@@ -255,11 +264,16 @@ class TFC_Standard_Projector(nn.Module):
             The number of channels in the input data
         - single_encoding_size: int
             The size of the encoding in the latent space of frequency or time domain individually
+        - batch_1_correction: bool
+            If True, the batch normalization is ignored when the batch size is 1,
+            If False, a runtime error is raised when the batch size is 1
+            Standard is False
+        
         """
         super(TFC_Standard_Projector, self).__init__()
         self.projector = nn.Sequential(
             nn.Linear(input_channels, 256),
-            IgnoreWhenBatch1(nn.BatchNorm1d(256)),
+            IgnoreWhenBatch1(nn.BatchNorm1d(256), active=batch_1_correction),
             nn.ReLU(),
             nn.Linear(256, single_encoding_size)
         )
@@ -285,16 +299,21 @@ class IgnoreWhenBatch1(nn.Module):
     This class is used to ignore some processes when the batch size is 1. It is necessary in Batch Normalization.
     
     """
-    def __init__(self, module):
+    def __init__(self, module: nn.Module, active: bool = False):
         """
         Parameters
         ----------
         - module: nn.Module
             The module to be used in the forward method that will be ignored when the batch size is 1.
+        - active: bool
+            If True, the module is only used in the forward method if batch size is different from 1. If False, the module is always used.
         
         """
         super().__init__() # necessary to instantiate backward hooks
         self.module = module
+        self.active = active
+        if active:
+            print(f"{nn.Module} will be ignored when batch size is 1.")
 
     def forward(self, x):
         """
@@ -312,6 +331,6 @@ class IgnoreWhenBatch1(nn.Module):
             The output of the module if the batch size is greater than 1. Otherwise, the input data.
         
         """
-        if x.shape[0] == 1:
+        if x.shape[0] == 1 and self.active:
             return x
         return self.module(x)
