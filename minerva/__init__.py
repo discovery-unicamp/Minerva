@@ -1,3 +1,5 @@
+
+import minerva
 import minerva.analysis
 import minerva.callbacks
 import minerva.data
