@@ -2,6 +2,7 @@ from torch.utils.data import DataLoader
 from lightning import LightningDataModule
 from minerva.data.datasets.har_rodrigues_24 import HARDatasetCPC
 from minerva.utils.typing import PathLike
+import torch
 
 # Defining the data loader for the implementation
 class HARDataModuleCPC(LightningDataModule):
@@ -49,15 +50,20 @@ class HARDataModuleCPC(LightningDataModule):
 
     def train_dataloader(self):
         return DataLoader(
-            self.train_dataset, batch_size=self.batch_size, shuffle=True
+            self.train_dataset, batch_size=self.batch_size, shuffle=True, num_workers=11
         )
 
     def val_dataloader(self):
         return DataLoader(
-            self.val_dataset, batch_size=self.batch_size, shuffle=False
+            self.val_dataset, batch_size=self.batch_size, shuffle=False, num_workers=11
         )
 
     def test_dataloader(self):
         return DataLoader(
-            self.test_dataset, batch_size=self.batch_size, shuffle=False
+            self.test_dataset, batch_size=self.batch_size, shuffle=False, num_workers=11
+        )
+
+    def predict_dataloader(self):
+        return DataLoader(
+            self.test_dataset, batch_size=self.batch_size, shuffle=False, num_workers=11
         )
