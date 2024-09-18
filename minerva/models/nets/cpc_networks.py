@@ -171,28 +171,27 @@ class HARCPCAutoregressive(L.LightningModule):
 
 # Combination of the GENC and GAR networks, backbone of the CPC.
 
-class Genc_Gar(L.LightningModule):
+class Genc_Gar(torch.nn.Module):
 
-    def __init__(self, backbone, autoregressive):
+    def __init__(self, g_enc: torch.nn.Module, g_ar: torch.nn.Module):
         """
         Combination of the GENC (encoder) and GAR (autoregressive) networks,
         forming the backbone of the CPC model for HAR.
 
         Parameters
         ----------
-        backbone : L.LightningModule
+        g_enc: torch.nn.Module
             Encoder network to extract features from the input data.
-        autoregressive : L.LightningModule
+        g_ar : torch.nn.Module
             Autoregressive network to model temporal dependencies in the feature space.
         """
         super(Genc_Gar, self).__init__()
-        self.backbone = backbone
-        self.autoregressive = autoregressive
+        self.g_enc = g_enc
+        self.g_ar = g_ar
 
     def forward(self, x):
-        x = self.backbone(x)
-        x, _ = self.autoregressive(x, None)
-        x = x[:, -1, :]
+        x = self.g_enc(x)
+        x, _ = self.g_ar(x, None)
         return x
     
 # Prediction Head
