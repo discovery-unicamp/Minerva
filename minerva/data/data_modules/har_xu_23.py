@@ -16,6 +16,7 @@ class HarDataModule(L.LightningDataModule):
         epsilon: int = 3,
         adf: bool = True,
         window_size: int = 128,
+        num_workers: int = 5,
     ):
         """
         This DataModule handles the loading and preparation of data for training, validation,
@@ -51,6 +52,8 @@ class HarDataModule(L.LightningDataModule):
             Flag indicating whether to use ADF (Augmented Dickey-Fuller) testing for finding neighbors. Defaults to True.
         window_size : int, optional
             The size of the windows to be used for each sample in the TNC dataset. Defaults to 128.
+        num_workers : int, optional
+            The number of workers to use for the DataLoaders. Defaults to 5.
 
         Example Usage
         -------------
@@ -91,6 +94,7 @@ class HarDataModule(L.LightningDataModule):
         self.epsilon = epsilon
         self.adf = adf
         self.window_size = window_size
+        self.num_workers = num_workers
 
         self.har_train = np.load(os.path.join(self.processed_data_dir, "train_data.npy"))
         self.har_val = np.load(os.path.join(self.processed_data_dir, "val_data.npy"))
@@ -115,6 +119,7 @@ class HarDataModule(L.LightningDataModule):
             ),
             batch_size=self.batch_size,
             shuffle=True,
+            num_workers=self.num_workers,
         )
 
     def val_dataloader(self):
@@ -136,6 +141,7 @@ class HarDataModule(L.LightningDataModule):
             ),
             batch_size=self.batch_size,
             shuffle=False,
+            num_workers=self.num_workers,
         )
 
     def test_dataloader(self):
@@ -157,6 +163,7 @@ class HarDataModule(L.LightningDataModule):
             ),
             batch_size=self.batch_size,
             shuffle=False,
+            num_workers=self.num_workers,
         )
 
 class HarDataModule_Downstream(L.LightningDataModule):
@@ -174,6 +181,7 @@ class HarDataModule_Downstream(L.LightningDataModule):
         target_column: str = "standard activity code",
         flatten: bool = False,
         batch_size: int = 16,
+        num_workers: int = 5,
     ):
         """
         DataModule for downstream tasks in human activity recognition (HAR) using the UCI dataset.
@@ -202,6 +210,8 @@ class HarDataModule_Downstream(L.LightningDataModule):
             If True, flattens the input data. Defaults to False.
         batch_size : int, optional
             Number of samples per batch. Defaults to 16.
+        num_workers : int, optional
+            The number of workers to use for the DataLoaders. Defaults to 5.
 
         Example method
         -------
@@ -217,6 +227,7 @@ class HarDataModule_Downstream(L.LightningDataModule):
         self.target_column = target_column
         self.flatten = flatten
         self.batch_size = batch_size
+        self.num_workers = num_workers        
 
 
     def _get_dataset_dataloader(self, annotate: str, shuffle: bool) -> DataLoader[HarDataset]:
@@ -246,7 +257,7 @@ class HarDataModule_Downstream(L.LightningDataModule):
             dataset,
             batch_size=self.batch_size,
             shuffle=shuffle,
-            num_workers=1,
+            num_workers=self.num_workers,
         )
         return dataloader
 
