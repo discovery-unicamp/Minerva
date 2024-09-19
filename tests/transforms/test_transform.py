@@ -3,7 +3,7 @@ from typing import Sequence
 import numpy as np
 import pytest
 
-from minerva.transforms import Flip, PerlinMasker, TransformPipeline, _Transform
+from minerva.transforms import Flip, PerlinMasker, TransformPipeline, _Transform, Transpose
 
 
 def test_transform_pipeline():
@@ -59,6 +59,18 @@ def test_flip_invalid_axes():
     # Check if an AssertionError is raised when applying the transform
     with pytest.raises(AssertionError):
         flipped_x = flip_transform(x)
+
+
+def test_transpose():
+    # Create a dummy input
+    x = np.random.rand(3, 2, 5, 4)
+
+    # Apply the transform
+    transpose_transform = Transpose([2, 3, 0, 1])
+    transposed_x = transpose_transform(x)
+
+    # Check if the axes have the correct length
+    assert transposed_x.shape == (5, 4, 3, 2)
 
 
 def test_perlin_masker_invalid_octaves():
