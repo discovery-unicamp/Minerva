@@ -145,7 +145,15 @@ class NTXentLoss_poly(_Loss):
         # filter out the scores from the positive samples
         l_pos = torch.diag(similarity_matrix, self.batch_size)
         r_pos = torch.diag(similarity_matrix, -self.batch_size)
-        positives = torch.cat([l_pos, r_pos]).view(2 * self.batch_size, 1)
+        try:
+            positives = torch.cat([l_pos, r_pos]).view(2 * self.batch_size, 1)
+            # RuntimeError: shape '[128, 1]' is invalid for input of size 672
+        except RuntimeError as e:
+            # mostra o tipo de e
+            if "is invalid for input of size" in e.args[0]:
+                raise RuntimeError(f"Maybe you missed the batch size of the loss or set the drop_last to False. You should only use dataloaders with drop_last = True") from e
+            else:
+                raise e
 
         negatives = similarity_matrix[self.mask_samples_from_same_repr].view(2 * self.batch_size, -1)
 

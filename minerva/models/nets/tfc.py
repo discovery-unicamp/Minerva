@@ -298,7 +298,8 @@ class TFC_Standard_Projector(nn.Module):
             # mostra o tipo do erro
             if "Expected more than 1 value per channel" in e.args[0]:
                 raise ValueError("The batch size is 1, which is not supported by this convolutional backbone. If you really want to use a batch size of 1, set the batch_1_correction parameter on constructor of projector or the TF-C backbone to True.")
-            raise e
+            else:
+                raise e
     
 class IgnoreWhenBatch1(nn.Module):
     """
