@@ -208,3 +208,12 @@ class Padding(_Transform):
 
         padded = np.transpose(padded, (2, 0, 1))
         return padded
+
+
+class Gradient(_Transform):
+    def __init__(self, target_h_size: int, target_w_size: int):
+        self.target_h_size = target_h_size
+        self.target_w_size = target_w_size
+
+    def __call__(self, x):
+        return x
