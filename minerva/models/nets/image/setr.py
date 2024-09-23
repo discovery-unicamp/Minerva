@@ -392,6 +392,99 @@ class _SetR_PUP(nn.Module):
 
 # region SETR_PUP
 class SETR_PUP(L.LightningModule):
+    """
+    SETR_PUP is a PyTorch Lightning Module for the SETR (Segmenter Transformer) model with Patch Up-sampling (PUP).
+
+    Parameters
+    ----------
+    image_size : Union[int, Tuple[int, int]], default=512
+        The size of the input image.
+    patch_size : int, default=16
+        The size of the patches to be extracted from the input image.
+    num_layers : int, default=24
+        The number of transformer layers in the encoder.
+    num_heads : int, default=16
+        The number of attention heads in each transformer layer.
+    hidden_dim : int, default=1024
+        The hidden dimension of the transformer layers.
+    mlp_dim : int, default=4096
+        The dimension of the MLP (Feed-Forward) layers in the transformer.
+    encoder_dropout : float, default=0.1
+        The dropout rate for the encoder.
+    num_classes : int, default=1000
+        The number of output classes.
+    norm_layer : Optional[nn.Module], default=None
+        The normalization layer to be used in the transformer.
+    decoder_channels : int, default=256
+        The number of channels in the decoder.
+    num_convs : int, default=4
+        The number of convolutional layers in the decoder.
+    up_scale : int, default=2
+        The up-sampling scale factor.
+    kernel_size : int, default=3
+        The kernel size for the convolutional layers.
+    align_corners : bool, default=False
+        Whether to align corners when interpolating.
+    decoder_dropout : float, default=0.1
+        The dropout rate for the decoder.
+    conv_norm : Optional[nn.Module], default=None
+        The normalization layer to be used in the convolutional layers.
+    conv_act : Optional[nn.Module], default=None
+        The activation function to be used in the convolutional layers.
+    interpolate_mode : str, default="bilinear"
+        The interpolation mode to be used for up-sampling.
+    loss_fn : Optional[nn.Module], default=None
+        The loss function to be used.
+    optimizer_type : Optional[type], default=None
+        The type of optimizer to be used.
+    optimizer_params : Optional[Dict], default=None
+        The parameters for the optimizer.
+    train_metrics : Optional[Dict[str, Metric]], default=None
+        The metrics to be used during training.
+    val_metrics : Optional[Dict[str, Metric]], default=None
+        The metrics to be used during validation.
+    test_metrics : Optional[Dict[str, Metric]], default=None
+        The metrics to be used during testing.
+    aux_output : bool, default=True
+        Whether to use auxiliary outputs.
+    aux_output_layers : list[int] | None, default=[9, 14, 19]
+        The layers from which to take auxiliary outputs.
+    aux_weights : list[float], default=[0.3, 0.3, 0.3]
+        The weights for the auxiliary outputs.
+    load_backbone_path : Optional[str], default=None
+        The path to the pre-trained backbone to be loaded.
+    freeze_backbone_on_load : bool, default=True
+        Whether to freeze the backbone after loading.
+    learning_rate : float, default=1e-3
+        The learning rate for the optimizer.
+    loss_weights : Optional[list[float]], default=None
+        The weights for the loss function.
+
+    Methods
+    -------
+    forward(x: torch.Tensor) -> torch.Tensor
+        Forward pass of the model.
+    _compute_metrics(y_hat: torch.Tensor, y: torch.Tensor, step_name: str)
+        Compute metrics for the given step.
+    _loss_func(y_hat: Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]], y: torch.Tensor) -> torch.Tensor
+        Calculate the loss between the output and the input data.
+    _single_step(batch: torch.Tensor, batch_idx: int, step_name: str)
+        Perform a single step of the training/validation loop.
+    training_step(batch: torch.Tensor, batch_idx: int)
+        Perform a single training step.
+    validation_step(batch: torch.Tensor, batch_idx: int)
+        Perform a single validation step.
+    test_step(batch: torch.Tensor, batch_idx: int)
+        Perform a single test step.
+    predict_step(batch: torch.Tensor, batch_idx: int, dataloader_idx: Optional[int] = None)
+        Perform a single prediction step.
+    load_backbone(path: str, freeze: bool = False)
+        Load a pre-trained backbone.
+    configure_optimizers()
+        Configure the optimizer for the model.
+    create_from_dict(config: Dict) -> "SETR_PUP"
+        Create an instance of SETR_PUP from a configuration dictionary.
+    """
 
     def __init__(
         self,
@@ -414,332 +507,151 @@ class SETR_PUP(L.LightningModule):
         conv_act: Optional[nn.Module] = None,
         interpolate_mode: str = "bilinear",
         loss_fn: Optional[nn.Module] = None,
-        optimizer: Optional[torch.optim.Optimizer] = None,
+        optimizer_type: Optional[type] = None,
+        optimizer_params: Optional[Dict] = None,
         train_metrics: Optional[Dict[str, Metric]] = None,
         val_metrics: Optional[Dict[str, Metric]] = None,
         test_metrics: Optional[Dict[str, Metric]] = None,
         aux_output: bool = True,
         aux_output_layers: list[int] | None = [9, 14, 19],
         aux_weights: list[float] = [0.3, 0.3, 0.3],
-        config_dict: Optional[Dict] = None,
         load_backbone_path: Optional[str] = None,
         freeze_backbone_on_load: bool = True,
         learning_rate: float = 1e-3,
         loss_weights: Optional[list[float]] = None,
     ):
         """
-        Initializes the SetR model.
+        Initialize the SETR model.
 
         Parameters
         ----------
-        image_size : int or Tuple[int, int]
-            The input image size. Defaults to 512.
-        patch_size : int
-            The size of each patch. Defaults to 16.
-        num_layers : int
-            The number of layers in the transformer encoder. Defaults to 24.
-        num_heads : int
-            The number of attention heads in the transformer encoder. Defaults to 16.
-        hidden_dim : int
-            The hidden dimension of the transformer encoder. Defaults to 1024.
-        mlp_dim : int
-            The dimension of the MLP layers in the transformer encoder. Defaults to 4096.
-        encoder_dropout : float
-            The dropout rate for the transformer encoder. Defaults to 0.1.
-        num_classes : int
-            The number of output classes. Defaults to 1000.
-        norm_layer : nn.Module, optional
-            The normalization layer to be used in the decoder. Defaults to None.
-        decoder_channels : int
-            The number of channels in the decoder. Defaults to 256.
-        num_convs : int
-            The number of convolutional layers in the decoder. Defaults to 4.
-        up_scale : int
-            The scale factor for upsampling in the decoder. Defaults to 2.
-        kernel_size : int
-            The kernel size for convolutional layers in the decoder. Defaults to 3.
-        align_corners : bool
-            Whether to align corners during interpolation in the decoder. Defaults to False.
-        decoder_dropout : float
-            The dropout rate for the decoder. Defaults to 0.1.
-        conv_norm : nn.Module, optional
-            The normalization layer to be used in the convolutional layers of the decoder. Defaults to None.
-        conv_act : nn.Module, optional
-            The activation function to be used in the convolutional layers of the decoder. Defaults to None.
-        interpolate_mode : str
-            The interpolation mode for upsampling in the decoder. Defaults to "bilinear".
-        loss_fn : nn.Module, optional
-            The loss function to be used during training. Defaults to None.
-        optimizer : torch.optim.Optimizer, optional
-            The optimizer to be used during training. Defaults to None.
-        train_metrics : Dict[str, Metric], optional
-            The metrics to be used for training evaluation. Defaults to None.
-        val_metrics : Dict[str, Metric], optional
-            The metrics to be used for validation evaluation. Defaults to None.
-        test_metrics : Dict[str, Metric], optional
-            The metrics to be used for testing evaluation. Defaults to None.
-        aux_output : bool
-            Whether to include auxiliary output heads in the model. Defaults to True.
-        aux_output_layers : List[int], optional
-            The indices of the layers to output auxiliary predictions. Defaults to [9, 14, 19].
-        aux_weights : List[float]
-            The weights for the auxiliary predictions. Defaults to [0.3, 0.3, 0.3].
-
+        image_size : Union[int, Tuple[int, int]], optional
+            Size of the input image, by default 512.
+        patch_size : int, optional
+            Size of the patches to be extracted from the input image, by default 16.
+        num_layers : int, optional
+            Number of transformer layers, by default 24.
+        num_heads : int, optional
+            Number of attention heads, by default 16.
+        hidden_dim : int, optional
+            Dimension of the hidden layer, by default 1024.
+        mlp_dim : int, optional
+            Dimension of the MLP layer, by default 4096.
+        encoder_dropout : float, optional
+            Dropout rate for the encoder, by default 0.1.
+        num_classes : int, optional
+            Number of output classes, by default 1000.
+        norm_layer : Optional[nn.Module], optional
+            Normalization layer, by default None.
+        decoder_channels : int, optional
+            Number of channels in the decoder, by default 256.
+        num_convs : int, optional
+            Number of convolutional layers in the decoder, by default 4.
+        up_scale : int, optional
+            Upscaling factor for the decoder, by default 2.
+        kernel_size : int, optional
+            Kernel size for the convolutional layers, by default 3.
+        align_corners : bool, optional
+            Whether to align corners when interpolating, by default False.
+        decoder_dropout : float, optional
+            Dropout rate for the decoder, by default 0.1.
+        conv_norm : Optional[nn.Module], optional
+            Normalization layer for the convolutional layers, by default None.
+        conv_act : Optional[nn.Module], optional
+            Activation function for the convolutional layers, by default None.
+        interpolate_mode : str, optional
+            Interpolation mode, by default "bilinear".
+        loss_fn : Optional[nn.Module], optional
+            Loss function, by default None.
+        optimizer_type : Optional[type], optional
+            Type of optimizer, by default None.
+        optimizer_params : Optional[Dict], optional
+            Parameters for the optimizer, by default None.
+        train_metrics : Optional[Dict[str, Metric]], optional
+            Metrics for training, by default None.
+        val_metrics : Optional[Dict[str, Metric]], optional
+            Metrics for validation, by default None.
+        test_metrics : Optional[Dict[str, Metric]], optional
+            Metrics for testing, by default None.
+        aux_output : bool, optional
+            Whether to use auxiliary outputs, by default True.
+        aux_output_layers : list[int] | None, optional
+            Layers for auxiliary outputs, by default [9, 14, 19].
+        aux_weights : list[float], optional
+            Weights for auxiliary outputs, by default [0.3, 0.3, 0.3].
+        load_backbone_path : Optional[str], optional
+            Path to load the backbone model, by default None.
+        freeze_backbone_on_load : bool, optional
+            Whether to freeze the backbone model on load, by default True.
+        learning_rate : float, optional
+            Learning rate, by default 1e-3.
+        loss_weights : Optional[list[float]], optional
+            Weights for the loss function, by default None.
         """
+
         super().__init__()
-        if config_dict is None:
-            self.loss_fn = (
-                loss_fn
-                if loss_fn is not None
-                else nn.CrossEntropyLoss(weight=torch.tensor(loss_weights) if loss_weights is not None else None)
+        self.loss_fn = (
+            loss_fn
+            if loss_fn is not None
+            else nn.CrossEntropyLoss(
+                weight=torch.tensor(loss_weights) if loss_weights is not None else None
             )
-            norm_layer = (
-                norm_layer if norm_layer is not None else nn.LayerNorm(hidden_dim)
-            )
-            conv_norm = (
-                conv_norm
-                if conv_norm is not None
-                else nn.SyncBatchNorm(decoder_channels)
-            )
-            conv_act = conv_act if conv_act is not None else nn.ReLU()
+        )
+        norm_layer = norm_layer if norm_layer is not None else nn.LayerNorm(hidden_dim)
+        conv_norm = (
+            conv_norm if conv_norm is not None else nn.SyncBatchNorm(decoder_channels)
+        )
+        conv_act = conv_act if conv_act is not None else nn.ReLU()
 
-            if aux_output:
-                assert (
-                    aux_output_layers is not None
-                ), "aux_output_layers must be provided."
-                assert (
-                    len(aux_output_layers) == 3
-                ), "aux_output_layers must have 3 values. Only 3 aux heads are supported."
-                assert len(aux_weights) == len(
-                    aux_output_layers
-                ), "aux_weights must have the same length as aux_output_layers."
+        if aux_output:
+            assert aux_output_layers is not None, "aux_output_layers must be provided."
+            assert (
+                len(aux_output_layers) == 3
+            ), "aux_output_layers must have 3 values. Only 3 aux heads are supported."
+            assert len(aux_weights) == len(
+                aux_output_layers
+            ), "aux_weights must have the same length as aux_output_layers."
 
-            self.optimizer = optimizer
+        if optimizer_type is not None:
+            self.optimizer_type = optimizer_type
+            assert optimizer_params is not None, "optimizer_params must be provided."
+            self.optimizer_params = optimizer_params
 
-            self.num_classes = num_classes
-            self.aux_weights = aux_weights
+        self.num_classes = num_classes
+        self.aux_weights = aux_weights
 
-            self.metrics = {
-                "train": train_metrics,
-                "val": val_metrics,
-                "test": test_metrics,
-            }
+        self.metrics = {
+            "train": train_metrics,
+            "val": val_metrics,
+            "test": test_metrics,
+        }
 
-            self.model = _SetR_PUP(
-                image_size=image_size,
-                patch_size=patch_size,
-                num_layers=num_layers,
-                num_heads=num_heads,
-                hidden_dim=hidden_dim,
-                mlp_dim=mlp_dim,
-                num_classes=num_classes,
-                num_convs=num_convs,
-                up_scale=up_scale,
-                kernel_size=kernel_size,
-                conv_norm=conv_norm,
-                conv_act=conv_act,
-                decoder_channels=decoder_channels,
-                encoder_dropout=encoder_dropout,
-                decoder_dropout=decoder_dropout,
-                norm_layer=norm_layer,
-                interpolate_mode=interpolate_mode,
-                align_corners=align_corners,
-                aux_output=aux_output,
-                aux_output_layers=aux_output_layers,
-            )
-            if load_backbone_path is not None:
-                self.model.load_backbone(load_backbone_path, freeze_backbone_on_load)
+        self.model = _SetR_PUP(
+            image_size=image_size,
+            patch_size=patch_size,
+            num_layers=num_layers,
+            num_heads=num_heads,
+            hidden_dim=hidden_dim,
+            mlp_dim=mlp_dim,
+            num_classes=num_classes,
+            num_convs=num_convs,
+            up_scale=up_scale,
+            kernel_size=kernel_size,
+            conv_norm=conv_norm,
+            conv_act=conv_act,
+            decoder_channels=decoder_channels,
+            encoder_dropout=encoder_dropout,
+            decoder_dropout=decoder_dropout,
+            norm_layer=norm_layer,
+            interpolate_mode=interpolate_mode,
+            align_corners=align_corners,
+            aux_output=aux_output,
+            aux_output_layers=aux_output_layers,
+        )
+        if load_backbone_path is not None:
+            self.model.load_backbone(load_backbone_path, freeze_backbone_on_load)
 
-            self.learning_rate = learning_rate
-
-        else:
-            self.loss_fn = (
-                config_dict["loss_fn"]
-                if "loss_fn" in config_dict.keys()
-                and config_dict["loss_fn"] is not None
-                else nn.CrossEntropyLoss(
-                    weight=(
-                        torch.tensor(config_dict["loss_weights"])
-                        if config_dict.get("loss_weights", None) is not None
-                        else None
-                    )
-                )
-            )
-            norm_layer = (
-                config_dict["norm_layer"]
-                if "norm_layer" in config_dict.keys()
-                and config_dict["norm_layer"] is not None
-                else nn.LayerNorm(hidden_dim)
-            )
-            conv_norm = (
-                config_dict["conv_norm"]
-                if "conv_norm" in config_dict.keys()
-                and config_dict["conv_norm"] is not None
-                else nn.SyncBatchNorm(decoder_channels)
-            )
-            conv_act = (
-                config_dict["conv_act"]
-                if "conv_act" in config_dict.keys()
-                and config_dict["conv_act"] is not None
-                else nn.ReLU()
-            )
-
-            if "aux_output" in config_dict.keys() and config_dict["aux_output"]:
-                assert (
-                    "aux_output_layers" in config_dict.keys()
-                    and config_dict["aux_output_layers"] is not None
-                ), "aux_output_layers must be provided."
-                assert (
-                    len(config_dict["aux_output_layers"]) == 3
-                ), "aux_output_layers must have 3 values. Only 3 aux heads are supported."
-                assert len(config_dict["aux_weights"]) == len(
-                    config_dict["aux_output_layers"]
-                ), "aux_weights must have the same length as aux_output_layers."
-
-            self.optimizer = (
-                config_dict["optimizer"]
-                if "optimizer" in config_dict.keys()
-                else optimizer
-            )
-
-            self.num_classes = (
-                config_dict["num_classes"]
-                if "num_classes" in config_dict.keys()
-                else num_classes
-            )
-            self.aux_weights = (
-                config_dict["aux_weights"]
-                if "aux_weights" in config_dict.keys()
-                else aux_weights
-            )
-
-            self.metrics = {
-                "train": (
-                    config_dict["train_metrics"]
-                    if "train_metrics" in config_dict.keys()
-                    else train_metrics
-                ),
-                "val": (
-                    config_dict["val_metrics"]
-                    if "val_metrics" in config_dict.keys()
-                    else val_metrics
-                ),
-                "test": (
-                    config_dict["test_metrics"]
-                    if "test_metrics" in config_dict.keys()
-                    else test_metrics
-                ),
-            }
-
-            self.model = _SetR_PUP(
-                image_size=(
-                    config_dict["image_size"]
-                    if "image_size" in config_dict.keys()
-                    else image_size
-                ),
-                patch_size=(
-                    config_dict["patch_size"]
-                    if "patch_size" in config_dict.keys()
-                    else patch_size
-                ),
-                num_layers=(
-                    config_dict["num_layers"]
-                    if "num_layers" in config_dict.keys()
-                    else num_layers
-                ),
-                num_heads=(
-                    config_dict["num_heads"]
-                    if "num_heads" in config_dict.keys()
-                    else num_heads
-                ),
-                hidden_dim=(
-                    config_dict["hidden_dim"]
-                    if "hidden_dim" in config_dict.keys()
-                    else hidden_dim
-                ),
-                mlp_dim=(
-                    config_dict["mlp_dim"]
-                    if "mlp_dim" in config_dict.keys()
-                    else mlp_dim
-                ),
-                num_classes=(
-                    config_dict["num_classes"]
-                    if "num_classes" in config_dict.keys()
-                    else num_classes
-                ),
-                num_convs=(
-                    config_dict["num_convs"]
-                    if "num_convs" in config_dict.keys()
-                    else num_convs
-                ),
-                up_scale=(
-                    config_dict["up_scale"]
-                    if "up_scale" in config_dict.keys()
-                    else up_scale
-                ),
-                kernel_size=(
-                    config_dict["kernel_size"]
-                    if "kernel_size" in config_dict.keys()
-                    else kernel_size
-                ),
-                conv_norm=(
-                    config_dict["conv_norm"]
-                    if "conv_norm" in config_dict.keys()
-                    else conv_norm
-                ),
-                conv_act=(
-                    config_dict["conv_act"]
-                    if "conv_act" in config_dict.keys()
-                    else conv_act
-                ),
-                decoder_channels=(
-                    config_dict["decoder_channels"]
-                    if "decoder_channels" in config_dict.keys()
-                    else decoder_channels
-                ),
-                encoder_dropout=(
-                    config_dict["encoder_dropout"]
-                    if "encoder_dropout" in config_dict.keys()
-                    else encoder_dropout
-                ),
-                decoder_dropout=(
-                    config_dict["decoder_dropout"]
-                    if "decoder_dropout" in config_dict.keys()
-                    else decoder_dropout
-                ),
-                norm_layer=(
-                    config_dict["norm_layer"]
-                    if "norm_layer" in config_dict.keys()
-                    else norm_layer
-                ),
-                interpolate_mode=(
-                    config_dict["interpolate_mode"]
-                    if "interpolate_mode" in config_dict.keys()
-                    else interpolate_mode
-                ),
-                align_corners=(
-                    config_dict["align_corners"]
-                    if "align_corners" in config_dict.keys()
-                    else align_corners
-                ),
-                aux_output=(
-                    config_dict["aux_output"]
-                    if "aux_output" in config_dict.keys()
-                    else aux_output
-                ),
-                aux_output_layers=(
-                    config_dict["aux_output_layers"]
-                    if "aux_output_layers" in config_dict.keys()
-                    else aux_output_layers
-                ),
-            )
-            if "load_backbone_path" in config_dict.keys():
-                self.model.load_backbone(
-                    config_dict["load_backbone_path"],
-                    config_dict.get("freeze_backbone_on_load", True),
-                )
-
-            self.learning_rate = config_dict.get("learning_rate", learning_rate)
+        self.learning_rate = learning_rate
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.model(x)
@@ -857,7 +769,13 @@ class SETR_PUP(L.LightningModule):
 
     def configure_optimizers(self):
         return (
-            self.optimizer
-            if self.optimizer is not None
+            self.optimizer_type(
+                self.model.parameters(), lr=self.learning_rate, **self.optimizer_params
+            )
+            if self.optimizer_type is not None
             else torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
         )
+
+    @staticmethod
+    def create_from_dict(config: Dict) -> "SETR_PUP":
+        return SETR_PUP(**config)

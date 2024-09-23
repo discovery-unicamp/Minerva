@@ -52,7 +52,7 @@ class HyperParameterSearch(Pipeline):
 
         def _tuner_train_func(config):
             dm = deepcopy(data)
-            model = self.model(config_dict=config)
+            model = self.model.create_from_dict(config_dict=config)
             trainer = L.Trainer(
                 devices=devices or "auto",
                 accelerator=accelerator or "auto",
