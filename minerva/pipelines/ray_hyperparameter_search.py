@@ -18,7 +18,7 @@ from minerva.pipelines.base import Pipeline
 from minerva.utils.typing import PathLike
 
 
-class HyperParameterSearch(Pipeline):
+class RayHyperParameterSearch(Pipeline):
 
     def __init__(
         self,
