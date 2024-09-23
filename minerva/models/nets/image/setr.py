@@ -10,6 +10,7 @@ from minerva.models.nets.image.vit import _VisionTransformerBackbone
 from minerva.utils.upsample import Upsample
 
 
+# region _SETRUPHead
 class _SETRUPHead(nn.Module):
     """Naive upsampling head and Progressive upsampling head of SETR.
 
@@ -119,9 +120,10 @@ class _SETRUPHead(nn.Module):
         return out
 
 
+# region _SETRMLAHead
 class _SETRMLAHead(nn.Module):
     """Multi level feature aggretation head of SETR.
-
+    This has not been tested yet.
     MLA head of `SETR  <https://arxiv.org/pdf/2012.15840.pdf>`_.
     """
 
@@ -218,6 +220,7 @@ class _SETRMLAHead(nn.Module):
         return out
 
 
+# region _SetR_PUP
 class _SetR_PUP(nn.Module):
 
     def __init__(
