@@ -60,7 +60,7 @@ class TFC_Model(pl.LightningModule):
             The number of downstream classes in the dataset, if none, the model is trained in a self-supervised learning approach
         - single_encoding_size: int
             The size of the encoding in the latent space of frequency or time domain individually
-        - backbone: Optional[Union[nn.Module, LoadableModule]]
+        - backbone: Optional[Union[TFC_Backbone, LoadableModule]]
             The backbone of the model. If None, a default backbone is created with the encoders and projectors provided. If a LoadableModule is provided, it is used as the backbone. 
             If provided, make sure you really know what you are doing.
         - pred_head: Union[bool, nn.Module]
@@ -100,7 +100,8 @@ class TFC_Model(pl.LightningModule):
         self.pipeline = pipeline
 
         if test_metrics is None:
-            test_metrics = {"f1": F1Score(task="multiclass", num_classes=self.num_classes), "accuracy": Accuracy(task="multiclass", num_classes=self.num_classes)}
+            if num_classes: # If num_classes is not provided, the model is trained in a self-supervised learning approach, so there is no test metrics
+                test_metrics = {"f1": F1Score(task="multiclass", num_classes=self.num_classes), "accuracy": Accuracy(task="multiclass", num_classes=self.num_classes)}
         
 
         self.metrics = {
@@ -177,17 +178,15 @@ class TFC_Model(pl.LightningModule):
         }
 
     def forward(
-        self, x_t: torch.Tensor, x_f: torch.Tensor = None, all: bool = False
+        self, x: torch.Tensor, all: bool = False
     ) -> torch.Tensor:  # "all" is useful for validation of acurracy and latent space
         """
         The forward method of the model. It receives the input data in the time domain and frequency domain and returns the prediction of the model.
 
         Parameters
         ----------
-        - x_t: torch.Tensor
-            The input data in the time domain
-        - x_f: torch.Tensor
-            The input data in the frequency domain
+        - x: torch.Tensor
+            The input data
         - all: bool
             If True, the method returns the prediction of the model and the features extracted by the backbone. If False, only the prediction is returned
 
@@ -201,9 +200,8 @@ class TFC_Model(pl.LightningModule):
             If the model has a prediction head and parameter "all" is True, the method returns a tuple with the prediction of the model and the features extracted by the backbone, following the format prediction, h_t, z_t, h_f, z_f.
 
         """
-        if x_f is None:
-            x_t, _, x_f, _ = self.transform(x_t)
-        h_t, z_t, h_f, z_f = self.backbone(x_t, x_f)
+        self.backbone(x)
+        h_t, z_t, h_f, z_f = self.backbone.get_representations()
         if self.pred_head:
             if self.pipeline == "both":
                 fea_concat = torch.cat((z_t, z_f), dim=1)
@@ -241,15 +239,15 @@ class TFC_Model(pl.LightningModule):
         labels = batch[1]
         data, aug1, data_f, aug1_f = self.transform(x)
         if self.pred_head:
-            pred = self.forward(data, data_f)
+            pred = self.forward(data)
             labels = labels.long()
             loss = self.loss_fn(pred, labels)
             if self.metrics["train"]:
                 metrics = self._compute_metrics(pred, labels, "train")
                 self.log_dict(metrics, prog_bar=False)
         else:
-            h_t, z_t, h_f, z_f = self.forward(data, data_f)
-            h_t_aug, z_t_aug, h_f_aug, z_f_aug = self.forward(aug1, aug1_f)
+            h_t, z_t, h_f, z_f = self.forward(data)
+            h_t_aug, z_t_aug, h_f_aug, z_f_aug = self.forward(aug1)
             loss_t = self.loss_fn(h_t, h_t_aug)
             loss_f = self.loss_fn(h_f, h_f_aug)
             l_TF = self.loss_fn(z_t, z_f)
@@ -290,15 +288,15 @@ class TFC_Model(pl.LightningModule):
         labels = batch[1]
         data, aug1, data_f, aug1_f = self.transform(x)
         if self.pred_head:
-            pred = self.forward(data, data_f)
+            pred = self.forward(data)
             labels = labels.long()
             loss = self.loss_fn(pred, labels)
             if self.metrics["val"]:
                 metrics = self._compute_metrics(pred, labels, "val")
                 self.log_dict(metrics, prog_bar=False)
         else:
-            h_t, z_t, h_f, z_f = self.forward(data, data_f)
-            h_t_aug, z_t_aug, h_f_aug, z_f_aug = self.forward(aug1, aug1_f)
+            h_t, z_t, h_f, z_f = self.forward(data)
+            h_t_aug, z_t_aug, h_f_aug, z_f_aug = self.forward(aug1)
             loss_t = self.loss_fn(h_t, h_t_aug)
             loss_f = self.loss_fn(h_f, h_f_aug)
             l_TF = self.loss_fn(z_t, z_f)
@@ -342,7 +340,7 @@ class TFC_Model(pl.LightningModule):
 
         f1, acc = None, None
         if self.pred_head:
-            pred = self.forward(data, data_f)
+            pred = self.forward(data)
             labels = labels.long()
             loss = self.loss_fn(pred, labels)
 
@@ -350,8 +348,8 @@ class TFC_Model(pl.LightningModule):
             self.log_dict(metrics, prog_bar=True)
 
         else:
-            h_t, z_t, h_f, z_f = self.forward(data, data_f)
-            h_t_aug, z_t_aug, h_f_aug, z_f_aug = self.forward(aug1, aug1_f)
+            h_t, z_t, h_f, z_f = self.forward(data)
+            h_t_aug, z_t_aug, h_f_aug, z_f_aug = self.forward(aug1)
             loss_t = self.loss_fn(h_t, h_t_aug)
             loss_f = self.loss_fn(h_f, h_f_aug)
             l_TF = self.loss_fn(z_t, z_f)
@@ -394,11 +392,11 @@ class TFC_Model(pl.LightningModule):
         data, _, data_f, _ = self.transform(x)
 
         if self.pred_head:
-            pred = self.forward(data, data_f)
+            pred = self.forward(data)
             return pred
 
         else:
-            _, z_t, _, z_f = self.forward(data, data_f)
+            _, z_t, _, z_f = self.forward(data)
             z = torch.cat((z_t, z_f), dim=1)
             return z
 
