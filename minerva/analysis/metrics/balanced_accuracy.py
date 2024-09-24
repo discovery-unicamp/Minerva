@@ -56,12 +56,14 @@ class BalancedAccuracy(Metric):
         with torch.no_grad():
             per_class = torch.diag(self.confmat) / self.confmat.sum(dim=1)
             if torch.any(torch.isnan(per_class)):
-                warnings.warn("y_pred contains classes not in y_true")
-                per_class = per_class[~torch.isnan(per_class)]
+                warnings.warn(f"y_pred contains nan values and not all classes passed")
+                per_class = per_class[~torch.isnan(per_class)]  # Filter out NaN values
+            if len(per_class) == 0:
+                return torch.tensor(0.0)  # Return 0 if no valid classes remain
             score = torch.mean(per_class)
             if self.adjusted:
                 n_classes = len(per_class)
                 chance = 1 / n_classes
                 score -= chance
                 score /= 1 - chance
-            return score.item()
+            return score

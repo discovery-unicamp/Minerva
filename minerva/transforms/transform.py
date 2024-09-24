@@ -156,6 +156,23 @@ class Unsqueeze(_Transform):
         return np.expand_dims(x, axis=self.axis)
 
 
+class Transpose(_Transform):
+    """Reorder the axes of numpy arrays."""
+    def __init__(self, axes: Sequence[int]):
+        """Reorder the axes of numpy arrays.
+        
+        Parameters
+        ----------
+        axes : int
+            The order of the new axes
+        """
+        self.axes = axes
+    
+    def __call__(self, x: np.ndarray) -> np.ndarray:
+        """Reorder the axes of numpy arrays."""
+        return np.transpose(x, self.axes)
+
+
 class CastTo(_Transform):
     """Cast the input data to the specified data type."""
 

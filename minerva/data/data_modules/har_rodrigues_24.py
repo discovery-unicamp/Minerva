@@ -13,6 +13,7 @@ class HARDataModuleCPC(LightningDataModule):
         window=60,
         overlap=30,
         batch_size=64,
+        drop_last=False,
     ):
         """Data module for Human Activity Recognition (HAR) using CPC.
 
@@ -34,6 +35,8 @@ class HARDataModuleCPC(LightningDataModule):
             The overlap size for the sliding window (default is 30).
         batch_size : int, optional
             The batch size for the dataloaders (default is 64).
+        drop_last : bool, optional
+            Whether to drop the last incomplete batch (default is False).
         """
         super().__init__()
         self.batch_size = batch_size
@@ -46,18 +49,24 @@ class HARDataModuleCPC(LightningDataModule):
         self.test_dataset = HARDatasetCPC(
             root_dir, data_file, input_size, window, overlap, phase="test"
         )
+        self.drop_last = drop_last
 
     def train_dataloader(self):
         return DataLoader(
-            self.train_dataset, batch_size=self.batch_size, shuffle=True
+            self.train_dataset, batch_size=self.batch_size, shuffle=True, drop_last = self.drop_last, num_workers=11
         )
 
     def val_dataloader(self):
         return DataLoader(
-            self.val_dataset, batch_size=self.batch_size, shuffle=False
+            self.val_dataset, batch_size=self.batch_size, shuffle=False, drop_last = self.drop_last, num_workers=11
         )
 
     def test_dataloader(self):
         return DataLoader(
-            self.test_dataset, batch_size=self.batch_size, shuffle=False
+            self.test_dataset, batch_size=self.batch_size, shuffle=False, drop_last = self.drop_last, num_workers=11
+        )
+
+    def predict_dataloader(self):
+        return DataLoader(
+            self.test_dataset, batch_size=self.batch_size, shuffle=False, num_workers=11
         )
