@@ -45,6 +45,7 @@ class TFC_Model(pl.LightningModule):
         train_metrics: Optional[Dict[str, Metric]] = None,
         val_metrics: Optional[Dict[str, Metric]] = None,
         test_metrics: Optional[Dict[str, Metric]] = None,
+        batch_1_correction = False,
 
     ):
         """
@@ -93,7 +94,10 @@ class TFC_Model(pl.LightningModule):
             The metrics to be used during validation, by default None
         - test_metrics : Dict[str, Metric], optional
             The metrics to be used during testing, by default None
-        
+        - batch_1_correction: bool
+            If True, some parts of the architecture are adapted to 
+            work with batch size 1. Default is False, which means 
+            that the model is not adapted to work with batch size 1.
         """
         super(TFC_Model, self).__init__()
         self.num_classes = num_classes
@@ -116,7 +120,8 @@ class TFC_Model(pl.LightningModule):
             self.backbone = TFC_Backbone(
                 input_channels, TS_length, single_encoding_size=single_encoding_size,
                 time_encoder=time_encoder, frequency_encoder=frequency_encoder,
-                time_projector=time_projector, frequency_projector=frequency_projector
+                time_projector=time_projector, frequency_projector=frequency_projector,
+                batch_1_correction=batch_1_correction
             )
         if pred_head and num_classes:
             if pred_head == True:

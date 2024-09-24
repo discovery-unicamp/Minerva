@@ -53,15 +53,20 @@ class HARDataModuleCPC(LightningDataModule):
 
     def train_dataloader(self):
         return DataLoader(
-            self.train_dataset, batch_size=self.batch_size, shuffle=True, drop_last = self.drop_last
+            self.train_dataset, batch_size=self.batch_size, shuffle=True, drop_last = self.drop_last, num_workers=11
         )
 
     def val_dataloader(self):
         return DataLoader(
-            self.val_dataset, batch_size=self.batch_size, shuffle=False, drop_last = self.drop_last
+            self.val_dataset, batch_size=self.batch_size, shuffle=False, drop_last = self.drop_last, num_workers=11
         )
 
     def test_dataloader(self):
         return DataLoader(
-            self.test_dataset, batch_size=self.batch_size, shuffle=False, drop_last = self.drop_last
+            self.test_dataset, batch_size=self.batch_size, shuffle=False, drop_last = self.drop_last, num_workers=11
+        )
+
+    def predict_dataloader(self):
+        return DataLoader(
+            self.test_dataset, batch_size=self.batch_size, shuffle=False, num_workers=11
         )
