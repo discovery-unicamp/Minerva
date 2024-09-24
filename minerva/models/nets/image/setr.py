@@ -615,8 +615,8 @@ class SETR_PUP(L.LightningModule):
                 aux_output_layers
             ), "aux_weights must have the same length as aux_output_layers."
 
+        self.optimizer_type = optimizer_type
         if optimizer_type is not None:
-            self.optimizer_type = optimizer_type
             assert optimizer_params is not None, "optimizer_params must be provided."
             self.optimizer_params = optimizer_params
 

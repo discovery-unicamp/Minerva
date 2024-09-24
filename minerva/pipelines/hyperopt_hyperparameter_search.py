@@ -52,7 +52,7 @@ class HyperoptHyperParameterSearch(Pipeline):
 
         def _tuner_train_func(config):
             dm = deepcopy(data)
-            model = self.model.create_from_dict(config_dict=config)
+            model = self.model.create_from_dict(config)
             trainer = L.Trainer(
                 devices=devices or "auto",
                 accelerator=accelerator or "auto",
@@ -84,7 +84,6 @@ class HyperoptHyperParameterSearch(Pipeline):
                 num_to_keep=1,
                 checkpoint_score_attribute="val_loss",
                 checkpoint_score_order="min",
-                checkpoint_frequency=10,
             )
         )
 
@@ -105,7 +104,6 @@ class HyperoptHyperParameterSearch(Pipeline):
                 metric=tuner_metric or "val_loss",
                 mode=tuner_mode or "min",
                 num_samples=num_samples or 10,
-                scheduler=scheduler,
                 search_alg=algo,
             ),
         )
