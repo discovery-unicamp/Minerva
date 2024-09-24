@@ -16,7 +16,7 @@ class HarDataModule(L.LightningDataModule):
         epsilon: int = 3,
         adf: bool = True,
         window_size: int = 128,
-        num_workers: int = 5,
+        num_workers: int = 0,
     ):
         """
         This DataModule handles the loading and preparation of data for training, validation,
