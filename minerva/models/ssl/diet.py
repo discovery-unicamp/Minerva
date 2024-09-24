@@ -35,7 +35,8 @@ class DIET(L.LightningModule):
             loss: Optional[Callable]=None,
             learning_rate: float=1e-3,
             weight_decay: float=5e-2,
-            scheduler: Optional[str]=None
+            scheduler: Optional[str]=None,
+            cosine_annealing_total_epochs: int=500
         ):
         """
         DIET model.
@@ -55,6 +56,9 @@ class DIET(L.LightningModule):
         scheduler : str, optional
             Learning rate scheduler, by default None. If None, no scheduler is sent to Lightning. If 'WarmupCosineAnnealingLR', a
             WarmupCosineAnnealingLR scheduler is sent to Lightning. If any other value, a ValueError is raised.
+        cosine_annealing_total_epochs : int
+            Total number of epochs used in the scheduler, by default 500.
+            This parameter is only used if scheduler is 'WarmupCosineAnnealingLR'.
         """
         super(DIET, self).__init__()
         # Saving hyperparameters
@@ -66,6 +70,7 @@ class DIET(L.LightningModule):
         # Defining reconstruction loss
         self.loss = loss if loss is not None else CrossEntropyLoss(label_smoothing=0.8)
         self.scheduler = scheduler
+        self.cosine_annealing_total_epochs = cosine_annealing_total_epochs
 
     def forward(self, x):
         x = self.encoder(x)
@@ -86,7 +91,7 @@ class DIET(L.LightningModule):
             return optimizer
         elif self.scheduler == 'WarmupCosineAnnealingLR':
             # If self.scheduler is WarmupCosineAnnealingLR, we return the optimizer and the scheduler
-            scheduler = WarmupCosineAnnealingLR(optimizer, warmup_epochs=10, total_epochs=100)
+            scheduler = WarmupCosineAnnealingLR(optimizer, warmup_epochs=10, total_epochs=self.cosine_annealing_total_epochs)
             return {
                 'optimizer': optimizer,
                 'lr_scheduler': {
