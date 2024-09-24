@@ -53,7 +53,7 @@ class HarDataModule(L.LightningDataModule):
         window_size : int, optional
             The size of the windows to be used for each sample in the TNC dataset. Defaults to 128.
         num_workers : int, optional
-            The number of workers to use for the DataLoaders. Defaults to 5.
+            The number of workers to use for the DataLoaders. Defaults to 0.
 
         Example Usage
         -------------
@@ -181,7 +181,7 @@ class HarDataModule_Downstream(L.LightningDataModule):
         target_column: str = "standard activity code",
         flatten: bool = False,
         batch_size: int = 16,
-        num_workers: int = 5,
+        num_workers: int = 0,
     ):
         """
         DataModule for downstream tasks in human activity recognition (HAR) using the UCI dataset.
@@ -211,7 +211,7 @@ class HarDataModule_Downstream(L.LightningDataModule):
         batch_size : int, optional
             Number of samples per batch. Defaults to 16.
         num_workers : int, optional
-            The number of workers to use for the DataLoaders. Defaults to 5.
+            The number of workers to use for the DataLoaders. Defaults to 0.
 
         Example method
         -------
