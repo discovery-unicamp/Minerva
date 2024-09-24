@@ -8,13 +8,15 @@ from ray.train import CheckpointConfig, RunConfig, ScalingConfig
 from ray.train.lightning import RayDDPStrategy, RayLightningEnvironment, prepare_trainer
 from ray.train.torch import TorchTrainer
 from ray.tune.schedulers import ASHAScheduler, TrialScheduler
+from ray.tune.search import ConcurrencyLimiter
+from ray.tune.search.hyperopt import HyperOptSearch
 
 from minerva.callbacks.HyperSearchCallbacks import TrainerReportKeepOnlyLastCallback
 from minerva.pipelines.base import Pipeline
 from minerva.utils.typing import PathLike
 
 
-class RayHyperParameterSearch(Pipeline):
+class HyperoptHyperParameterSearch(Pipeline):
 
     def __init__(
         self,
@@ -44,6 +46,8 @@ class RayHyperParameterSearch(Pipeline):
         tuner_mode: Optional[str] = "min",
         num_samples: Optional[int] = 10,
         scheduler: Optional[TrialScheduler] = None,
+        max_concurrent: Optional[int] = 4,
+        initial_parameters: Optional[Dict[str, Any]] = None,
     ) -> Any:
 
         def _tuner_train_func(config):
@@ -89,6 +93,11 @@ class RayHyperParameterSearch(Pipeline):
             scaling_config=scaling_config,
             run_config=run_config,
         )
+
+        algo = ConcurrencyLimiter(
+            HyperOptSearch(initial_parameters), max_concurrent=max_concurrent or 4
+        )
+
         tuner = tune.Tuner(
             ray_trainer,
             param_space={"train_loop_config": self.search_space},
@@ -97,6 +106,7 @@ class RayHyperParameterSearch(Pipeline):
                 mode=tuner_mode or "min",
                 num_samples=num_samples or 10,
                 scheduler=scheduler,
+                search_alg=algo,
             ),
         )
         return tuner.fit()
@@ -126,7 +136,7 @@ def main():
     from jsonargparse import CLI
 
     print("Hyper Searching 🔍")
-    CLI(RayHyperParameterSearch, as_positional=False)
+    CLI(HyperoptHyperParameterSearch, as_positional=False)
 
 
 if __name__ == "__main__":
