@@ -47,9 +47,9 @@ class CPC(L.LightningModule):
 
     def forward(self, x):
         z = self.g_enc(x)
-        S = x.size(2)
+        s = x.size(2)
         start = (
-            torch.randint(int(S - self.num_steps_prediction), size=(1,)).long().item()
+            torch.randint(int(s - self.num_steps_prediction), size=(1,)).long().item()
         )
         rnn_input = z[:, : start + 1, :]
         r_out, (_) = self.g_ar(rnn_input, None)
