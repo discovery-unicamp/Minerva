@@ -118,14 +118,15 @@ class HyperoptHyperParameterSearch(Pipeline):
         data: L.LightningDataModule,
         task: Optional[Literal["search", "test", "predict"]],
         ckpt_path: Optional[PathLike] = None,
+        config: Dict[str, Any] = {},
         **kwargs,
     ) -> Any:
         if task == "search":
-            return self._search(data, ckpt_path, **kwargs)
+            return self._search(data, ckpt_path, **config)
         elif task == "test":
             return self._test(data, ckpt_path)
         elif task is None:
-            search = self._search(data, ckpt_path, **kwargs)
+            search = self._search(data, ckpt_path, **config)
             test = self._test(data, ckpt_path)
             return search, test
 
