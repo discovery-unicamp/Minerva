@@ -191,3 +191,50 @@ class Padding(_Transform):
 
         padded = np.transpose(padded, (2, 0, 1))
         return padded
+
+
+class Normalize(_Transform):
+    def __init__(self, mean, std, to_rgb=False, normalize_labels=False):
+        """
+        Initialize the Normalize transform.
+
+        Args:
+            means (list or tuple): A list or tuple containing the mean for each channel.
+            stds (list or tuple): A list or tuple containing the standard deviation for each channel.
+            to_rgb (bool): If True, convert the data from BGR to RGB.
+        """
+        assert len(mean) == len(
+            std
+        ), "Means and standard deviations must have the same length."
+        self.mean = mean
+        self.std = std
+        self.to_rgb = to_rgb
+        self.normalize_labels = normalize_labels
+
+    def __call__(self, data):
+        """
+        Normalize the input data using the provided means and standard deviations.
+
+        Args:
+            data (numpy.ndarray): Input data array of shape (C, H, W) where C is the number of channels.
+
+        Returns:
+            numpy.ndarray: Normalized data.
+        """
+
+        is_label = True if data.dtype == np.uint8 else False
+
+        if is_label and self.normalize_labels:
+            # Convert from gray scale (1 channel) to RGB (3 channels) if to_rgb is True
+            if self.to_rgb and data.shape[0] == 1:
+                data = np.repeat(data, 3, axis=0)
+
+            assert data.shape[0] == len(
+                self.mean
+            ), f"Number of channels in data does not match the number of provided mean/std. {data.shape}"
+
+            # Normalize each channel
+            for i in range(len(self.mean)):
+                data[i, :, :] = (data[i, :, :] - self.mean[i]) / self.std[i]
+
+        return data
