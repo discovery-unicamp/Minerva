@@ -48,12 +48,14 @@ class HyperoptHyperParameterSearch(Pipeline):
         scheduler: Optional[TrialScheduler] = None,
         max_concurrent: Optional[int] = 4,
         initial_parameters: Optional[Dict[str, Any]] = None,
+        max_epochs: Optional[int] = None,
     ) -> Any:
 
         def _tuner_train_func(config):
             dm = deepcopy(data)
             model = self.model.create_from_dict(config)
             trainer = L.Trainer(
+                max_epochs=max_epochs or 1000,
                 devices=devices or "auto",
                 accelerator=accelerator or "auto",
                 strategy=strategy or RayDDPStrategy(find_unused_parameters=True),
