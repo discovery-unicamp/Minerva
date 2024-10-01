@@ -9,7 +9,7 @@ import pickle
 import os
 from minerva.models.loaders import LoadableModule
 from typing import Callable
-
+import importlib
 
 class ClassicMLModel(L.LightningModule):
     """
@@ -195,10 +195,29 @@ class ClassicMLModel(L.LightningModule):
 class SklearnPipeline(Pipeline):
     def __init__(
         self,
-        steps: List[Tuple[str, object]],
+        steps: list,
         *,
         memory: str = None,
         verbose: bool = False,
         **kwargs,
     ):
+        # For each YAML step, load the class and its parameters
+        steps = [(name, self._load_class(step)) for name, step in steps]
+        
         super().__init__(steps=steps, memory=memory, verbose=verbose, **kwargs)
+    
+    @staticmethod
+    def _load_class(step_config):
+        """
+        loads a class from a YAML configuration dictionary and returns an instance of it
+        """
+        class_path = step_config['class_path']
+        init_args = step_config.get('init_args', {})
+
+        # Imports the module and gets the class
+        module_name, class_name = class_path.rsplit('.', 1)
+        module = importlib.import_module(module_name)
+        cls = getattr(module, class_name)
+
+        # Returns an instance of the class with the init_args
+        return cls(**init_args)

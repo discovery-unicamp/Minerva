@@ -13,9 +13,12 @@ def test_sklearn_pipeline():
     train_dataset = SimpleDataset(X, y)
     train_dataloader = DataLoader(train_dataset, batch_size=64)
     pipeline = ClassicMLModel(
-        backbone = torch.nn.Identity(),
-        head = SklearnPipeline(
-            [["min-max", MinMaxScaler()], ["log-reg", LogisticRegression(random_state=42, max_iter=5)]]
+        backbone=torch.nn.Identity(),
+        head=SklearnPipeline(
+            [
+                ["min-max", {"class_path": "sklearn.preprocessing.MinMaxScaler", "init_args": {}}],
+                ["log-reg", {"class_path": "sklearn.linear_model.LogisticRegression", "init_args": {"random_state": 42, "max_iter": 5}}]
+            ]
         )
     )
     trainer = L.Trainer(fast_dev_run=True)
