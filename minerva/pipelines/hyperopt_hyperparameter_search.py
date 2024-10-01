@@ -11,7 +11,7 @@ from ray.tune.schedulers import ASHAScheduler, TrialScheduler
 from ray.tune.search import ConcurrencyLimiter
 from ray.tune.search.hyperopt import HyperOptSearch
 
-from minerva.callbacks.HyperSearchCallbacks import TrainerReportKeepOnlyLastCallback
+from minerva.callbacks.HyperSearchCallbacks import TrainerReportOnIntervalCallback
 from minerva.pipelines.base import Pipeline
 from minerva.utils.typing import PathLike
 
@@ -59,7 +59,7 @@ class HyperoptHyperParameterSearch(Pipeline):
                 devices=devices or "auto",
                 accelerator=accelerator or "auto",
                 strategy=strategy or RayDDPStrategy(find_unused_parameters=True),
-                callbacks=callbacks or [TrainerReportKeepOnlyLastCallback()],
+                callbacks=callbacks or [TrainerReportOnIntervalCallback(500)],
                 plugins=plugins or [RayLightningEnvironment()],
                 enable_progress_bar=False,
                 num_nodes=num_nodes,
