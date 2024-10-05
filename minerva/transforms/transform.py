@@ -211,9 +211,63 @@ class Padding(_Transform):
 
 
 class Gradient(_Transform):
-    def __init__(self, target_h_size: int, target_w_size: int):
-        self.target_h_size = target_h_size
-        self.target_w_size = target_w_size
+    def __init__(self, direction: int):
+        self.direction = direction
+
+    def generate_gradient(shape: tuple[int, int]) -> np.ndarray:              
+    
+        '''
+        Inputs in format (H, W) 
+        Outputs a gradient from 0 to 1 in both x and y directions
+        Channel 0 gradient on W and Channel 1 gradient on H
+        '''
+        
+        xx, yy = np.meshgrid(np.linspace(0, 1, shape[1]), np.linspace(0, 1, shape[0]))
+        gradient = np.stack([xx, yy], axis=-1)
+        return gradient
 
     def __call__(self, x):
-        return x
+        shape = x.shape[:2]
+        gradient = self.generate_gradient(shape)
+        return  np.concatenate([np.expand_dims(x, axis=2), np.expand_dims(gradient, axis=2)], axis=2)
+    
+class Gradient:
+    def __init__(self, direction: int):
+        
+        '''
+        direction: 
+            0 -> Gradient along the x-axis (width)
+            1 -> Gradient along the y-axis (height)
+        '''
+        
+        assert direction in [0, 1], "Direction must be 0 (x-axis) or 1 (y-axis)"
+        self.direction = direction
+
+    def generate_gradient(self, shape: tuple[int, int]) -> np.ndarray:              
+        
+        '''
+        Inputs in format (H, W) 
+        Outputs a gradient from 0 to 1 in either x or y direction based on the direction parameter
+        '''
+        
+        xx, yy = np.meshgrid(np.linspace(0, 1, shape[1]), np.linspace(0, 1, shape[0]))
+
+        if self.direction == 0:  # Gradient along the x-axis
+            return xx
+        elif self.direction == 1:  # Gradient along the y-axis
+            return yy
+
+    def __call__(self, x):
+        shape = x.shape[:2]
+        gradient = self.generate_gradient(shape)  # Generate gradient in the specified direction
+        
+        x_expanded = np.expand_dims(x, axis=-1) if x.ndim == 2 else x
+        
+        gradient_expanded = np.expand_dims(gradient, axis=-1)
+        output = np.concatenate([x_expanded, gradient_expanded], axis=-1)
+
+        assert output.shape == (shape[0], shape[1], x_expanded.shape[-1] + 1), \
+            f"Output shape {output.shape} does not match expected shape {(shape[0], shape[1], x_expanded.shape[-1] + 1)}"
+        
+        return output
+    
