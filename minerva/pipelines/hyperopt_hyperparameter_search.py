@@ -10,6 +10,7 @@ from ray.train.torch import TorchTrainer
 from ray.tune.schedulers import ASHAScheduler, TrialScheduler
 from ray.tune.search import ConcurrencyLimiter
 from ray.tune.search.hyperopt import HyperOptSearch
+from ray.tune.stopper import TrialPlateauStopper
 
 from minerva.callbacks.HyperSearchCallbacks import TrainerReportOnIntervalCallback
 from minerva.pipelines.base import Pipeline
@@ -55,7 +56,7 @@ class HyperoptHyperParameterSearch(Pipeline):
             dm = deepcopy(data)
             model = self.model.create_from_dict(config)
             trainer = L.Trainer(
-                max_epochs=max_epochs or 1000,
+                max_epochs=max_epochs or 500,
                 devices=devices or "auto",
                 accelerator=accelerator or "auto",
                 strategy=strategy or RayDDPStrategy(find_unused_parameters=True),
@@ -86,7 +87,14 @@ class HyperoptHyperParameterSearch(Pipeline):
                 num_to_keep=1,
                 checkpoint_score_attribute="val_loss",
                 checkpoint_score_order="min",
-            )
+            ),
+            stop=TrialPlateauStopper(
+                metric=tuner_metric or "val_loss",
+                mode=tuner_mode or "min",
+                num_results=5,
+                std=0.01,
+                grace_period=50,
+            ),
         )
 
         ray_trainer = TorchTrainer(
@@ -105,7 +113,7 @@ class HyperoptHyperParameterSearch(Pipeline):
             tune_config=tune.TuneConfig(
                 metric=tuner_metric or "val_loss",
                 mode=tuner_mode or "min",
-                num_samples=num_samples or 10,
+                num_samples=num_samples or -1,
                 search_alg=algo,
             ),
         )
