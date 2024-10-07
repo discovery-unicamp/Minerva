@@ -52,8 +52,6 @@ class HyperoptHyperParameterSearch(Pipeline):
         max_epochs: Optional[int] = None,
     ) -> Any:
 
-        print(tuner_metric, tuner_mode)
-
         def _tuner_train_func(config):
             dm = deepcopy(data)
             model = self.model.create_from_dict(config)
