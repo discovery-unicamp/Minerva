@@ -133,7 +133,6 @@ class HyperoptHyperParameterSearch(Pipeline):
         **kwargs,
     ) -> Any:
         if task == "search":
-            print(config)
             return self._search(data, ckpt_path, **config)
         elif task == "test":
             return self._test(data, ckpt_path)
