@@ -45,11 +45,14 @@ class HyperoptHyperParameterSearch(Pipeline):
         run_config: Optional[RunConfig] = None,
         tuner_metric: Optional[str] = "val_loss",
         tuner_mode: Optional[str] = "min",
-        num_samples: Optional[int] = 10,
+        num_samples: Optional[int] = -1,
         scheduler: Optional[TrialScheduler] = None,
         max_concurrent: Optional[int] = 4,
         initial_parameters: Optional[Dict[str, Any]] = None,
         max_epochs: Optional[int] = None,
+        num_results: Optional[int] = 5,
+        std: Optional[float] = 0.01,
+        grace_period: Optional[int] = 50,
     ) -> Any:
 
         def _tuner_train_func(config):
@@ -90,9 +93,9 @@ class HyperoptHyperParameterSearch(Pipeline):
             stop=TrialPlateauStopper(
                 metric=tuner_metric or "val_loss",
                 mode=tuner_mode or "min",
-                num_results=5,
-                std=0.01,
-                grace_period=50,
+                num_results=num_results or 5,
+                std=std or 0.01,
+                grace_period=grace_period or 50,
             ),
         )
 
