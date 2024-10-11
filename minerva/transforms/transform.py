@@ -208,28 +208,7 @@ class Padding(_Transform):
 
         padded = np.transpose(padded, (2, 0, 1))
         return padded
-
-
-class Gradient(_Transform):
-    def __init__(self, direction: int):
-        self.direction = direction
-
-    def generate_gradient(shape: tuple[int, int]) -> np.ndarray:              
     
-        '''
-        Inputs in format (H, W) 
-        Outputs a gradient from 0 to 1 in both x and y directions
-        Channel 0 gradient on W and Channel 1 gradient on H
-        '''
-        
-        xx, yy = np.meshgrid(np.linspace(0, 1, shape[1]), np.linspace(0, 1, shape[0]))
-        gradient = np.stack([xx, yy], axis=-1)
-        return gradient
-
-    def __call__(self, x):
-        shape = x.shape[:2]
-        gradient = self.generate_gradient(shape)
-        return  np.concatenate([np.expand_dims(x, axis=2), np.expand_dims(gradient, axis=2)], axis=2)
     
 class Gradient:
     def __init__(self, direction: int):
@@ -258,16 +237,18 @@ class Gradient:
             return yy
 
     def __call__(self, x):
-        shape = x.shape[:2]
+        if x.ndim == 2: 
+            shape = x.shape
+        else: shape = x.shape[1:]
         gradient = self.generate_gradient(shape)  # Generate gradient in the specified direction
         
-        x_expanded = np.expand_dims(x, axis=-1) if x.ndim == 2 else x
+        x_expanded = np.expand_dims(x, axis=0) if x.ndim == 2 else x
+        gradient_expanded = np.expand_dims(gradient, axis=0)
         
-        gradient_expanded = np.expand_dims(gradient, axis=-1)
-        output = np.concatenate([x_expanded, gradient_expanded], axis=-1)
+        output = np.concatenate([x_expanded, gradient_expanded], axis=0)
 
-        assert output.shape == (shape[0], shape[1], x_expanded.shape[-1] + 1), \
-            f"Output shape {output.shape} does not match expected shape {(shape[0], shape[1], x_expanded.shape[-1] + 1)}"
+        assert output.shape == (x_expanded.shape[0] + 1, shape[0], shape[1]), \
+            f"Output shape {output.shape} does not match expected shape {(shape[0], shape[1], x_expanded.shape[0] + 1)}"
         
         return output
     
