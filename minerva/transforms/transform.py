@@ -208,3 +208,47 @@ class Padding(_Transform):
 
         padded = np.transpose(padded, (2, 0, 1))
         return padded
+    
+    
+class Gradient:
+    def __init__(self, direction: int):
+        
+        '''
+        direction: 
+            0 -> Gradient along the x-axis (width)
+            1 -> Gradient along the y-axis (height)
+        '''
+        
+        assert direction in [0, 1], "Direction must be 0 (x-axis) or 1 (y-axis)"
+        self.direction = direction
+
+    def generate_gradient(self, shape: tuple[int, int]) -> np.ndarray:              
+        
+        '''
+        Inputs in format (H, W) 
+        Outputs a gradient from 0 to 1 in either x or y direction based on the direction parameter
+        '''
+        
+        xx, yy = np.meshgrid(np.linspace(0, 1, shape[1]), np.linspace(0, 1, shape[0]))
+
+        if self.direction == 0:  # Gradient along the x-axis
+            return xx
+        elif self.direction == 1:  # Gradient along the y-axis
+            return yy
+
+    def __call__(self, x):
+        if x.ndim == 2: 
+            shape = x.shape
+        else: shape = x.shape[1:]
+        gradient = self.generate_gradient(shape)  # Generate gradient in the specified direction
+        
+        x_expanded = np.expand_dims(x, axis=0) if x.ndim == 2 else x
+        gradient_expanded = np.expand_dims(gradient, axis=0)
+        
+        output = np.concatenate([x_expanded, gradient_expanded], axis=0)
+
+        assert output.shape == (x_expanded.shape[0] + 1, shape[0], shape[1]), \
+            f"Output shape {output.shape} does not match expected shape {(shape[0], shape[1], x_expanded.shape[0] + 1)}"
+        
+        return output
+    
