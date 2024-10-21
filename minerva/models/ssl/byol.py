@@ -14,7 +14,6 @@ from minerva.utils.cossine_scheduler import cosine_schedule
 from minerva.utils.deactivate_grad import deactivate_requires_grad
 
 # --- Utilities ---------------------------------------------------------
-
 @torch.no_grad()
 def update_momentum(model: nn.Module, model_ema: nn.Module, m: float):
     for model_ema, model in zip(model_ema.parameters(), model.parameters()):
@@ -101,7 +100,7 @@ class BYOLPredictionHead(ProjectionHead):
 
 # --- Class implementation ----------------------------------------------------------
 
-class BYOLModel(L.LightningModule):
+class BYOL(L.LightningModule):
     def __init__(self, 
                     backbone=None,
                     learning_rate: float = 0.025,
