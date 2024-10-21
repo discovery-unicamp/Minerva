@@ -9,7 +9,6 @@ import torch
 class BYOLTransform(_Transforms):
     def __init__(self,
                 input_size = 224,
-                min_scale=0.08,
                 degrees=5,
                 r_prob=0.5,
                 h_prob=0.5,
@@ -20,7 +19,6 @@ class BYOLTransform(_Transforms):
                 solarize_prob=0.0
                 ):
         self.transformV1 = T.Compose([
-            # T.RandomResizedCrop(size=input_size, scale=(min_scale, 1.0)),
             T.RandomCrop(size=input_size, pad_if_needed=True, padding_mode='reflect'),
             T.RandomApply([T.RandomRotation(degrees=degrees)], p=r_prob),
             T.RandomHorizontalFlip(p=h_prob),
@@ -31,7 +29,6 @@ class BYOLTransform(_Transforms):
             T.RandomSolarize(solarize_prob),
         ])
         self.transformV2 = T.Compose([
-            # T.RandomResizedCrop(size=input_size, scale=(min_scale, 1.0)),
             T.RandomCrop(size=input_size, pad_if_needed=True, padding_mode='reflect'),
             T.RandomApply([T.RandomRotation(degrees=degrees)], p=r_prob),
             T.RandomHorizontalFlip(p=h_prob),
