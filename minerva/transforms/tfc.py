@@ -39,7 +39,6 @@ class TFC_Transforms(_Transform):
         y2 = self.DataTransform_FD(freq)
         return x.type(torch.FloatTensor).to(device), y1.type(torch.FloatTensor).to(device), freq.type(torch.FloatTensor).to(device), y2.type(torch.FloatTensor).to(device)
 
-
     def one_hot_encoding(self, X: np.ndarray, n_values: int = None):
         """
         One-hot encoding of the input data
@@ -88,7 +87,6 @@ class TFC_Transforms(_Transform):
 
         return aug_1
 
-
     def DataTransform_FD(self, sample: np.ndarray) -> np.ndarray:
         """
         Weak and strong augmentations.
@@ -114,7 +112,6 @@ class TFC_Transforms(_Transform):
         aug_2[(1 - li_onehot[:, 1]).bool()] = 0
         aug_F = aug_1 + aug_2
         return aug_F
-
 
     def jitter(self, x: np.ndarray, sigma: float=0.8):
         """
@@ -160,7 +157,6 @@ class TFC_Transforms(_Transform):
             mask = torch.cuda.FloatTensor(x.shape).uniform_() > maskout_ratio # maskout_ratio are False
         mask = mask.to(x.device)
         return x*mask
-        
 
     def add_frequency(self, x: np.ndarray, pertub_ratio:float=0,):
         """
