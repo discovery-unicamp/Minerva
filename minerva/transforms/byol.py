@@ -1,12 +1,12 @@
 import torchvision.transforms as T
 from torchvision.transforms import GaussianBlur
-from .transform import _Transforms
+from .transform import _Transform
 from typing import Union, Tuple
 import numpy as np
 import torch
 
 
-class BYOLTransform(_Transforms):
+class BYOLTransform(_Transform):
     def __init__(self,
                 input_size = 224,
                 degrees=5,
