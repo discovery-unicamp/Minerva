@@ -22,7 +22,7 @@ class PretrainDataset(Dataset):
     def __init__(self, root_dir, transform=None):
         self.root_dir = root_dir
         self.transform = transform
-        self.files = glob.glob(os.path.join(root_dir, "*.tif"))
+        self.files = glob.glob(os.path.join(root_dir, "*.tif*"))
 
     def __len__(self):
         return int(len(self.files))
@@ -46,7 +46,7 @@ class PretrainDataModule(L.LightningDataModule):
 
     def setup(self, stage=None):
         self.train_dataset = PretrainDataset(Path(self.root_dir) / "train", transform=self.transform)
-
+        print(Path(self.root_dir) / "train")
     def train_dataloader(self):
         return DataLoader(self.train_dataset, batch_size=self.batch_size, shuffle=True, drop_last=True, num_workers=self.num_workers)
     
