@@ -5,7 +5,7 @@ import numpy as np
 
 from minerva.models.ssl.lfr import RepeatedModuleList, LearnFromRandomnessModel
 from minerva.models.nets.image.deeplabv3 import DeepLabV3Backbone
-from minverva.models.nets.ssl.byol import BYOL
+from minerva.models.ssl.byol import BYOL
 
 def test_byol(): 
 
