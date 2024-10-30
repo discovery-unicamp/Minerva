@@ -238,3 +238,24 @@ class Normalize(_Transform):
                 data[i, :, :] = (data[i, :, :] - self.mean[i]) / self.std[i]
 
         return data
+
+
+class Crop(_Transform):
+    def __init__(self, target_h_size: int, target_w_size: int):
+        self.target_h_size = target_h_size
+        self.target_w_size = target_w_size
+
+    def __call__(self, x: np.ndarray) -> np.ndarray:
+        h, w = x.shape[:2]
+        start_h = (h - self.target_h_size) // 2
+        start_w = (w - self.target_w_size) // 2
+        end_h = start_h + self.target_h_size
+        end_w = start_w + self.target_w_size
+        if len(x.shape) == 2:
+            cropped = x[start_h:end_h, start_w:end_w]
+            cropped = np.expand_dims(cropped, axis=2)
+        else:
+            cropped = x[start_h:end_h, start_w:end_w]
+
+        cropped = cropped.transpose(2, 0, 1)
+        return cropped
