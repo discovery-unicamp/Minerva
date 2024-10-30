@@ -245,7 +245,6 @@ class _SetR_PUP(nn.Module):
         align_corners: bool,
         aux_output: bool,
         aux_output_layers: list[int] | None,
-        original_resolution: Optional[Tuple[int, int]],
     ):
         """
         Initializes the SETR PUP model.
@@ -311,7 +310,6 @@ class _SetR_PUP(nn.Module):
             dropout=encoder_dropout,
             aux_output=aux_output,
             aux_output_layers=aux_output_layers,
-            original_resolution=original_resolution,
         )
 
         self.decoder = _SETRUPHead(
@@ -389,7 +387,10 @@ class _SetR_PUP(nn.Module):
         return x
 
     def load_backbone(self, path: str, freeze: bool = False):
-        self.encoder.load_weights(path, freeze)
+        self.encoder.load_state_dict(torch.load(path))
+        if freeze:
+            for param in self.encoder.parameters():
+                param.requires_grad = False
 
 
 # region SETR_PUP
@@ -505,7 +506,6 @@ class SETR_PUP(L.LightningModule):
         kernel_size: int = 3,
         align_corners: bool = False,
         decoder_dropout: float = 0.1,
-        original_resolution: Optional[Tuple[int, int]] = None,
         conv_norm: Optional[nn.Module] = None,
         conv_act: Optional[nn.Module] = None,
         interpolate_mode: str = "bilinear",
@@ -593,6 +593,9 @@ class SETR_PUP(L.LightningModule):
         """
 
         super().__init__()
+
+        self.automatic_optimization = False
+
         self.loss_fn = (
             loss_fn
             if loss_fn is not None
@@ -615,8 +618,8 @@ class SETR_PUP(L.LightningModule):
                 aux_output_layers
             ), "aux_weights must have the same length as aux_output_layers."
 
-        self.optimizer_type = optimizer_type
         if optimizer_type is not None:
+            self.optimizer_type = optimizer_type
             assert optimizer_params is not None, "optimizer_params must be provided."
             self.optimizer_params = optimizer_params
 
@@ -650,7 +653,6 @@ class SETR_PUP(L.LightningModule):
             align_corners=align_corners,
             aux_output=aux_output,
             aux_output_layers=aux_output_layers,
-            original_resolution=original_resolution,
         )
         if load_backbone_path is not None:
             self.model.load_backbone(load_backbone_path, freeze_backbone_on_load)
@@ -754,7 +756,17 @@ class SETR_PUP(L.LightningModule):
         return loss
 
     def training_step(self, batch: torch.Tensor, batch_idx: int):
-        return self._single_step(batch, batch_idx, "train")
+        optimizers_list = self.optimizers()
+
+        for opt in optimizers_list:
+            opt.zero_grad()
+
+        loss = self._single_step(batch, batch_idx, "train")
+
+        self.manual_backward(loss)
+
+        for opt in optimizers_list:
+            opt.step()
 
     def validation_step(self, batch: torch.Tensor, batch_idx: int):
         return self._single_step(batch, batch_idx, "val")
@@ -773,9 +785,21 @@ class SETR_PUP(L.LightningModule):
 
     def configure_optimizers(self):
         return (
-            self.optimizer_type(
-                self.model.parameters(), lr=self.learning_rate, **self.optimizer_params
-            )
+            [
+                self.optimizer_type(
+                    self.encoder.parameters(),
+                    lr=self.learning_rate,
+                    **self.optimizer_params,
+                ),
+                self.optimizer_type(
+                    list(self.decoder.parameters())
+                    + list(self.aux_head1.parameters())
+                    + list(self.aux_head2.parameters())
+                    + list(self.aux_head3.parameters()),
+                    lr=self.learning_rate * 10,
+                    **self.optimizer_params,
+                ),
+            ]
             if self.optimizer_type is not None
             else torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
         )
