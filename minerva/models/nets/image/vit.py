@@ -8,6 +8,7 @@ import torch
 import torch.nn as nn
 from timm.models.vision_transformer import Block, PatchEmbed
 from torch import nn
+from torch.nn import functional as F
 from torchvision.models.vision_transformer import (
     Conv2dNormActivation,
     ConvStemConfig,
@@ -87,6 +88,7 @@ class _VisionTransformerBackbone(nn.Module):
         num_heads: int,
         hidden_dim: int,
         mlp_dim: int,
+        original_resolution: Optional[Tuple[int, int]] = None,
         dropout: float = 0.0,
         attention_dropout: float = 0.0,
         num_classes: int = 1000,
@@ -113,6 +115,8 @@ class _VisionTransformerBackbone(nn.Module):
             The dimensionality of the hidden layers in the transformer.
         mlp_dim : int
             The dimensionality of the feed-forward MLP layers in the transformer.
+        original_resolution : Tuple[int, int], optional
+            The original resolution of the input image in the pre-training weights. When None, positional embeddings will not be interpolated. Defaults to None.
         dropout : float, optional
             The dropout rate to apply. Defaults to 0.0.
         attention_dropout : float, optional
@@ -156,6 +160,9 @@ class _VisionTransformerBackbone(nn.Module):
         self.norm_layer = norm_layer
         self.aux_output = aux_output
         self.aux_output_layers = aux_output_layers
+        self.original_resolution = (
+            original_resolution if original_resolution else image_size
+        )
 
         if conv_stem_configs is not None:
             # As per https://arxiv.org/abs/2106.14881
@@ -284,6 +291,93 @@ class _VisionTransformerBackbone(nn.Module):
 
         return x, n_h, n_w
 
+    def interpolate_pos_embeddings(self, pretrained_pos_embed, new_img_size):
+        """Interpolate encoder's positional embeddings to fit a new input size.
+
+        Args:
+            pretrained_pos_embed (torch.Tensor): Pretrained positional embeddings.
+            new_img_size (Tuple[int, int]): New height and width of the input image.
+        """
+        h, w = new_img_size[0] // self.patch_size, new_img_size[1] // self.patch_size
+        new_grid_size = (h, w)
+
+        # Reshape pretrained positional embeddings to match the original grid size
+
+        original_resolution = (
+            self.original_resolution
+            if isinstance(self.original_resolution, Tuple)
+            else (self.original_resolution, self.original_resolution)
+        )
+
+        pos_embed_reshaped = pretrained_pos_embed[:, 1:].reshape(
+            1,
+            original_resolution[0] // self.patch_size,
+            original_resolution[1] // self.patch_size,
+            -1,
+        )
+
+        # Interpolate positional embeddings to the new grid size
+        pos_embed_interpolated = (
+            F.interpolate(
+                pos_embed_reshaped.permute(
+                    0, 3, 1, 2
+                ),  # (1, C, H, W) for interpolation
+                size=new_grid_size,
+                mode="bilinear",
+                align_corners=False,
+            )
+            .permute(0, 2, 3, 1)
+            .reshape(1, -1, pos_embed_reshaped.shape[-1])
+        )
+
+        # Concatenate the CLS token and the interpolated positional embeddings
+        cls_token = pretrained_pos_embed[:, :1]
+        pos_embed_interpolated = torch.cat((cls_token, pos_embed_interpolated), dim=1)
+
+        return pos_embed_interpolated
+
+        return pos_embed_interpolated
+
+    def load_backbone(self, path: str, freeze: bool = False):
+        """Loads pretrained weights and handles positional embedding resizing if necessary."""
+        # Load the pretrained state dict
+        state_dict = torch.load(path)
+
+        # Expected shape for positional embeddings based on current model image size
+
+        image_size = (
+            self.image_size
+            if isinstance(self.image_size, Tuple)
+            else (self.image_size, self.image_size)
+        )
+
+        expected_pos_embed_shape = (
+            1,
+            (image_size[0] // self.patch_size) * (image_size[1] // self.patch_size) + 1,
+            self.hidden_dim,
+        )
+
+        # Check if positional embeddings need interpolation
+        if state_dict["encoder.pos_embedding"].shape != expected_pos_embed_shape:
+            # Extract the positional embeddings from the state dict
+            pretrained_pos_embed = state_dict["encoder.pos_embedding"]
+
+            # Interpolate to match the current image size
+            print("Interpolating positional embeddings to match the new image size.")
+            with torch.no_grad():
+                pos_embed_interpolated = self.interpolate_pos_embeddings(
+                    pretrained_pos_embed, (image_size[0], image_size[1])
+                )
+            state_dict["encoder.pos_embedding"] = pos_embed_interpolated
+
+        # Load the (potentially modified) state dict into the encoder
+        self.encoder.load_state_dict(state_dict, strict=False)
+
+        # Optionally freeze parameters
+        if freeze:
+            for param in self.encoder.parameters():
+                param.requires_grad = False
+
     def forward(self, x: torch.Tensor):
         """Forward pass of the Vision Transformer Backbone.
 
@@ -293,6 +387,7 @@ class _VisionTransformerBackbone(nn.Module):
         Returns:
             torch.Tensor: The output tensor.
         """
+
         # Reshape and permute the input tensor
         x, n_h, n_w = self._process_input(x)
         n = x.shape[0]
@@ -327,6 +422,45 @@ class _VisionTransformerBackbone(nn.Module):
         x = x.reshape(B, n_h, n_w, C).permute(0, 3, 1, 2).contiguous()
 
         return x
+
+    def load_weights(self, weights_path: str, freeze: bool = False):
+
+        state_dict = torch.load(weights_path)
+
+        # Get expected positional embedding shape based on current image size
+
+        image_size = (
+            self.image_size
+            if isinstance(self.image_size, Tuple)
+            else (self.image_size, self.image_size)
+        )
+
+        expected_pos_embed_shape = (
+            1,
+            (image_size[0] // self.patch_size) * (image_size[1] // self.patch_size) + 1,
+            self.hidden_dim,
+        )
+
+        # Check if positional embeddings need interpolation
+        if state_dict["encoder.pos_embedding"].shape != expected_pos_embed_shape:
+            # Extract the positional embeddings from the state dict
+            pretrained_pos_embed = state_dict["encoder.pos_embedding"]
+
+            # Interpolate to match the current image size
+            print("Interpolating positional embeddings to match the new image size.")
+            with torch.no_grad():
+                pos_embed_interpolated = self.interpolate_pos_embeddings(
+                    pretrained_pos_embed, (image_size[0], image_size[1])
+                )
+            state_dict["encoder.pos_embedding"] = pos_embed_interpolated
+
+        # Load the (potentially modified) state dict
+        self.load_state_dict(state_dict, strict=False)
+
+        # Optionally freeze parameters
+        if freeze:
+            for param in self.parameters():
+                param.requires_grad = False
 
 
 class MaskedAutoencoderViT(L.LightningModule):

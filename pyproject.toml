@@ -53,8 +53,9 @@ dependencies = [
     "hyperopt>=0.2.5",
 ]
 
-[tool.setuptools]
-packages = ["minerva"]
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["minerva*"]
 
 [project.optional-dependencies]
 dev = ["mock", "pytest", "black", "isort"]
