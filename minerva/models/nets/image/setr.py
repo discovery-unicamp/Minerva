@@ -245,6 +245,7 @@ class _SetR_PUP(nn.Module):
         align_corners: bool,
         aux_output: bool,
         aux_output_layers: list[int] | None,
+        original_resolution: Optional[Tuple[int, int]],
     ):
         """
         Initializes the SETR PUP model.
@@ -310,6 +311,7 @@ class _SetR_PUP(nn.Module):
             dropout=encoder_dropout,
             aux_output=aux_output,
             aux_output_layers=aux_output_layers,
+            original_resolution=original_resolution,
         )
 
         self.decoder = _SETRUPHead(
@@ -522,6 +524,7 @@ class SETR_PUP(L.LightningModule):
         freeze_backbone_on_load: bool = True,
         learning_rate: float = 1e-3,
         loss_weights: Optional[list[float]] = None,
+        original_resolution: Optional[Tuple[int, int]] = None,
     ):
         """
         Initialize the SETR model.
@@ -653,6 +656,7 @@ class SETR_PUP(L.LightningModule):
             align_corners=align_corners,
             aux_output=aux_output,
             aux_output_layers=aux_output_layers,
+            original_resolution=original_resolution,
         )
         if load_backbone_path is not None:
             self.model.load_backbone(load_backbone_path, freeze_backbone_on_load)
