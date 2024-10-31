@@ -9,6 +9,8 @@ from torchmetrics import Metric
 from minerva.models.nets.image.vit import _VisionTransformerBackbone
 from minerva.utils.upsample import Upsample
 
+from torch.optim.adam import Adam
+
 
 # region _SETRUPHead
 class _SETRUPHead(nn.Module):
@@ -389,7 +391,7 @@ class _SetR_PUP(nn.Module):
         return x
 
     def load_backbone(self, path: str, freeze: bool = False):
-        self.encoder.load_state_dict(torch.load(path))
+        self.encoder.load_backbone(path)
         if freeze:
             for param in self.encoder.parameters():
                 param.requires_grad = False
@@ -622,8 +624,8 @@ class SETR_PUP(L.LightningModule):
                 aux_output_layers
             ), "aux_weights must have the same length as aux_output_layers."
 
+        self.optimizer_type = optimizer_type
         if optimizer_type is not None:
-            self.optimizer_type = optimizer_type
             assert optimizer_params is not None, "optimizer_params must be provided."
             self.optimizer_params = optimizer_params
 
@@ -807,7 +809,10 @@ class SETR_PUP(L.LightningModule):
                 ),
             ]
             if self.optimizer_type is not None
-            else torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
+            else [
+                Adam(self.model.parameters(), lr=self.learning_rate),
+                Adam(self.model.parameters(), lr=self.learning_rate),
+            ]
         )
 
     @staticmethod
