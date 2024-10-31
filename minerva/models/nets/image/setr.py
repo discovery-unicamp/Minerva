@@ -525,6 +525,7 @@ class SETR_PUP(L.LightningModule):
         learning_rate: float = 1e-3,
         loss_weights: Optional[list[float]] = None,
         original_resolution: Optional[Tuple[int, int]] = None,
+        head_lr_factor: float = 10,
     ):
         """
         Initialize the SETR model.
@@ -628,6 +629,7 @@ class SETR_PUP(L.LightningModule):
 
         self.num_classes = num_classes
         self.aux_weights = aux_weights
+        self.head_lr_factor = head_lr_factor
 
         self.metrics = {
             "train": train_metrics,
@@ -800,7 +802,7 @@ class SETR_PUP(L.LightningModule):
                     + list(self.aux_head1.parameters())
                     + list(self.aux_head2.parameters())
                     + list(self.aux_head3.parameters()),
-                    lr=self.learning_rate * 10,
+                    lr=self.learning_rate * self.head_lr_factor,
                     **self.optimizer_params,
                 ),
             ]
