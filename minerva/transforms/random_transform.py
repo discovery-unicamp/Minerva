@@ -1,9 +1,9 @@
 import random
-from typing import List, Optional, Union
+from typing import List, Optional, Tuple, Union
 
 import numpy as np
 
-from minerva.transforms.transform import Flip, _Transform
+from minerva.transforms.transform import Flip, Resize, _Transform
 
 
 class EmptyTransform(_Transform):
@@ -30,11 +30,22 @@ class _RandomSyncedTransform(_Transform):
         """
         self.num_samples = num_samples
         self.transformations_executed = 0
-        if seed is not None:
-            random.seed(seed)
-            np.random.seed(seed)
+        self.rng = np.random.default_rng(seed)
+        self.transform = EmptyTransform()
 
     def __call__(self, data):
+        if self.transformations_executed == 0:
+            self.transform = self.select_transform(data)
+            self.transformations_executed += 1
+            return self.transform(data)
+        else:
+            if self.transformations_executed == self.num_samples - 1:
+                self.transformations_executed = 0
+            else:
+                self.transformations_executed += 1
+            return self.transform(data)
+
+    def select_transform(self, data) -> _Transform:
         raise NotImplementedError(
             "This method should be implemented by the child class."
         )
@@ -48,40 +59,68 @@ class RandomFlip(_RandomSyncedTransform):
         possible_axis: Union[int, List[int]] = 0,
         seed: Optional[int] = None,
     ):
+        """A transform that flips the input data along a random axis.
+
+        Parameters
+        ----------
+        num_samples : int
+            The number of samples that will be transformed.
+        possible_axis : Union[int, List[int]], optional
+            Possible axis to be transformed, will be chosen at random, by default 0
+        seed : Optional[int], optional
+            A seed to ensure deterministic run, by default None
+        """
         super().__init__(num_samples, seed)
         self.possible_axis = possible_axis
-        self.flip: Optional[_Transform] = None
 
-    def __call__(self, data):
-        if self.transformations_executed == 0:
-            self.transformations_executed += 1
-            if isinstance(self.possible_axis, int):
-                flip_axis = bool(random.getrandbits(1))
-                if flip_axis:
-                    self.flip = Flip(axis=self.possible_axis)
-                    return self.flip(data)
-                else:
-                    self.flip = EmptyTransform()
-                    return self.flip(data)
-            else:
-                flip_axis = [
-                    bool(random.getrandbits(1)) for _ in range(len(self.possible_axis))
-                ]
-                if True in flip_axis:
-                    chosen_axis = [
-                        axis
-                        for axis, flip in zip(self.possible_axis, flip_axis)
-                        if flip
-                    ]
-                    self.flip = Flip(axis=chosen_axis)
-                    return self.flip(data)
-                else:
-                    self.flip = EmptyTransform()
-                    return self.flip(data)
+    def select_transform(self, data):
+        """selects the transform to be applied to the data."""
+
+        if isinstance(self.possible_axis, int):
+            flip_axis = self.rng.choice([True, False])
+            print(flip_axis)
+            if flip_axis:
+                return Flip(axis=self.possible_axis)
 
         else:
-            if self.transformations_executed == self.num_samples - 1:
-                self.transformations_executed = 0
-            else:
-                self.transformations_executed += 1
-            return self.flip(data)
+            flip_axis = [
+                bool(self.rng.choice([True, False]))
+                for _ in range(len(self.possible_axis))
+            ]
+            print(flip_axis)
+            if True in flip_axis:
+                chosen_axis = [
+                    axis for axis, flip in zip(self.possible_axis, flip_axis) if flip
+                ]
+                return Flip(axis=chosen_axis)
+
+        return EmptyTransform()
+
+
+class RandomResize(_RandomSyncedTransform):
+
+    def __init__(
+        self,
+        target_scale: Tuple[int, int],
+        ratio_range: Tuple[float, float],
+        num_samples: int,
+        seed: Optional[int] = None,
+    ):
+        super().__init__(num_samples, seed)
+        self.target_scale = target_scale
+        self.ratio_range = ratio_range
+        self.resize: Optional[_Transform] = None
+
+    def select_transform(self, data):
+        orig_height, orig_width = data[:2]
+
+        # Apply a random scaling factor within the ratio range
+        scale_factor = self.rng.uniform(*self.ratio_range)
+        new_width = int(self.target_scale[0] * scale_factor)
+        new_height = int(self.target_scale[1] * scale_factor)
+
+        # Calculate row and column ratios
+        row_ratio = new_height / orig_height
+        col_ratio = new_width / orig_width
+
+        return Resize(new_width, new_height, row_ratio, col_ratio)

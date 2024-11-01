@@ -319,3 +319,32 @@ class Transpose(_Transform):
     def __call__(self, x: np.ndarray) -> np.ndarray:
         """Reorder the axes of numpy arrays."""
         return np.transpose(x, self.axes)
+
+
+class Resize(_Transform):
+
+    def __init__(
+        self,
+        target_h_size: int,
+        target_w_size: int,
+        row_ratio: float = 1.0,
+        col_ratio: float = 1.0,
+    ):
+        self.target_h_size = target_h_size
+        self.target_w_size = target_w_size
+        self.row_ratio = row_ratio
+        self.col_ratio = col_ratio
+
+    def __call__(self, x: np.ndarray) -> np.ndarray:
+        orig_height, orig_width = x.shape[:2]
+        row_indices = (
+            (np.arange(self.target_h_size) / self.row_ratio)
+            .astype(int)
+            .clip(0, orig_height - 1)
+        )
+        col_indices = (
+            (np.arange(self.target_w_size) / self.col_ratio)
+            .astype(int)
+            .clip(0, orig_width - 1)
+        )
+        return x[row_indices[:, None], col_indices]
