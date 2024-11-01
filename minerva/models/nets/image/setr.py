@@ -4,12 +4,11 @@ from typing import Dict, List, Optional, Tuple, Union
 import lightning.pytorch as L
 import torch
 from torch import nn
+from torch.optim.adam import Adam
 from torchmetrics import Metric
 
 from minerva.models.nets.image.vit import _VisionTransformerBackbone
 from minerva.utils.upsample import Upsample
-
-from torch.optim.adam import Adam
 
 
 # region _SETRUPHead
@@ -795,15 +794,15 @@ class SETR_PUP(L.LightningModule):
         return (
             [
                 self.optimizer_type(
-                    self.encoder.parameters(),
+                    self.model.encoder.parameters(),
                     lr=self.learning_rate,
                     **self.optimizer_params,
                 ),
                 self.optimizer_type(
-                    list(self.decoder.parameters())
-                    + list(self.aux_head1.parameters())
-                    + list(self.aux_head2.parameters())
-                    + list(self.aux_head3.parameters()),
+                    list(self.model.decoder.parameters())
+                    + list(self.model.aux_head1.parameters())
+                    + list(self.model.aux_head2.parameters())
+                    + list(self.model.aux_head3.parameters()),
                     lr=self.learning_rate * self.head_lr_factor,
                     **self.optimizer_params,
                 ),
