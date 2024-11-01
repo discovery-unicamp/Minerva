@@ -198,7 +198,6 @@ class Padding(_Transform):
         if len(x.shape) == 2:
             if self.padding_mode == "reflect":
                 padded = np.pad(x, ((0, pad_h), (0, pad_w)), mode="reflect")
-                padded = np.expand_dims(padded, axis=2)
             elif self.padding_mode == "constant":
                 if is_label:
                     padded = np.pad(
@@ -214,6 +213,7 @@ class Padding(_Transform):
                         mode="constant",
                         constant_values=self.constant_value,
                     )
+            padded = np.expand_dims(padded, axis=2)
 
         else:
             if self.padding_mode == "reflect":
@@ -300,13 +300,22 @@ class Crop(_Transform):
         else:
             cropped = x[start_h:end_h, start_w:end_w]
 
-        cropped = cropped.transpose(2, 0, 1)
         return cropped
 
 
 class Transpose(_Transform):
-    def __init__(self, axes: List[int]):
+    """Reorder the axes of numpy arrays."""
+
+    def __init__(self, axes: Sequence[int]):
+        """Reorder the axes of numpy arrays.
+
+        Parameters
+        ----------
+        axes : int
+            The order of the new axes
+        """
         self.axes = axes
 
     def __call__(self, x: np.ndarray) -> np.ndarray:
+        """Reorder the axes of numpy arrays."""
         return np.transpose(x, self.axes)
