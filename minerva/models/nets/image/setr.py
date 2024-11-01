@@ -526,7 +526,7 @@ class SETR_PUP(L.LightningModule):
         learning_rate: float = 1e-3,
         loss_weights: Optional[list[float]] = None,
         original_resolution: Optional[Tuple[int, int]] = None,
-        head_lr_factor: float = 10,
+        head_lr_factor: float = 1.0,
     ):
         """
         Initialize the SETR model.
@@ -599,7 +599,9 @@ class SETR_PUP(L.LightningModule):
 
         super().__init__()
 
-        self.automatic_optimization = False
+        if head_lr_factor != 1:
+            self.automatic_optimization = False
+            self.multiple_optimizers = True
 
         self.loss_fn = (
             loss_fn
@@ -763,17 +765,20 @@ class SETR_PUP(L.LightningModule):
         return loss
 
     def training_step(self, batch: torch.Tensor, batch_idx: int):
-        optimizers_list = self.optimizers()
+        if self.multiple_optimizers:
+            optimizers_list = self.optimizers()
 
-        for opt in optimizers_list:
-            opt.zero_grad()
+            for opt in optimizers_list:
+                opt.zero_grad()
 
-        loss = self._single_step(batch, batch_idx, "train")
+            loss = self._single_step(batch, batch_idx, "train")
 
-        self.manual_backward(loss)
+            self.manual_backward(loss)
 
-        for opt in optimizers_list:
-            opt.step()
+            for opt in optimizers_list:
+                opt.step()
+        else:
+            return self._single_step(batch, batch_idx, "train")
 
     def validation_step(self, batch: torch.Tensor, batch_idx: int):
         return self._single_step(batch, batch_idx, "val")
@@ -791,28 +796,39 @@ class SETR_PUP(L.LightningModule):
         self.model.load_backbone(path, freeze)
 
     def configure_optimizers(self):
-        return (
-            [
+        if self.multiple_optimizers:
+            return (
+                [
+                    self.optimizer_type(
+                        self.model.encoder.parameters(),
+                        lr=self.learning_rate,
+                        **self.optimizer_params,
+                    ),
+                    self.optimizer_type(
+                        list(self.model.decoder.parameters())
+                        + list(self.model.aux_head1.parameters())
+                        + list(self.model.aux_head2.parameters())
+                        + list(self.model.aux_head3.parameters()),
+                        lr=self.learning_rate * self.head_lr_factor,
+                        **self.optimizer_params,
+                    ),
+                ]
+                if self.optimizer_type is not None
+                else [
+                    Adam(self.model.encoder.parameters(), lr=self.learning_rate),
+                    Adam(self.model.decoder.parameters(), lr=self.learning_rate),
+                ]
+            )
+        else:
+            return (
                 self.optimizer_type(
-                    self.model.encoder.parameters(),
+                    self.model.parameters(),
                     lr=self.learning_rate,
                     **self.optimizer_params,
-                ),
-                self.optimizer_type(
-                    list(self.model.decoder.parameters())
-                    + list(self.model.aux_head1.parameters())
-                    + list(self.model.aux_head2.parameters())
-                    + list(self.model.aux_head3.parameters()),
-                    lr=self.learning_rate * self.head_lr_factor,
-                    **self.optimizer_params,
-                ),
-            ]
-            if self.optimizer_type is not None
-            else [
-                Adam(self.model.parameters(), lr=self.learning_rate),
-                Adam(self.model.parameters(), lr=self.learning_rate),
-            ]
-        )
+                )
+                if self.optimizer_type is not None
+                else Adam(self.model.parameters(), lr=self.learning_rate)
+            )
 
     @staticmethod
     def create_from_dict(config: Dict) -> "SETR_PUP":
