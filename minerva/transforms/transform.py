@@ -1,5 +1,5 @@
 from itertools import product
-from typing import Any, List, Sequence, Union
+from typing import Any, List, Literal, Sequence, Union
 
 import numpy as np
 import torch
@@ -175,21 +175,64 @@ class CastTo(_Transform):
 
 
 class Padding(_Transform):
-    def __init__(self, target_h_size: int, target_w_size: int):
+    def __init__(
+        self,
+        target_h_size: int,
+        target_w_size: int,
+        padding_mode: Literal["reflect", "constant"] = "reflect",
+        constant_value: int = 0,
+        mask_value: int = 255,
+    ):
         self.target_h_size = target_h_size
         self.target_w_size = target_w_size
+        self.padding_mode = padding_mode
+        self.constant_value = constant_value
+        self.mask_value = mask_value
 
     def __call__(self, x: np.ndarray) -> np.ndarray:
         h, w = x.shape[:2]
         pad_h = max(0, self.target_h_size - h)
         pad_w = max(0, self.target_w_size - w)
-        if len(x.shape) == 2:
-            padded = np.pad(x, ((0, pad_h), (0, pad_w)), mode="reflect")
-            padded = np.expand_dims(padded, axis=2)
-        else:
-            padded = np.pad(x, ((0, pad_h), (0, pad_w), (0, 0)), mode="reflect")
+        is_label = True if x.dtype == np.uint8 else False
 
-        padded = np.transpose(padded, (2, 0, 1))
+        if len(x.shape) == 2:
+            if self.padding_mode == "reflect":
+                padded = np.pad(x, ((0, pad_h), (0, pad_w)), mode="reflect")
+                padded = np.expand_dims(padded, axis=2)
+            elif self.padding_mode == "constant":
+                if is_label:
+                    padded = np.pad(
+                        x,
+                        ((0, pad_h), (0, pad_w)),
+                        mode="constant",
+                        constant_values=self.mask_value,
+                    )
+                else:
+                    padded = np.pad(
+                        x,
+                        ((0, pad_h), (0, pad_w)),
+                        mode="constant",
+                        constant_values=self.constant_value,
+                    )
+
+        else:
+            if self.padding_mode == "reflect":
+                padded = np.pad(x, ((0, pad_h), (0, pad_w), (0, 0)), mode="reflect")
+            elif self.padding_mode == "constant":
+                if is_label:
+                    padded = np.pad(
+                        x,
+                        ((0, pad_h), (0, pad_w), (0, 0)),
+                        mode="constant",
+                        constant_values=self.mask_value,
+                    )
+                else:
+                    padded = np.pad(
+                        x,
+                        ((0, pad_h), (0, pad_w), (0, 0)),
+                        mode="constant",
+                        constant_values=self.constant_value,
+                    )
         return padded
 
 
@@ -259,3 +302,11 @@ class Crop(_Transform):
 
         cropped = cropped.transpose(2, 0, 1)
         return cropped
+
+
+class Transpose(_Transform):
+    def __init__(self, axes: List[int]):
+        self.axes = axes
+
+    def __call__(self, x: np.ndarray) -> np.ndarray:
+        return np.transpose(x, self.axes)
