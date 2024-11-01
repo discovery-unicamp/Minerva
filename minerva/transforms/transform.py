@@ -4,6 +4,7 @@ from typing import Any, List, Literal, Sequence, Union
 import numpy as np
 import torch
 from perlin_noise import PerlinNoise
+import cv2
 
 
 class _Transform:
@@ -327,24 +328,13 @@ class Resize(_Transform):
         self,
         target_h_size: int,
         target_w_size: int,
-        row_ratio: float = 1.0,
-        col_ratio: float = 1.0,
     ):
         self.target_h_size = target_h_size
         self.target_w_size = target_w_size
-        self.row_ratio = row_ratio
-        self.col_ratio = col_ratio
 
     def __call__(self, x: np.ndarray) -> np.ndarray:
-        orig_height, orig_width = x.shape[:2]
-        row_indices = (
-            (np.arange(self.target_h_size) / self.row_ratio)
-            .astype(int)
-            .clip(0, orig_height - 1)
+        return cv2.resize(
+            x, (self.target_w_size, self.target_h_size), interpolation=cv2.INTER_NEAREST
         )
-        col_indices = (
-            (np.arange(self.target_w_size) / self.col_ratio)
-            .astype(int)
-            .clip(0, orig_width - 1)
-        )
-        return x[row_indices[:, None], col_indices]
+
+        # Convert the resized PIL Image back to a NumPy array
