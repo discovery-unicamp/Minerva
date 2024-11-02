@@ -1,10 +1,10 @@
 from itertools import product
-from typing import Any, List, Literal, Sequence, Union
+from typing import Any, List, Literal, Sequence, Tuple, Union
 
+import cv2
 import numpy as np
 import torch
 from perlin_noise import PerlinNoise
-import cv2
 
 
 class _Transform:
@@ -285,9 +285,15 @@ class Normalize(_Transform):
 
 
 class Crop(_Transform):
-    def __init__(self, target_h_size: int, target_w_size: int):
+    def __init__(
+        self,
+        target_h_size: int,
+        target_w_size: int,
+        start_coord: Tuple[int, int] = (0, 0),
+    ):
         self.target_h_size = target_h_size
         self.target_w_size = target_w_size
+        self.start_coord = start_coord
 
     def __call__(self, x: np.ndarray) -> np.ndarray:
         h, w = x.shape[:2]
@@ -328,13 +334,34 @@ class Resize(_Transform):
         self,
         target_h_size: int,
         target_w_size: int,
+        keep_aspect_ratio: bool = False,
     ):
         self.target_h_size = target_h_size
         self.target_w_size = target_w_size
+        self.keep_aspect_ratio = keep_aspect_ratio
 
     def __call__(self, x: np.ndarray) -> np.ndarray:
-        return cv2.resize(
-            x, (self.target_w_size, self.target_h_size), interpolation=cv2.INTER_NEAREST
-        )
 
-        # Convert the resized PIL Image back to a NumPy array
+        if not self.keep_aspect_ratio:
+            return cv2.resize(
+                x,
+                (self.target_w_size, self.target_h_size),
+                interpolation=cv2.INTER_NEAREST,
+            )
+
+        original_height, original_width = x.shape[:2]
+
+        # Calculate scaling factors to fit within max_size, preserving aspect ratio
+        width_scale = self.target_w_size / original_width
+        height_scale = self.target_h_size / original_height
+        scale = min(
+            width_scale, height_scale
+        )  # Choose the smaller scale to fit within dimensions
+
+        # Calculate new dimensions based on the correct scale factor
+        new_width = int(original_width * scale)
+        new_height = int(original_height * scale)
+
+        return cv2.resize(x, (new_width, new_height), interpolation=cv2.INTER_NEAREST)
+
+    # Convert the resized PIL Image back to a NumPy array
