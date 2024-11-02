@@ -7,6 +7,7 @@ from torch import nn
 from torch.optim.adam import Adam
 from torchmetrics import Metric
 
+from minerva.engines.engine import _Engine
 from minerva.models.nets.image.vit import _VisionTransformerBackbone
 from minerva.utils.upsample import Upsample
 
@@ -527,6 +528,7 @@ class SETR_PUP(L.LightningModule):
         loss_weights: Optional[list[float]] = None,
         original_resolution: Optional[Tuple[int, int]] = None,
         head_lr_factor: float = 1.0,
+        test_engine: Optional[_Engine] = None,
     ):
         """
         Initialize the SETR model.
@@ -667,6 +669,7 @@ class SETR_PUP(L.LightningModule):
             self.model.load_backbone(load_backbone_path, freeze_backbone_on_load)
 
         self.learning_rate = learning_rate
+        self.test_engine = test_engine
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.model(x)
@@ -737,7 +740,11 @@ class SETR_PUP(L.LightningModule):
             The loss value.
         """
         x, y = batch
-        y_hat = self.model(x.float())
+        if self.test_engine and (step_name == "test" or step_name == "val"):
+            y_hat = self.test_engine(self.model, x)
+        else:
+            y_hat = self.model(x)
+
         loss = self._loss_func(y_hat[0], y.squeeze(1))
 
         metrics = self._compute_metrics(y_hat[0], y, step_name)

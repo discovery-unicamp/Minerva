@@ -1,8 +1,11 @@
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import lightning as L
 import numpy as np
 import torch
+import torch.nn as nn
+
+from minerva.engines.engine import _Engine
 
 
 class PatchInferencer(L.LightningModule):
@@ -289,3 +292,86 @@ class PatchInferencer(L.LightningModule):
 
     def test_step(self, batch: torch.Tensor, batch_idx: int):
         return self._single_step(batch, batch_idx, "test")
+
+
+# region _PatchInferencer
+class _PatchInferencer(_Engine):
+    def __init__(
+        self,
+        input_shape: Tuple[int],
+        output_shape: Optional[Tuple[int]] = None,
+        padding: Optional[Dict[str, any]] = None,
+    ):
+        """
+        Parameters
+        ----------
+        model : nn.Module
+            The neural network model for inference.
+        input_shape : Tuple[int]
+            Shape of each patch to process.
+        output_shape : Tuple[int], optional
+            Expected shape of the model output per patch. Defaults to input_shape.
+        padding : dict, optional
+            Padding configuration with keys:
+                - 'pad': Tuple of padding for each dimension, e.g., (0, 3, 3).
+                - 'mode': Padding mode, e.g., 'constant', 'reflect'.
+                - 'value': Padding value if mode is 'constant'.
+        """
+        self.input_shape = input_shape
+        self.output_shape = output_shape if output_shape else input_shape
+        self.padding = padding or {"pad": (0, 0), "mode": "constant", "value": 0}
+
+    def _extract_patches(
+        self, x: torch.Tensor, patch_shape: Tuple[int]
+    ) -> Tuple[torch.Tensor, Tuple[int]]:
+        """Extract patches from input tensor."""
+        num_patches = tuple(
+            np.array(x.shape[-len(patch_shape) :]) // np.array(patch_shape)
+        )
+        patches = []
+        for idx in np.ndindex(num_patches):
+            slices = tuple(slice(i * s, (i + 1) * s) for i, s in zip(idx, patch_shape))
+            patches.append(x[(...,) + slices])
+        return torch.stack(patches), num_patches
+
+    def _reconstruct_from_patches(
+        self, patches: torch.Tensor, num_patches: Tuple[int]
+    ) -> torch.Tensor:
+        """Reconstruct the original shape from patches."""
+        reconstructed = torch.zeros(
+            [
+                num_patches[i] * self.output_shape[i]
+                for i in range(len(self.output_shape))
+            ],
+            device=patches.device,
+        )
+        for idx, patch in zip(np.ndindex(num_patches), patches):
+            slices = tuple(
+                slice(i * s, (i + 1) * s) for i, s in zip(idx, self.output_shape)
+            )
+            reconstructed[slices] = patch
+        return reconstructed
+
+    def __call__(
+        self, model: Union[L.LightningModule, torch.nn.Module], x: torch.Tensor
+    ):
+        """Perform patch-based forward pass."""
+        # Pad the input if necessary
+        if any(self.padding["pad"]):
+            pad_values = sum([(p, p) for p in self.padding["pad"]], ())
+            x = nn.functional.pad(
+                x,
+                pad_values,
+                mode=self.padding.get("mode", "constant"),
+                value=self.padding.get("value", 0),
+            )
+
+        # Extract patches
+        patches, num_patches = self._extract_patches(x, self.input_shape)
+
+        # Run the model on each patch and collect results
+        patch_outputs = [model(patch.unsqueeze(0)).squeeze(0) for patch in patches]
+        patch_outputs = torch.stack(patch_outputs)
+
+        # Reconstruct the full output from patch outputs
+        return self._reconstruct_from_patches(patch_outputs, num_patches)
