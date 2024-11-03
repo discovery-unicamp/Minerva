@@ -300,8 +300,8 @@ class _PatchInferencer(_Engine):
         self,
         input_shape: Union[Tuple[int, int], Tuple[int, int, int]],
         output_shape: Optional[Tuple[int]] = None,
-        offsets: Optional[Tuple[int]] = None,
-        padding: Optional[Dict[str, any]] = None,
+        offsets: Optional[Union[Tuple[int, int], Tuple[int, int, int]]] = None,
+        padding: Optional[Dict[str, Any]] = None,
     ):
         """
         Parameters
