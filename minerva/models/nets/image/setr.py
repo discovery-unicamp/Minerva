@@ -742,12 +742,15 @@ class SETR_PUP(L.LightningModule):
         x, y = batch
         if self.test_engine and (step_name == "test" or step_name == "val"):
             y_hat = self.test_engine(self.model, x)
+            loss = self._loss_func(y_hat, y.squeeze(1))
+            metrics = self._compute_metrics(y_hat, y, step_name)
         else:
             y_hat = self.model(x)
+            metrics = self._compute_metrics(y_hat[0], y, step_name)
 
-        loss = self._loss_func(y_hat[0], y.squeeze(1))
+        print(len(y_hat))
+        loss = self._loss_func(y_hat, y.squeeze(1))
 
-        metrics = self._compute_metrics(y_hat[0], y, step_name)
         for metric_name, metric_value in metrics.items():
             self.log(
                 metric_name,

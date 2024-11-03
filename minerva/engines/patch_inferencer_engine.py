@@ -22,6 +22,7 @@ class PatchInferencer(L.LightningModule):
         weight_function: Optional[callable] = None,
         offsets: Optional[List[Tuple]] = None,
         padding: Optional[Dict[str, Any]] = None,
+        return_tuple: Optional[int] = None,
     ):
         """Initialize the patch inference auxiliary class
 
@@ -47,7 +48,7 @@ class PatchInferencer(L.LightningModule):
         super().__init__()
         self.model = model
         self.patch_inferencer = PatchInferencerEngine(
-            input_shape, output_shape, offsets, padding, weight_function
+            input_shape, output_shape, offsets, padding, weight_function, return_tuple
         )
 
     def __call__(self, x: torch.Tensor) -> torch.Tensor:
@@ -129,6 +130,7 @@ class PatchInferencerEngine(_Engine):
         offsets: Optional[List[Tuple]] = None,
         padding: Optional[Dict[str, Any]] = None,
         weight_function: Optional[callable] = None,
+        return_tuple: Optional[int] = None,
     ):
         """
         Parameters
@@ -161,7 +163,15 @@ class PatchInferencerEngine(_Engine):
         else:
             self.offsets = []
 
-        self.padding = {"pad": tuple([0] * (len(input_shape) + 1))}
+        if padding is not None:
+            assert len(input_shape) == len(
+                padding["pad"]
+            ), f"Pad tuple does not match expected size ({len(input_shape)})"
+            self.padding = padding
+            self.padding["pad"] = (0, *self.padding["pad"])
+        else:
+            self.padding = {"pad": tuple([0] * (len(input_shape) + 1))}
+        self.return_tuple = return_tuple
 
     def _reconstruct_patches(
         self,
@@ -199,7 +209,6 @@ class PatchInferencerEngine(_Engine):
         """
         Pads reconstructed_patches with 'pad_value' to have same shape as the reference shape from the base patch set
         """
-
         pad_width = []
         sl = []
         ref_shape = list(ref_shape)
@@ -229,7 +238,6 @@ class PatchInferencerEngine(_Engine):
         results: List[torch.Tensor],
         offsets: List[Tuple[int]],
         indexes: List[Tuple[int]],
-        ref_shape: Tuple[int],
     ) -> torch.Tensor:
         """
         Combination of results
@@ -239,9 +247,8 @@ class PatchInferencerEngine(_Engine):
         for patches, offset, shape in zip(results, offsets, indexes):
             reconstruct, weight = self._reconstruct_patches(patches, shape)
             reconstruct, weight = self._adjust_patches(
-                [reconstruct, weight], ref_shape, offset
+                [reconstruct, weight], self.ref_shape, offset
             )
-
             reconstructed.append(reconstruct)
             weights.append(weight)
         reconstructed = torch.stack(reconstructed, dim=0)
@@ -296,11 +303,10 @@ class PatchInferencerEngine(_Engine):
         else:
             raise RuntimeError("Invalid input shape")
 
-        ref_shape = self._compute_output_shape(x)
+        self.ref_shape = self._compute_output_shape(x)
         offsets = list(self.offsets)
         base = self.padding["pad"]
         offsets.insert(0, tuple([0] * (len(base) - 1)))
-
         slices = [
             tuple(
                 [
@@ -320,15 +326,29 @@ class PatchInferencerEngine(_Engine):
             mode=self.padding.get("mode", "constant"),
             value=self.padding.get("value", 0),
         )
-        results = []
+        results = (
+            tuple([] for _ in range(self.return_tuple)) if self.return_tuple else []
+        )
         indexes = []
         for sl in slices:
             patch_set, patch_idx = self._extract_patches(x_padded[sl], self.input_shape)
             patch_set = patch_set.squeeze(1)
-            results.append(model(patch_set)[0])
+            inference = model(patch_set)
+            if self.return_tuple:
+                for i in range(self.return_tuple):
+                    results[i].append(inference[i])
+            else:
+                results.append(inference)
             indexes.append(patch_idx)
-        output_slice = tuple([slice(0, lenght) for lenght in ref_shape])
-        com = self._combine_patches(results, offsets, indexes, ref_shape=ref_shape)
-        com = com[output_slice]
-        print(com.shape)
-        return com
+        output_slice = tuple([slice(0, lenght) for lenght in self.ref_shape])
+        if self.return_tuple:
+            comb_list = []
+            for i in range(self.return_tuple):
+                comb = self._combine_patches(results[i], offsets, indexes)
+                comb = comb[output_slice]
+                comb_list.append(comb)
+            comb = tuple(comb_list)
+        else:
+            comb = self._combine_patches(results, offsets, indexes)
+            comb = comb[output_slice]
+        return comb
