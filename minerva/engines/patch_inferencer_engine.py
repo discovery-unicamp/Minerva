@@ -161,7 +161,7 @@ class PatchInferencerEngine(_Engine):
         else:
             self.offsets = []
 
-        self.padding = padding or {"pad": (0, 0), "mode": "constant", "value": 0}
+        self.padding = {"pad": tuple([0] * (len(input_shape) + 1))}
 
     def _reconstruct_patches(
         self,
@@ -229,6 +229,7 @@ class PatchInferencerEngine(_Engine):
         results: List[torch.Tensor],
         offsets: List[Tuple[int]],
         indexes: List[Tuple[int]],
+        ref_shape: Tuple[int],
     ) -> torch.Tensor:
         """
         Combination of results
@@ -238,7 +239,7 @@ class PatchInferencerEngine(_Engine):
         for patches, offset, shape in zip(results, offsets, indexes):
             reconstruct, weight = self._reconstruct_patches(patches, shape)
             reconstruct, weight = self._adjust_patches(
-                [reconstruct, weight], self.ref_shape, offset
+                [reconstruct, weight], ref_shape, offset
             )
 
             reconstructed.append(reconstruct)
@@ -295,7 +296,7 @@ class PatchInferencerEngine(_Engine):
         else:
             raise RuntimeError("Invalid input shape")
 
-        self.ref_shape = self._compute_output_shape(x)
+        ref_shape = self._compute_output_shape(x)
         offsets = list(self.offsets)
         base = self.padding["pad"]
         offsets.insert(0, tuple([0] * (len(base) - 1)))
@@ -326,7 +327,8 @@ class PatchInferencerEngine(_Engine):
             patch_set = patch_set.squeeze(1)
             results.append(model(patch_set)[0])
             indexes.append(patch_idx)
-        output_slice = tuple([slice(0, lenght) for lenght in self.ref_shape])
-        com = self._combine_patches(results, offsets, indexes)
+        output_slice = tuple([slice(0, lenght) for lenght in ref_shape])
+        com = self._combine_patches(results, offsets, indexes, ref_shape=ref_shape)
         com = com[output_slice]
+        print(com.shape)
         return com
