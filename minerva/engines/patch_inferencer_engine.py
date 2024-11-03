@@ -298,8 +298,9 @@ class PatchInferencer(L.LightningModule):
 class _PatchInferencer(_Engine):
     def __init__(
         self,
-        input_shape: Tuple[int],
+        input_shape: Union[Tuple[int, int], Tuple[int, int, int]],
         output_shape: Optional[Tuple[int]] = None,
+        offsets: Optional[Tuple[int]] = None,
         padding: Optional[Dict[str, any]] = None,
     ):
         """
@@ -319,59 +320,182 @@ class _PatchInferencer(_Engine):
         """
         self.input_shape = input_shape
         self.output_shape = output_shape if output_shape else input_shape
+
+        if offsets is not None:
+            for offset in offsets:
+                assert len(input_shape) == len(
+                    offset
+                ), f"Offset tuple does not match expected size ({len(input_shape)})"
+            self.offsets = offsets
+        else:
+            self.offsets = []
+
         self.padding = padding or {"pad": (0, 0), "mode": "constant", "value": 0}
 
-    def _extract_patches(
-        self, x: torch.Tensor, patch_shape: Tuple[int]
-    ) -> Tuple[torch.Tensor, Tuple[int]]:
-        """Extract patches from input tensor."""
-        num_patches = tuple(
-            np.array(x.shape[-len(patch_shape) :]) // np.array(patch_shape)
+    def _reconstruct_patches(
+        self,
+        patches: torch.Tensor,
+        index: Tuple[int],
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        """
+        Rearranges patches to reconstruct area of interest from patches and weights
+        """
+        reconstruct_shape = np.array(self.output_shape) * np.array(index)
+        weight = torch.zeros(tuple(reconstruct_shape), device=patches.device)
+        base_weight = (
+            self.weight_function(self.output_shape)
+            if self.weight_function
+            else torch.ones(self.output_shape, device=patches.device)
         )
-        patches = []
-        for idx in np.ndindex(num_patches):
-            slices = tuple(slice(i * s, (i + 1) * s) for i, s in zip(idx, patch_shape))
-            patches.append(x[(...,) + slices])
-        return torch.stack(patches), num_patches
 
-    def _reconstruct_from_patches(
-        self, patches: torch.Tensor, num_patches: Tuple[int]
-    ) -> torch.Tensor:
-        """Reconstruct the original shape from patches."""
-        reconstructed = torch.zeros(
-            [
-                num_patches[i] * self.output_shape[i]
-                for i in range(len(self.output_shape))
-            ],
-            device=patches.device,
-        )
-        for idx, patch in zip(np.ndindex(num_patches), patches):
-            slices = tuple(
-                slice(i * s, (i + 1) * s) for i, s in zip(idx, self.output_shape)
+        reconstruct = torch.zeros(tuple(reconstruct_shape), device=patches.device)
+        for patch_index, patch in zip(np.ndindex(index), patches):
+            sl = [
+                slice(idx * patch_len, (idx + 1) * patch_len, None)
+                for idx, patch_len in zip(patch_index, self.output_shape)
+            ]
+            weight[tuple(sl)] = base_weight
+            reconstruct[tuple(sl)] = patch
+        return reconstruct, weight
+
+    def _adjust_patches(
+        self,
+        arrays: List[torch.Tensor],
+        ref_shape: Tuple[int],
+        offset: Tuple[int],
+        pad_value: int = 0,
+    ) -> List[torch.Tensor]:
+        """
+        Pads reconstructed_patches with 'pad_value' to have same shape as the reference shape from the base patch set
+        """
+
+        pad_width = []
+        sl = []
+        ref_shape = list(ref_shape)
+        arr_shape = list(arrays[0].shape)
+        for idx, lenght, ref in zip([0, *offset], arr_shape, ref_shape):
+            if idx > 0:
+                sl.append(slice(0, min(lenght, ref), None))
+                pad_width = [idx, max(ref - lenght - idx, 0)] + pad_width
+            else:
+                sl.append(slice(np.abs(idx), min(lenght, ref - idx), None))
+                pad_width = [0, max(ref - lenght - idx, 0)] + pad_width
+        adjusted = [
+            (
+                torch.nn.functional.pad(
+                    arr[tuple(sl)],
+                    pad=tuple(pad_width),
+                    mode="constant",
+                    value=pad_value,
+                )
             )
-            reconstructed[slices] = patch
-        return reconstructed
+            for arr in arrays
+        ]
+        return adjusted
+
+    def _combine_patches(
+        self,
+        results: List[torch.Tensor],
+        offsets: List[Tuple[int]],
+        indexes: List[Tuple[int]],
+    ) -> torch.Tensor:
+        """
+        Combination of results
+        """
+        reconstructed = []
+        weights = []
+        for patches, offset, shape in zip(results, offsets, indexes):
+            reconstruct, weight = self._reconstruct_patches(patches, shape)
+            reconstruct, weight = self._adjust_patches(
+                [reconstruct, weight], self.ref_shape, offset
+            )
+
+            reconstructed.append(reconstruct)
+            weights.append(weight)
+        reconstructed = torch.stack(reconstructed, dim=0)
+        weights = torch.stack(weights, dim=0)
+        return torch.sum(reconstructed * weights, dim=0) / torch.sum(weights, dim=0)
+
+    def _extract_patches(
+        self, data: torch.Tensor, patch_shape: Tuple[int]
+    ) -> Tuple[torch.Tensor, Tuple[int]]:
+        """
+        Patch extraction method. It will be called once for the base patch set and also for the requested offsets (overlapping patch sets)
+        """
+        indexes = tuple(np.array(data.shape) // np.array(patch_shape))
+        patches = []
+        for patch_index in np.ndindex(indexes):
+            sl = [
+                slice(idx * patch_len, (idx + 1) * patch_len, None)
+                for idx, patch_len in zip(patch_index, patch_shape)
+            ]
+            patches.append(data[tuple(sl)])
+        return torch.stack(patches), indexes
+
+    def _compute_output_shape(self, tensor: torch.Tensor) -> Tuple[int]:
+        """
+        Computes PatchInferencer output shape based on input tensor shape, and model's input and output shapes.
+        """
+        if self.input_shape == self.output_shape:
+            return tensor.shape
+        shape = []
+        for i, o, t in zip(self.input_shape, self.output_shape, tensor.shape):
+            if i != o:
+                shape.append(int(t * o // i))
+            else:
+                shape.append(t)
+        return tuple(shape)
 
     def __call__(
         self, model: Union[L.LightningModule, torch.nn.Module], x: torch.Tensor
     ):
-        """Perform patch-based forward pass."""
-        # Pad the input if necessary
-        if any(self.padding["pad"]):
-            pad_values = sum([(p, p) for p in self.padding["pad"]], ())
-            x = nn.functional.pad(
-                x,
-                pad_values,
-                mode=self.padding.get("mode", "constant"),
-                value=self.padding.get("value", 0),
+        """
+        Perform Inference in Patches
+
+        Parameters
+        ----------
+        x : torch.Tensor
+            Input Tensor.
+        """
+        if len(x.shape) == len(self.input_shape) - 1:
+            x = x.unsqueeze(0)
+        elif len(x.shape) == len(self.input_shape):
+            pass
+        else:
+            raise RuntimeError("Invalid input shape")
+
+        self.ref_shape = self._compute_output_shape(x)
+        offsets = list(self.offsets)
+        base = self.padding["pad"]
+        offsets.insert(0, tuple([0] * (len(base) - 1)))
+
+        slices = [
+            tuple(
+                [
+                    slice(i + base, None)  # TODO: if ((i + base >= 0) and (i < in_dim))
+                    for i, base, in_dim in zip([0, *offset], base, x.shape)
+                ]
             )
+            for offset in offsets
+        ]
 
-        # Extract patches
-        patches, num_patches = self._extract_patches(x, self.input_shape)
-
-        # Run the model on each patch and collect results
-        patch_outputs = [model(patch.unsqueeze(0)).squeeze(0) for patch in patches]
-        patch_outputs = torch.stack(patch_outputs)
-
-        # Reconstruct the full output from patch outputs
-        return self._reconstruct_from_patches(patch_outputs, num_patches)
+        torch_pad = []
+        for pad_value in reversed(base):
+            torch_pad = torch_pad + [pad_value, pad_value]
+        x_padded = torch.nn.functional.pad(
+            x,
+            pad=tuple(torch_pad),
+            mode=self.padding.get("mode", "constant"),
+            value=self.padding.get("value", 0),
+        )
+        results = []
+        indexes = []
+        for sl in slices:
+            patch_set, patch_idx = self._extract_patches(x_padded[sl], self.input_shape)
+            patch_set = patch_set.squeeze(1)
+            results.append(model(patch_set)[0])
+            indexes.append(patch_idx)
+        output_slice = tuple([slice(0, lenght) for lenght in self.ref_shape])
+        com = self._combine_patches(results, offsets, indexes)
+        com = com[output_slice]
+        return com
