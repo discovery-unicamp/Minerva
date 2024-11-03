@@ -325,6 +325,9 @@ class Transpose(_Transform):
 
     def __call__(self, x: np.ndarray) -> np.ndarray:
         """Reorder the axes of numpy arrays."""
+
+        if len(x.shape) == 2:
+            x = np.expand_dims(x, axis=2)
         return np.transpose(x, self.axes)
 
 

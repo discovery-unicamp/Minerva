@@ -114,7 +114,7 @@ class RandomResize(_RandomSyncedTransform):
 
         # Apply a random scaling factor within the ratio range
         scale_factor = self.rng.uniform(*self.ratio_range)
-        new_width = int(self.target_scale[0] * scale_factor)
-        new_height = int(self.target_scale[1] * scale_factor)
+        new_width = int(self.target_scale[1] * scale_factor)
+        new_height = int(self.target_scale[0] * scale_factor)
 
         return Resize(new_width, new_height)
