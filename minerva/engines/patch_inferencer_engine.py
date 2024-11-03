@@ -46,7 +46,7 @@ class PatchInferencer(L.LightningModule):
         """
         super().__init__()
         self.model = model
-        self.patch_inferencer = _PatchInferencer(
+        self.patch_inferencer = PatchInferencerEngine(
             input_shape, output_shape, offsets, padding, weight_function
         )
 
@@ -120,7 +120,7 @@ class PatchInferencer(L.LightningModule):
 
 
 # region _PatchInferencer
-class _PatchInferencer(_Engine):
+class PatchInferencerEngine(_Engine):
 
     def __init__(
         self,
