@@ -13,15 +13,10 @@ from minerva.losses.negative_cossine_similatiry import NegativeCosineSimilarity
 from minerva.utils.cossine_scheduler import cosine_schedule
 from minerva.utils.deactivate_grad import deactivate_requires_grad
 
-# --- Utilities ---------------------------------------------------------
-@torch.no_grad()
-def update_momentum(model: nn.Module, model_ema: nn.Module, m: float):
-    for model_ema, model in zip(model_ema.parameters(), model.parameters()):
-        model_ema.data = model_ema.data * m + model.data * (1.0 - m)
-  
 # --- Model Parts ---------------------------------------------------------
 
 # Borrowed from https://github.com/lightly-ai/lightly/blob/master/lightly/models/modules/heads.py#L15
+
 
 class ProjectionHead(nn.Module):
     """Base class for all projection and prediction heads."""
@@ -47,8 +42,9 @@ class ProjectionHead(nn.Module):
             if non_linearity:
                 layers.append(non_linearity)
         self.layers = nn.Sequential(*layers)
-        
-    def preprocess_step(self, x: Tensor) -> Tensor: return x
+
+    def preprocess_step(self, x: Tensor) -> Tensor:
+        return x
 
     def forward(self, x: Tensor) -> Tensor:
         x = self.preprocess_step(x)
@@ -73,9 +69,9 @@ class BYOLProjectionHead(ProjectionHead):
                 (hidden_dim, output_dim, None, None),
             ]
         )
-        
+
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
-        
+
     def preprocess_step(self, x: Tensor) -> Tensor:
         return self.avgpool(x).flatten(start_dim=1)
 
@@ -98,20 +94,19 @@ class BYOLPredictionHead(ProjectionHead):
             ]
         )
 
+
 # --- Class implementation ----------------------------------------------------------
 
+
 class BYOL(L.LightningModule):
-    def __init__(self, 
-                    backbone=None,
-                    learning_rate: float = 0.025,
-                    schedule: int = 90000
-                    ):  
-        
-        
+    def __init__(
+        self, backbone=None, learning_rate: float = 0.025, schedule: int = 90000
+    ):
+
         # Learning rate do artigo: LR = 0,2 * BatchSize/256
         # Para um BatchSize de 32, LR = 0,2 * 32/256 = 0,025
         # Para um BAtchSize de 128, LR = 0,2 * 128/256 = 0,1
-        
+
         super().__init__()
         if backbone:
             self.backbone = backbone
@@ -134,7 +129,7 @@ class BYOL(L.LightningModule):
     def forward(self, x):
         y = self.backbone(x)
         if isinstance(y, OrderedDict):
-            y = y['out']
+            y = y["out"]
         z = self.projection_head(y)
         p = self.prediction_head(z)
         return p
@@ -142,15 +137,17 @@ class BYOL(L.LightningModule):
     def forward_momentum(self, x):
         y = self.backbone_momentum(x)
         if isinstance(y, OrderedDict):
-            y = y['out']
+            y = y["out"]
         z = self.projection_head_momentum(y)
         z = z.detach()
         return z
 
     def training_step(self, batch, batch_idx):
         momentum = cosine_schedule(self.current_epoch, self.schedule_length, 0.996, 1)
-        update_momentum(self.backbone, self.backbone_momentum, m=momentum)
-        update_momentum(self.projection_head, self.projection_head_momentum, m=momentum)
+        self.update_momentum(self.backbone, self.backbone_momentum, m=momentum)
+        self.update_momentum(
+            self.projection_head, self.projection_head_momentum, m=momentum
+        )
         (x0, x1) = batch
         p0 = self.forward(x0)
         z0 = self.forward_momentum(x0)
@@ -166,14 +163,13 @@ class BYOL(L.LightningModule):
             logger=True,
             sync_dist=True,
         )
-        
+
         return loss
 
     def configure_optimizers(self):
         return torch.optim.SGD(self.parameters(), lr=self.learning_rate)
-    
-    
 
-    
-    
-    
+    @torch.no_grad()
+    def update_momentum(model: nn.Module, model_ema: nn.Module, m: float):
+        for model_ema, model in zip(model_ema.parameters(), model.parameters()):
+            model_ema.data = model_ema.data * m + model.data * (1.0 - m)
