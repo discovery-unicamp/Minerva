@@ -1,6 +1,6 @@
 import torchvision.transforms as T
 from torchvision.transforms import GaussianBlur
-from .transform import _Transform
+from minerva.transforms.transform import _Transform
 from typing import Union, Tuple
 import numpy as np
 import torch
@@ -8,15 +8,15 @@ import torch
 
 class BYOLTransform(_Transform):
     def __init__(self,
-                input_size = 224,
-                degrees=5,
-                r_prob=0.5,
-                h_prob=0.5,
-                v_prob=0.5,
-                collor_jitter_prob=0.5,
-                grayscale_prob=0.2,
-                gaussian_blur_prob=0.5,
-                solarize_prob=0.0
+                input_size:int = 224,
+                degrees:int = 5,
+                r_prob:float = 0.5,
+                h_prob:float = 0.5,
+                v_prob: float =0.5,
+                collor_jitter_prob:float = 0.5,
+                grayscale_prob:float = 0.2,
+                gaussian_blur_prob:float = 0.5,
+                solarize_prob:float = 0.0,
                 ):
         self.transformV1 = T.Compose([
             T.RandomCrop(size=input_size, pad_if_needed=True, padding_mode='reflect'),
