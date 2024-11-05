@@ -100,12 +100,11 @@ class BYOLPredictionHead(ProjectionHead):
 
 class BYOL(L.LightningModule):
     def __init__(
-        self, backbone=None, learning_rate: float = 0.025, schedule: int = 90000
+        self, 
+        backbone:L.LightningModule = None, 
+        learning_rate:float = 0.025, 
+        schedule:int = 90000
     ):
-
-        # Learning rate do artigo: LR = 0,2 * BatchSize/256
-        # Para um BatchSize de 32, LR = 0,2 * 32/256 = 0,025
-        # Para um BAtchSize de 128, LR = 0,2 * 128/256 = 0,1
 
         super().__init__()
         if backbone:
