@@ -27,8 +27,5 @@
                 "donjayamanne.git-extension-pack"
             ]
         }
-    },
-    "mounts": [
-        "source=/home/shared,target=/workspaces/Minerva-Dev/shared_data,type=bind,consistency=cached"
-    ]
+    }
 }
