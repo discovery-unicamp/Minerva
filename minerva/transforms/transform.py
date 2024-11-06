@@ -79,6 +79,9 @@ class Flip(_Transform):
             x = np.flip(x, axis=axis)
 
         return x
+    
+class RandomFlip(_Transform):
+    
 
 
 class PerlinMasker(_Transform):
@@ -253,7 +256,7 @@ class Gradient(_Transform):
         return output
 
 
-class RandomCropWithPadding(_Transform):
+class RandomCrop(_Transform):
     def __init__(self, output_size: Tuple[int, int], pad_mode: str = 'reflect'):
         self.output_size = output_size
         self.pad_mode = pad_mode
