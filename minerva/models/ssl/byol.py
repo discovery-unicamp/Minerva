@@ -168,6 +168,7 @@ class BYOL(L.LightningModule):
 
 
     # Borrowed from https://github.com/lightly-ai/lightly/blob/master/lightly/utils/scheduler.py        
+    
     def cosine_schedule(
         step: int,
         max_steps: int,
