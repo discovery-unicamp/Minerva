@@ -112,8 +112,8 @@ class BYOL(L.LightningModule):
         self.backbone_momentum = copy.deepcopy(self.backbone)
         self.projection_head_momentum = copy.deepcopy(self.projection_head)
 
-        deactivate_requires_grad(self.backbone_momentum)
-        deactivate_requires_grad(self.projection_head_momentum)
+        self.deactivate_requires_grad(self.backbone_momentum)
+        self.deactivate_requires_grad(self.projection_head_momentum)
 
         self.criterion = NegativeCosineSimilarity()
         self.schedule_length = schedule
@@ -166,6 +166,10 @@ class BYOL(L.LightningModule):
         for model_ema, model in zip(model_ema.parameters(), model.parameters()):
             model_ema.data = model_ema.data * m + model.data * (1.0 - m)
 
+    @torch.no_grad()
+    def deactivate_requires_grad(model: nn.Module):
+        for param in model.parameters():
+            param.requires_grad = False 
 
     # Borrowed from https://github.com/lightly-ai/lightly/blob/master/lightly/utils/scheduler.py        
     
