@@ -3,6 +3,7 @@ import torch
 import torchvision
 import lightning as L
 import numpy as np
+import warnings
 
 from torch import nn
 from torch import Tensor
@@ -162,18 +163,19 @@ class BYOL(L.LightningModule):
         return torch.optim.SGD(self.parameters(), lr=self.learning_rate)
 
     @torch.no_grad()
-    def update_momentum(model: nn.Module, model_ema: nn.Module, m: float):
+    def update_momentum(self, model: nn.Module, model_ema: nn.Module, m: float):
         for model_ema, model in zip(model_ema.parameters(), model.parameters()):
             model_ema.data = model_ema.data * m + model.data * (1.0 - m)
 
     @torch.no_grad()
-    def deactivate_requires_grad(model: nn.Module):
+    def deactivate_requires_grad(self, model: nn.Module):
         for param in model.parameters():
             param.requires_grad = False 
 
     # Borrowed from https://github.com/lightly-ai/lightly/blob/master/lightly/utils/scheduler.py        
     
     def cosine_schedule(
+        self,
         step: int,
         max_steps: int,
         start_value: float,
