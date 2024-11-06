@@ -80,9 +80,6 @@ class Flip(_Transform):
 
         return x
     
-class RandomFlip(_Transform):
-    
-
 
 class PerlinMasker(_Transform):
     """Zeroes entries of a tensor according to the sign of Perlin noise. Seed for the noise generator given by torch.randint"""
