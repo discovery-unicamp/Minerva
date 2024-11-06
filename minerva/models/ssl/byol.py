@@ -10,8 +10,6 @@ from collections import OrderedDict
 from typing import List, Optional, Sequence, Tuple, Union
 
 from minerva.losses.negative_cossine_similatiry import NegativeCosineSimilarity
-from minerva.utils.cossine_scheduler import cosine_schedule
-from minerva.utils.deactivate_grad import deactivate_requires_grad
 
 # --- Model Parts ---------------------------------------------------------
 
@@ -137,7 +135,7 @@ class BYOL(L.LightningModule):
         return z
 
     def training_step(self, batch, batch_idx):
-        momentum = cosine_schedule(self.current_epoch, self.schedule_length, 0.996, 1)
+        momentum = self.cosine_schedule(self.current_epoch, self.schedule_length, 0.996, 1)
         self.update_momentum(self.backbone, self.backbone_momentum, m=momentum)
         self.update_momentum(
             self.projection_head, self.projection_head_momentum, m=momentum
@@ -167,3 +165,65 @@ class BYOL(L.LightningModule):
     def update_momentum(model: nn.Module, model_ema: nn.Module, m: float):
         for model_ema, model in zip(model_ema.parameters(), model.parameters()):
             model_ema.data = model_ema.data * m + model.data * (1.0 - m)
+
+
+    # Borrowed from https://github.com/lightly-ai/lightly/blob/master/lightly/utils/scheduler.py        
+    def cosine_schedule(
+        step: int,
+        max_steps: int,
+        start_value: float,
+        end_value: float,
+        period: Optional[int] = None,
+    ) -> float:
+        """Use cosine decay to gradually modify start_value to reach target end_value.
+
+        Args:
+            step:
+                Current step number.
+            max_steps:
+                Total number of steps.
+            start_value:
+                Starting value.
+            end_value:
+                Target value.
+            period:
+                The number of steps over which the cosine function completes a full cycle.
+                Defaults to max_steps.
+
+        Returns:
+            Cosine decay value.
+
+        """
+        if step < 0:
+            raise ValueError(f"Current step number {step} can't be negative")
+        if max_steps < 1:
+            raise ValueError(f"Total step number {max_steps} must be >= 1")
+        if period is None and step > max_steps:
+            warnings.warn(
+                f"Current step number {step} exceeds max_steps {max_steps}.",
+                category=RuntimeWarning,
+            )
+        if period is not None and period <= 0:
+            raise ValueError(f"Period {period} must be >= 1")
+
+        decay: float
+        if period is not None:  # "cycle" based on period, if provided
+            decay = (
+                end_value
+                - (end_value - start_value) * (np.cos(2 * np.pi * step / period) + 1) / 2
+            )
+        elif max_steps == 1:
+            # Avoid division by zero
+            decay = end_value
+        elif step == max_steps:
+            # Special case for Pytorch Lightning which updates LR scheduler also for epoch
+            # after last training epoch.
+            decay = end_value
+        else:
+            decay = (
+                end_value
+                - (end_value - start_value)
+                * (np.cos(np.pi * step / (max_steps - 1)) + 1)
+                / 2
+            )
+        return decay
