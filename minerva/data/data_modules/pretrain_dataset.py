@@ -1,7 +1,6 @@
 import glob
 import os
 import lightning as L
-# from lightning.pytorch.utilities.types import EVAL_DATALOADERS
 import tifffile as tiff
 from torch.utils.data import DataLoader, Dataset
 from pathlib import Path

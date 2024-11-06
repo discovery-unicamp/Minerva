@@ -17,7 +17,6 @@ from minerva.utils.deactivate_grad import deactivate_requires_grad
 
 # Borrowed from https://github.com/lightly-ai/lightly/blob/master/lightly/models/modules/heads.py#L15
 
-
 class ProjectionHead(nn.Module):
     """Base class for all projection and prediction heads."""
 
@@ -101,17 +100,13 @@ class BYOLPredictionHead(ProjectionHead):
 class BYOL(L.LightningModule):
     def __init__(
         self, 
-        backbone:L.LightningModule = None, 
+        backbone: Optional[nn.Module] = None, 
         learning_rate:float = 0.025, 
         schedule:int = 90000
     ):
 
         super().__init__()
-        if backbone:
-            self.backbone = backbone
-        else:
-            resnet = torchvision.models.resnet18()
-            self.backbone = nn.Sequential(*list(resnet.children())[:-1])
+        self.backbone = backbone or  nn.Sequential(*list(torchvision.models.resnet18().children())[:-1])
         self.learning_rate = learning_rate
         self.projection_head = BYOLProjectionHead(2048, 4096, 256)
         self.prediction_head = BYOLPredictionHead(256, 4096, 256)
