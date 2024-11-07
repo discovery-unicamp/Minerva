@@ -13,3 +13,6 @@ perlin-noise
 torchmetrics
 torchvision
 timm
+MedPy
+SimpleITK
+patchify
