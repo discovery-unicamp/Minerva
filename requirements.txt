@@ -15,4 +15,4 @@ torchvision
 timm
 MedPy
 SimpleITK
-patchify
+einops
