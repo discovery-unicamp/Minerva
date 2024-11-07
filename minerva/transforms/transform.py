@@ -253,46 +253,32 @@ class Gradient(_Transform):
         return output
 
 
-class RandomCrop(_Transform):
-    def __init__(self, output_size: Tuple[int, int], pad_mode: str = 'reflect'):
-        self.output_size = output_size
-        self.pad_mode = pad_mode
-
-    def __call__(self, image: np.ndarray) -> np.ndarray:
-        h, w = image.shape[:2]
-        new_h, new_w = self.output_size
-
-        # Apply padding only if output_size is larger than input_size
-        if new_h > h or new_w > w:
-            pad_h = max(new_h - h, 0)
-            pad_w = max(new_w - w, 0)
-            image = np.pad(image, ((pad_h // 2, pad_h - pad_h // 2), 
-                                   (pad_w // 2, pad_w - pad_w // 2), 
-                                   (0, 0)), mode=self.pad_mode)
-
-        # Update dimensions after padding
-        h, w = image.shape[:2]
-
-        # Random crop
-        start_x = np.random.randint(0, w - new_w + 1)
-        start_y = np.random.randint(0, h - new_h + 1)
-        return image[start_y:start_y + new_h, start_x:start_x + new_w]
-
-
-class RandomRotation(_Transform):
-    def __init__(self, degrees: float):
-        self.degrees = degrees
-
-    def __call__(self, image: np.ndarray) -> np.ndarray:
-        angle = np.random.uniform(-self.degrees, self.degrees)
-        h, w = image.shape[:2]
-        center = (w // 2, h // 2)
-        rotation_matrix = cv2.getRotationMatrix2D(center, angle, 1.0)
-        return cv2.warpAffine(image, rotation_matrix, (w, h), borderMode=cv2.BORDER_REFLECT)
-
-
 class ColorJitter(_Transform):
+
     def __init__(self, brightness: float = 0.4, contrast: float = 0.4, saturation: float = 0.2, hue: float = 0.1):
+        """
+        Applies random adjustments to brightness, contrast, saturation, and hue to an input image.
+
+        Parameters
+        ----------
+        brightness : float, optional
+            The factor range for brightness adjustment, where the adjustment is sampled from
+            [1 - brightness, 1 + brightness]. Defaults to 0.4.
+        contrast : float, optional
+            The factor range for contrast adjustment, where the adjustment is sampled from
+            [1 - contrast, 1 + contrast]. Defaults to 0.4.
+        saturation : float, optional
+            The factor range for saturation adjustment, where the adjustment is sampled from
+            [1 - saturation, 1 + saturation]. Defaults to 0.2.
+        hue : float, optional
+            The range in degrees for hue adjustment, where the adjustment is sampled from
+            [-hue * 180, hue * 180]. Defaults to 0.1.
+
+        Returns
+        -------
+        np.ndarray
+            The transformed image with randomized brightness, contrast, saturation, and hue adjustments applied.
+        """
         self.brightness = brightness
         self.contrast = contrast
         self.saturation = saturation
@@ -318,22 +304,4 @@ class ColorJitter(_Transform):
         
         return cv2.cvtColor(image.astype(np.uint8), cv2.COLOR_HSV2RGB)
 
-
-class RandomGrayscale(_Transform):
-    def __init__(self, prob: float = 0.1):
-        self.prob = prob
-
-    def __call__(self, image: np.ndarray) -> np.ndarray:
-        if np.random.rand() < self.prob:
-            gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
-            return np.stack([gray] * 3, axis=-1)  # Convert grayscale to RGB format
-        return image
-
-
-class RandomSolarize(_Transform):
-    def __init__(self, threshold: int = 128):
-        self.threshold = threshold
-
-    def __call__(self, image: np.ndarray) -> np.ndarray:
-        return np.where(image < self.threshold, image, 255 - image)
     
