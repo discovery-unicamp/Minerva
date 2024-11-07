@@ -74,7 +74,7 @@ class Flip(_Transform):
 
         assert (
             len(self.axis) <= x.ndim
-        ), "Axis list has more dimentions than input data. The lenth of axis needs to be less or equal to input dimentions."
+        ), "Axis list has more dimensions than input data. The length of axis needs to be less or equal to input dimensions."
 
         for axis in self.axis:
             x = np.flip(x, axis=axis)
