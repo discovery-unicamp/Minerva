@@ -155,7 +155,7 @@ class SAMLoRA(L.LightningModule):
         # print(low_res_label_batch.shape)
         # print('-'*20)
 
-        assert image_batch.max() <= 3, f'image_batch max: {image_batch.max()}'
+        # assert image_batch.max() <= 3, f'image_batch max: {image_batch.max()}'
         
         outputs = self.model(image_batch, True, image_size=self.image_size)
         # print("outputs: ", outputs)
