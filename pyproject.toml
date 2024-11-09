@@ -52,7 +52,7 @@ dependencies = [
     "zarr>=2.17",
     "MedPy>=0.5.2",
     "SimpleITK>=2.4.0",
-    "patchify>=0.2.3"
+    "einops>=0.8.0"
 ]
 
 [tool.setuptools.packages.find]
