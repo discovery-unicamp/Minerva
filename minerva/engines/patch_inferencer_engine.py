@@ -143,7 +143,7 @@ class PatchInferencerEngine(_Engine):
             Expected shape of the model output per patch. Defaults to input_shape.
         padding : dict, optional
             Padding configuration with keys:
-                - 'pad': Tuple of padding for each dimension, e.g., (0, 3, 3).
+                - 'pad': Tuple of padding for each expected final dimension, e.g., (0, 512, 512) - (c, h, w).
                 - 'mode': Padding mode, e.g., 'constant', 'reflect'.
                 - 'value': Padding value if mode is 'constant'.
         """
