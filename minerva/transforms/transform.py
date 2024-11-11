@@ -344,27 +344,25 @@ class Resize(_Transform):
         self.keep_aspect_ratio = keep_aspect_ratio
 
     def __call__(self, x: np.ndarray) -> np.ndarray:
+        original_height, original_width = x.shape[:2]
 
         if not self.keep_aspect_ratio:
+            # Direct resize without keeping the aspect ratio
             return cv2.resize(
                 x,
                 (self.target_w_size, self.target_h_size),
                 interpolation=cv2.INTER_NEAREST,
             )
 
-        original_height, original_width = x.shape[:2]
-
-        # Calculate scaling factors to fit within max_size, preserving aspect ratio
+        # Calculate scaling factors for both dimensions
         width_scale = self.target_w_size / original_width
         height_scale = self.target_h_size / original_height
-        scale = min(
-            width_scale, height_scale
-        )  # Choose the smaller scale to fit within dimensions
 
-        # Calculate new dimensions based on the correct scale factor
+        # Choose the smaller scale to keep aspect ratio, and round down
+        scale = min(width_scale, height_scale)
+
+        # Compute new dimensions, rounding down to match MMsegmentation's behavior
         new_width = int(original_width * scale)
         new_height = int(original_height * scale)
 
         return cv2.resize(x, (new_width, new_height), interpolation=cv2.INTER_NEAREST)
-
-    # Convert the resized PIL Image back to a NumPy array
