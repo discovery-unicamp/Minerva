@@ -362,7 +362,7 @@ class GrayScale(_Transform):
         return np.stack([self.gray] * 3, axis=-1)  # Convert grayscale to RGB format   
 
 
-class SolarizeTransform(_Transform):
+class Solarize(_Transform):
     def __init__(self, threshold: int = 128):
         """
         Solarizes the image by inverting pixel values above a specified threshold.
