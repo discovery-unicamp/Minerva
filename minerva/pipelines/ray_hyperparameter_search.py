@@ -21,7 +21,7 @@ class RayHyperParameterSearch(Pipeline):
         model: type,
         search_space: Dict[str, Any],
         log_dir: Optional[PathLike] = None,
-        save_run_status: bool = False,
+        save_run_status: bool = True,
     ):
         super().__init__(log_dir=log_dir, save_run_status=save_run_status)
         self.model = model
