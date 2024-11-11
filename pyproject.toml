@@ -51,6 +51,7 @@ dependencies = [
     "torchvision>=0.15",
     "zarr>=2.17",
     "hyperopt>=0.2.5",
+    "opencv-python>=4.10.0.84",
 ]
 
 [tool.setuptools.packages.find]
