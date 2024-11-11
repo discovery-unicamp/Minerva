@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Literal, Optional, Tuple, Union
 
 import lightning as L
 import numpy as np
@@ -19,7 +19,7 @@ class PatchInferencer(L.LightningModule):
         model: L.LightningModule,
         input_shape: Tuple,
         output_shape: Optional[Tuple] = None,
-        weight_function: Optional[callable] = None,
+        weight_function: Optional[Callable] = None,
         offsets: Optional[List[Tuple]] = None,
         padding: Optional[Dict[str, Any]] = None,
         return_tuple: Optional[int] = None,
@@ -129,7 +129,7 @@ class PatchInferencerEngine(_Engine):
         output_shape: Optional[Tuple[int]] = None,
         offsets: Optional[List[Tuple]] = None,
         padding: Optional[Dict[str, Any]] = None,
-        weight_function: Optional[callable] = None,
+        weight_function: Optional[Callable] = None,
         return_tuple: Optional[int] = None,
     ):
         """
@@ -285,6 +285,15 @@ class PatchInferencerEngine(_Engine):
                 shape.append(t)
         return tuple(shape)
 
+    def _compute_base_padding(self, tensor: torch.Tensor):
+        """
+        Computes the padding for the base patch set based on the input tensor shape and the model's input shape.
+        """
+        padding = []
+        for i, t in zip(self.input_shape, tensor.shape[1:]):
+            padding.append(max(0, i - t))
+        return padding
+
     def __call__(
         self, model: Union[L.LightningModule, torch.nn.Module], x: torch.Tensor
     ):
@@ -305,7 +314,7 @@ class PatchInferencerEngine(_Engine):
 
         self.ref_shape = self._compute_output_shape(x)
         offsets = list(self.offsets)
-        base = self.padding["pad"]
+        base = self._compute_base_padding(x)
         offsets.insert(0, tuple([0] * (len(base) - 1)))
         slices = [
             tuple(
