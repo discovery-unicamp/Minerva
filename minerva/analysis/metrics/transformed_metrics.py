@@ -78,7 +78,7 @@ class CroppedMetric(Metric):
         return x[..., start_h:end_h, start_w:end_w]
 
 
-class ResizeMetric(Metric):
+class ResizedMetric(Metric):
     def __init__(
         self,
         target_h_size: Optional[int],
