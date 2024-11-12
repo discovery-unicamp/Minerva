@@ -251,7 +251,6 @@ class PatchInferencerEngine(_Engine):
             )
             reconstructed.append(reconstruct)
             weights.append(weight)
-            print(reconstruct.shape)
         reconstructed = torch.stack(reconstructed, dim=0)
         weights = torch.stack(weights, dim=0)
         return torch.sum(reconstructed * weights, dim=0) / torch.sum(weights, dim=0)
