@@ -289,8 +289,8 @@ class PatchInferencerEngine(_Engine):
         """
         Computes the padding for the base patch set based on the input tensor shape and the model's input shape.
         """
-        padding = []
-        for i, t in zip(self.padding["pad"], tensor.shape[1:]):
+        padding = [0, 0]
+        for i, t in zip(self.padding["pad"][2:], tensor.shape[1:]):
             padding.append(max(0, i - t))
         return padding
 

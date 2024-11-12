@@ -37,8 +37,7 @@ class ClassRatioCrop(_Transform):
         h, w = x.shape[:2]
 
         if self.crop_coords is None:
-
-            if x.dtype != np.integer:
+            if not issubclass(x.dtype.type, np.integer):
                 raise ValueError(
                     "You must provide a mask first to use this functionality. For that you enable support_context_transforms if your dataset supports it, or use a different dataset that does supports it."
                 )
