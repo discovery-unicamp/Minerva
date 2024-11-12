@@ -208,8 +208,8 @@ class Padding(_Transform):
 
         padded = np.transpose(padded, (2, 0, 1))
         return padded
-    
-    
+
+
 class Gradient(_Transform):
     def __init__(self, direction: int):
         
@@ -300,7 +300,7 @@ class ColorJitter(_Transform):
 
 
 class Crop(_Transform):
-    def __init__(self, output_size: Tuple[int, int], pad_mode: str = 'reflect', coords: Tuple[int, int] = (0, 0)):
+    def __init__(self, output_size: Tuple[int, int], pad_mode: str = 'reflect', coords: Tuple[float, float] = (0, 0)):
         """
         Crops the input image to a specified output size, with optional padding if needed.
 
@@ -311,7 +311,9 @@ class Crop(_Transform):
         pad_mode : str, optional
             Padding mode used if output size is larger than input size. Defaults to 'reflect'.
         coords : Tuple[int, int], optional
-            Top-left coordinates for the crop box. Defaults to (0, 0).
+            Top-left coordinates for the crop box.
+            Values must go from 0 to 1 indicating the relative position on where the
+            new top-left corner can be set, taking in consideration the new size 
 
         Returns
         -------
@@ -332,15 +334,18 @@ class Crop(_Transform):
             pad_h = max(new_h - h, 0)
             pad_w = max(new_w - w, 0)
             image = np.pad(image, ((pad_h // 2, pad_h - pad_h // 2), 
-                                   (pad_w // 2, pad_w - pad_w // 2), 
-                                   (0, 0)), mode=self.pad_mode)
+                                    (pad_w // 2, pad_w - pad_w // 2), 
+                                    (0, 0)), mode=self.pad_mode)
 
         # Update dimensions after padding
         h, w = image.shape[:2]
 
-        return image[X:X + new_h, Y:Y + new_w]   
-    
-    
+        x = (h - new_h) * X
+        y = (y - new_w) * Y
+
+        return image[x:x + new_h, y:y + new_w]  
+
+
 class GrayScale(_Transform):
     def __init__(self, gray: float = 0.0):
         """
@@ -388,8 +393,8 @@ class Solarize(_Transform):
             solarized_image = np.where(image < self.threshold, image, 255 - image)
         
         return solarized_image  
-    
-    
+
+
 class Rotation(_Transform):
     def __init__(self, degrees: float):
         """
@@ -413,4 +418,3 @@ class Rotation(_Transform):
         rotation_matrix = cv2.getRotationMatrix2D(center, self.degrees, 1.0)
         return cv2.warpAffine(image, rotation_matrix, (w, h), 
                               borderMode=cv2.BORDER_REFLECT)  
-    

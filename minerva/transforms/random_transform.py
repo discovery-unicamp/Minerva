@@ -94,35 +94,26 @@ class RandomFlip(_RandomSyncedTransform):
                 return Flip(axis=chosen_axis)
 
         return EmptyTransform() 
-    
 
-# # TODO
-# class RandomCrop(_RandomSyncedTransform):
-#     def __init__(
-#         self,
-#         num_samples: int,
-#         crop_size: Tuple[int, int],
-#         seed: Optional[int] = None,
-#         pad_mode: str = 'reflect'
-#     ):
-#         super().__init__(num_samples, seed)
-#         self.crop_size = crop_size
-#         self.pad_mode = pad_mode
 
-#     def select_transform(self):
-        
-#         # h, w = image.shape[:2]
-#         crop_h, crop_w = self.crop_size
+class RandomCrop(_RandomSyncedTransform):
+    def __init__(
+        self,
+        num_samples: int,
+        crop_size: Tuple[int, int],
+        seed: Optional[int] = None,
+        pad_mode: str = 'reflect'
+    ):
+        super().__init__(num_samples, seed)
+        self.crop_size = crop_size
+        self.pad_mode = pad_mode
 
-#         # Select random top-left coordinates for the crop
-#         max_x = h - crop_h
-#         max_y = w - crop_w
-#         x = self.rng.integers(0, max_x + 1)
-#         y = self.rng.integers(0, max_y + 1)
+    def select_transform(self):
+        X = self.rng.random()
+        Y = self.rng.random()
+        return Crop(output_size=self.crop_size, pad_mode=self.pad_mode, coords=(X, Y))
 
-#         return Crop(output_size=self.crop_size, pad_mode=self.pad_mode, coords=(x, y))
-    
-    
+
 class RandomGrayScale(_RandomSyncedTransform):
     def __init__(
         self,
@@ -143,7 +134,7 @@ class RandomGrayScale(_RandomSyncedTransform):
 
         else:
             return EmptyTransform()
-        
+
 
 class RandomSolarize(_RandomSyncedTransform):
     def __init__(
@@ -165,7 +156,7 @@ class RandomSolarize(_RandomSyncedTransform):
         
         else:
             return EmptyTransform()
-    
+
 
 class RandomRotation(_RandomSyncedTransform):
     def __init__(
