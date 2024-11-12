@@ -3,15 +3,17 @@ from torch.utils.data import Dataset
 from minerva.transforms.transform import _Transform
 
 
-class ContrastiveDataset(Dataset):
-    """Dataset for generating contrastive samples by applying multiple
-    transformation pipelines to each entry.
+class MultiViewsDataset(Dataset):
+    """Dataset for generating multiple views of each sample using specified
+    transformation pipelines.
 
     This dataset wraps another dataset, applying a sequence of transformations
-    to each sample to create augmented versions used for contrastive learning.
-    For each sample in the original dataset, a tuple of transformed samples is
-    returned, where each element in the tuple is the result of one transformation
-    pipeline.
+    to each sample to create multiple augmented versions. For each sample in
+    the original dataset, a tuple of transformed samples is returned, where each
+    element in the tuple is the result of one transformation pipeline.
+
+    This class is useful in scenarios where multiple perspectives of the same data
+    are needed, such as contrastive learning or general data augmentation.
 
     The __getitem__ pipeline is as follows:
 
@@ -27,7 +29,7 @@ class ContrastiveDataset(Dataset):
         dataset: Dataset,
         transform_pipelines: Sequence[_Transform],
     ):
-        """Initialize the contrastive dataset with a base dataset and transformations.
+        """Initialize the multi-views dataset with a base dataset and transformations.
 
         Parameters
         ----------
@@ -36,27 +38,25 @@ class ContrastiveDataset(Dataset):
         transform_pipelines : Sequence[_Transform]
             A sequence of transformations to apply to each sample. Each
             transformation pipeline generates a different view of the same data
-            sample, intended for contrastive learning. 
-            - Each transform in the sequence will be applied to each sample 
+            sample, enabling multiple perspectives on the data.
+            - Each transform in the sequence will be applied to each sample
               in `dataset`, producing multiple transformed versions of that sample.
-        
+
         Examples
         --------
         ```python
-        from minerva.data.datasets import ContrastiveDataset
-        from minerva.transforms import RandomCrop, RandomColorJitter
+        from minerva.data.datasets import MultiViewsDataset
+        from minerva.transforms.transform import Transpose, PerlinMasker
         from torchvision.datasets import CIFAR10
 
         # Load a dataset
         base_dataset = CIFAR10(root="path/to/data", download=True)
 
         # Define transformation pipelines
-        transform1 = RandomCrop(32, padding=4)
-        transform2 = RandomColorJitter(brightness=0.5, contrast=0.5, saturation=0.5)
-        transforms = [transform1, transform2]
+        transforms = [Transpose(2), PerlinMasker(3)]
 
         # Create the contrastive dataset
-        contrastive_dataset = ContrastiveDataset(base_dataset, transforms)
+        contrastive_dataset = MultiViewsDataset(base_dataset, transforms)
         
         # Each __getitem__ call returns a tuple of transformed images
         sample_views = contrastive_dataset[0]  # Returns (view1, view2)
