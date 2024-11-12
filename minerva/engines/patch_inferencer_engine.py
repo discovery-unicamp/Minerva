@@ -321,7 +321,7 @@ class PatchInferencerEngine(_Engine):
             tuple(
                 [
                     slice(i, None)  # TODO: if ((i + base >= 0) and (i < in_dim))
-                    for i, base, in_dim in zip([0, *offset], base, x.shape)
+                    for i, in_dim in zip([0, *offset], x.shape)
                 ]
             )
             for offset in offsets
