@@ -1,5 +1,5 @@
 from .base import SimpleDataset
 from .supervised_dataset import SupervisedReconstructionDataset
-from .multiviews_dataset import MultiViewsDataset
+from .multiview_dataset import MultiViewDataset
 
-__all__ = ["SimpleDataset", "SupervisedReconstructionDataset", "MultiViewsDataset"]
+__all__ = ["SimpleDataset", "SupervisedReconstructionDataset", "MultiViewDataset"]
