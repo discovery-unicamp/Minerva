@@ -341,7 +341,7 @@ class Crop(_Transform):
         h, w = image.shape[:2]
 
         x = (h - new_h) * X
-        y = (y - new_w) * Y
+        y = (w - new_w) * Y
 
         return image[x:x + new_h, y:y + new_w]  
 
