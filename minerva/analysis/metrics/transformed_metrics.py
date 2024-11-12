@@ -177,5 +177,5 @@ class ResizedMetric(Metric):
             elif self.target_w_size is None:
                 scale = target_h_size / h
                 target_w_size = int(w * scale)
-        x = x.to(torch.uint8) if x.type() != "torch.uint8" else x
+        x = x.to(torch.uint8) if x.type() == "torch.LongTensor" else x
         return torch.nn.functional.interpolate(x, size=(target_h_size, target_w_size))
