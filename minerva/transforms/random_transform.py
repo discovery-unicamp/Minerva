@@ -1,8 +1,8 @@
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Tuple
 
 import numpy as np
 
-from minerva.transforms.transform import Flip, _Transform
+from minerva.transforms.transform import Flip, _Transform, Crop, GrayScale, Solarize, Rotation
 
 
 class EmptyTransform(_Transform):
@@ -93,4 +93,88 @@ class RandomFlip(_RandomSyncedTransform):
                 ]
                 return Flip(axis=chosen_axis)
 
-        return EmptyTransform()
+        return EmptyTransform() 
+
+
+class RandomCrop(_RandomSyncedTransform):
+    def __init__(
+        self,
+        num_samples: int,
+        crop_size: Tuple[int, int],
+        seed: Optional[int] = None,
+        pad_mode: str = 'reflect'
+    ):
+        super().__init__(num_samples, seed)
+        self.crop_size = crop_size
+        self.pad_mode = pad_mode
+
+    def select_transform(self):
+        X = self.rng.random()
+        Y = self.rng.random()
+        return Crop(output_size=self.crop_size, pad_mode=self.pad_mode, coords=(X, Y))
+
+
+class RandomGrayScale(_RandomSyncedTransform):
+    def __init__(
+        self,
+        num_samples: int,
+        seed: Optional[int] = None,
+        prob: float = 0.1,
+        gray: float = 1.0,
+        ):  
+        
+        super().__init__(num_samples, seed)
+        self.gray = gray
+        self.prob = prob
+        
+    def select_transform(self):
+        
+        if self.rng.random() < self.prob:
+            return GrayScale(gray=self.gray)
+
+        else:
+            return EmptyTransform()
+
+
+class RandomSolarize(_RandomSyncedTransform):
+    def __init__(
+        self,
+        num_samples: int,
+        seed: Optional[int] = None,
+        threshold: int = 128,
+        prob: float = 1.0,
+    ):
+        
+        super().__init__(num_samples, seed)
+        self.threshold = threshold
+        self.prob = prob
+        
+    def select_transform(self):
+        
+        if self.rng.random() < self.prob:
+            return Solarize(self.threshold)
+        
+        else:
+            return EmptyTransform()
+
+
+class RandomRotation(_RandomSyncedTransform):
+    def __init__(
+        self,
+        degrees: float,
+        prob: float,
+        num_samples: int,
+        seed: Optional[int] = None,
+    ):
+    
+        super().__init__(num_samples, seed)
+        self.prob = prob
+        self.degrees = degrees
+    
+    def select_transform(self):
+        
+        if self.rng.random() < self.prob:
+            degrees = self.rng.uniform(-self.degrees, self.degrees)
+            return Rotation(degrees = degrees)
+        else:
+            return EmptyTransform()

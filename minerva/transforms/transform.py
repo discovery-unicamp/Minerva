@@ -1,6 +1,6 @@
 from itertools import product
-from typing import Any, List, Sequence, Union
-
+from typing import Any, List, Sequence, Union, Tuple
+import cv2
 import numpy as np
 import torch
 from perlin_noise import PerlinNoise
@@ -79,7 +79,7 @@ class Flip(_Transform):
             x = np.flip(x, axis=axis)
 
         return x
-
+    
 
 class PerlinMasker(_Transform):
     """Zeroes entries of a tensor according to the sign of Perlin noise. Seed for the noise generator given by torch.randint"""
@@ -208,9 +208,9 @@ class Padding(_Transform):
 
         padded = np.transpose(padded, (2, 0, 1))
         return padded
-    
-    
-class Gradient:
+
+
+class Gradient(_Transform):
     def __init__(self, direction: int):
         
         '''
@@ -251,4 +251,170 @@ class Gradient:
             f"Output shape {output.shape} does not match expected shape {(shape[0], shape[1], x_expanded.shape[0] + 1)}"
         
         return output
-    
+
+
+class ColorJitter(_Transform):
+    def __init__(self, brightness: float = 1.0, contrast: float = 1.0, saturation: float = 1.0, hue: float = 0.0):
+        """
+        Applies fixed adjustments to brightness, contrast, saturation, and hue to an input image.
+
+        Parameters
+        ----------
+        brightness : float, optional
+            Fixed factor for brightness adjustment. A value of 1.0 means no change. Defaults to 1.0.
+        contrast : float, optional
+            Fixed factor for contrast adjustment. A value of 1.0 means no change. Defaults to 1.0.
+        saturation : float, optional
+            Fixed factor for saturation adjustment. A value of 1.0 means no change. Defaults to 1.0.
+        hue : float, optional
+            Fixed degree shift for hue adjustment, in the range [-180, 180]. Defaults to 0.0.
+
+        Returns
+        -------
+        np.ndarray
+            The transformed image with fixed brightness, contrast, saturation, and hue adjustments applied.
+        """
+        self.brightness = brightness
+        self.contrast = contrast
+        self.saturation = saturation
+        self.hue = hue
+
+    def __call__(self, image: np.ndarray) -> np.ndarray:
+        # Convert to HSV for hue/saturation adjustment
+        image = cv2.cvtColor(image, cv2.COLOR_RGB2HSV).astype(np.float32)
+        
+        # Brightness adjustment
+        image[..., 2] = np.clip(image[..., 2] * self.brightness, 0, 255)
+
+        # Saturation adjustment
+        image[..., 1] = np.clip(image[..., 1] * self.saturation, 0, 255)
+
+        # Contrast adjustment
+        mean = image[..., 2].mean()
+        image[..., 2] = np.clip((image[..., 2] - mean) * self.contrast + mean, 0, 255)
+
+        # Hue adjustment
+        image[..., 0] = (image[..., 0] + self.hue) % 180
+        
+        return cv2.cvtColor(image.astype(np.uint8), cv2.COLOR_HSV2RGB)
+
+
+class Crop(_Transform):
+    def __init__(self, output_size: Tuple[int, int], pad_mode: str = 'reflect', coords: Tuple[float, float] = (0, 0)):
+        """
+        Crops the input image to a specified output size, with optional padding if needed.
+
+        Parameters
+        ----------
+        output_size : Tuple[int, int]
+            Desired output size as (height, width).
+        pad_mode : str, optional
+            Padding mode used if output size is larger than input size. Defaults to 'reflect'.
+        coords : Tuple[int, int], optional
+            Top-left coordinates for the crop box.
+            Values must go from 0 to 1 indicating the relative position on where the
+            new top-left corner can be set, taking in consideration the new size 
+
+        Returns
+        -------
+        np.ndarray
+            Cropped image, padded as necessary.
+        """
+        self.output_size = output_size
+        self.pad_mode = pad_mode
+        self.coords = coords
+
+    def __call__(self, image: np.ndarray) -> np.ndarray:
+        X, Y = self.coords
+        h, w = image.shape[:2]
+        new_h, new_w = self.output_size
+
+        # Apply padding if output size is larger than input size
+        if new_h > h or new_w > w:
+            pad_h = max(new_h - h, 0)
+            pad_w = max(new_w - w, 0)
+            image = np.pad(image, ((pad_h // 2, pad_h - pad_h // 2), 
+                                    (pad_w // 2, pad_w - pad_w // 2), 
+                                    (0, 0)), mode=self.pad_mode)
+
+        # Update dimensions after padding
+        h, w = image.shape[:2]
+
+        x = (h - new_h) * X
+        y = (w - new_w) * Y
+
+        return image[x:x + new_h, y:y + new_w]  
+
+
+class GrayScale(_Transform):
+    def __init__(self, gray: float = 0.0):
+        """
+        Converts an image to grayscale with a specified gray value.
+
+        Parameters
+        ----------
+        gray : float, optional
+            Gray value to use when converting the image. Defaults to 0.0.
+
+        Returns
+        -------
+        np.ndarray
+            Grayscale image in RGB format with all channels set to `gray`.
+        """
+        self.gray = gray
+
+    def __call__(self, image: np.ndarray) -> np.ndarray:
+        return np.stack([self.gray] * 3, axis=-1)  # Convert grayscale to RGB format   
+
+
+class Solarize(_Transform):
+    def __init__(self, threshold: int = 128):
+        """
+        Solarizes the image by inverting pixel values above a specified threshold.
+
+        Parameters
+        ----------
+        threshold : int, optional
+            Intensity threshold for inversion, default is 128.
+
+        Returns
+        -------
+        np.ndarray
+            Solarized image with inverted pixel values above threshold.
+        """
+        self.threshold = threshold
+
+    def __call__(self, image: np.ndarray) -> np.ndarray:
+        if len(image.shape) == 3:  # Color image
+            channels = cv2.split(image)
+            solarized_channels = [np.where(channel < self.threshold, channel, 255 - channel) for channel in channels]
+            solarized_image = cv2.merge(solarized_channels)
+        else:  # Grayscale image
+            solarized_image = np.where(image < self.threshold, image, 255 - image)
+        
+        return solarized_image  
+
+
+class Rotation(_Transform):
+    def __init__(self, degrees: float):
+        """
+        Rotates the image by a specified angle.
+
+        Parameters
+        ----------
+        degrees : float
+            Angle in degrees to rotate the image.
+
+        Returns
+        -------
+        np.ndarray
+            Rotated image with reflection padding.
+        """
+        self.degrees = degrees
+
+    def __call__(self, image: np.ndarray) -> np.ndarray:
+        h, w = image.shape[:2]
+        center = (w // 2, h // 2)
+        rotation_matrix = cv2.getRotationMatrix2D(center, self.degrees, 1.0)
+        return cv2.warpAffine(image, rotation_matrix, (w, h), 
+                              borderMode=cv2.BORDER_REFLECT)  
