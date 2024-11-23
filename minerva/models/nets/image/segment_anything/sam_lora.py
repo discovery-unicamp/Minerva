@@ -8,12 +8,14 @@ import torch.nn as nn
 import torchmetrics
 from torchmetrics import Metric
 
+from torch.nn.modules.loss import CrossEntropyLoss
+
 from scipy.ndimage.interpolation import zoom
 # from einops import repeat
 import gc
 
 from . import sam_model_registry
-from .util import DiceLoss
+from .util import DiceLoss, Focal_loss
 
 class LoRA(nn.Module):
     def __init__(self, original_module, bias=True, alpha=1, r=1):
@@ -47,7 +49,7 @@ class SAMLoRA(L.LightningModule):
                  frozen_prompt_encoder: bool = True,
                  frozen_mask_decoder: bool = True,
                  vit_model: str = "vit_b",
-                 checkpoint: str = "../checkpoints_sam/sam_vit_b_01ec64.pth",
+                 checkpoint = None,# str = "../checkpoints_sam/sam_vit_b_01ec64.pth",
                 #  loss_fn: Optional[nn.Module] = None,
                  train_metrics: Optional[Dict[str, Metric]] = None,
                  val_metrics: Optional[Dict[str, Metric]] = None,
@@ -61,8 +63,17 @@ class SAMLoRA(L.LightningModule):
         self.image_size = image_size
 
         # loss functions usadas
-        self.ce_loss = nn.modules.loss.CrossEntropyLoss()
+        # class_weight = torch.tensor([0.0456399, 0.1064931, 0.02634881, 0.1825596, 0.4259724, 0.2129862]).to(self.device, dtype=torch.float) # pesos (frequencia inversa das classes): do gabriel
+        # minha frequencia coletada
+        class_counts = torch.tensor([152539984, 63299037, 256085255, 37363084, 17793353, 6644487], dtype=torch.float)
+        # Frequência inversa
+        class_weights = 1.0 / class_counts # notou-se que aplicar assim fica melhor
+        # Normalizar os pesos para evitar valores muito extremos
+        # normalized_weights = class_weights / class_weights.sum() # notou-se que aplicar isso fica levemente ruim
+
+        self.ce_loss = CrossEntropyLoss(weight=class_weights.to(self.device)) # weight=class_weights.to(self.device)
         self.dice_loss = DiceLoss(num_classes + 1)
+        self.focal_loss = Focal_loss(num_classes=num_classes + 1)
 
         self.train_metrics = train_metrics or self._init_metrics()
         self.val_metrics = val_metrics or self._init_metrics()
@@ -102,6 +113,7 @@ class SAMLoRA(L.LightningModule):
             'mean_class_accuracy': torchmetrics.Accuracy(task="multiclass", num_classes=6, average='macro'),
             'dice_score': torchmetrics.Dice(num_classes=6),
             'mIoU': torchmetrics.JaccardIndex(task="multiclass", num_classes=6),
+            # 'iou_per_class': torchmetrics.JaccardIndex(task="multiclass", num_classes=6, average=None),
         }
     
     # TODO: segundo o paper do LoRA, é suficiente aplicar só em uma das matrizes Q, K ou V, separadamente (testar isso)
@@ -127,9 +139,12 @@ class SAMLoRA(L.LightningModule):
     def calc_loss(self, outputs, low_res_label_batch, dice_weight:float=0.8):
         low_res_logits = outputs['low_res_logits']
         loss_ce = self.ce_loss(low_res_logits, low_res_label_batch[:].long())
+        loss_focal = self.focal_loss(low_res_logits, low_res_label_batch)
         loss_dice = self.dice_loss(low_res_logits, low_res_label_batch, softmax=True)
+        
         loss = (1 - dice_weight) * loss_ce + dice_weight * loss_dice
-        return loss, loss_ce, loss_dice
+        # loss = (1 - dice_weight) * (0.5*loss_ce + 0.5*loss_focal) + dice_weight * loss_dice
+        return loss, loss_ce, loss_dice, loss_focal
     
     def make_low_res_label(self, label, low_res=[32 * 4, 32 * 4], output_size=[512, 512]):
         # device = label.device
@@ -137,6 +152,9 @@ class SAMLoRA(L.LightningModule):
 
         # Mova o tensor para a CPU e converta-o em um array do NumPy antes de aplicar o zoom
         label = label.cpu().numpy()
+
+        # if label_h != output_size[0] or label_w != output_size[1]:
+        #     label = zoom(label, (output_size[0] / label_h, output_size[1] / label_w), order=0)
         low_res_label_np = zoom(label, (1, low_res[0] / label_h, low_res[1] / label_w), order=0)
 
         # Converta de volta para tensor e mova para o dispositivo original
@@ -147,12 +165,13 @@ class SAMLoRA(L.LightningModule):
         low_res = self.img_embedding_size * 4
 
         image_batch, label_batch = batch[0], batch[1]
-        label_batch = label_batch #.squeeze(1)  # Remove a dimensão extra
+        # label_batch = label_batch #.squeeze(1)  # Remove a dimensão extra
         low_res_label_batch = self.make_low_res_label(label=label_batch, low_res=[low_res, low_res]) # batch["low_res_label"]
+        # debug
         # print('-'*20)
-        # print(image_batch.shape)
-        # print(label_batch.shape)
-        # print(low_res_label_batch.shape)
+        # print(type(image_batch), image_batch.shape) # tem que ser (B C H W)
+        # print(type(label_batch), label_batch.shape) # tem que ser (B H W)
+        # print(low_res_label_batch.shape) # tem que ser (B low_resolution low_resolution)
         # print('-'*20)
 
         # assert image_batch.max() <= 3, f'image_batch max: {image_batch.max()}'
@@ -161,7 +180,7 @@ class SAMLoRA(L.LightningModule):
         # print("outputs: ", outputs)
         # print("low_res_label_batch: ", low_res_label_batch)
 
-        loss, loss_ce, loss_dice = self.calc_loss(outputs, low_res_label_batch)
+        loss, loss_ce, loss_dice, loss_focal = self.calc_loss(outputs, low_res_label_batch)
         
         # Convert logits to probabilities for metrics
         probs = torch.softmax(outputs['masks'], dim=1)
