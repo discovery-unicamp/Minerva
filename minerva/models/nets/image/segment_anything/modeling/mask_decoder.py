@@ -100,6 +100,7 @@ class MaskDecoder(nn.Module):
         )
 
         # Select the correct mask or masks for output
+        # TODO comentar esse trecho para segmentacoes automaticas (sem prompt). trocar o tipo multimask_output para string com opcoes 0(ignora o codigo abaixo), 1(é true) e 2(é false).
         # if multimask_output:
         #     mask_slice = slice(1, None)
         # else:
