@@ -1,5 +1,7 @@
 import torch
 import torch.nn as nn
+from typing import Literal, Optional
+from minerva.models.nets.base import SimpleSupervisedModel
 
 
 class ResNetBlock(nn.Module):
@@ -63,7 +65,7 @@ class ResNetBlock(nn.Module):
         return x
 
 
-class ResNet(nn.Module):
+class _ResNet(nn.Module):
     def __init__(self, layer_sizes, image_channels, num_classes):
         super(ResNet, self).__init__()
         self.in_channels = 64
@@ -131,14 +133,24 @@ class ResNet(nn.Module):
 
         return x
 
+class ResNet(SimpleSupervisedModel):
+    def __init__(
+        self,
+        type: Literal["50", "101", "152"] = "50",
+        img_channel=3, 
+        num_classes=1000,
+        learning_rate: float = 1e-3,
+        loss_fn: Optional[torch.nn.Module] = None,
+        **kwargs,
+    ):
+        resnet_type = { "50": [3, 4, 23, 3], "101": [3, 4, 23, 3], "152": [3, 8, 36, 3] } 
+        backbone = _ResNet(layer_sizes=resnet_type[type], image_channels=img_channel, num_classes=num_classes)
 
-def ResNet50(img_channel=3, num_classes=1000):
-    return ResNet([3, 4, 6, 3], img_channel, num_classes)
-
-
-def ResNet101(img_channel=3, num_classes=1000):
-    return ResNet([3, 4, 23, 3], img_channel, num_classes)
-
-
-def ResNet152(img_channel=3, num_classes=1000):
-    return ResNet([3, 8, 36, 3], img_channel, num_classes)
+        super().__init__(
+            backbone=backbone,
+            fc=torch.nn.Identity(),
+            loss_fn=loss_fn or torch.nn.MSELoss(),
+            learning_rate=learning_rate,
+            flatten=False,
+            **kwargs,
+        )
