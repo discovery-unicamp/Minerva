@@ -31,6 +31,8 @@ class RandomDataModule(L.LightningDataModule):
         num_test_samples: int = 8,
         num_predict_samples: int = 8,
         batch_size: int = 8,
+        data_dtype: torch.dtype = torch.float32,
+        label_dtype: torch.dtype = torch.long,
     ):
         super().__init__()
         self.data_shape = data_shape
@@ -41,6 +43,8 @@ class RandomDataModule(L.LightningDataModule):
         self.num_test_samples = num_test_samples
         self.num_predict_samples = num_predict_samples
         self.batch_size = batch_size
+        self.data_dtype = data_dtype
+        self.label_dtype = label_dtype
 
         self.train_data = None
         self.val_data = None
@@ -59,17 +63,19 @@ class RandomDataModule(L.LightningDataModule):
         else:
             delattr(self, "test_dataloader")
 
-        # label_shape and num_classes are mutually exclusive
-        if label_shape is not None and num_classes is not None:
-            raise ValueError("label_shape and num_classes are mutually exclusive")
 
     def _generate_data(self, num_samples, data_shape, label_shape, num_classes):
-        data = torch.rand((num_samples, *data_shape))
+        data = torch.rand((num_samples, *data_shape), dtype=self.data_dtype)
         label = None
-        if label_shape is not None:
+        if label_shape is not None and num_classes is not None:
+            label = torch.randint(0, num_classes, (num_samples, *label_shape))
+        elif label_shape is not None:
             label = torch.rand((num_samples, *label_shape))
         elif num_classes is not None:
             label = torch.randint(0, num_classes, (num_samples,))
+            
+        label = label.to(dtype=self.label_dtype)
+        
         return data, label
 
     def setup(self, stage):
@@ -125,7 +131,7 @@ class RandomDataModule(L.LightningDataModule):
         return DataLoader(self.predict_data, batch_size=self.batch_size, shuffle=False)
 
 
-def get_split_dataloader(stage: str, data_module: L.LightningDataModule) -> DataLoader:
+def get_split_dataloader(data_module: L.LightningDataModule, stage: str) -> DataLoader:
     if stage == "train":
         data_module.setup("fit")
         return data_module.train_dataloader()
@@ -152,5 +158,5 @@ def get_full_data_split(
     data_module: L.LightningDataModule,
     stage: str,
 ):
-    dataloader = get_split_dataloader(stage, data_module)
+    dataloader = get_split_dataloader(data_module, stage)
     return full_dataset_from_dataloader(dataloader)
