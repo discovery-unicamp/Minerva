@@ -8,7 +8,7 @@ import pandas as pd
 
 import torch
 
-from minerva.utils.data import get_full_data_split
+from minerva.data.data_module_tools import get_full_data_split
 from minerva.utils.typing import PathLike
 
 

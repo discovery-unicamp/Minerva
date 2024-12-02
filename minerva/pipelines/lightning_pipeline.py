@@ -8,7 +8,7 @@ import yaml
 from torchmetrics import Metric
 
 from minerva.pipelines.base import Pipeline
-from minerva.utils.data import get_full_data_split, get_split_dataloader
+from minerva.data.data_module_tools import get_full_data_split, get_split_dataloader
 from minerva.utils.typing import PathLike
 from minerva.analysis.model_analysis import ModelAnalysis
 
