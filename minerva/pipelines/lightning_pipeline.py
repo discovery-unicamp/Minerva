@@ -1,15 +1,29 @@
 from collections import defaultdict
-from pathlib import Path
-from typing import Any, Dict, Iterable, List, Literal, Optional
+from typing import Any, Dict, Literal, Optional
 
 import lightning as L
+
 import torch
 import yaml
 from torchmetrics import Metric
 
 from minerva.pipelines.base import Pipeline
-from minerva.utils.data import get_full_data_split
+from minerva.utils.data import get_full_data_split, get_split_dataloader
 from minerva.utils.typing import PathLike
+from minerva.analysis.model_analysis import ModelAnalysis
+
+
+def predict_batch(classification_metrics, regression_metrics):
+    def predict_batch_fn(self, batch, batch_idx, dataloader_idx):
+        X, y = batch
+        y_hat = self.forward(X)
+        
+        if classification_metrics is not None:
+            y_hat = torch.argmax(y_hat, dim=1)       
+        
+        return y_hat, y
+
+    return predict_batch_fn
 
 
 class SimpleLightningPipeline(Pipeline):
@@ -22,11 +36,13 @@ class SimpleLightningPipeline(Pipeline):
         self,
         model: L.LightningModule,
         trainer: L.Trainer,
-        log_dir: PathLike = None,
+        log_dir: Optional[PathLike] = None,
         save_run_status: bool = True,
-        classification_metrics: Dict[str, Metric] = None,
-        regression_metrics: Dict[str, Metric] = None,
+        classification_metrics: Optional[Dict[str, Metric]] = None,
+        regression_metrics: Optional[Dict[str, Metric]] = None,
+        model_analysis: Optional[Dict[str, ModelAnalysis]] = None,
         apply_metrics_per_sample: bool = False,
+        seed: Optional[int] = None,
     ):
         """Train/test/predict/evaluate a Pytorch Lightning model.
 
@@ -70,12 +86,20 @@ class SimpleLightningPipeline(Pipeline):
             able to receive two tensors (y_true, y_pred) and return a tensor
             with the metric value. If None, no regression metrics will be
             calculated. By default None.
+        model_analysis: Dict[str, ModelAnalysis], optional
+            The model analysis to be performed after the model is trained. This
+            dictionary should have the analysis name as key and the
+            `ModelAnalysis`-like object as value. The analysis should be able
+            to receive the model and the data and return a result. If None, no
+            model analysis will be performed. By default None.
         apply_metrics_per_sample : bool, optional
             Apply the metrics per sample. If True, the metrics will be
             calculated for each sample and the results will be a list of
             metrics. If False, the metrics will be calculated for the whole
             dataset and the results will be a single metric (single-element
             list). By default False
+        seed : int, optional
+            The seed to be used in the pipeline. By default None.
         """
         if log_dir is None and trainer.log_dir is not None:
             log_dir = trainer.log_dir
@@ -90,10 +114,12 @@ class SimpleLightningPipeline(Pipeline):
             ],
             cache_result=True,
             save_run_status=save_run_status,
+            seed=seed,
         )
         self._model = model
         self._trainer = trainer
         self._data = None
+        self._model_analysis = model_analysis
         self._classification_metrics = classification_metrics
         self._regression_metrics = regression_metrics
         self._apply_metrics_per_sample = apply_metrics_per_sample
@@ -122,7 +148,7 @@ class SimpleLightningPipeline(Pipeline):
         return self._trainer
 
     @property
-    def data(self) -> L.LightningDataModule:
+    def data(self) -> Optional[L.LightningDataModule]:
         """The LightningDataModule used in the last run of the pipeline.
 
         Returns
@@ -155,13 +181,16 @@ class SimpleLightningPipeline(Pipeline):
             `apply_metrics_per_sample` is False, otherwise it will have a value.
         """
         results = {}
-        if not self._apply_metrics_per_sample:
-            y, y_hat = [y], [y_hat]
+        if self._apply_metrics_per_sample:
+            y, y_hat = y.split(1), y_hat.split(1)
+        else:
+            y, y_hat = y.unsqueeze(0), y_hat.unsqueeze(0)
 
         for metric_name, metric in metrics.items():
-            final_results = [
-                metric(y_i, y_hat_i).float().item() for y_i, y_hat_i in zip(y, y_hat)
-            ]
+            final_results = []
+            for i, (y_i, y_hat_i) in enumerate(zip(y, y_hat)):
+                res = metric(y_i, y_hat_i).float().item()
+                final_results.append(res)
             results[metric_name] = final_results
 
         return results
@@ -219,7 +248,7 @@ class SimpleLightningPipeline(Pipeline):
         """
         return self._trainer.predict(
             model=self._model, datamodule=data, ckpt_path=ckpt_path
-        )
+        ) # type: ignore
 
     def _evaluate(
         self,
@@ -244,36 +273,57 @@ class SimpleLightningPipeline(Pipeline):
         """
         metrics = defaultdict(dict)
 
-        X, y = get_full_data_split(data, "predict")
+        # Get the predictions and targets
+        _, y = get_full_data_split(data, "predict")
         y = torch.tensor(y, device="cpu")
-
         y_hat = self.trainer.predict(self._model, datamodule=data, ckpt_path=ckpt_path)
-        y_hat = torch.cat(y_hat).detach().cpu()
+        y_hat = torch.cat(y_hat).detach().cpu() # type: ignore
+        
+        # Check if the shapes are the same
+        if len(y_hat) != len(y):
+            # print(f"Shapes are different: y_hat shape: {y_hat.shape}; y shape: {y.shape}. Truncating y")
+            # y = y[:y_hat.shape[0]]
+            raise ValueError(f"Shapes are different: y_hat shape: {y_hat.shape}; y shape: {y.shape}. Is `limit_predict_batches` set?")
 
+
+        # Argmax and calculate metrics
         if self._classification_metrics is not None:
-            y_hat = torch.argmax(y_hat, dim=1)
+            print(f"Running classification metrics...")
+            y_hat = torch.argmax(y_hat, dim=1)           
             metrics["classification"] = self._calculate_metrics(
                 self._classification_metrics, y_hat, y
             )
 
-        if self._regression_metrics is not None:
-            print(y.shape, y_hat.shape)
-
+        # Just calculate metrics (without argmax)
+        elif self._regression_metrics is not None:
+            print(f"Running regression metrics...")
             metrics["regression"] = self._calculate_metrics(
                 self._regression_metrics, y_hat, y
             )
+            
+        else:
+            pass
 
+        # Run model analysis
+        if self._model_analysis is not None:
+            print(f"Running model analysis...")
+            metrics["analysis"] = {}
+            for analysis_name, analysis in self._model_analysis.items():
+                analysis.path = self._log_dir
+                metrics["analysis"][analysis_name] = analysis.compute(self._model, data)
+
+        # Save metrics
         metrics = dict(metrics)
 
+        # Save metrics to a YAML file
         if self._save_pipeline_info:
             yaml_path = self._log_dir / f"metrics_{self.pipeline_id}.yaml"
             with open(yaml_path, "w") as f:
                 yaml.dump(metrics, f)
                 print(f"Metrics saved to {yaml_path}")
-
-        print(metrics)
+        
         return metrics
-
+    
     # Default run method (entry point)
     def _run(
         self,
@@ -319,12 +369,12 @@ class SimpleLightningPipeline(Pipeline):
             raise ValueError(f"Unknown task: {task}")
 
 
-def main():
+def cli_main():
     from jsonargparse import CLI
 
-    CLI(SimpleLightningPipeline, as_positional=False)
+    CLI(SimpleLightningPipeline, as_positional=False) #, parser_mode="omegaconf")
     print("✨ 🍰 ✨")
 
 
 if __name__ == "__main__":
-    main()
+    cli_main()
