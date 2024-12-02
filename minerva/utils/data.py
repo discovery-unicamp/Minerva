@@ -32,7 +32,7 @@ class RandomDataModule(L.LightningDataModule):
         num_predict_samples: int = 8,
         batch_size: int = 8,
         data_dtype: torch.dtype = torch.float32,
-        label_dtype: torch.dtype = torch.long,
+        label_dtype: torch.dtype = torch.float32,
     ):
         super().__init__()
         self.data_shape = data_shape
