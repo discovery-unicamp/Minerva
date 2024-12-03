@@ -1,0 +1,141 @@
+import random
+from typing import List, Optional
+from torch.utils.data.sampler import Sampler
+from torch.utils.data import Dataset
+from dataclasses import dataclass
+
+
+class RandomDomainSampler(Sampler):
+    def __init__(
+        self,
+        dataset: Dataset,
+        domain_labels: List[int],
+        batch_size: int = 1,
+        n_domains_per_sample: int = 2,
+        shuffle: bool = True,
+        consistent_iterating: bool = False,
+    ):
+        self.dataset = dataset
+        self.domain_labels = domain_labels
+        self.batch_size = batch_size
+        self.shuffle = shuffle
+        self.consistent_iterating = consistent_iterating
+        self.domains = set(domain_labels)
+        self.min_batches = min(
+            len([l for l in domain_labels if l == d]) // batch_size
+            for d in self.domains
+        )
+        self.n_domains_per_sample = n_domains_per_sample
+        assert self.min_batches > 0, "Not enough samples for a batch"
+
+        self.cached = None
+        self.seed = random.random()
+        self.rng = random.Random(self.seed)
+
+    def __len__(self):
+        return (
+            self.min_batches * len(self.domains)
+        ) // self.n_domains_per_sample
+
+    def _select_samples(self):
+        indices = {}
+        for d in self.domains:
+            idxs = [i for i, l in enumerate(self.domain_labels) if l == d]
+            if self.shuffle:
+                random.shuffle(idxs)
+            idxs = idxs[: self.min_batches * self.batch_size]
+            indices[d] = idxs
+        return indices
+
+    def __iter__(self):
+        if self.consistent_iterating:
+            if self.cached is None:
+
+                self.cached = self._select_samples()
+            indices = self.cached.copy()
+        else:
+            indices = self._select_samples()
+
+        batches = []
+        if self.consistent_iterating:
+            rng = random.Random(self.seed)
+        else:
+            rng = self.rng
+
+        while True:
+            batch = []
+            for i in range(self.n_domains_per_sample):
+                if len(indices) == 0:
+                    break
+
+                selected_domain = rng.choice(list(indices.keys()))
+                idxs = indices[selected_domain]
+
+                selected_indices = idxs[: self.batch_size]
+                batch += selected_indices
+
+                idxs = idxs[self.batch_size :]
+                if len(idxs) < self.batch_size:
+                    del indices[selected_domain]
+                else:
+                    indices[selected_domain] = idxs
+
+            if len(batch) != self.batch_size * self.n_domains_per_sample:
+                break
+
+            batches.append(batch)
+        yield from batches
+
+
+# import torch
+# from torch.utils.data import Dataset, DataLoader
+
+
+# class DummyDataset(Dataset):
+#     def __init__(self, num_samples: int):
+#         # Create 40 samples with data as integers 0 to 39
+#         self.data = list(range(num_samples))
+
+#     def __len__(self):
+#         return len(self.data)
+
+#     def __getitem__(self, idx):
+#         return self.data[idx]
+
+
+# def main():
+#     # Set up the dataset and domain labels
+#     num_samples = 2020
+#     batch_size = 2  # Must be even for balanced sampling
+
+#     # Create a dummy dataset with 40 samples
+#     dataset = DummyDataset(num_samples)
+
+#     # Assign domain labels cyclically: [0, 1, 2, 3, 0, 1, ...]
+#     domain_labels = [0] * 10 + [1] * 10 + [2] * 1000 + [3] * 1000
+
+#     # Instantiate the RandomDomainSampler
+#     sampler = RandomDomainSampler(
+#         dataset,
+#         domain_labels,
+#         batch_size=batch_size,
+#         consistent_iterating=False,
+#     )
+#     print(f"Sampler length: {len(sampler)}")
+
+#     # Create a DataLoader using the custom sampler
+#     dataloader = DataLoader(dataset, batch_sampler=sampler)
+
+#     # Iterate over batches and print them
+#     for batch_idx, batch in enumerate(dataloader):
+#         print(f"Batch {batch_idx + 1}: {batch}")
+
+#     print("-" * 80)
+
+#     # Iterate over batches and print them
+#     for batch_idx, batch in enumerate(dataloader):
+#         print(f"Batch {batch_idx + 1}: {batch}")
+
+
+# if __name__ == "__main__":
+#     main()
