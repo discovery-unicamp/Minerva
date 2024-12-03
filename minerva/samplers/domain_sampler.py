@@ -15,6 +15,30 @@ class RandomDomainSampler(Sampler):
         shuffle: bool = True,
         consistent_iterating: bool = False,
     ):
+        """Sample data from multiple domains in a balanced way. If domains have
+        different number of samples, the number of samples will be the minimum
+        number of samples for each domain.
+
+        Parameters
+        ----------
+        dataset : Dataset
+            The dataset to sample from.
+        domain_labels : List[int]
+            The domain labels for each sample in the dataset.
+        batch_size : int, optional
+            The number of samples for each domain in a batch, by default 1.
+            The effective batch size will be batch_size * n_domains_per_sample.
+        n_domains_per_sample : int, optional
+            The number of domains to sample from in each batch, by default 2.
+            Note that, the domain labels must have at least n_domains_per_sample
+            distinct domains. 
+        shuffle : bool, optional
+            Shuffle the samples in each domain before sampling, by default True
+        consistent_iterating : bool, optional
+            As each domain may have different number of samples, in different 
+            iterations, the same samples may not be used. If True, the same 
+            samples will be used in every iteration, by default False. 
+        """
         self.dataset = dataset
         self.domain_labels = domain_labels
         self.batch_size = batch_size
