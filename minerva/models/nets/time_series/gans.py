@@ -281,7 +281,7 @@ class PatchEmbedding_Linear(nn.Module):
         )
 
     def forward(self, x: Tensor) -> Tensor:
-        x = x.unsqueeze(dim=2)
+        #x = x.unsqueeze(dim=2)
         b = x.shape[0]
         x = self.projection(x)
 
@@ -306,6 +306,7 @@ class RearrangeLayer(nn.Module):
         self.s1 = s1
 
     def forward(self, x: Tensor) -> Tensor:
+        
         b, c, h_s1, w_s2 = x.shape
         h, s1 = h_s1, self.s1
         w, s2 = w_s2 // self.patch_size, self.patch_size
@@ -445,19 +446,13 @@ class GAN(L.LightningModule):
         gen_z = torch.tensor(
             np.random.normal(0, 1, (len(x), self.latent_dim)), dtype=torch.float
         )
-        gen_imgs = self.gen(gen_z).squeeze()
+        gen_imgs = self.gen(gen_z)
         fake_validity = self.dis(gen_imgs)
         #if not isinstance(fake_validity, list):
         #    fake_validity = [fake_validity]
         g_loss = 0
-        for fake_validity_item in fake_validity:
-            real_label = torch.full(
-                (fake_validity_item.shape[0], fake_validity_item.shape[1]),
-                1.0,
-                dtype=torch.float,
-                device=self.device,
-            )
-            g_loss += self.loss_gen(fake_validity_item, real_label)
+        real_label = torch.full((fake_validity.shape[0],fake_validity.shape[1]), 1., dtype=torch.float, device=self.device)
+        g_loss = nn.MSELoss()(fake_validity, real_label)
 
         return g_loss * self.generator_weight
 
@@ -467,7 +462,7 @@ class GAN(L.LightningModule):
             np.random.normal(0, 1, (len(x), self.latent_dim)), dtype=torch.float
         )
 
-        real_imgs = real_imgs.to(self.device)
+        real_imgs = real_imgs.unsqueeze(dim=2).to(self.device)
         z = z.to(self.device)
 
         real_validity = self.dis(real_imgs)
@@ -482,22 +477,11 @@ class GAN(L.LightningModule):
         #if not isinstance(fake_validity, list):
         #    fake_validity = [fake_validity]
         d_loss = 0
-        for real_validity_item, fake_validity_item in zip(real_validity, fake_validity):
-            real_label = torch.full(
-                (real_validity_item.shape[0], real_validity_item.shape[1]),
-                1.0,
-                dtype=torch.float,
-                device=self.device,
-            )
-            fake_label = torch.full(
-                (real_validity_item.shape[0], real_validity_item.shape[1]),
-                0.0,
-                dtype=torch.float,
-                device=self.device,
-            )
-            d_real_loss = self.loss_dis(real_validity_item, real_label)
-            d_fake_loss = self.loss_dis(fake_validity_item, fake_label)
-            d_loss += d_real_loss + d_fake_loss
+        real_label = torch.full((real_validity.shape[0],real_validity.shape[1]), 1., dtype=torch.float, device=self.device)
+        fake_label = torch.full((real_validity.shape[0],real_validity.shape[1]), 0., dtype=torch.float, device=self.device)
+        d_real_loss = nn.MSELoss()(real_validity, real_label)
+        d_fake_loss = nn.MSELoss()(fake_validity, fake_label)
+        d_loss = d_real_loss + d_fake_loss
 
         return d_loss * self.discriminator_weight
 
