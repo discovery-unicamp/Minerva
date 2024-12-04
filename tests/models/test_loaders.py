@@ -17,7 +17,7 @@ from minerva.models.nets.cpc_networks import (
     HARPredictionHead,
 )
 from minerva.models.ssl.cpc import CPC
-from minerva.utils.data import RandomDataModule
+from minerva.data.data_module_tools import RandomDataModule
 from minerva.models.nets.base import SimpleSupervisedModel
 import lightning as L
 import tempfile

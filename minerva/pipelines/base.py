@@ -12,9 +12,10 @@ from typing import Any, Dict, List, Optional, Union
 from uuid import uuid4
 
 import git
+import lightning as L
 import pkg_resources
 import yaml
-from lightning.pytorch.core.mixins import HyperparametersMixin
+from lightning.pytorch.core.mixins import HyperparametersMixin  # type: ignore
 from lightning.pytorch.utilities import rank_zero_only
 
 from minerva.utils.typing import PathLike
@@ -47,6 +48,7 @@ class Pipeline(HyperparametersMixin):
         ignore: Optional[Union[str, List[str]]] = None,
         cache_result: bool = False,
         save_run_status: bool = False,
+        seed: Optional[int] = None,
     ):
         """Create a new Pipeline object.
 
@@ -69,8 +71,12 @@ class Pipeline(HyperparametersMixin):
             If True, save the status of each run in a YAML file. This file will
             be saved in the working directory with the name
             `run_{pipeline_id}.yaml`. By default False.
+        seed : Optional[int], optional
+            Seed to be used by the pipeline. If None, a random seed is generated
+            and used. By default None.
         """
         self._initialize_vars()
+        self.seed = self.set_seed(seed)
         self._pipeline_id = datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + str(
             uuid4().hex
         )
@@ -79,12 +85,17 @@ class Pipeline(HyperparametersMixin):
         self._cached_run_status = []
         # Log dir (set as property)
         self.log_dir = log_dir or Path.cwd()
+        self.seed = seed
         # Hyperparameters
         ignore = ignore or []
         if isinstance(ignore, str):
             ignore = [ignore]
         ignore.append("ignore")
         self.save_hyperparameters(ignore=ignore)
+
+    def set_seed(self, seed: Optional[int] = None) -> int:
+        seed = L.seed_everything(seed, workers=True)
+        return seed
 
     def _initialize_vars(self):
         """Initialize the internal variables of the pipeline. This method is
@@ -148,7 +159,7 @@ class Pipeline(HyperparametersMixin):
         print(f"Log directory set to: {str(self.log_dir)}")
 
     @property
-    def pipeline_info(self) -> Dict[str, str]:
+    def pipeline_info(self) -> Dict[str, Union[str, float, int]]:
         """Return default information about the pipeline. This information
         includes the class name, the creation time, the pipeline ID, the working
         directory, and the number of runs.
@@ -216,7 +227,8 @@ class Pipeline(HyperparametersMixin):
 
         # ---------- Add python information ----------
         packages = [
-            f"{pkg.project_name}=={pkg.version}" for pkg in pkg_resources.working_set
+            f"{pkg.project_name}=={pkg.version}"
+            for pkg in pkg_resources.working_set
         ]
         d["python"] = {
             "pip_packages": packages,
@@ -296,8 +308,10 @@ class Pipeline(HyperparametersMixin):
         path : PathLike
             The path to save the pipeline information.
         """
+        path = Path(path)
         d = self.full_info
         # Save yaml
+        path.parent.mkdir(parents=True, exist_ok=True)
         with open(path, "w") as f:
             yaml.dump(d, f)
 
@@ -323,9 +337,13 @@ class Pipeline(HyperparametersMixin):
         self._run_start_time = time()
         self._run_status = "RUNNING"
         self._result = None
+        self._save_pipeline_info(self._log_dir / f"run_{self.pipeline_id}.yaml")
 
         try:
             result = self._run(*args, **kwargs)
+        except KeyboardInterrupt as e:
+            self._run_status = "INTERRUPTED"
+            raise e
         except Exception as e:
             self._run_status = "FAILED"
             exception = "".join(traceback.format_exception(*sys.exc_info()))
@@ -341,7 +359,9 @@ class Pipeline(HyperparametersMixin):
 
         if self._save_run_status:
             self._cached_run_status.append(self.run_status)
-            self._save_pipeline_info(self._log_dir / f"run_{self.pipeline_id}.yaml")
+            self._save_pipeline_info(
+                self._log_dir / f"run_{self.pipeline_id}.yaml"
+            )
 
         return result
 
