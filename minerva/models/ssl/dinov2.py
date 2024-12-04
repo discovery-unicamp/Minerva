@@ -27,7 +27,7 @@ import logging
 
 from torch import Tensor
 from torch import nn
-import loralib as lora
+# import loralib as lora
 from torchmetrics import JaccardIndex
 
 logger = logging.getLogger("dinov2")
@@ -44,6 +44,27 @@ from torch import nn, Tensor
 
 
 logger = logging.getLogger("dinov2")
+
+
+try:
+    from xformers.ops import SwiGLU
+
+    XFORMERS_AVAILABLE = True
+except ImportError:
+    SwiGLU = SwiGLUFFN
+    XFORMERS_AVAILABLE = False
+
+
+try:
+    from xformers.ops import fmha
+    from xformers.ops import scaled_index_add, index_select_cat
+
+    XFORMERS_AVAILABLE = True
+except ImportError:
+    logger.warning("xFormers not available")
+    XFORMERS_AVAILABLE = False
+
+
 
 from typing import Union
 
@@ -189,13 +210,7 @@ class SwiGLUFFN(nn.Module):
         return self.w3(hidden)
 
 
-try:
-    from xformers.ops import SwiGLU
 
-    XFORMERS_AVAILABLE = True
-except ImportError:
-    SwiGLU = SwiGLUFFN
-    XFORMERS_AVAILABLE = False
 
 
 class SwiGLUFFNFused(SwiGLU):
@@ -268,44 +283,44 @@ class Attention(nn.Module):
         return x
 
 
-class Attention_lora(nn.Module):
-    def __init__(
-        self,
-        dim: int,
-        num_heads: int = 8,
-        qkv_bias: bool = False,
-        proj_bias: bool = True,
-        attn_drop: float = 0.0,
-        proj_drop: float = 0.0,
-    ) -> None:
-        super().__init__()
-        self.num_heads = num_heads
-        head_dim = dim // num_heads
-        self.scale = head_dim**-0.5
+# class Attention_lora(nn.Module):
+#     def __init__(
+#         self,
+#         dim: int,
+#         num_heads: int = 8,
+#         qkv_bias: bool = False,
+#         proj_bias: bool = True,
+#         attn_drop: float = 0.0,
+#         proj_drop: float = 0.0,
+#     ) -> None:
+#         super().__init__()
+#         self.num_heads = num_heads
+#         head_dim = dim // num_heads
+#         self.scale = head_dim**-0.5
 
-        self.qkv = lora.Linear(dim, dim * 3, bias=qkv_bias, r=8)
-        self.attn_drop = nn.Dropout(attn_drop)
-        self.proj = lora.Linear(dim, dim, bias=proj_bias, r=8)
-        self.proj_drop = nn.Dropout(proj_drop)
+#         self.qkv = lora.Linear(dim, dim * 3, bias=qkv_bias, r=8)
+#         self.attn_drop = nn.Dropout(attn_drop)
+#         self.proj = lora.Linear(dim, dim, bias=proj_bias, r=8)
+#         self.proj_drop = nn.Dropout(proj_drop)
 
-    def forward(self, x: Tensor) -> Tensor:
-        B, N, C = x.shape
-        qkv = (
-            self.qkv(x)
-            .reshape(B, N, 3, self.num_heads, C // self.num_heads)
-            .permute(2, 0, 3, 1, 4)
-        )
+#     def forward(self, x: Tensor) -> Tensor:
+#         B, N, C = x.shape
+#         qkv = (
+#             self.qkv(x)
+#             .reshape(B, N, 3, self.num_heads, C // self.num_heads)
+#             .permute(2, 0, 3, 1, 4)
+#         )
 
-        q, k, v = qkv[0] * self.scale, qkv[1], qkv[2]
-        attn = q @ k.transpose(-2, -1)
+#         q, k, v = qkv[0] * self.scale, qkv[1], qkv[2]
+#         attn = q @ k.transpose(-2, -1)
 
-        attn = attn.softmax(dim=-1)
-        attn = self.attn_drop(attn)
+#         attn = attn.softmax(dim=-1)
+#         attn = self.attn_drop(attn)
 
-        x = (attn @ v).transpose(1, 2).reshape(B, N, C)
-        x = self.proj(x)
-        x = self.proj_drop(x)
-        return x
+#         x = (attn @ v).transpose(1, 2).reshape(B, N, C)
+#         x = self.proj(x)
+#         x = self.proj_drop(x)
+#         return x
 
 
 class MemEffAttention(Attention):
@@ -329,35 +344,27 @@ class MemEffAttention(Attention):
         return x
 
 
-class MemEffAttention_lora(Attention_lora):
-    def forward(self, x: Tensor, attn_bias=None) -> Tensor:
-        if not XFORMERS_AVAILABLE:
-            assert (
-                attn_bias is None
-            ), "xFormers is required for nested tensors usage"
-            return super().forward(x)
+# class MemEffAttention_lora(Attention_lora):
+#     def forward(self, x: Tensor, attn_bias=None) -> Tensor:
+#         if not XFORMERS_AVAILABLE:
+#             assert (
+#                 attn_bias is None
+#             ), "xFormers is required for nested tensors usage"
+#             return super().forward(x)
 
-        B, N, C = x.shape
-        qkv = self.qkv(x).reshape(B, N, 3, self.num_heads, C // self.num_heads)
+#         B, N, C = x.shape
+#         qkv = self.qkv(x).reshape(B, N, 3, self.num_heads, C // self.num_heads)
 
-        q, k, v = unbind(qkv, 2)
+#         q, k, v = unbind(qkv, 2)
 
-        x = memory_efficient_attention(q, k, v, attn_bias=attn_bias)
-        x = x.reshape([B, N, C])
+#         x = memory_efficient_attention(q, k, v, attn_bias=attn_bias)
+#         x = x.reshape([B, N, C])
 
-        x = self.proj(x)
-        x = self.proj_drop(x)
-        return x
+#         x = self.proj(x)
+#         x = self.proj_drop(x)
+#         return x
 
 
-try:
-    from xformers.ops import fmha
-    from xformers.ops import scaled_index_add, index_select_cat
-
-    XFORMERS_AVAILABLE = True
-except ImportError:
-    logger.warning("xFormers not available")
-    XFORMERS_AVAILABLE = False
 
 
 class Block(nn.Module):
@@ -1667,416 +1674,416 @@ class DinoV2(L.LightningModule):
 
 ############################### TRANING ########################################
 
-# if __name__ == "__main__":
-#     import os
-#     from pathlib import Path
-#     from typing import Optional
-#     import numpy as np
-#     import torch
-#     import lightning as L
-#     from matplotlib import pyplot as plt
-#     from torch.utils.data import DataLoader
-#     from torchmetrics import JaccardIndex
+if __name__ == "__main__":
+    import os
+    from pathlib import Path
+    from typing import Optional
+    import numpy as np
+    import torch
+    import lightning as L
+    from matplotlib import pyplot as plt
+    from torch.utils.data import DataLoader
+    from torchmetrics import JaccardIndex
 
-#     from minerva.data.datasets.supervised_dataset import SupervisedReconstructionDataset
-#     from minerva.data.readers.png_reader import PNGReader
-#     from minerva.data.readers.tiff_reader import TiffReader
-#     from minerva.models.loaders import FromPretrained
-#     from minerva.pipelines.lightning_pipeline import SimpleLightningPipeline
-#     from minerva.transforms.transform import _Transform, TransformPipeline
+    from minerva.data.datasets.supervised_dataset import SupervisedReconstructionDataset
+    from minerva.data.readers.png_reader import PNGReader
+    from minerva.data.readers.tiff_reader import TiffReader
+    from minerva.models.loaders import FromPretrained
+    from minerva.pipelines.lightning_pipeline import SimpleLightningPipeline
+    from minerva.transforms.transform import _Transform, TransformPipeline
 
-#     from lightning.pytorch.loggers.csv_logs import CSVLogger
-#     from lightning.pytorch.callbacks import ModelCheckpoint
+    from lightning.pytorch.loggers.csv_logs import CSVLogger
+    from lightning.pytorch.callbacks import ModelCheckpoint
 
 
-#     import tqdm
+    import tqdm
     
     
-#     class PadCrop(_Transform):
-#         """Transforms image and pads or crops it to the target size. 
-#         If the axis is larger than the target size, it will crop the image.
-#         If the axis is smaller than the target size, it will pad the image.
-#         """
+    class PadCrop(_Transform):
+        """Transforms image and pads or crops it to the target size. 
+        If the axis is larger than the target size, it will crop the image.
+        If the axis is smaller than the target size, it will pad the image.
+        """
         
-#         def __init__(
-#             self,
-#             target_h_size: int,
-#             target_w_size: int,
-#             padding_mode: str = "reflect",
-#             seed: int | None = None,
-#             constant_values: int = 0,
-#         ):
-#             """
-#             Initializes the transformation with target sizes, padding mode, and RNG seed.
+        def __init__(
+            self,
+            target_h_size: int,
+            target_w_size: int,
+            padding_mode: str = "reflect",
+            seed: int | None = None,
+            constant_values: int = 0,
+        ):
+            """
+            Initializes the transformation with target sizes, padding mode, and RNG seed.
 
-#             Parameters:
-#             - target_h_size (int): The target height size.
-#             - target_w_size (int): The target width size.
-#             - padding_mode (str): The padding mode to use (default is "reflect").
-#             - seed (int): Seed for random number generator to make cropping reproducible.
-#             """
-#             self.target_h_size = target_h_size
-#             self.target_w_size = target_w_size
-#             self.padding_mode = padding_mode
-#             self.rng = np.random.default_rng(
-#                 seed
-#             )  # Random number generator with the provided seed
-#             self.constant_values = constant_values
+            Parameters:
+            - target_h_size (int): The target height size.
+            - target_w_size (int): The target width size.
+            - padding_mode (str): The padding mode to use (default is "reflect").
+            - seed (int): Seed for random number generator to make cropping reproducible.
+            """
+            self.target_h_size = target_h_size
+            self.target_w_size = target_w_size
+            self.padding_mode = padding_mode
+            self.rng = np.random.default_rng(
+                seed
+            )  # Random number generator with the provided seed
+            self.constant_values = constant_values
 
-#         def __call__(self, x: np.ndarray) -> np.ndarray:
-#             h, w = x.shape[:2]
-#             # print(f"-> [{self.__class__.__name__}] x.shape={x.shape}")
+        def __call__(self, x: np.ndarray) -> np.ndarray:
+            h, w = x.shape[:2]
+            # print(f"-> [{self.__class__.__name__}] x.shape={x.shape}")
 
-#             # Handle height dimension independently: pad if target_h_size > h, else crop
-#             if self.target_h_size > h:
-#                 pad_h = self.target_h_size - h
-#                 pad_top = pad_h // 2
-#                 pad_bottom = pad_h - pad_top
-#                 pad_args = {
-#                     "array": x,
-#                     "pad_width": (
-#                         ((pad_top, pad_bottom), (0, 0), (0, 0))
-#                         if len(x.shape) == 3
-#                         else ((pad_top, pad_bottom), (0, 0))
-#                     ),
-#                     "mode": self.padding_mode,
-#                 }
-#                 if self.padding_mode == "constant":
-#                     pad_args["constant_values"] = self.constant_values
+            # Handle height dimension independently: pad if target_h_size > h, else crop
+            if self.target_h_size > h:
+                pad_h = self.target_h_size - h
+                pad_top = pad_h // 2
+                pad_bottom = pad_h - pad_top
+                pad_args = {
+                    "array": x,
+                    "pad_width": (
+                        ((pad_top, pad_bottom), (0, 0), (0, 0))
+                        if len(x.shape) == 3
+                        else ((pad_top, pad_bottom), (0, 0))
+                    ),
+                    "mode": self.padding_mode,
+                }
+                if self.padding_mode == "constant":
+                    pad_args["constant_values"] = self.constant_values
                 
-#                 x = np.pad(**pad_args)
+                x = np.pad(**pad_args)
                 
-#             elif self.target_h_size < h:
-#                 crop_h_start = self.rng.integers(0, h - self.target_h_size + 1)
-#                 x = x[crop_h_start : crop_h_start + self.target_h_size, ...]
+            elif self.target_h_size < h:
+                crop_h_start = self.rng.integers(0, h - self.target_h_size + 1)
+                x = x[crop_h_start : crop_h_start + self.target_h_size, ...]
 
-#             # Handle width dimension independently: pad if target_w_size > w, else crop
-#             if self.target_w_size > w:
-#                 pad_w = self.target_w_size - w
-#                 pad_left = pad_w // 2
-#                 pad_right = pad_w - pad_left
+            # Handle width dimension independently: pad if target_w_size > w, else crop
+            if self.target_w_size > w:
+                pad_w = self.target_w_size - w
+                pad_left = pad_w // 2
+                pad_right = pad_w - pad_left
                 
-#                 pad_args = {
-#                     "array": x,
-#                     "pad_width": (
-#                         ((0, 0), (pad_left, pad_right), (0, 0))
-#                         if len(x.shape) == 3
-#                         else ((0, 0), (pad_left, pad_right))
-#                     ),
-#                     "mode": self.padding_mode,
-#                 }
+                pad_args = {
+                    "array": x,
+                    "pad_width": (
+                        ((0, 0), (pad_left, pad_right), (0, 0))
+                        if len(x.shape) == 3
+                        else ((0, 0), (pad_left, pad_right))
+                    ),
+                    "mode": self.padding_mode,
+                }
                 
-#                 if self.padding_mode == "constant":
-#                     pad_args["constant_values"] = self.constant_values
+                if self.padding_mode == "constant":
+                    pad_args["constant_values"] = self.constant_values
 
-#                 x = np.pad(**pad_args)
+                x = np.pad(**pad_args)
             
-#             elif self.target_w_size < w:
-#                 crop_w_start = self.rng.integers(0, w - self.target_w_size + 1)
-#                 x = x[:, crop_w_start : crop_w_start + self.target_w_size, ...]
+            elif self.target_w_size < w:
+                crop_w_start = self.rng.integers(0, w - self.target_w_size + 1)
+                x = x[:, crop_w_start : crop_w_start + self.target_w_size, ...]
 
-#             # Ensure channel dimension consistency
-#             if len(x.shape) == 2:  # For grayscale, add a channel dimension
-#                 x = np.expand_dims(x, axis=2)
+            # Ensure channel dimension consistency
+            if len(x.shape) == 2:  # For grayscale, add a channel dimension
+                x = np.expand_dims(x, axis=2)
 
-#             # Convert to torch tensor with format C x H x W
-#             # output = torch.from_numpy(x).float()
-#             x = np.transpose(x, (2, 0, 1))  # Convert to C x H x W format
-#             # print(f"[{self.__class__.__name__}] x.shape={x.shape}")
-#             # print(f"<- [{self.__class__.__name__}] x.shape={x.shape}")
-#             return x
+            # Convert to torch tensor with format C x H x W
+            # output = torch.from_numpy(x).float()
+            x = np.transpose(x, (2, 0, 1))  # Convert to C x H x W format
+            # print(f"[{self.__class__.__name__}] x.shape={x.shape}")
+            # print(f"<- [{self.__class__.__name__}] x.shape={x.shape}")
+            return x
 
 
-#     class SelectChannel(_Transform):
-#         """Perform a channel selection on the input image.
-#         """
+    class SelectChannel(_Transform):
+        """Perform a channel selection on the input image.
+        """
         
-#         def __init__(self, channel: int, expand_channels: int = None):
-#             """
-#             Initializes the transformation with the channel to select.
+        def __init__(self, channel: int, expand_channels: int = None):
+            """
+            Initializes the transformation with the channel to select.
 
-#             Parameters:
-#             - channel (int): The channel to select.
-#             """
-#             self.channel = channel
-#             self.expand_channels = expand_channels
+            Parameters:
+            - channel (int): The channel to select.
+            """
+            self.channel = channel
+            self.expand_channels = expand_channels
 
-#         def __call__(self, x: np.ndarray) -> np.ndarray:
-#             x =  x[self.channel, ...]
-#             if self.expand_channels is not None:
-#                 x = np.expand_dims(x, axis=self.expand_channels)
-#             # print(f"[{self.__class__.__name__}] x.shape={x.shape}")
-#             return x
+        def __call__(self, x: np.ndarray) -> np.ndarray:
+            x =  x[self.channel, ...]
+            if self.expand_channels is not None:
+                x = np.expand_dims(x, axis=self.expand_channels)
+            # print(f"[{self.__class__.__name__}] x.shape={x.shape}")
+            return x
         
 
-#     class CastTo(_Transform):
-#         def __init__(self, dtype: type):
-#             """
-#             Initializes the transformation with the target data type.
+    class CastTo(_Transform):
+        def __init__(self, dtype: type):
+            """
+            Initializes the transformation with the target data type.
 
-#             Parameters:
-#             - dtype (type): The target data type.
-#             """
-#             self.dtype = dtype
+            Parameters:
+            - dtype (type): The target data type.
+            """
+            self.dtype = dtype
 
-#         def __call__(self, x: np.ndarray) -> np.ndarray:
-#             # print(f"[{self.__class__.__name__}] x.shape={x.shape}")
-#             return x.astype(self.dtype)
-        
-        
-#     class SwapAxes(_Transform):
-#         def __init__(self, source_axis: int, target_axis: int):
-#             """
-#             Initializes the transformation with the source and target axes.
-
-#             Parameters:
-#             - source_axis (int): The source axis to swap.
-#             - target_axis (int): The target axis to swap.
-#             """
-#             self.source_axis = source_axis
-#             self.target_axis = target_axis
-
-#         def __call__(self, x: np.ndarray) -> np.ndarray:
-#             x = np.swapaxes(x, self.source_axis, self.target_axis)
-#             # print(f"[{self.__class__.__name__}] x.shape={x.shape}")
-#             return x
-        
-#     class RepeatChannel(_Transform):
-#         def __init__(self, repeats: int, axis: int):
-#             """
-#             Initializes the transformation with the number of repeats.
-
-#             Parameters:
-#             - repeats (int): The number of repeats.
-#             - axis (int): The axis to repeat.
-#             """
-#             self.repeats = repeats
-#             self.axis = axis
-
-#         def __call__(self, x: np.ndarray) -> np.ndarray:
-#             x = np.repeat(x, self.repeats, axis=self.axis)
-#             # print(f"[{self.__class__.__name__}] x.shape={x.shape}")
-#             return x
+        def __call__(self, x: np.ndarray) -> np.ndarray:
+            # print(f"[{self.__class__.__name__}] x.shape={x.shape}")
+            return x.astype(self.dtype)
         
         
-#     class ExpandDims(_Transform):
-#         def __init__(self, axis: int):
-#             """
-#             Initializes the transformation with the axis to expand.
+    class SwapAxes(_Transform):
+        def __init__(self, source_axis: int, target_axis: int):
+            """
+            Initializes the transformation with the source and target axes.
 
-#             Parameters:
-#             - axis (int): The axis to expand.
-#             """
-#             self.axis = axis
+            Parameters:
+            - source_axis (int): The source axis to swap.
+            - target_axis (int): The target axis to swap.
+            """
+            self.source_axis = source_axis
+            self.target_axis = target_axis
 
-#         def __call__(self, x: np.ndarray) -> np.ndarray:
-#             x = np.expand_dims(x, axis=self.axis)
-#             # print(f"[{self.__class__.__name__}] x.shape={x.shape}")
-#             return x
+        def __call__(self, x: np.ndarray) -> np.ndarray:
+            x = np.swapaxes(x, self.source_axis, self.target_axis)
+            # print(f"[{self.__class__.__name__}] x.shape={x.shape}")
+            return x
         
-#     class PerSampleTransformPipeline(TransformPipeline):
-#         def __init__(self, transforms):
-#             super().__init__(transforms)
+    class RepeatChannel(_Transform):
+        def __init__(self, repeats: int, axis: int):
+            """
+            Initializes the transformation with the number of repeats.
+
+            Parameters:
+            - repeats (int): The number of repeats.
+            - axis (int): The axis to repeat.
+            """
+            self.repeats = repeats
+            self.axis = axis
+
+        def __call__(self, x: np.ndarray) -> np.ndarray:
+            x = np.repeat(x, self.repeats, axis=self.axis)
+            # print(f"[{self.__class__.__name__}] x.shape={x.shape}")
+            return x
+        
+        
+    class ExpandDims(_Transform):
+        def __init__(self, axis: int):
+            """
+            Initializes the transformation with the axis to expand.
+
+            Parameters:
+            - axis (int): The axis to expand.
+            """
+            self.axis = axis
+
+        def __call__(self, x: np.ndarray) -> np.ndarray:
+            x = np.expand_dims(x, axis=self.axis)
+            # print(f"[{self.__class__.__name__}] x.shape={x.shape}")
+            return x
+        
+    class PerSampleTransformPipeline(TransformPipeline):
+        def __init__(self, transforms):
+            super().__init__(transforms)
             
-#         def __call__(self, x: np.ndarray) -> np.ndarray:
-#             new_values = []
-#             for i, value in enumerate(x):
-#                 # print(f"-->[{self.__class__.__name__}] value[{i}].shape={value.shape}")
-#                 value = super().__call__(value)
-#                 # print(f"<--[{self.__class__.__name__}] value[{i}].shape={value.shape}")
-#                 new_values.append(value)
+        def __call__(self, x: np.ndarray) -> np.ndarray:
+            new_values = []
+            for i, value in enumerate(x):
+                # print(f"-->[{self.__class__.__name__}] value[{i}].shape={value.shape}")
+                value = super().__call__(value)
+                # print(f"<--[{self.__class__.__name__}] value[{i}].shape={value.shape}")
+                new_values.append(value)
             
-#             return np.array(new_values)
+            return np.array(new_values)
         
-#     from minerva.data.readers.reader import _Reader
+    from minerva.data.readers.reader import _Reader
 
 
-#     class MultiReader(_Reader):
-#         def __init__(self, readers):
-#             self.readers = readers
+    class MultiReader(_Reader):
+        def __init__(self, readers):
+            self.readers = readers
             
-#         def __len__(self) -> int:
-#             return len(self.readers[0])
+        def __len__(self) -> int:
+            return len(self.readers[0])
 
-#         def __getitem__(self, i) -> np.ndarray:
-#             r =  np.stack([reader[i] for reader in self.readers])
-#             # print(f"The shape of the reader is {r.shape}")
-#             return r
+        def __getitem__(self, i) -> np.ndarray:
+            r =  np.stack([reader[i] for reader in self.readers])
+            # print(f"The shape of the reader is {r.shape}")
+            return r
 
-#     class GenericDataModule(L.LightningDataModule):
-#         def __init__(
-#             self,
-#             root_data_dir: str,
-#             root_annotation_dir: str,
-#             transforms,
-#             batch_size: int = 1,
-#             num_workers: Optional[int] = None,
-#         ):
-#             super().__init__()
-#             self.root_data_dir = Path(root_data_dir)
-#             self.root_annotation_dir = Path(root_annotation_dir)
-#             self.transforms = transforms
-#             self.batch_size = batch_size
-#             self.num_workers = (
-#                 num_workers if num_workers is not None else os.cpu_count()
-#             )
+    class GenericDataModule(L.LightningDataModule):
+        def __init__(
+            self,
+            root_data_dir: str,
+            root_annotation_dir: str,
+            transforms,
+            batch_size: int = 1,
+            num_workers: Optional[int] = None,
+        ):
+            super().__init__()
+            self.root_data_dir = Path(root_data_dir)
+            self.root_annotation_dir = Path(root_annotation_dir)
+            self.transforms = transforms
+            self.batch_size = batch_size
+            self.num_workers = (
+                num_workers if num_workers is not None else os.cpu_count()
+            )
 
-#             self.datasets = {}
+            self.datasets = {}
 
-#         def setup(self, stage=None):
-#             if stage == "fit":
-#                 train_img_reader = TiffReader(self.root_data_dir / "train")
-#                 train_label_reader = PNGReader(self.root_annotation_dir / "train")
-#                 train_dataset = SupervisedReconstructionDataset(
-#                     readers=[
-#                         MultiReader([train_img_reader, train_img_reader]),
-#                         MultiReader([train_label_reader, train_label_reader]),
-#                     ],
-#                     transforms=self.transforms,
-#                 )
+        def setup(self, stage=None):
+            if stage == "fit":
+                train_img_reader = TiffReader(self.root_data_dir / "train")
+                train_label_reader = PNGReader(self.root_annotation_dir / "train")
+                train_dataset = SupervisedReconstructionDataset(
+                    readers=[
+                        MultiReader([train_img_reader, train_img_reader]),
+                        MultiReader([train_label_reader, train_label_reader]),
+                    ],
+                    transforms=self.transforms,
+                )
 
-#                 val_img_reader = TiffReader(self.root_data_dir / "val")
-#                 val_label_reader = PNGReader(self.root_annotation_dir / "val")
-#                 val_dataset = SupervisedReconstructionDataset(
-#                     readers=[
-#                         MultiReader([val_img_reader, val_img_reader]),
-#                         MultiReader([val_label_reader, val_label_reader]),
-#                     ],
-#                     transforms=self.transforms,
-#                 )
+                val_img_reader = TiffReader(self.root_data_dir / "val")
+                val_label_reader = PNGReader(self.root_annotation_dir / "val")
+                val_dataset = SupervisedReconstructionDataset(
+                    readers=[
+                        MultiReader([val_img_reader, val_img_reader]),
+                        MultiReader([val_label_reader, val_label_reader]),
+                    ],
+                    transforms=self.transforms,
+                )
 
-#                 self.datasets["train"] = train_dataset
-#                 self.datasets["val"] = val_dataset
+                self.datasets["train"] = train_dataset
+                self.datasets["val"] = val_dataset
 
-#             elif stage == "test" or stage == "predict":
-#                 test_img_reader = TiffReader(self.root_data_dir / "test")
-#                 test_label_reader = PNGReader(self.root_annotation_dir / "test")
-#                 test_dataset = SupervisedReconstructionDataset(
-#                     readers=[
-#                         MultiReader([test_img_reader, test_img_reader]),
-#                         MultiReader([test_label_reader, test_label_reader]),
-#                     ],
-#                     transforms=self.transforms,
-#                 )
-#                 self.datasets["test"] = test_dataset
-#                 self.datasets["predict"] = test_dataset
+            elif stage == "test" or stage == "predict":
+                test_img_reader = TiffReader(self.root_data_dir / "test")
+                test_label_reader = PNGReader(self.root_annotation_dir / "test")
+                test_dataset = SupervisedReconstructionDataset(
+                    readers=[
+                        MultiReader([test_img_reader, test_img_reader]),
+                        MultiReader([test_label_reader, test_label_reader]),
+                    ],
+                    transforms=self.transforms,
+                )
+                self.datasets["test"] = test_dataset
+                self.datasets["predict"] = test_dataset
 
-#             else:
-#                 raise ValueError(f"Invalid stage: {stage}")
+            else:
+                raise ValueError(f"Invalid stage: {stage}")
 
-#         def _get_dataloader(self, partition: str, shuffle: bool):
-#             return DataLoader(
-#                 self.datasets[partition],
-#                 batch_size=self.batch_size,
-#                 num_workers=self.num_workers,
-#                 shuffle=shuffle,
-#             )
+        def _get_dataloader(self, partition: str, shuffle: bool):
+            return DataLoader(
+                self.datasets[partition],
+                batch_size=self.batch_size,
+                num_workers=self.num_workers,
+                shuffle=shuffle,
+            )
 
-#         def train_dataloader(self):
-#             return self._get_dataloader("train", shuffle=True)
+        def train_dataloader(self):
+            return self._get_dataloader("train", shuffle=True)
 
-#         def val_dataloader(self):
-#             return self._get_dataloader("val", shuffle=False)
+        def val_dataloader(self):
+            return self._get_dataloader("val", shuffle=False)
 
-#         def test_dataloader(self):
-#             return self._get_dataloader("test", shuffle=False)
+        def test_dataloader(self):
+            return self._get_dataloader("test", shuffle=False)
 
-#         def predict_dataloader(self):
-#             return self._get_dataloader("predict", shuffle=False)
+        def predict_dataloader(self):
+            return self._get_dataloader("predict", shuffle=False)
 
-#         def __str__(self) -> str:
-#             return f"""DataModule
-#         Data: {self.root_data_dir}
-#         Annotations: {self.root_annotation_dir}
-#         Batch size: {self.batch_size}"""
+        def __str__(self) -> str:
+            return f"""DataModule
+        Data: {self.root_data_dir}
+        Annotations: {self.root_annotation_dir}
+        Batch size: {self.batch_size}"""
 
-#         def __repr__(self) -> str:
-#             return str(self)
+        def __repr__(self) -> str:
+            return str(self)
         
 
-#     root_data_dir = "/workspaces/HIAAC-KR-Dev-Container/shared_data/seam_ai_datasets/seam_ai/images"
-#     root_annotation_dir = "/workspaces/HIAAC-KR-Dev-Container/shared_data/seam_ai_datasets/seam_ai/annotations"
+    root_data_dir = "/workspaces/HIAAC-KR-Dev-Container/shared_data/seam_ai_datasets/seam_ai/images"
+    root_annotation_dir = "/workspaces/HIAAC-KR-Dev-Container/shared_data/seam_ai_datasets/seam_ai/annotations"
 
 
-#     data_module = GenericDataModule(
-#         root_data_dir=root_data_dir,
-#         root_annotation_dir=root_annotation_dir,
-#         transforms=[
-#             PerSampleTransformPipeline([
-#                 SwapAxes(0, -1),
-#                 SelectChannel(0),
-#                 SwapAxes(0, 1),
-#                 PadCrop(1008, 784, padding_mode="reflect", seed=42, constant_values=0),
-#                 RepeatChannel(repeats=3, axis=0),
-#                 CastTo(np.float32),
-#             ]), 
+    data_module = GenericDataModule(
+        root_data_dir=root_data_dir,
+        root_annotation_dir=root_annotation_dir,
+        transforms=[
+            PerSampleTransformPipeline([
+                SwapAxes(0, -1),
+                SelectChannel(0),
+                SwapAxes(0, 1),
+                PadCrop(1008, 784, padding_mode="reflect", seed=42, constant_values=0),
+                RepeatChannel(repeats=3, axis=0),
+                CastTo(np.float32),
+            ]), 
 
-#             PerSampleTransformPipeline([
-#                 # SwapAxes(0, -1),
-#                 PadCrop(1006, 782, padding_mode="reflect", seed=42, constant_values=0),
-#                 CastTo(np.int64),
-#             ]), 
-#         ],
-#         batch_size=1,
-#         num_workers=1
-#     )
+            PerSampleTransformPipeline([
+                # SwapAxes(0, -1),
+                PadCrop(1006, 782, padding_mode="reflect", seed=42, constant_values=0),
+                CastTo(np.int64),
+            ]), 
+        ],
+        batch_size=1,
+        num_workers=1
+    )
 
-#     data_module
+    data_module
     
         
-#     from minerva.models.ssl.dinov2 import (
-#         DinoVisionTransformer,
-#         SETR_PUP,
-#         NestedTensorBlock,
-#         MemEffAttention,
-#     )
-#     from functools import partial
+    from minerva.models.ssl.dinov2 import (
+        DinoVisionTransformer,
+        SETR_PUP,
+        NestedTensorBlock,
+        MemEffAttention,
+    )
+    from functools import partial
 
-#     backbone = DinoVisionTransformer(
-#         patch_size=14,
-#         embed_dim=384,
-#         depth=12,
-#         num_heads=6,
-#         mlp_ratio=4,
-#         block_fn=partial(NestedTensorBlock, attn_class=MemEffAttention),  # type: ignore
-#         init_values=1e-5,
-#         block_chunks=0,
-#     )
+    backbone = DinoVisionTransformer(
+        patch_size=14,
+        embed_dim=384,
+        depth=12,
+        num_heads=6,
+        mlp_ratio=4,
+        block_fn=partial(NestedTensorBlock, attn_class=MemEffAttention),  # type: ignore
+        init_values=1e-5,
+        block_chunks=0,
+    )
 
-#     head = SETR_PUP(embedding_dim=384, num_classes=6)
+    head = SETR_PUP(embedding_dim=384, num_classes=6)
     
     
-#     model = DinoV2(
-#         backbone=backbone,
-#         head=head,
-#         loss_fn=torch.nn.CrossEntropyLoss(),
-#         n1=1006,
-#         n2=782
-#     )
+    model = DinoV2(
+        backbone=backbone,
+        head=head,
+        loss_fn=torch.nn.CrossEntropyLoss(),
+        n1=1006,
+        n2=782
+    )
 
-#     model
+    model
     
-#     log_dir = "./logs"
-#     logger = CSVLogger(log_dir, name="dinov2", version="parihaka")
-#     checkpoint = ModelCheckpoint(
-#         save_top_k=1,
-#         save_last=True,
-#     )
+    log_dir = "./logs"
+    logger = CSVLogger(log_dir, name="dinov2", version="parihaka")
+    checkpoint = ModelCheckpoint(
+        save_top_k=1,
+        save_last=True,
+    )
 
 
-#     trainer = L.Trainer(
-#         max_epochs=1,
-#         accelerator="gpu",
-#         devices=1,
-#         logger=logger,
-#         callbacks=[checkpoint],
-#     )
+    trainer = L.Trainer(
+        max_epochs=1,
+        accelerator="gpu",
+        devices=1,
+        logger=logger,
+        callbacks=[checkpoint],
+    )
 
-#     pipeline = SimpleLightningPipeline(
-#         model=model,
-#         trainer=trainer,
-#         log_dir=log_dir + "/f3_segmentation",
-#         save_run_status=True
-#     )
+    pipeline = SimpleLightningPipeline(
+        model=model,
+        trainer=trainer,
+        log_dir=log_dir + "/f3_segmentation",
+        save_run_status=True
+    )
     
-#     pipeline.run(data_module, task="fit")
+    pipeline.run(data_module, task="fit")
