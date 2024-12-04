@@ -243,7 +243,6 @@ def test_load_from_pretrained_backbone_without_extractor(tmp_path):
     backbone = FromPretrained(
         backbone,
         checkpoint_file,
-        # extractor=IntermediateLayerGetter(layers=["backbone"]),
         filter_keys=["backbone."],
         keys_to_rename={"backbone.": ""},
         strict=True,
