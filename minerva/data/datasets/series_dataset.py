@@ -1,21 +1,23 @@
-from typing import Callable, List, Optional, Tuple, Union
+from typing import Callable, List, Dict, Optional, Tuple, Union
 from pathlib import Path
 from collections.abc import Iterable
 
 import numpy as np
 import pandas as pd
 import contextlib
+from torch.utils.data import Dataset
 
 
-class MultiModalSeriesCSVDataset:
+class MultiModalSeriesCSVDataset(Dataset):
     def __init__(
         self,
         data_path: Union[Path, str],
-        feature_prefixes: Union[str, List[str]] = None,
-        label: str = None,
+        feature_prefixes: Optional[Union[str, List[str]]] = None,
+        label: Optional[str] = None,
         features_as_channels: bool = True,
         cast_to: str = "float32",
         transforms: Optional[Union[Callable, List[Callable]]] = None,
+        map_labels: Optional[Dict[int, int]] = None,
     ):
         """This datasets assumes that the data is in a single CSV file with
         series of data. Each row is a single sample that can be composed of
@@ -68,6 +70,9 @@ class MultiModalSeriesCSVDataset:
             individually. Each transform must be a callable that receives a
             numpy array and returns a numpy array. The transforms will be
             applied in the order they are specified.
+        map_labels: Optional[Dict[int, int]], optional
+            A dictionary to map the labels to a different set of labels. The
+            keys are the original labels and the values are the new labels.
 
         Examples
         --------
@@ -113,6 +118,7 @@ class MultiModalSeriesCSVDataset:
         else:
             transforms = []
         self.transforms = transforms
+        self.map_labels = map_labels
         self.data, self.labels = self._load_data()
 
     def _load_data(self) -> Tuple[np.ndarray, Optional[np.ndarray]]:
@@ -160,7 +166,10 @@ class MultiModalSeriesCSVDataset:
         if self.label:
             if self.label == "return_index_as_label":
                 return data, np.arange(len(data))
-            labels = df[self.label].to_numpy()
+            if self.map_labels:
+                labels = df[self.label].map(self.map_labels).to_numpy()
+            else:
+                labels = df[self.label].to_numpy()
             return data, labels
         # If label is not specified, return only the data
         else:
@@ -194,8 +203,8 @@ class SeriesFolderCSVDataset:
     def __init__(
         self,
         data_path: Union[Path, str],
-        features: Union[str, List[str]] = None,
-        label: str = None,
+        features: Optional[Union[str, List[str]]] = None,
+        label: Optional[str] = None,
         pad: bool = False,
         cast_to: str = "float32",
         transforms: Optional[List[Callable]] = None,
@@ -474,4 +483,3 @@ class SeriesFolderCSVDataset:
 
     def __repr__(self) -> str:
         return str(self)
-
