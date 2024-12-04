@@ -10,7 +10,7 @@ from torchmetrics import Metric
 from minerva.pipelines.base import Pipeline
 from minerva.data.data_module_tools import get_full_data_split, get_split_dataloader
 from minerva.utils.typing import PathLike
-from minerva.analysis.model_analysis import ModelAnalysis
+from minerva.analysis.model_analysis import _ModelAnalysis
 
 
 def predict_batch(classification_metrics, regression_metrics):
@@ -40,7 +40,7 @@ class SimpleLightningPipeline(Pipeline):
         save_run_status: bool = True,
         classification_metrics: Optional[Dict[str, Metric]] = None,
         regression_metrics: Optional[Dict[str, Metric]] = None,
-        model_analysis: Optional[Dict[str, ModelAnalysis]] = None,
+        model_analysis: Optional[Dict[str, _ModelAnalysis]] = None,
         apply_metrics_per_sample: bool = False,
         seed: Optional[int] = None,
     ):
@@ -86,10 +86,10 @@ class SimpleLightningPipeline(Pipeline):
             able to receive two tensors (y_true, y_pred) and return a tensor
             with the metric value. If None, no regression metrics will be
             calculated. By default None.
-        model_analysis: Dict[str, ModelAnalysis], optional
+        model_analysis: Dict[str, _ModelAnalysis], optional
             The model analysis to be performed after the model is trained. This
             dictionary should have the analysis name as key and the
-            `ModelAnalysis`-like object as value. The analysis should be able
+            `_ModelAnalysis`-like object as value. The analysis should be able
             to receive the model and the data and return a result. If None, no
             model analysis will be performed. By default None.
         apply_metrics_per_sample : bool, optional
