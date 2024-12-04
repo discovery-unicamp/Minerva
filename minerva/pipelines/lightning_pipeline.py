@@ -281,8 +281,6 @@ class SimpleLightningPipeline(Pipeline):
         
         # Check if the shapes are the same
         if len(y_hat) != len(y):
-            # print(f"Shapes are different: y_hat shape: {y_hat.shape}; y shape: {y.shape}. Truncating y")
-            # y = y[:y_hat.shape[0]]
             raise ValueError(f"Shapes are different: y_hat shape: {y_hat.shape}; y shape: {y.shape}. Is `limit_predict_batches` set?")
 
 
