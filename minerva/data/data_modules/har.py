@@ -4,7 +4,7 @@ from minerva.data.datasets.series_dataset import (
 )
 
 from torch.utils.data import DataLoader, ConcatDataset, Subset
-from typing import Callable, Dict, Union, List
+from typing import Callable, Dict, Optional, Tuple, Union, List
 import random
 import lightning as L
 from pathlib import Path
@@ -12,6 +12,7 @@ from pathlib import Path
 import os
 
 from minerva.utils.typing import PathLike
+from minerva.samplers.domain_sampler import RandomDomainSampler
 
 
 def parse_transforms(
@@ -60,7 +61,7 @@ def parse_transforms(
         return new_transforms
 
 
-def parse_num_workers(num_workers: int) -> int:
+def parse_num_workers(num_workers: Optional[int] = None) -> int:
     """Parse the num_workers parameter. If None, use all cores.
 
     Parameters
@@ -73,7 +74,8 @@ def parse_num_workers(num_workers: int) -> int:
     int
         Number of workers to load data.
     """
-    return num_workers if num_workers is not None else os.cpu_count()
+    n = num_workers if num_workers is not None else os.cpu_count()
+    return n or 1
 
 
 class UserActivityFolderDataModule(L.LightningDataModule):
@@ -88,14 +90,16 @@ class UserActivityFolderDataModule(L.LightningDataModule):
             "gyro-x",
             "gyro-y",
             "gyro-z",
-        ),
-        label: str = None,
+        ),  # type: ignore
+        label: str = "standard activity code",
         pad: bool = False,
-        transforms: Union[List[Callable], Dict[str, List[Callable]]] = None,
+        transforms: Optional[
+            Union[List[Callable], Dict[str, List[Callable]]]
+        ] = None,
         cast_to: str = "float32",
         # Loader params
         batch_size: int = 1,
-        num_workers: int = None,
+        num_workers: Optional[int] = None,
     ):
         """Define the dataloaders for train, validation and test splits for
         HAR datasets. The data must be in the following folder structure:
@@ -305,16 +309,21 @@ class MultiModalHARSeriesDataModule(L.LightningDataModule):
             "gyro-x",
             "gyro-y",
             "gyro-z",
-        ),
+        ),  # type: ignore
         label: str = "standard activity code",
         features_as_channels: bool = True,
-        transforms: Union[List[Callable], Dict[str, List[Callable]]] = None,
+        transforms: Optional[
+            Union[List[Callable], Dict[str, List[Callable]]]
+        ] = None,
         cast_to: str = "float32",
         # Loader params
         batch_size: int = 1,
-        num_workers: int = None,
+        num_workers: Optional[int] = None,
         data_percentage: float = 1.0,
+        use_train_as_validation: bool = False,
+        map_labels: Optional[Dict[int, int]] = None,
         drop_last: bool = True,
+        n_domains_per_sample: Optional[int] = None,
     ):
         """Define the dataloaders for train, validation and test splits for
         HAR datasets. This datasets assumes that the data is in a single CSV
@@ -377,10 +386,18 @@ class MultiModalHARSeriesDataModule(L.LightningDataModule):
         num_workers : int, optional
             Number of workers to load data. If None, then use all cores
         data_percentage : float, optional
-            Percentage of the data to use. If less than 1.0, a random subset
-            of the data will be used.
+            The percentage of the data that will be used. This is useful to
+            create a small datasets.
+        use_train_as_validation : bool, optional
+            If True, the train dataset will be used as validation dataset.
+        map_labels : Dict[int, int], optional
+            A dictionary to map the labels to a new label. The key is the
+            original label and the value is the new label.
         drop_last : bool, optional
-            Drop the last batch if it is smaller than the batch size        
+            Drop the last batch if it is not complete.
+        n_domains_per_sample : int, optional
+            If not None, use the RandomDomainSampler to sample from multiple
+            domains in a balanced way.
         """
         super().__init__()
         self.data_path = (
@@ -396,9 +413,14 @@ class MultiModalHARSeriesDataModule(L.LightningDataModule):
         self.num_workers = parse_num_workers(num_workers)
         self.data_percentage = data_percentage
         self.datasets = {}
+        self.use_train_as_validation = use_train_as_validation
+        self.map_labels = map_labels
         self.drop_last = drop_last
+        self.n_domains_per_sample = n_domains_per_sample
 
-    def _load_dataset(self, split_name: str) -> MultiModalSeriesCSVDataset:
+    def _load_dataset(
+        self, split_name: str
+    ) -> Tuple[Union[MultiModalSeriesCSVDataset, ConcatDataset], List[int]]:
         """Create a ``MultiModalSeriesCSVDataset`` dataset with the given split.
 
         Parameters
@@ -423,7 +445,9 @@ class MultiModalHARSeriesDataModule(L.LightningDataModule):
             split_name = "test"
 
         datasets = []
+        domain_labels = []
         for i, data in enumerate(self.data_path):
+            data = Path(data)
             dataset = MultiModalSeriesCSVDataset(
                 data / f"{split_name}.csv",
                 feature_prefixes=self.feature_prefixes,
@@ -431,7 +455,9 @@ class MultiModalHARSeriesDataModule(L.LightningDataModule):
                 features_as_channels=self.features_as_channels,
                 cast_to=self.cast_to,
                 transforms=self.transforms[split_name],
+                map_labels=self.map_labels,
             )
+            domain_labels += [i] * len(dataset)
 
             if split_name == "train" and self.data_percentage < 1.0:
                 indices = list(range(len(dataset)))
@@ -442,9 +468,9 @@ class MultiModalHARSeriesDataModule(L.LightningDataModule):
             datasets.append(dataset)
 
         if len(datasets) == 1:
-            return datasets[0]
+            return datasets[0], domain_labels
         else:
-            return ConcatDataset(datasets)
+            return ConcatDataset(datasets), domain_labels
 
     def setup(self, stage: str):
         """Assign the datasets to the corresponding split. ``self.datasets``
@@ -466,7 +492,10 @@ class MultiModalHARSeriesDataModule(L.LightningDataModule):
         """
         if stage == "fit":
             self.datasets["train"] = self._load_dataset("train")
-            self.datasets["validation"] = self._load_dataset("validation")
+            if self.use_train_as_validation:
+                self.datasets["validation"] = self.datasets["train"]
+            else:
+                self.datasets["validation"] = self._load_dataset("validation")
         elif stage == "test":
             self.datasets["test"] = self._load_dataset("test")
         elif stage == "predict":
@@ -490,14 +519,33 @@ class MultiModalHARSeriesDataModule(L.LightningDataModule):
         DataLoader
             A dataloader for the given split.
         """
-        return DataLoader(
-            self.datasets[split_name],
-            batch_size=self.batch_size,
-            num_workers=self.num_workers,
-            shuffle=shuffle,
-            pin_memory=True,
-            drop_last=self.drop_last,
-        )
+        dataset, domain_labels = self.datasets[split_name]
+        if self.n_domains_per_sample is not None:
+            print(
+                f"Using DataLoader with RandomDomainSampler with n_domains_per_sample={self.n_domains_per_sample}"
+            )
+            sampler = RandomDomainSampler(
+                dataset,
+                domain_labels,
+                batch_size=self.batch_size,
+                consistent_iterating=False,
+                n_domains_per_sample=self.n_domains_per_sample,
+            )
+            return DataLoader(
+                dataset,
+                batch_sampler=sampler,
+                num_workers=self.num_workers,
+            )
+        else:
+            print(f"Using DataLoader with shuffle={shuffle}")
+            return DataLoader(
+                dataset,
+                batch_size=self.batch_size,
+                num_workers=self.num_workers,
+                shuffle=shuffle,
+                pin_memory=True,
+                drop_last=self.drop_last,
+            )
 
     def train_dataloader(self) -> DataLoader:
         return self._get_loader("train", shuffle=True)
@@ -512,7 +560,7 @@ class MultiModalHARSeriesDataModule(L.LightningDataModule):
         return self._get_loader("predict", shuffle=False)
 
     def __str__(self):
-        return f"MultiModalHARSeriesDataModule(data_path={self.data_path}, batch_size={self.batch_size})"
+        return f"MultiModalHARSeriesDataModule(data_path={', '.join([str(d) for d in self.data_path])}, batch_size={self.batch_size})"
 
     def __repr__(self) -> str:
         return str(self)

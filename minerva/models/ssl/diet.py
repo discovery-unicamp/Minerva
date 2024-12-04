@@ -81,7 +81,7 @@ class DIET(L.LightningModule):
         x, y = batch
         y_hat = self(x)
         loss = self.loss(y_hat, y)
-        self.log('train_loss', loss)
+        self.log('train_loss', loss, on_epoch=True, on_step=False)
         return loss
     
     def configure_optimizers(self):

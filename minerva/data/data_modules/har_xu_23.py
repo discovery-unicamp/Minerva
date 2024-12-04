@@ -4,8 +4,9 @@ import lightning as L
 import numpy as np
 from torch.utils.data import DataLoader
 from minerva.utils.typing import PathLike
-from minerva.data.datasets.har_xu_23 import TNCDataset,HarDataset
+from minerva.data.datasets.har_xu_23 import TNCDataset, HarDataset
 from typing import List
+
 
 class HarDataModule(L.LightningDataModule):
     def __init__(
@@ -16,79 +17,58 @@ class HarDataModule(L.LightningDataModule):
         epsilon: int = 3,
         adf: bool = True,
         window_size: int = 128,
-        num_workers: int = 0,
+        use_train_as_val: bool = False,
+        num_workers: int = 8,
     ):
         """
-        This DataModule handles the loading and preparation of data for training, validation,
-        and testing. The data is expected to be stored in 3 .npy files named train_data.npy, val_data.npy, and test_data.npy.
-        They are NumPy arrays storing the concatenated accelerometer and gyroscope data.
+        This DataModule handles the loading and preparation of data for
+        training, validation, and testing. The data is expected to be stored
+        in 3 numpy (.npy) files named `train_data.npy`, `val_data.npy`, and
+        `test_data.npy`. They are NumPy arrays storing the concatenated
+        accelerometer and gyroscope data.
 
-        This .npy files are of shape (n_samples, n_timesteps, n_channels) and are produced at specific window size by 
-        another data processing script available in https://github.com/maxxu05/rebar/blob/main/data/process/har_processdata.py
+        This numpy arrays (files) must have the following shape (n_samples,
+        n_timesteps, n_channels) and are produced at specific window size by
+        another data processing script available in
+        https://github.com/maxxu05/rebar/blob/main/data/process/har_processdata.py
 
         The original files have exact shape of:
         - `train_data.npy`: `(41, 15038, 6)`
         - `val_data.npy`: `(9, 15038, 6)`
         - `test_data.npy`: `(9, 15038, 6)`
 
-        The Python script performs a series of tasks to facilitate the preprocessing and organization of dataset, processing
-        The raw accelerometer and gyroscope data for each participant are, filtering out sequences shorter than a set threshold. 
-        The data is then split into training, validation, and test sets, which are saved as NumPy arrays along with corresponding participant names.
+        The Python script performs a series of tasks to facilitate the
+        preprocessing and organization of dataset, processing
+        The raw accelerometer and gyroscope data for each participant are,
+        filtering out sequences shorter than a set threshold.
+        The data is then split into training, validation, and test sets, which
+        are saved as NumPy arrays along with corresponding participant names.
 
-        For the dataloader, the .npy files are transposed into the shape (n_samples, n_channels, n_timesteps) and passed to the TNCDataset
+        For the dataloader, the .npy files are transposed into the shape
+        (n_samples, n_channels, n_timesteps) and passed to the TNCDataset
 
         Parameters
         ----------
         processed_data_dir: PathLike
-            Path to the directory where the processed .npy files are stored. 
-            It must have 3 files, named train_data.npy, val_data.npy, and test_data.npy. 
+            Path to the directory where the processed .npy files are stored.
+            Inside this path must have 3 files, named train_data.npy,
+            val_data.npy, and test_data.npy.
         batch_size : int, optional
             The batch size to use for the DataLoader. Defaults to 16.
         mc_sample_size : int, optional
-            This value determines how many neighboring and non-neighboring windows are used per data sample. Defaults to 5.
+            This value determines how many neighboring and non-neighboring
+            windows are used per data sample. Defaults to 5.
         epsilon : int, optional
-            This parameter controls the "spread" of neighboring windows. 
+            This parameter controls the "spread" of neighboring windows.
         adf : bool, optional
-            Flag indicating whether to use ADF (Augmented Dickey-Fuller) testing for finding neighbors. Defaults to True.
+            Flag indicating whether to use ADF (Augmented Dickey-Fuller)
+            testing for finding neighbors. Defaults to True.
         window_size : int, optional
-            The size of the windows to be used for each sample in the TNC dataset. Defaults to 128.
-        num_workers : int, optional
-            The number of workers to use for the DataLoaders. Defaults to 0.
-
-        Example Usage
-        -------------
-        ```python
-        import os
-        import numpy as np
-        import torch
-        from torch.utils.data import DataLoader
-        import pytorch_lightning as pl
-
-        # Example configuration
-        processed_data_dir = "path/to/processed/data"
-
-        # Instantiate the DataModule
-        data_module = HarDataModule(
-            processed_data_dir=processed_data_dir,
-        )
-
-        # Prepare the data loaders
-        train_loader = data_module.train_dataloader()
-        val_loader = data_module.val_dataloader()
-        test_loader = data_module.test_dataloader()
-
-        # Iterate over a batch of data
-        for batch in train_loader:
-            central_window, close_neighbors, non_neighbors = batch
-            print("Central Window Shape:", central_window.shape)  # (batch_size, window_size, n_channels)
-            print("Close Neighbors Shape:", close_neighbors.shape)  # (batch_size, mc_sample_size, window_size, n_channels)
-            print("Non-Neighbors Shape:", non_neighbors.shape)  # (batch_size, mc_sample_size, window_size, n_channels)
-            break
-        ```
-
-        """        
+            The size of the windows to be used for each sample in the TNC
+            dataset. Defaults to 128.
+        """
         super().__init__()
-        self.processed_data_dir = processed_data_dir
+        self.processed_data_dir = Path(processed_data_dir)
         self.batch_size = batch_size
         self.mc_sample_size = mc_sample_size
         self.epsilon = epsilon
@@ -96,9 +76,12 @@ class HarDataModule(L.LightningDataModule):
         self.window_size = window_size
         self.num_workers = num_workers
 
-        self.har_train = np.load(os.path.join(self.processed_data_dir, "train_data.npy"))
-        self.har_val = np.load(os.path.join(self.processed_data_dir, "val_data.npy"))
-        self.har_test = np.load(os.path.join(self.processed_data_dir, "test_data.npy"))
+        self.har_train = np.load(self.processed_data_dir / "train_data.npy")
+        if use_train_as_val:
+            self.har_val = self.har_train
+        else:
+            self.har_val = np.load(self.processed_data_dir / "val_data.npy")
+        self.har_test = np.load(self.processed_data_dir / "test_data.npy")
 
     def train_dataloader(self):
         """
@@ -166,6 +149,7 @@ class HarDataModule(L.LightningDataModule):
             num_workers=self.num_workers,
         )
 
+
 class HarDataModule_Downstream(L.LightningDataModule):
     def __init__(
         self,
@@ -181,7 +165,7 @@ class HarDataModule_Downstream(L.LightningDataModule):
         target_column: str = "standard activity code",
         flatten: bool = False,
         batch_size: int = 16,
-        num_workers: int = 0,
+        num_workers: int = 8,
     ):
         """
         DataModule for downstream tasks in human activity recognition (HAR) using the UCI dataset.
@@ -210,8 +194,6 @@ class HarDataModule_Downstream(L.LightningDataModule):
             If True, flattens the input data. Defaults to False.
         batch_size : int, optional
             Number of samples per batch. Defaults to 16.
-        num_workers : int, optional
-            The number of workers to use for the DataLoaders. Defaults to 0.
 
         Example method
         -------
@@ -227,10 +209,11 @@ class HarDataModule_Downstream(L.LightningDataModule):
         self.target_column = target_column
         self.flatten = flatten
         self.batch_size = batch_size
-        self.num_workers = num_workers        
+        self.num_workers = num_workers
 
-
-    def _get_dataset_dataloader(self, annotate: str, shuffle: bool) -> DataLoader[HarDataset]:
+    def _get_dataset_dataloader(
+        self, annotate: str, shuffle: bool
+    ) -> DataLoader[HarDataset]:
         """
         Get DataLoader for a specific annotation type.
 
@@ -305,5 +288,3 @@ class HarDataModule_Downstream(L.LightningDataModule):
         """
         # Reuse the test_dataloader logic for predict
         return self.test_dataloader()
-
-
