@@ -20,7 +20,6 @@ import torch.utils.checkpoint
 from torch import Tensor
 from torch.nn.init import trunc_normal_
 
-
 try:
     from xformers.ops import SwiGLU
     from xformers.ops import fmha
@@ -1433,21 +1432,35 @@ class DinoV2(L.LightningModule):
         backbone: torch.nn.Module,
         head: torch.nn.Module,
         loss_fn: torch.nn.Module,
-        n1: int = 1006,
-        n2: int = 782,
+        output_shape: Tuple[int, int] = (1008, 784),
         emb_dim: int = 384,
     ):
+        """Create DinoV2 model for downstream tasks.
+
+        Parameters
+        ----------
+        backbone : torch.nn.Module
+            The backbone model
+        head : torch.nn.Module
+            The head model
+        loss_fn : torch.nn.Module
+            Loss function
+        output_shape: Tuple[int, int], optional
+            Default output shape, by default (1008, 784)
+        emb_dim : int, optional
+            _description_, by default 384
+        """
         super().__init__()
         self.backbone = backbone
         self.head = head
         self.loss_fn = loss_fn
-        self.n1 = n1
-        self.n2 = n2
+        self.output_shape = output_shape
         self.emb_dim = emb_dim
 
     def forward(self, x):
-        size = (self.n1, self.n2)
         B, C, H, W = x.shape
+        size = self.output_shape or (H, W)
+        
         features, _ = self.backbone.forward_features(x)
         fea_img = features["x_norm_patchtokens"]
         fea_img = fea_img.view(
@@ -1483,6 +1496,13 @@ class DinoV2(L.LightningModule):
         loss = self.loss_fn(outputs, label.long())
         self.log("test_loss", loss)
         return loss
+
+    def predict_step(self, batch, batch_idx, dataloader_idx=None):
+        data, label = batch
+        if len(label.shape) == 4:
+            label = label.squeeze(1)
+        outputs = self.forward(data)
+        return outputs
 
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(self.parameters(), lr=1e-4)
