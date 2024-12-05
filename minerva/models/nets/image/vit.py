@@ -1283,61 +1283,6 @@ def interpolate_pos_embed(
         #     checkpoint_model['pos_embed'] = pos_tokens
 
 
-def model_loader(model, chpt_path):
-    checkpoint = torch.load(chpt_path, map_location="cpu")
-    checkpoint_model = checkpoint["model"]
-    state_dict = model.state_dict()
-    for k in ["head.weight", "head.bias"]:
-        if (
-            k in checkpoint_model
-            and checkpoint_model[k].shape != state_dict[k].shape
-        ):
-            print(f"Removing key {k} from pretrained checkpoint")
-            del checkpoint_model[k]
-    # interpolate position embedding
-    # interpolate_pos_embed(model, checkpoint_model)
-
-    # load pre-trained model
-    msg = model.load_state_dict(checkpoint_model, strict=False)
-    # print(msg)
-    print(f"-- Loaded first pre-trained model from {chpt_path}")
-    return model
-
-
-class _ViT_Base_Patch16_Downstream_Regression(L.LightningModule):
-    def __init__(self, ckpt_path: str = None, **kwargs):
-        super().__init__()
-        self.model = vit_base_patch16_downstream_regression(**kwargs)
-        if ckpt_path is not None:
-            self.model = model_loader(self.model, ckpt_path)
-
-    def forward(self, x):
-        return self.model(x)
-
-    # def training_step(self, batch, batch_idx):
-    #     loss = self.model.training_step(batch, batch_idx)
-    #     self.log("train_loss", loss)
-    #     return loss
-
-    # def validation_step(self, batch, batch_idx):
-    #     loss = self.model.validation_step(batch, batch_idx)
-    #     self.log("val_loss", loss)
-    #     return loss
-
-    # def test_step(self, batch, batch_idx):
-    #     loss = self.model.test_step(batch, batch_idx)
-    #     self.log("test_loss", loss)
-    #     return loss
-
-    # def predict_step(self, batch, batch_idx, dataloader_idx=None):
-    #     x = batch
-    #     logits = self.model(x)
-    #     return logits
-
-    # def configure_optimizers(self):
-    #     return super().configure_optimizers()
-
-
 class SFM_BasePatch16_Downstream(SimpleSupervisedModel):
     def __init__(
         self,
@@ -1365,7 +1310,7 @@ class SFM_BasePatch16_Downstream(SimpleSupervisedModel):
             Learning rate value, by default 1e-3
         """
         super().__init__(
-            backbone=_ViT_Base_Patch16_Downstream_Regression(
+            backbone=vit_base_patch16_downstream_regression(
                 img_size=img_size,
                 num_classes=num_classes,
                 in_chans=in_chans,
