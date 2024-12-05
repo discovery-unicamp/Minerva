@@ -44,7 +44,9 @@ class _Encoder(nn.Module):
         attention_dropout: float,
         aux_output: bool = False,
         aux_output_layers: Optional[List[int]] = None,
-        norm_layer: Callable[..., torch.nn.Module] = partial(nn.LayerNorm, eps=1e-6),
+        norm_layer: Callable[..., torch.nn.Module] = partial(
+            nn.LayerNorm, eps=1e-6
+        ),
     ):
         super().__init__()
         # Note that batch_size is on the first dim because
@@ -104,7 +106,9 @@ class _VisionTransformerBackbone(nn.Module):
         num_classes: int = 1000,
         aux_output: bool = False,
         aux_output_layers: Optional[List[int]] = None,
-        norm_layer: Callable[..., torch.nn.Module] = partial(nn.LayerNorm, eps=1e-6),
+        norm_layer: Callable[..., torch.nn.Module] = partial(
+            nn.LayerNorm, eps=1e-6
+        ),
         conv_stem_configs: Optional[List[ConvStemConfig]] = None,
     ):
         """
@@ -150,11 +154,13 @@ class _VisionTransformerBackbone(nn.Module):
 
         if isinstance(image_size, int):
             torch._assert(
-                image_size % patch_size == 0, "Input shape indivisible by patch size!"
+                image_size % patch_size == 0,
+                "Input shape indivisible by patch size!",
             )
         elif isinstance(image_size, tuple):
             torch._assert(
-                image_size[0] % patch_size == 0 and image_size[1] % patch_size == 0,
+                image_size[0] % patch_size == 0
+                and image_size[1] % patch_size == 0,
                 "Input shape indivisible by patch size!",
             )
 
@@ -189,7 +195,9 @@ class _VisionTransformerBackbone(nn.Module):
             seq_proj.add_module(
                 "conv_last",
                 nn.Conv2d(
-                    in_channels=prev_channels, out_channels=hidden_dim, kernel_size=1
+                    in_channels=prev_channels,
+                    out_channels=hidden_dim,
+                    kernel_size=1,
                 ),
             )
             self.conv_proj: nn.Module = seq_proj
@@ -204,7 +212,9 @@ class _VisionTransformerBackbone(nn.Module):
         if isinstance(image_size, int):
             seq_length = (image_size // patch_size) ** 2
         elif isinstance(image_size, tuple):
-            seq_length = (image_size[0] // patch_size) * (image_size[1] // patch_size)
+            seq_length = (image_size[0] // patch_size) * (
+                image_size[1] // patch_size
+            )
 
         # Add a class token
         self.class_token = nn.Parameter(torch.zeros(1, 1, hidden_dim))
@@ -231,7 +241,9 @@ class _VisionTransformerBackbone(nn.Module):
                 * self.conv_proj.kernel_size[0]
                 * self.conv_proj.kernel_size[1]
             )
-            nn.init.trunc_normal_(self.conv_proj.weight, std=math.sqrt(1 / fan_in))
+            nn.init.trunc_normal_(
+                self.conv_proj.weight, std=math.sqrt(1 / fan_in)
+            )
             if self.conv_proj.bias is not None:
                 nn.init.zeros_(self.conv_proj.bias)
         elif self.conv_proj.conv_last is not None and isinstance(
@@ -339,9 +351,6 @@ class _VisionTransformerBackbone(nn.Module):
         x = x.reshape(B, n_h, n_w, C).permute(0, 3, 1, 2).contiguous()
 
         return x
-
-
-
 
 
 class MaskedAutoencoderViT(L.LightningModule):
@@ -1066,6 +1075,7 @@ class DecoderCup(nn.Module):
             x = decoder_block(x, skip=skip)
         return x
 
+
 class MLAHead(nn.Module):
     def __init__(self, mla_channels=256, mlahead_channels=128, norm_cfg=None):
         super(MLAHead, self).__init__()
@@ -1136,6 +1146,7 @@ class MLAHead(nn.Module):
             align_corners=True,
         )
         return torch.cat([head2, head3, head4, head5], dim=1)
+
 
 class VIT_MLAHead(nn.Module):
     """Vision Transformer with support for patch or hybrid CNN input stage"""
@@ -1327,16 +1338,32 @@ class _ViT_Base_Patch16_Downstream_Regression(L.LightningModule):
     #     return super().configure_optimizers()
 
 
-class ViT_Base_Patch16_Downstream_Regression(SimpleSupervisedModel):
+class SFM_BasePatch16_Downstream(SimpleSupervisedModel):
     def __init__(
         self,
-        img_size: int | Tuple[int, ...],
-        num_classes: int,
-        in_chans: int,
+        img_size: Union[int, Tuple[int, ...]] = (512, 512),
+        num_classes: int = 6,
+        in_chans: int = 1,
         loss_fn: Optional[torch.nn.Module] = None,
         learning_rate: float = 1e-3,
         **kwargs,
     ):
+        """Create a SFM model with a ViT base backbone.
+
+        Parameters
+        ----------
+        img_size : Union[int, Tuple[int, ...]]
+            Size of the input image. Note that, to use default pre-trained SFM
+            model, the size should be (512, 512).
+        num_classes : int
+            Number of classes for segmentation head. Default is 6.
+        in_chans : int
+            Number of input channels. Default is 1.
+        loss_fn : Optional[torch.nn.Module], optional
+            Loss function, by default None
+        learning_rate : float, optional
+            Learning rate value, by default 1e-3
+        """
         super().__init__(
             backbone=_ViT_Base_Patch16_Downstream_Regression(
                 img_size=img_size,
@@ -1370,4 +1397,3 @@ class ViT_Base_Patch16_Downstream_Regression(SimpleSupervisedModel):
             x = x[:, 0:1, :, :]
         logits = self.backbone.model(x)
         return logits
-
