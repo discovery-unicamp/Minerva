@@ -52,6 +52,4 @@ class PNGReader(BaseFileIterator):
 
     def __getitem__(self, index: int) -> np.ndarray:
         """Retrieve the PNG file at the specified index."""
-        x = np.array(Image.open(self.files[index].as_posix()))
-        print(f"File: {self.files[index].name}, shape: {x.shape}")
-        return x
+        return np.array(Image.open(self.files[index].as_posix()))

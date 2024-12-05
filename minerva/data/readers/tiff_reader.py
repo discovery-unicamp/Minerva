@@ -50,6 +50,4 @@ class TiffReader(BaseFileIterator):
 
     def __getitem__(self, index: int) -> np.ndarray:
         """Retrieve the TIFF file at the specified index."""
-        x = tiff.imread(self.files[index].as_posix())
-        print(f"File: {self.files[index].name}, shape: {x.shape}")
-        return x
+        return tiff.imread(self.files[index].as_posix())
