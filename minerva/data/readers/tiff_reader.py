@@ -5,6 +5,7 @@ import numpy as np
 import tifffile as tiff
 
 from minerva.data.readers.reader import _Reader
+from minerva.utils.typing import PathLike
 
 
 class TiffReader(_Reader):
@@ -23,15 +24,15 @@ class TiffReader(_Reader):
     Thus, the element at index `i` will be the file `i.tiff`.
     """
 
-    def __init__(self, path: str):
+    def __init__(self, path: PathLike):
         self.path = Path(path)
         if not self.path.is_dir():
-            raise ValueError(f"Path {path} is not a directory")
+            raise NotADirectoryError(f"Path {path} is not a directory")
         self.files = list(sorted(self.path.rglob("*.tif"))) + list(
             sorted(self.path.rglob("*.tiff"))
         )
 
-    def __getitem__(self, index: Union[int, slice]) -> np.ndarray:
+    def __getitem__(self, index: int) -> np.ndarray:
         """Retrieve the TIFF file at the specified index. The index will be
         used as the filename of the TIFF file.
 

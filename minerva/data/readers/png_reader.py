@@ -5,6 +5,7 @@ import numpy as np
 from PIL import Image
 
 from minerva.data.readers.reader import _Reader
+from minerva.utils.typing import PathLike
 
 
 class PNGReader(_Reader):
@@ -23,7 +24,7 @@ class PNGReader(_Reader):
     Thus, the element at index `i` will be the file `i.png`.
     """
 
-    def __init__(self, path: Union[Path, str]):
+    def __init__(self, path: PathLike):
         """This class loads a PNG file from a directory.
 
         Parameters
@@ -33,7 +34,7 @@ class PNGReader(_Reader):
         """
         self.path = Path(path)
         if not self.path.is_dir():
-            raise ValueError(f"Path {path} is not a directory")
+            raise NotADirectoryError(f"Path {path} is not a directory")
         self.files = list(sorted(self.path.rglob("*.png")))
 
     def __getitem__(self, index: int) -> np.ndarray:
