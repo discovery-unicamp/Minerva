@@ -1447,7 +1447,7 @@ class DinoV2(L.LightningModule):
 
     def forward(self, x):
         size = (self.n1, self.n2)
-        B, _, H, W = x.shape
+        B, C, H, W = x.shape
         features, _ = self.backbone.forward_features(x)
         fea_img = features["x_norm_patchtokens"]
         fea_img = fea_img.view(
@@ -1459,10 +1459,8 @@ class DinoV2(L.LightningModule):
 
     def training_step(self, batch, batch_idx):
         data, label = batch
-        b1, b2, c, h, w = data.shape
-        data = data.reshape(b1 * b2, c, h, w)
-        b1, b2, c, h, w = label.shape
-        label = label.reshape(b1 * b2, h, w)
+        if len(label.shape) == 4:
+            label = label.squeeze(1)
         outputs = self.forward(data)
         loss = self.loss_fn(outputs, label.long())
         self.log("train_loss", loss)
@@ -1470,26 +1468,21 @@ class DinoV2(L.LightningModule):
 
     def validation_step(self, batch, batch_idx):
         data, label = batch
-        b1, b2, c, h, w = data.shape
-        data = data.reshape(b1 * b2, c, h, w)
-        b1, b2, c, h, w = label.shape
-        label = label.reshape(b1 * b2, h, w)
+        if len(label.shape) == 4:
+            label = label.squeeze(1)
         outputs = self.forward(data)
         loss = self.loss_fn(outputs, label.long())
         self.log("val_loss", loss)
         return loss
 
-    def predict_step(self, batch, batch_idx, dataloader_idx=None):
+    def test_step(self, batch, batch_idx):
         data, label = batch
-        b1, b2, c, h, w = data.shape
-        data = data.reshape(b1 * b2, c, h, w)
-        b1, b2, c, h, w = label.shape
-        label = label.reshape(b1 * b2, h, w)
+        if len(label.shape) == 4:
+            label = label.squeeze(1)
         outputs = self.forward(data)
         loss = self.loss_fn(outputs, label.long())
-
-        self.metric = self.metric.to(self.device)
-        return {"miou": self.metric(outputs, label.long())}
+        self.log("test_loss", loss)
+        return loss
 
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(self.parameters(), lr=1e-4)
