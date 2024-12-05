@@ -20,9 +20,10 @@ import torch.utils.checkpoint
 import torch.nn.functional as F
 from torch import Tensor
 from torch.nn.init import trunc_normal_
+from timm.layers.drop import DropPath
 
-try:
-    raise ImportError
+try:    
+    raise ImportError       # Raising an ImportError to skip the following code (and work on CPU)
     from xformers.ops import SwiGLU
     from xformers.ops import fmha
     from xformers.ops import scaled_index_add, index_select_cat
