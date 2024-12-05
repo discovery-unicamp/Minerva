@@ -1,13 +1,17 @@
+# Standard library imports
 import math
 from collections import OrderedDict
 from functools import partial
 from typing import Callable, List, Optional, Tuple, Union
 
+# Third-party imports
 import lightning as L
+import numpy as np
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
+import timm.models.vision_transformer
 from timm.models.vision_transformer import Block, PatchEmbed
-from torch import nn
 from torchvision.models.vision_transformer import (
     Conv2dNormActivation,
     ConvStemConfig,
@@ -15,19 +19,10 @@ from torchvision.models.vision_transformer import (
     _log_api_usage_once,
 )
 
-from minerva.utils.position_embedding import get_2d_sincos_pos_embed
-
-from functools import partial
-from typing import Optional, Tuple
-
-import lightning as L
-import numpy as np
-import torch
-import torch.nn as nn
-from timm.models.vision_transformer import Block, PatchEmbed
-
+# Local imports
 from minerva.utils.position_embedding import get_2d_sincos_pos_embed
 from minerva.models.nets.base import SimpleSupervisedModel
+
 
 
 class _Encoder(nn.Module):
@@ -352,6 +347,11 @@ class _VisionTransformerBackbone(nn.Module):
 
         return x
 
+###################################
+
+############### SFM ###############
+
+###################################
 
 class MaskedAutoencoderViT(L.LightningModule):
     """
@@ -796,17 +796,8 @@ mae_vit_base_patch16D4d256 = partial(
 
 
 ################################################################################
-# DOWNSTREAM TASKS
+# SFM DOWNSTREAM TASKS
 ################################################################################
-
-from functools import partial
-
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-import timm.models.vision_transformer
-import numpy as np
-
 
 class VisionTransformer(
     timm.models.vision_transformer.VisionTransformer, L.LightningModule
@@ -870,42 +861,6 @@ class VisionTransformer(
         x = x.float()
         x = self.forward_features(x)
         return x
-
-    # def _shared_step(self, batch, batch_idx):
-    #     x, y = batch
-    #     x = x.float()
-    #     if x.shape[1] > 1:
-    #         x = x[:, 0:1, :, :]
-    #     if y.ndim == 4:
-    #         y = y[:, 0, :, :].long()
-
-    #     logits = self(x)
-    #     loss = self.loss_fn(logits, y)
-    #     return loss
-
-    # def training_step(self, batch, batch_idx):
-    #     loss = self._shared_step(batch, batch_idx)
-    #     # self.log("train_loss", loss)
-    #     return loss
-
-    # def validation_step(self, batch, batch_idx):
-    #     loss = self._shared_step(batch, batch_idx)
-    #     # self.log("val_loss", loss)
-    #     return loss
-
-    # def test_step(self, batch, batch_idx):
-    #     loss = self._shared_step(batch, batch_idx)
-    #     # self.log("test_loss", loss)
-    #     return loss
-
-    # def predict_step(self, batch, batch_idx, dataloader_idx=None):
-    #     x = batch
-    #     logits = self(x)
-    #     return logits
-
-    # def configure_optimizers(self):
-    #     optimizer = torch.optim.Adam(self.parameters(), lr=1e-3)
-    #     return optimizer
 
 
 class Conv2dReLU(nn.Sequential):
