@@ -1293,7 +1293,12 @@ class SFM_BasePatch16_Downstream(SimpleSupervisedModel):
         learning_rate: float = 1e-3,
         **kwargs,
     ):
-        """Create a SFM model with a ViT base backbone.
+        """Create a SFM model with a ViT base backbone. The ViT-Base-16 backbone
+        has the following configuration:
+        - Patch size: 16
+        - Embedding dimension: 768
+        - Depth: 12
+        - Number of heads: 12
 
         Parameters
         ----------
