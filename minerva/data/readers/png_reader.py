@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Union
+from typing import Optional, Union
 
 import numpy as np
 from PIL import Image
@@ -9,37 +9,84 @@ from minerva.utils.typing import PathLike
 
 
 class PNGReader(_Reader):
-    """This class loads a PNG file from a directory. It assumes that the PNG
-    files are named with a number as the filename, starting from 0. This is
-    shown below.
-
-    ```
-    /path/
-    ├── 0.png
-    ├── 1.png
-    ├── 2.png
-    └── ...
-    ```
-
-    Thus, the element at index `i` will be the file `i.png`.
+    """This class loads PNG files from a directory, optionally sorting them
+    numerically based on a part of the filename split by a delimiter.
     """
 
-    def __init__(self, path: PathLike):
-        """This class loads a PNG file from a directory.
+    def __init__(
+        self,
+        path: PathLike,
+        sort_numeric: bool = False,
+        delimiter: Optional[str] = None,
+        key_index: int = 0,
+    ):
+        """Load PNG files from a directory.
 
         Parameters
         ----------
-        path : Union[Path, str]
-            Path to the directory containing the PNG files.
+        path : PathLike
+            The path to the directory containing the PNG files. Files will be 
+            searched recursively.
+        sort_numeric : bool, optional
+            If True, sorts numerically instead of lexicographically, by default 
+            False.
+        delimiter : Optional[str], optional
+            The delimiter to split filenames into components, by default None.
+            For example, if the delimiter is '_', the filename 'image_1.tif' 
+            will be split into ['image', '1'], and the sorting will be based on 
+            the part at index defined by `key_index`.
+        key_index : int, optional
+            The index of the part of the filename to use for sorting.
+            Only valid if delimiter is not None. By default 0.
+
+        Raises
+        ------
+        NotADirectoryError
+            If the path is not a directory.
         """
         self.path = Path(path)
+
         if not self.path.is_dir():
             raise NotADirectoryError(f"Path {path} is not a directory")
-        self.files = list(sorted(self.path.rglob("*.png")))
+
+        self.sort_numeric = sort_numeric
+        self.delimiter = delimiter
+        self.key_index = key_index
+
+        # Find all PNG files in the directory recursively
+        self.files = list(self.path.rglob("*.png"))
+        self._sort_files()
+
+        # Print the file stems (name without extension)
+        for f in self.files:
+            print(f.name)
+
+    def _sort_files(self):
+        """Sort files based on the provided sorting options."""
+        def sort_key(f: Path):
+            # If no delimiter, sort lexicographically by the full filename (stem)
+            if not self.delimiter:
+                return int(f.stem) if self.sort_numeric and f.stem.isdigit() else f.stem
+
+            # Otherwise, split the filename by the delimiter
+            parts = f.stem.split(self.delimiter)
+
+            # If numeric sorting is enabled, use the part specified by key_index
+            if self.sort_numeric:
+                try:
+                    # Try to convert the part to an integer; if successful, sort numerically
+                    return int(parts[self.key_index]) if parts[self.key_index].isdigit() else float('inf')
+                except (IndexError, ValueError):
+                    # If the part is out of range or not a number, treat as a large value
+                    return float('inf')
+            else:
+                return parts[self.key_index]  # If not numeric, use the part as a string for lexicographical sorting
+
+        # Sort the files using the custom sort key
+        self.files.sort(key=sort_key)
 
     def __getitem__(self, index: int) -> np.ndarray:
-        """Retrieve the PNG file at the specified index. The index will be
-        used as the filename of the PNG file.
+        """Retrieve the PNG file at the specified index.
 
         Parameters
         ----------
@@ -67,3 +114,9 @@ class PNGReader(_Reader):
             The number of PNG files in the directory.
         """
         return len(self.files)
+
+    def __str__(self) -> str:
+        return f"PNGReader(path={self.path}. Number of files: {len(self.files)}"
+    
+    def __repr__(self) -> str:
+        return str(self)
