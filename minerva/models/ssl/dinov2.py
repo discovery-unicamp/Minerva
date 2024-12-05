@@ -1237,25 +1237,6 @@ class DinoVisionTransformer(nn.Module):
 
         self.init_weights()
 
-        # print(f"Initialized DinoVisionTransformer with img_size={img_size},")
-        # print(f"patch_size={patch_size},")
-        # print(f"in_chans={in_chans},")
-        # print(f"embed_dim={embed_dim},")
-        # print(f"depth={depth},")
-        # print(f"num_heads={num_heads},")
-        # print(f"mlp_ratio={mlp_ratio},")
-        # print(f"qkv_bias={qkv_bias},")
-        # print(f"ffn_bias={ffn_bias},")
-        # print(f"proj_bias={proj_bias},")
-        # print(f"drop_path_rate={drop_path_rate},")
-        # print(f"drop_path_uniform={drop_path_uniform},")
-        # print(f"init_values={init_values},")
-        # print(f"embed_layer={embed_layer},")
-        # print(f"act_layer={act_layer},")
-        # print(f"block_fn={block_fn},")
-        # print(f"ffn_layer={ffn_layer},")
-        # print(f"block_chunks={block_chunks}")
-
     def init_weights(self):
         trunc_normal_(self.pos_embed, std=0.02)
         nn.init.normal_(self.cls_token, std=1e-6)
