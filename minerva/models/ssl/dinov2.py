@@ -17,10 +17,12 @@ import lightning as L
 import torch
 import torch.nn as nn
 import torch.utils.checkpoint
+import torch.nn.functional as F
 from torch import Tensor
 from torch.nn.init import trunc_normal_
 
 try:
+    raise ImportError
     from xformers.ops import SwiGLU
     from xformers.ops import fmha
     from xformers.ops import scaled_index_add, index_select_cat
@@ -169,6 +171,7 @@ class SwiGLUFFN(nn.Module):
         x1, x2 = x12.chunk(2, dim=-1)
         hidden = F.silu(x1) * x2
         return self.w3(hidden)
+
 
 if not XFORMERS_AVAILABLE:
     SwiGLU = SwiGLUFFN
@@ -1434,6 +1437,7 @@ class DinoV2(L.LightningModule):
         loss_fn: torch.nn.Module,
         output_shape: Tuple[int, int] = (1008, 784),
         emb_dim: int = 384,
+        middle: bool = False
     ):
         """Create DinoV2 model for downstream tasks.
 
@@ -1449,6 +1453,8 @@ class DinoV2(L.LightningModule):
             Default output shape, by default (1008, 784)
         emb_dim : int, optional
             _description_, by default 384
+        middle : bool, optional
+            If True, return the middle layers, by default False
         """
         super().__init__()
         self.backbone = backbone
@@ -1456,19 +1462,34 @@ class DinoV2(L.LightningModule):
         self.loss_fn = loss_fn
         self.output_shape = output_shape
         self.emb_dim = emb_dim
+        self.middle = middle
 
     def forward(self, x):
-        B, C, H, W = x.shape
-        size = self.output_shape or (H, W)
-        
-        features, _ = self.backbone.forward_features(x)
-        fea_img = features["x_norm_patchtokens"]
-        fea_img = fea_img.view(
-            fea_img.size(0), int(H / 14), int(W / 14), self.emb_dim
-        )
-        fea_img = fea_img.permute(0, 3, 1, 2).contiguous()
-        out = self.head(fea_img, size)
-        return out
+        size = self.output_shape or x.shape[-2:]
+        # print(f"FORWARD: x.shape={x.shape}")
+        B, _, H, W = x.shape
+        features, x_middle = self.backbone.forward_features(x)
+        if self.middle:
+            xm = []
+            for k, x in x_middle.items():
+                x = x.view(x.size(0), int(H / 14), int(W / 14), self.emb_dim)
+                x = x.permute(0, 3, 1, 2).contiguous()
+                xm.append(x)
+            out = self.head(xm, size)
+            return out
+
+        else:
+            # print(f"FORWARD: features['x_norm_patchtokens'].shape={features['x_norm_patchtokens'].shape}")
+            fea_img = features["x_norm_patchtokens"]
+            fea_img = fea_img.view(
+                fea_img.size(0), int(H / 14), int(W / 14), self.emb_dim
+            )
+            fea_img = fea_img.permute(0, 3, 1, 2).contiguous()
+            # print(f"FORWARD: fea_img.shape={fea_img.shape}")
+            out = self.head(fea_img, size)
+            # print(f"FORWARD: out.shape={out.shape}")
+            return out
+
 
     def training_step(self, batch, batch_idx):
         data, label = batch
