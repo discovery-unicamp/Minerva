@@ -1,6 +1,6 @@
 from itertools import product
-from typing import Any, List, Sequence, Union, Tuple
-import cv2
+from typing import Any, List, Optional, Sequence, Union, Tuple
+# import cv2
 import numpy as np
 import torch
 from perlin_noise import PerlinNoise
@@ -418,3 +418,172 @@ class Rotation(_Transform):
         rotation_matrix = cv2.getRotationMatrix2D(center, self.degrees, 1.0)
         return cv2.warpAffine(image, rotation_matrix, (w, h), 
                               borderMode=cv2.BORDER_REFLECT)  
+
+
+class PadCrop(_Transform):
+    """Transforms image and pads or crops it to the target size.
+    If the axis is larger than the target size, it will crop the image.
+    If the axis is smaller than the target size, it will pad the image.
+    """
+
+    def __init__(
+        self,
+        target_h_size: int,
+        target_w_size: int,
+        padding_mode: str = "reflect",
+        seed: int | None = None,
+        constant_values: int = 0,
+    ):
+        """
+        Initializes the transformation with target sizes, padding mode, and RNG seed.
+
+        Parameters:
+        - target_h_size (int): The target height size.
+        - target_w_size (int): The target width size.
+        - padding_mode (str): The padding mode to use (default is "reflect").
+        - seed (int): Seed for random number generator to make cropping reproducible.
+        """
+        self.target_h_size = target_h_size
+        self.target_w_size = target_w_size
+        self.padding_mode = padding_mode
+        self.rng = np.random.default_rng(
+            seed
+        )  # Random number generator with the provided seed
+        self.constant_values = constant_values
+
+    def __call__(self, x: np.ndarray) -> np.ndarray:
+        h, w = x.shape[:2]
+        # print(f"-> [{self.__class__.__name__}] x.shape={x.shape}")
+
+        # Handle height dimension independently: pad if target_h_size > h, else crop
+        if self.target_h_size > h:
+            pad_h = self.target_h_size - h
+            pad_top = pad_h // 2
+            pad_bottom = pad_h - pad_top
+            pad_args = {
+                "array": x,
+                "pad_width": (
+                    ((pad_top, pad_bottom), (0, 0), (0, 0))
+                    if len(x.shape) == 3
+                    else ((pad_top, pad_bottom), (0, 0))
+                ),
+                "mode": self.padding_mode,
+            }
+            if self.padding_mode == "constant":
+                pad_args["constant_values"] = self.constant_values
+
+            x = np.pad(**pad_args)
+
+        elif self.target_h_size < h:
+            crop_h_start = self.rng.integers(0, h - self.target_h_size + 1)
+            x = x[crop_h_start : crop_h_start + self.target_h_size, ...]
+
+        # Handle width dimension independently: pad if target_w_size > w, else crop
+        if self.target_w_size > w:
+            pad_w = self.target_w_size - w
+            pad_left = pad_w // 2
+            pad_right = pad_w - pad_left
+
+            pad_args = {
+                "array": x,
+                "pad_width": (
+                    ((0, 0), (pad_left, pad_right), (0, 0))
+                    if len(x.shape) == 3
+                    else ((0, 0), (pad_left, pad_right))
+                ),
+                "mode": self.padding_mode,
+            }
+
+            if self.padding_mode == "constant":
+                pad_args["constant_values"] = self.constant_values
+
+            x = np.pad(**pad_args)
+
+        elif self.target_w_size < w:
+            crop_w_start = self.rng.integers(0, w - self.target_w_size + 1)
+            x = x[:, crop_w_start : crop_w_start + self.target_w_size, ...]
+
+        # Ensure channel dimension consistency
+        if len(x.shape) == 2:  # For grayscale, add a channel dimension
+            x = np.expand_dims(x, axis=2)
+
+        # Convert to torch tensor with format C x H x W
+        # output = torch.from_numpy(x).float()
+        x = np.transpose(x, (2, 0, 1))  # Convert to C x H x W format
+        # print(f"[{self.__class__.__name__}] x.shape={x.shape}")
+        # print(f"<- [{self.__class__.__name__}] x.shape={x.shape}")
+        return x
+
+
+class SelectChannel(_Transform):
+    """Perform a channel selection on the input image."""
+
+    def __init__(self, channel: int, expand_channels: Optional[int] = None):
+        """
+        Initializes the transformation with the channel to select.
+
+        Parameters:
+        - channel (int): The channel to select.
+        """
+        self.channel = channel
+        self.expand_channels = expand_channels
+
+    def __call__(self, x: np.ndarray) -> np.ndarray:
+        x = x[self.channel, ...]
+        if self.expand_channels is not None:
+            x = np.expand_dims(x, axis=self.expand_channels)
+        # print(f"[{self.__class__.__name__}] x.shape={x.shape}")
+        return x
+
+
+
+class SwapAxes(_Transform):
+    def __init__(self, source_axis: int, target_axis: int):
+        """
+        Initializes the transformation with the source and target axes.
+
+        Parameters:
+        - source_axis (int): The source axis to swap.
+        - target_axis (int): The target axis to swap.
+        """
+        self.source_axis = source_axis
+        self.target_axis = target_axis
+
+    def __call__(self, x: np.ndarray) -> np.ndarray:
+        x = np.swapaxes(x, self.source_axis, self.target_axis)
+        # print(f"[{self.__class__.__name__}] x.shape={x.shape}")
+        return x
+
+
+class RepeatChannel(_Transform):
+    def __init__(self, repeats: int, axis: int):
+        """
+        Initializes the transformation with the number of repeats.
+
+        Parameters:
+        - repeats (int): The number of repeats.
+        - axis (int): The axis to repeat.
+        """
+        self.repeats = repeats
+        self.axis = axis
+
+    def __call__(self, x: np.ndarray) -> np.ndarray:
+        x = np.repeat(x, self.repeats, axis=self.axis)
+        # print(f"[{self.__class__.__name__}] x.shape={x.shape}")
+        return x
+
+
+class ExpandDims(_Transform):
+    def __init__(self, axis: int):
+        """
+        Initializes the transformation with the axis to expand.
+
+        Parameters:
+        - axis (int): The axis to expand.
+        """
+        self.axis = axis
+
+    def __call__(self, x: np.ndarray) -> np.ndarray:
+        x = np.expand_dims(x, axis=self.axis)
+        # print(f"[{self.__class__.__name__}] x.shape={x.shape}")
+        return x
