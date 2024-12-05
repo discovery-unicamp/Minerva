@@ -56,10 +56,6 @@ class TiffReader(_Reader):
         # Find all TIFF files in the directory recursively
         self.files = list(self.path.rglob("*.tif*"))
         self._sort_files()
-        
-        # Print the file stems (name without extension)
-        for f in self.files:
-            print(f.name)
 
     def _sort_files(self):
         """Sort files based on the provided sorting options."""

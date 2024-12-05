@@ -57,10 +57,6 @@ class PNGReader(_Reader):
         self.files = list(self.path.rglob("*.png"))
         self._sort_files()
 
-        # Print the file stems (name without extension)
-        for f in self.files:
-            print(f.name)
-
     def _sort_files(self):
         """Sort files based on the provided sorting options."""
         def sort_key(f: Path):
