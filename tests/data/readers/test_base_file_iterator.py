@@ -79,3 +79,10 @@ def test_base_file_iterator_invalid_sort_method_key_index_length():
     files = ["file1.txt", "file2.txt", "file3.txt"]
     with pytest.raises(ValueError):
         BaseFileIterator(files, key_index=[1], sort_method=["numeric", "text"])
+
+
+def test_base_file_iterator_no_custom_sorting():
+    files = ["file3.txt", "file1.txt", "file2.txt"]
+    iterator = BaseFileIterator(files)
+    unsorted_files = [f.name for f in iterator.files]
+    assert unsorted_files == sorted(["file3.txt", "file1.txt", "file2.txt"])

@@ -29,6 +29,13 @@ def test_tiff_reader_initialization(create_temp_tiff_files):
     assert len(reader) == len(file_paths)
 
 
+def test_tiff_reader_no_custom_sorting(create_temp_tiff_files):
+    temp_dir, file_paths = create_temp_tiff_files
+    reader = TiffReader(temp_dir)
+    sorted_files = sorted(file_paths)
+    assert [f.name for f in reader.files] == [f.name for f in sorted_files]
+
+
 def test_tiff_reader_sort_numeric(create_temp_tiff_files):
     temp_dir, file_paths = create_temp_tiff_files
     reader = TiffReader(
@@ -48,6 +55,7 @@ def test_tiff_reader_getitem(create_temp_tiff_files):
     reader = TiffReader(temp_dir)
     for i in range(len(reader)):
         assert isinstance(reader[i], np.ndarray)
+
 
 def test_tiff_reader_getitem_shape(create_temp_tiff_files):
     temp_dir, file_paths = create_temp_tiff_files
