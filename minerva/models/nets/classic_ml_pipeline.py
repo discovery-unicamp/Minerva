@@ -81,6 +81,7 @@ class ClassicMLModel(L.LightningModule):
         if sklearn_model_save_path and os.path.exists(sklearn_model_save_path):
             with open(sklearn_model_save_path, "rb") as file:
                 self.head = pickle.load(file)
+        self.test_metric_states = {name: metric.clone() for name, metric in (test_metrics or {}).items()}
 
     def forward(self, x):
         """
@@ -173,17 +174,31 @@ class ClassicMLModel(L.LightningModule):
         """
         x, y = batch
         y_hat = torch.tensor(self.forward(x)).to(self.device)
-        for metric_name, metric in self.test_metrics.items():
-            metric_value = metric.to(self.device)(y_hat, y)
-            self.log(
-                f"test_{metric_name}",
-                metric_value,
-                on_step=False,
-                on_epoch=True,
-                prog_bar=True,
-                logger=True,
-            )
+
+        # Update each metric with the predictions and true labels
+        for metric_name, metric in self.test_metric_states.items():
+            metric.to(self.device).update(y_hat, y)   # Accumulate state
+
         return self.tensor1
+
+    def on_test_epoch_end(self):
+        """
+        Compute metrics at the end of the testing epoch.
+        """
+        # Compute and log the metrics at the end of the epoch
+        for metric_name, metric in self.test_metric_states.items():
+            try:
+                metric_value = metric.compute()  # Compute metric
+                self.log(
+                    f"test_{metric_name}",
+                    metric_value,
+                    on_epoch=True,
+                    prog_bar=True,
+                    logger=True,
+                )
+                metric.reset()  # Reset metric state for next epoch
+            except Exception as e:
+                print(f"Error computing metric {metric_name}: {e}")
 
     def predict_step(self, batch, batch_idx, dataloader_idx=None):
         """

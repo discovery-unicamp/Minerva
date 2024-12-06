@@ -3,7 +3,7 @@ import torch
 import torchmetrics
 
 from minerva.models.nets import UNet
-from minerva.utils.data import RandomDataModule
+from minerva.data.data_module_tools import RandomDataModule
 
 
 def test_unet():

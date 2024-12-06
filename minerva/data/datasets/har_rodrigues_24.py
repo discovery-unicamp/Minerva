@@ -1,5 +1,7 @@
+from typing import Iterable, List, Optional, Tuple, Union
 import numpy as np
 import os
+from minerva.utils.typing import PathLike
 import torch
 from torch.utils.data import Dataset
 from pathlib import Path
@@ -7,17 +9,23 @@ import pandas as pd
 import numpy as np
 from numpy.lib.stride_tricks import as_strided as ast
 
-def norm_shape(shape):
-    '''
-    Normalize numpy array shapes so they're always expressed as a tuple,
+
+def norm_shape(
+    shape: Union[int, Tuple[int, ...], np.ndarray]
+) -> Tuple[int, ...]:
+    """Normalize numpy array shapes so they're always expressed as a tuple,
     even for one-dimensional shapes.
 
     Parameters
-        shape - an int, or a tuple of ints
+    ----------
+    shape : int, tuple, or numpy.ndarray
+        The shape to be normalized.
 
     Returns
-        a shape tuple
-    '''
+    -------
+    Tuple[int, ...]
+        The normalized shape.
+    """
     if isinstance(shape, int):
         return (shape,)
     elif isinstance(shape, tuple):
@@ -25,12 +33,13 @@ def norm_shape(shape):
     elif isinstance(shape, np.ndarray):
         return tuple(shape.tolist())
     else:
-        raise TypeError('shape must be an int, a tuple of ints, or a numpy array')
+        raise TypeError(
+            "shape must be an int, a tuple of ints, or a numpy array"
+        )
 
 
-def sliding_window(a,ws,ss = None,flatten = True):
-    '''
-    Return a sliding window over a in any number of dimensions
+def sliding_window(a, ws, ss, flatten=True):
+    """Return a sliding window over a in any number of dimensions
 
     Parameters:
         a  - an n-dimensional numpy array
@@ -44,7 +53,7 @@ def sliding_window(a,ws,ss = None,flatten = True):
 
     Returns
         an array containing each n-dimensional window from a
-    '''
+    """
 
     if None is ss:
         # ss was not provided. the windows will not overlap in any direction.
@@ -59,16 +68,20 @@ def sliding_window(a,ws,ss = None,flatten = True):
     shape = np.array(a.shape)
 
     # ensure that ws, ss, and a.shape all have the same number of dimensions
-    ls = [len(shape),len(ws),len(ss)]
+    ls = [len(shape), len(ws), len(ss)]
     if 1 != len(set(ls)):
-        raise ValueError(\
-        'a.shape, ws and ss must all have the same length. They were %s' % str(ls))
+        raise ValueError(
+            "a.shape, ws and ss must all have the same length. They were %s"
+            % str(ls)
+        )
 
     # ensure that ws is smaller than a in every dimension
     if np.any(ws > shape):
-        raise ValueError(\
-        'ws cannot be larger than a in any dimension.\
- a.shape was %s and ws was %s' % (str(a.shape),str(ws)))
+        raise ValueError(
+            "ws cannot be larger than a in any dimension.\
+ a.shape was %s and ws was %s"
+            % (str(a.shape), str(ws))
+        )
 
     # how many slices will there be in each dimension?
     newshape = norm_shape(((shape - ws) // ss) + 1)
@@ -78,7 +91,7 @@ def sliding_window(a,ws,ss = None,flatten = True):
     # the strides tuple will be the array's strides multiplied by step size, plus
     # the array's strides (tuple addition)
     newstrides = norm_shape(np.array(a.strides) * ss) + a.strides
-    strided = ast(a,shape = newshape,strides = newstrides)
+    strided = ast(a, shape=newshape, strides=newstrides)
     if not flatten:
         return strided
 
@@ -93,17 +106,27 @@ def sliding_window(a,ws,ss = None,flatten = True):
 
 
 def opp_sliding_window(data_x, data_y, ws, ss):
-    
+
     data_x = sliding_window(data_x, (ws, data_x.shape[1]), (ss, 1))
 
     data_y = np.reshape(data_y, (len(data_y),))
     data_y = np.asarray([[i[-1]] for i in sliding_window(data_y, ws, ss)])
-    return data_x.astype(np.float32), data_y.reshape(len(data_y)). \
-        astype(np.uint8)
+    return data_x.astype(np.float32), data_y.reshape(len(data_y)).astype(
+        np.uint8
+    )
+
 
 class HARDatasetCPC(Dataset):
-    def __init__(self, root_dir, data_file, input_size, window, overlap, phase):
-
+    def __init__(
+        self,
+        data_path: Union[PathLike, List[PathLike]],
+        input_size: int,
+        window: int,
+        overlap: int,
+        phase: str = "train",
+        use_train_as_val: bool = False,
+        columns: Optional[List[str]] = None,
+    ):
         """
         Initializes the dataset by loading the dataset from CSV files,
         segmenting the data into windows, and preparing it for training
@@ -111,10 +134,10 @@ class HARDatasetCPC(Dataset):
 
         Parameters
         ----------
-        root_dir : str
-            The root directory where the dataset files are located.
-        data_file : str
-            The name of the dataset file within the root directory.
+        data_path : Union[PathLike, List[PathLike]]
+            The path to the directory containing the dataset files. If a list of
+            paths is provided, the datasets will be concatenated, in the order
+            provided, into a single dataset.
         input_size : int
             The expected size of input features.
         window : int
@@ -123,41 +146,37 @@ class HARDatasetCPC(Dataset):
             The overlap between consecutive windows.
         phase : str
             The phase of the dataset ('train', 'val', or 'test').
-        Attributes
-        ----------
-        filename : str
-            The full path to the dataset file.
-        data_raw : dict
-            A dictionary containing the loaded datasets for 'train', 'val', and 'test'
-            phases, each with 'data' and 'labels' entries.
-        data : numpy.ndarray
-            The segmented data for the specified phase.
-        labels : numpy.ndarray
-            The labels corresponding to the segmented data.
-
-        Methods
-        -------
-        load_dataset():
-            Loads and concatenates the datasets from CSV files into a dictionary format.
-        __len__():
-            Returns the number of segmented data samples.
-        __getitem__(index):
-            Retrieves a segmented data sample and its corresponding label at the given index.
+        use_train_as_val : bool
+            Whether to use the training set as the validation set.
+        columns : Optional[List[str]]
+            The columns to be used as input features. If None, the default
+            columns ['accel-x', 'accel-y', 'accel-z', 'gyro-x', 'gyro-y',
+            'gyro-z'] will be used.
         """
-        self.filename = os.path.join(root_dir, data_file)
-        
+        # Create a list of paths if only one path is provided
+        self.paths = data_path if isinstance(data_path, list) else [data_path]
+        self.use_train_as_val = use_train_as_val
+        self.input_size = input_size
+        self.columns = (
+            columns
+            if columns is not None
+            else ["accel-x", "accel-y", "accel-z", "gyro-x", "gyro-y", "gyro-z"]
+        )
+
         self.data_raw = self.load_dataset()
-        assert input_size == self.data_raw[phase]['data'].shape[1]
+        assert input_size == self.data_raw[phase]["data"].shape[1]
 
         # Obtaining the segmented data
-        self.data, self.labels = \
-            opp_sliding_window(self.data_raw[phase]['data'],
-                               self.data_raw[phase]['labels'],
-                               window, overlap)
+        self.data, self.labels = opp_sliding_window(
+            self.data_raw[phase]["data"],
+            self.data_raw[phase]["labels"],
+            window,
+            overlap,
+        )
 
     # Load .csv file
-    
-    def load_dataset (self):
+
+    def load_dataset(self):
         """
         Loads the dataset from CSV files, concatenates them into numpy arrays,
         and converts them to the appropriate data types.
@@ -169,36 +188,39 @@ class HARDatasetCPC(Dataset):
             phases, where 'data' is a numpy array of concatenated data and 'labels'
             is a numpy array of concatenated labels.
         """
-        data_path = Path(self.filename)
-
         datasets = {}
 
-        for phase in ['train', 'val', 'test']:
+        for phase in ["train", "val", "test"]:
+            if phase == "val":
+                if self.use_train_as_val:
+                    datasets[phase] = datasets["train"]
+                    continue
 
-            phase_path = data_path / phase
-
-            datas_x = []
-
+            data_x = []
             data_y = []
 
-            for f in phase_path.glob('*.csv'):
-
-                data = pd.read_csv(f)
-
-                x = data[['accel-x', 'accel-y', 'accel-z', 'gyro-x', 'gyro-y', 'gyro-z']].values
+            for path in self.paths:
+                # Transform it to a path and add phase
+                path = Path(path)
+                phase_path = path / phase
                 
-                datas_x.append(x)
+                for f in phase_path.glob("*.csv"):
+                    data = pd.read_csv(f)
+                    x = data[self.columns].values
+                    y = data["activity code"].values
+                    data_x.append(x)
+                    data_y.append(y)
 
-                y = data['activity code'].values
-
-                data_y.append(y)
-
-            datasets[phase] = {'data': np.concatenate(datas_x), 'labels': np.concatenate(data_y)}
-            datasets[phase]['data'] = datasets[phase]['data'].astype(np.float32)
-            datasets[phase]['labels'] = datasets[phase]['labels'].astype(np.uint8)
+            datasets[phase] = {
+                "data": np.concatenate(data_x),
+                "labels": np.concatenate(data_y),
+            }
+            datasets[phase]["data"] = datasets[phase]["data"].astype(np.float32)
+            datasets[phase]["labels"] = datasets[phase]["labels"].astype(
+                np.uint8
+            )
 
         return datasets
-
 
     def __len__(self):
         return len(self.data)
