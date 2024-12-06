@@ -11,6 +11,7 @@ from minerva.data.datasets.supervised_dataset import (
 from minerva.data.readers.png_reader import PNGReader
 from minerva.data.readers.tiff_reader import TiffReader
 from minerva.transforms.transform import _Transform
+from minerva.utils.typing import PathLike
 
 from typing import List, Union
 
@@ -18,6 +19,7 @@ from minerva.transforms.transform import (
     TransformPipeline,
     PadCrop,
     Transpose,
+    Unsqueeze,
     CastTo,
 )
 
@@ -58,6 +60,7 @@ def default_train_transforms(
         TransformPipeline(  # Label reader transform
             [
                 PadCrop(*img_size, padding_mode="reflect", seed=seed),
+                Unsqueeze(0),
                 CastTo("int32"),
             ]
         ),
@@ -80,7 +83,9 @@ def default_test_transforms() -> List[_Transform]:
         TransformPipeline(
             [Transpose([2, 0, 1]), CastTo("float32")]
         ),  # Image reader transform
-        TransformPipeline([CastTo("int32")]),  # Label reader transform
+        TransformPipeline(
+            [Unsqueeze(0), CastTo("int32")]
+        ),  # Label reader transform
     ]
 
 
@@ -138,14 +143,14 @@ class ParihakaDataModule(L.LightningDataModule):
     directories. Inlines have dimensions (1006, 590, 3) and crosslines have
     dimensions (1006, 531, 3). By default, crosslines are padded to (1006, 590)
     and all images are transposed to (3, 1006, 590) format. Labels are also
-    padded to (1006, 590) and are not transposed. Finally, images are cast to
+    padded to (1, 1006, 590) and are not transposed. Finally, images are cast to
     float32 and labels are cast to int32.
     """
 
     def __init__(
         self,
-        root_data_dir: str,
-        root_annotation_dir: str,
+        root_data_dir: PathLike,
+        root_annotation_dir: PathLike,
         train_transforms: Optional[Union[_Transform, List[_Transform]]] = None,
         valid_transforms: Optional[Union[_Transform, List[_Transform]]] = None,
         test_transforms: Optional[Union[_Transform, List[_Transform]]] = None,
@@ -173,14 +178,14 @@ class ParihakaDataModule(L.LightningDataModule):
             2-element list of transform pipelines for the image and label reader.
             Transforms to apply to the training and validation datasets. If
             None, default training transforms are used, which pads images to
-            (1006, 590) and transposes them to (3, 1006, 590) format. Labels
+            (1, 1006, 590) and transposes them to (3, 1006, 590) format. Labels
             are also padded to (1006, 590). By default None
         valid_transforms: Optional[Union[_Transform, List[_Transform]]], optional
             2-element list of transform pipelines for the image and label reader.
             Transforms to apply to the validation datasets. If None, default
             training transforms are used, which pads images to (1006, 590) and
             transposes them to (3, 1006, 590) format. Labels are also padded to
-            (1006, 590). By default None
+            (1, 1006, 590). By default None
         test_transforms : Optional[Union[_Transform, List[_Transform]]], optional
             2-element list of transform pipelines for the image and label reader.
             Transforms to apply to the testing and prediction datasets. If None,
@@ -282,4 +287,3 @@ class ParihakaDataModule(L.LightningDataModule):
 
     def __repr__(self) -> str:
         return str(self)
-

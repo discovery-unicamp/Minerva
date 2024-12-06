@@ -584,3 +584,18 @@ class Identity(_Transform):
     """
     def __call__(self, x: np.ndarray) -> np.ndarray:
         return x
+
+
+class Indexer(_Transform):
+    def __init__(self, index: int):
+        """This transform extracts a single channel from a multi-channel image.
+
+        Parameters
+        ----------
+        index : int
+            The index of the channel to extract.
+        """
+        self.index = index
+
+    def __call__(self, x: np.ndarray) -> np.ndarray:
+        return x[self.index]
