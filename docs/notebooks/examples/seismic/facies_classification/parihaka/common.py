@@ -31,7 +31,7 @@ from minerva.data.data_modules.parihaka import (
 )
 from minerva.utils.typing import PathLike
 from typing import Tuple, Optional
-
+from minerva.transforms.transform import Indexer, Unsqueeze
 
 def get_data_module(
     root_data_dir: PathLike,
@@ -40,8 +40,15 @@ def get_data_module(
     batch_size: int = 1,
     num_workers: Optional[int] = None,
     seed: int = 42,
+    single_channel: bool = False,
 ) -> L.LightningDataModule:
     train_transforms = default_train_transforms(img_size=img_size, seed=seed)
+    if single_channel:
+        train_transforms[0] += Indexer(0)
+        train_transforms[0] += Unsqueeze(0)
+        train_transforms[1] += Indexer(0)
+        train_transforms[1] += Unsqueeze(0)
+    
     test_transforms = default_test_transforms()
     return ParihakaDataModule(
         root_data_dir=root_data_dir,
