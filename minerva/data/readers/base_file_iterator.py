@@ -2,8 +2,9 @@ from pathlib import Path
 from typing import Optional, Union, List
 import numpy as np
 from minerva.utils.typing import PathLike
+from minerva.data.readers.reader import _Reader
 
-class BaseFileIterator:
+class BaseFileIterator(_Reader):
     """A base class for iterating over files in a directory in a custom sorted 
     order.
     """
