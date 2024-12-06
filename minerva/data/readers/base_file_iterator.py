@@ -41,12 +41,12 @@ class BaseFileIterator(_Reader):
         self.files = files
         if isinstance(self.files[0], str):
             self.files = [Path(f) for f in self.files]
-            
+                        
         # Handle key_index to be a list if it's a single integer
         self.key_index = key_index if isinstance(key_index, list) else [key_index]
 
         # Default sort_method to 'numeric' if not provided
-        self.sort_method = sort_method or ['numeric'] * len(self.key_index)
+        self.sort_method = sort_method or ['text'] * len(self.key_index)
 
         # Ensure that sort_method and key_index are of the same length
         if len(self.sort_method) != len(self.key_index):
