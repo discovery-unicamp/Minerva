@@ -914,7 +914,6 @@ class DecoderBlock(nn.Module):
         self.up = nn.UpsamplingBilinear2d(scale_factor=2)
 
     def forward(self, x, skip=None):
-        # print(x.shape,skip.shape)
         if skip is not None:
             x = torch.cat([x, skip], dim=1)
         x = self.up(x)
@@ -1231,11 +1230,6 @@ def interpolate_pos_embed(
             pos_tokens = pos_tokens.permute(0, 2, 3, 1).flatten(1, 2)
             new_pos_embed = torch.cat((extra_tokens, pos_tokens), dim=1)
             checkpoint_model["pos_embed"] = new_pos_embed
-        # elif orig_size > new_size:
-        #     print("Position generate from %dx%d to %dx%d" % (orig_size, orig_size, new_size, new_size))
-        #     pos_tokens = get_2d_sincos_pos_embed(embedding_size, new_size, cls_token=True)
-        #     pos_tokens = torch.from_numpy(pos_tokens).float().unsqueeze(0)
-        #     checkpoint_model['pos_embed'] = pos_tokens
 
 
 class SFM_BasePatch16_Downstream(SimpleSupervisedModel):
