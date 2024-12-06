@@ -11,6 +11,7 @@ from minerva.data.datasets.supervised_dataset import (
 from minerva.data.readers.png_reader import PNGReader
 from minerva.data.readers.tiff_reader import TiffReader
 from minerva.transforms.transform import _Transform
+from minerva.utils.typing import PathLike
 
 from typing import List, Union
 
@@ -18,6 +19,7 @@ from minerva.transforms.transform import (
     TransformPipeline,
     PadCrop,
     Transpose,
+    Unsqueeze,
     CastTo,
 )
 
@@ -58,6 +60,7 @@ def default_train_transforms(
         TransformPipeline(  # Label reader transform
             [
                 PadCrop(*img_size, padding_mode="reflect", seed=seed),
+                Unsqueeze(0),
                 CastTo("int32"),
             ]
         ),
@@ -80,7 +83,9 @@ def default_test_transforms() -> List[_Transform]:
         TransformPipeline(
             [Transpose([2, 0, 1]), CastTo("float32")]
         ),  # Image reader transform
-        TransformPipeline([CastTo("int32")]),  # Label reader transform
+        TransformPipeline(
+            [Unsqueeze(0), CastTo("int32")]
+        ),  # Label reader transform
     ]
 
 
@@ -144,8 +149,8 @@ class ParihakaDataModule(L.LightningDataModule):
 
     def __init__(
         self,
-        root_data_dir: str,
-        root_annotation_dir: str,
+        root_data_dir: PathLike,
+        root_annotation_dir: PathLike,
         train_transforms: Optional[Union[_Transform, List[_Transform]]] = None,
         valid_transforms: Optional[Union[_Transform, List[_Transform]]] = None,
         test_transforms: Optional[Union[_Transform, List[_Transform]]] = None,
@@ -282,4 +287,3 @@ class ParihakaDataModule(L.LightningDataModule):
 
     def __repr__(self) -> str:
         return str(self)
-
