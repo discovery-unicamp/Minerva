@@ -283,31 +283,3 @@ class ParihakaDataModule(L.LightningDataModule):
     def __repr__(self) -> str:
         return str(self)
 
-
-if __name__ == "__main__":
-    import matplotlib.pyplot as plt
-    batch_size = 16
-
-    data_module = ParihakaDataModule(
-        root_data_dir="/workspaces/HIAAC-KR-Dev-Container/shared_data/seam_ai_datasets/seam_ai/images",
-        root_annotation_dir="/workspaces/HIAAC-KR-Dev-Container/shared_data/seam_ai_datasets/seam_ai/annotations",
-        batch_size=batch_size,
-        num_workers=1,
-    )
-    expected_img_shape = (batch_size, 3, 1006, 590)
-    expected_label_shape = (batch_size, 1006, 590)
-
-    data_module.setup("fit")
-    data_module.setup("test")
-
-    print("---TRAIN---")
-    for i, (batch_x, batch_y) in enumerate(data_module.train_dataloader()):
-        print(i, batch_x.shape, batch_y.shape, batch_x.dtype, batch_y.dtype)
-        assert batch_x.shape == expected_img_shape
-        assert batch_y.shape == expected_label_shape
-
-    print("---VAL---")
-    for i, (batch_x, batch_y) in enumerate(data_module.val_dataloader()):
-        print(i, batch_x.shape, batch_y.shape, batch_x.dtype, batch_y.dtype)
-        assert batch_x.shape == expected_img_shape
-        assert batch_y.shape == expected_label_shape
