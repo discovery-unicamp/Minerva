@@ -584,3 +584,11 @@ class Identity(_Transform):
     """
     def __call__(self, x: np.ndarray) -> np.ndarray:
         return x
+
+
+class Indexer(_Transform):
+    def __init__(self, index: int):
+        self.index = index
+
+    def __call__(self, x: np.ndarray) -> np.ndarray:
+        return x[self.index]
