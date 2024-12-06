@@ -143,7 +143,7 @@ class ParihakaDataModule(L.LightningDataModule):
     directories. Inlines have dimensions (1006, 590, 3) and crosslines have
     dimensions (1006, 531, 3). By default, crosslines are padded to (1006, 590)
     and all images are transposed to (3, 1006, 590) format. Labels are also
-    padded to (1006, 590) and are not transposed. Finally, images are cast to
+    padded to (1, 1006, 590) and are not transposed. Finally, images are cast to
     float32 and labels are cast to int32.
     """
 
@@ -178,14 +178,14 @@ class ParihakaDataModule(L.LightningDataModule):
             2-element list of transform pipelines for the image and label reader.
             Transforms to apply to the training and validation datasets. If
             None, default training transforms are used, which pads images to
-            (1006, 590) and transposes them to (3, 1006, 590) format. Labels
+            (1, 1006, 590) and transposes them to (3, 1006, 590) format. Labels
             are also padded to (1006, 590). By default None
         valid_transforms: Optional[Union[_Transform, List[_Transform]]], optional
             2-element list of transform pipelines for the image and label reader.
             Transforms to apply to the validation datasets. If None, default
             training transforms are used, which pads images to (1006, 590) and
             transposes them to (3, 1006, 590) format. Labels are also padded to
-            (1006, 590). By default None
+            (1, 1006, 590). By default None
         test_transforms : Optional[Union[_Transform, List[_Transform]]], optional
             2-element list of transform pipelines for the image and label reader.
             Transforms to apply to the testing and prediction datasets. If None,
