@@ -46,6 +46,17 @@ class TransformPipeline(_Transform):
             x = transform(x)
         return x
 
+    def __add__(self, other: _Transform) -> "_Transform":
+        """Add a transform to the pipeline."""
+        if isinstance(other, TransformPipeline):
+            return TransformPipeline(list(self.transforms) + list(other.transforms))
+        return TransformPipeline(list(self.transforms) + [other])
+
+
+    def __radd__(self, other: _Transform) -> "_Transform":
+        """Add a transform to the pipeline."""
+        return self.__add__(other)
+
 
 class Flip(_Transform):
     """Flip the input data along the specified axis."""
