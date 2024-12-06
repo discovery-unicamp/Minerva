@@ -152,6 +152,8 @@ class ParihakaDataModule(L.LightningDataModule):
 
 
 if __name__ == "__main__":
+    import matplotlib.pyplot as plt
+    
     data_module = ParihakaDataModule(
         root_data_dir="/workspaces/HIAAC-KR-Dev-Container/shared_data/seam_ai_datasets/seam_ai/images",
         root_annotation_dir="/workspaces/HIAAC-KR-Dev-Container/shared_data/seam_ai_datasets/seam_ai/annotations",
@@ -164,7 +166,22 @@ if __name__ == "__main__":
     print("---TRAIN---")
     data_module.setup("fit")
     for batch_x, batch_y in data_module.train_dataloader():
+        # batch_x have shape: (1, 3, 1006, 590)
+        # batch_y have shape: (1, 1006, 590)
         print(batch_x.shape, batch_y.shape)
+                
+        def show_side_by_side(img1, img2):
+            fig, axes = plt.subplots(1, 2, figsize=(10, 5))
+            axes[0].imshow(img1.transpose(1, 2, 0))
+            axes[0].set_title('Image')
+            axes[1].imshow(img2, cmap='gray')
+            axes[1].set_title('Label')
+            plt.show()
+
+        show_side_by_side(batch_x[0].numpy(), batch_y[0].numpy())
+        plt.savefig("train_sample.png")
+        print("Saved train_sample.png")
+        
         break
 
 
