@@ -7,6 +7,8 @@ import torch
 from torch import Tensor, nn
 from torch.nn import functional as F
 from torchmetrics import Metric, JaccardIndex
+from minerva.models.adapters.lora import LoRA
+# from minerva.models.adapters.simple_lora import LoRALinear
 
 """based on: https://github.com/facebookresearch/segment-anything/blob/main/segment_anything/modeling/common.py """
 class MLPBlock(nn.Module):
@@ -1217,10 +1219,14 @@ class Sam(L.LightningModule):
             checkpoint:str=None,
             num_multimask_outputs:int=3,
             iou_head_depth:int=3,
-            loss_fn: Optional[nn.Module] = None,
+            loss_fn: Optional[nn.Module] = nn.CrossEntropyLoss(), # weight=class_weights.to(self.device),
             train_metrics: Optional[Dict[str, Metric]] = {"mIoU": JaccardIndex(task="multiclass", num_classes=6)},
             val_metrics: Optional[Dict[str, Metric]] = {"mIoU": JaccardIndex(task="multiclass", num_classes=6)},
             test_metrics: Optional[Dict[str, Metric]] = {"mIoU": JaccardIndex(task="multiclass", num_classes=6)},
+            apply_freeze:Optional[Dict[str, bool]] = {"image_encoder": False, "prompt_encoder": True, "mask_decoder": False},
+            apply_adapter:Optional[Dict[str, LoRA]] = {},
+            lora_rank:int=4,
+            lora_alpha:int=1
     ):
         """
         SAM predicts object masks from an image and input prompts.
@@ -1244,7 +1250,7 @@ class Sam(L.LightningModule):
         self.num_multimask_outputs = num_multimask_outputs
         self.iou_head_depth = iou_head_depth
 
-        self.loss_fn = loss_fn if loss_fn is not None else nn.CrossEntropyLoss() # weight=class_weights.to(self.device)
+        self.loss_fn = loss_fn
 
         self.metrics = {
             "train": train_metrics,
@@ -1260,6 +1266,7 @@ class Sam(L.LightningModule):
 
         self.vit_params = {
             'vit-b': {
+                'vit_type': 'vit-b',
                 'image_encoder': image_encoder,
                 'prompt_encoder': prompt_encoder,
                 'mask_decoder': mask_decoder,
@@ -1273,6 +1280,7 @@ class Sam(L.LightningModule):
                 'iou_head_depth': self.iou_head_depth
             },
             'vit-l': {
+                'vit_type': 'vit-l',
                 'image_encoder': image_encoder,
                 'prompt_encoder': prompt_encoder,
                 'mask_decoder': mask_decoder,
@@ -1286,6 +1294,7 @@ class Sam(L.LightningModule):
                 'iou_head_depth': self.iou_head_depth
             },
             'vit-h': {
+                'vit_type': 'vit-h',
                 'image_encoder': image_encoder,
                 'prompt_encoder': prompt_encoder,
                 'mask_decoder': mask_decoder,
@@ -1301,9 +1310,44 @@ class Sam(L.LightningModule):
         }
 
         self.model = self._build_sam(**self.vit_params[self.vit_type])
+
+        self._apply_freeze(apply_freeze)
+        self._apply_adapter(apply_adapter, alpha=lora_alpha, rank=lora_rank)
+    
+    def _apply_freeze(self, apply_freeze):
+        if 'image_encoder' in apply_freeze:
+            print("Image Encoder freeze!")
+            for param in self.model.image_encoder.parameters():
+                param.requires_grad = False
+        if 'prompt_encoder' in apply_freeze:
+            print("Prompt Encoder freeze!")
+            for param in self.model.prompt_encoder.parameters():
+                param.requires_grad = False
+        if 'mask_decoder' in apply_freeze:
+            print("Mask Decoder freeze!")
+            for param in self.model.mask_decoder.parameters():
+                param.requires_grad = False
+        
+    def _apply_adapter(self, apply_adapter, alpha=1, rank=4):
+        if 'image_encoder' in apply_adapter:
+            print("LoRA applied in Image Encoder!")
+            for layer in self.model.image_encoder.blocks:
+                layer.attn.qkv = apply_adapter['image_encoder'](original_module=layer.attn.qkv, bias=True, alpha=alpha, r=rank)
+                # layer.mlp.lin1 = apply_adapter['image_encoder'](original_module=layer.mlp.lin1, bias=True, alpha=alpha, r=rank)
+                # layer.mlp.lin2 = apply_adapter['image_encoder'](original_module=layer.mlp.lin2, bias=True, alpha=alpha, r=rank)
+        if 'mask_decoder' in apply_adapter:
+            print("LoRA applied in Mask Decoder!")
+            for layer in self.model.mask_decoder.transformer.layers:
+                layer.self_attn.q_proj = apply_adapter['mask_decoder'](original_module=layer.self_attn.q_proj, bias=True, alpha=alpha, r=rank)
+                # layer.self_attn.k_proj = apply_adapter['mask_decoder'](original_module=layer.self_attn.k_proj, bias=True, alpha=alpha, r=rank)
+                layer.self_attn.v_proj = apply_adapter['mask_decoder'](original_module=layer.self_attn.v_proj, bias=True, alpha=alpha, r=rank)
+                layer.cross_attn_token_to_image.q_proj = apply_adapter['mask_decoder'](original_module=layer.cross_attn_token_to_image.q_proj, bias=True, alpha=alpha, r=rank)
+                # layer.cross_attn_token_to_image.k_proj = apply_adapter['mask_decoder'](original_module=layer.cross_attn_token_to_image.k_proj, bias=True, alpha=alpha, r=rank)
+                layer.cross_attn_token_to_image.v_proj = apply_adapter['mask_decoder'](original_module=layer.cross_attn_token_to_image.v_proj, bias=True, alpha=alpha, r=rank)
     
     def _build_sam(
         self,
+        vit_type,
         image_encoder,
         prompt_encoder,
         mask_decoder,
@@ -1364,7 +1408,10 @@ class Sam(L.LightningModule):
                 sam.load_state_dict(state_dict)
             except:
                 print("Error when load original weights. Applying now remaping.")
-                new_state_dict = self.load_from_b(sam, state_dict, image_size, vit_patch_size) # usado para vit_b
+                if vit_type == 'vit-b':
+                    new_state_dict = self.load_from_b(sam, state_dict, image_size, vit_patch_size) # using remaping for vit_b
+                elif vit_type == 'vit-h':
+                    new_state_dict = self.load_from_h(sam, state_dict, image_size, vit_patch_size, encoder_global_attn_indexes) # using remaping for vit_h
                 sam.load_state_dict(new_state_dict)
         return sam
 
@@ -1384,6 +1431,37 @@ class Sam(L.LightningModule):
             new_state_dict['image_encoder.pos_embed'] = pos_embed
             rel_pos_keys = [k for k in sam_dict.keys() if 'rel_pos' in k]
             global_rel_pos_keys = [k for k in rel_pos_keys if '2' in k or '5' in  k or '8' in k or '11' in k]
+            for k in global_rel_pos_keys:
+                rel_pos_params = new_state_dict[k]
+                h, w = rel_pos_params.shape
+                rel_pos_params = rel_pos_params.unsqueeze(0).unsqueeze(0)
+                rel_pos_params = F.interpolate(rel_pos_params, (token_size * 2 - 1, w), mode='bilinear', align_corners=False)
+                new_state_dict[k] = rel_pos_params[0, 0, ...]
+        sam_dict.update(new_state_dict)
+        return sam_dict
+    
+    """ mapping weights: developed by https://github.com/hitachinsk/SAMed/blob/main/SAMed_h/segment_anything/build_sam.py """
+    def load_from_h(self, sam, state_dict, image_size, vit_patch_size, encoder_global_attn_indexes):
+        ega = encoder_global_attn_indexes
+        sam_dict = sam.state_dict()
+        except_keys = ['mask_tokens', 'output_hypernetworks_mlps', 'iou_prediction_head']
+        new_state_dict = {k: v for k, v in state_dict.items() if
+                        k in sam_dict.keys() and except_keys[0] not in k and except_keys[1] not in k and except_keys[2] not in k}
+        pos_embed = new_state_dict['image_encoder.pos_embed']
+        token_size = int(image_size // vit_patch_size)
+        if pos_embed.shape[1] != token_size:
+            # resize pos embedding, which may sacrifice the performance, but I have no better idea
+            pos_embed = pos_embed.permute(0, 3, 1, 2)  # [b, c, h, w]
+            pos_embed = F.interpolate(pos_embed, (token_size, token_size), mode='bilinear', align_corners=False)
+            pos_embed = pos_embed.permute(0, 2, 3, 1)  # [b, h, w, c]
+            new_state_dict['image_encoder.pos_embed'] = pos_embed
+            rel_pos_keys = [k for k in sam_dict.keys() if 'rel_pos' in k]
+            global_rel_pos_keys = []
+            for rel_pos_key in rel_pos_keys:
+                num = int(rel_pos_key.split('.')[2])
+                if num in encoder_global_attn_indexes:
+                    global_rel_pos_keys.append(rel_pos_key)
+            # global_rel_pos_keys = [k for k in rel_pos_keys if '2' in k or '5' in  k or '8' in k or '11' in k]
             for k in global_rel_pos_keys:
                 rel_pos_params = new_state_dict[k]
                 h, w = rel_pos_params.shape
