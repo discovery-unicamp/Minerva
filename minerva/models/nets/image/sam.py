@@ -1315,15 +1315,15 @@ class Sam(L.LightningModule):
         self._apply_adapter(apply_adapter, alpha=lora_alpha, rank=lora_rank)
     
     def _apply_freeze(self, apply_freeze):
-        if 'image_encoder' in apply_freeze:
+        if 'image_encoder' in apply_freeze and apply_freeze['image_encoder'] == True:
             print("Image Encoder freeze!")
             for param in self.model.image_encoder.parameters():
                 param.requires_grad = False
-        if 'prompt_encoder' in apply_freeze:
+        if 'prompt_encoder' in apply_freeze and apply_freeze['prompt_encoder'] == True:
             print("Prompt Encoder freeze!")
             for param in self.model.prompt_encoder.parameters():
                 param.requires_grad = False
-        if 'mask_decoder' in apply_freeze:
+        if 'mask_decoder' in apply_freeze and apply_freeze['mask_decoder'] == True:
             print("Mask Decoder freeze!")
             for param in self.model.mask_decoder.parameters():
                 param.requires_grad = False
@@ -1478,151 +1478,115 @@ class Sam(L.LightningModule):
         if self.metrics[step_name] is None:
             return {}
         # debug
-        # print("y_hat shape: ", y_hat.shape) # torch.Size([1, qtd_de_classes, H, W])
-        # print("y_hat shape keepdim: ", torch.argmax(y_hat, dim=1, keepdim=True).squeeze(0).shape) # torch.Size([1, H, W])
+        # print("y_hat shape: ", y_hat.shape) # torch.Size([B, num_classes, H, W])
+        # print("y_hat shape keepdim: ", torch.argmax(y_hat, dim=1, keepdim=True).squeeze(1).shape) # torch.Size([B, H, W])
         # print("y shape: ", y.shape) # torch.Size([1, H, W])
 
         return {
             f"{step_name}_{metric_name}": metric.to(self.device)(
-                torch.argmax(y_hat, dim=1, keepdim=True).squeeze(0), y
+                torch.argmax(y_hat, dim=1, keepdim=True).squeeze(1), y
             )
             for metric_name, metric in self.metrics[step_name].items()
         }
     
     def training_step(self, batch, batch_idx):
-        batched_input, multimask_output = batch
-        
-        for item in [batched_input]:
-            if "image" in item:
-                item["image"] = item["image"].squeeze(0) # remove a dimensao do batch, pois o SAM só aceita image CxHxW
-        
-        outputs = self([batched_input], multimask_output=multimask_output)
+        batched_input = batch
+        outputs = self(batched_input, multimask_output=batched_input[0]['multimask_output'])
+
+        # stack logits 'masks_logits' and 'labels' for loss and metrics function
+        masks_logits = torch.stack([output['masks_logits'].squeeze(0) for output in outputs])  # [batch_size, 6, H, W]
+        labels = torch.stack([input['label'].squeeze(0) for input in batched_input])  # [batch_size, H, W]
+
         # debug
-        # print("outputs len: ", len(outputs)) # 1
-        # print("label shape: ", type(batched_input['label']), batched_input['label'].shape) # torch.Size([1, H, W])
-        # print("masks shape: ", type(outputs[0]['masks']), outputs[0]['masks'].shape) # torch.Size([1, 3, H, W])
-        # print("iou_predictions shape: ", type(outputs[0]['iou_predictions']), outputs[0]['iou_predictions'].shape) # torch.Size([1, 3])
-        # print("low_res_logits shape: ", type(outputs[0]['low_res_logits']), outputs[0]['low_res_logits'].shape) # torch.Size([1, 3, H_reduzido, W_reduzido])
-        # print("masks_logits shape: ", type(outputs[0]['masks_logits']), outputs[0]['masks_logits'].shape) # torch.Size([1, 3, H, W])
+        # print("batched_input type: ", type(batched_input))
+        # print("outputs type: ", type(outputs))
+        # print("batched_input len: ", len(batched_input)) # batch size
+        # print("outputs len: ", len(outputs)) # batch size
+        # print("label shape: ", type(batched_input[0]['label']), batched_input[0]['label'].shape) # torch.Size([B, H, W])
+        # print("masks shape: ", type(outputs[0]['masks']), outputs[0]['masks'].shape) # torch.Size([B, num_classes, H, W])
+        # print("iou_predictions shape: ", type(outputs[0]['iou_predictions']), outputs[0]['iou_predictions'].shape) # torch.Size([B, num_classes])
+        # print("low_res_logits shape: ", type(outputs[0]['low_res_logits']), outputs[0]['low_res_logits'].shape) # torch.Size([B, num_classes, H_reduzido, W_reduzido])
+        # print("masks_logits shape: ", type(outputs[0]['masks_logits']), outputs[0]['masks_logits'].shape) # torch.Size([B, num_classes, H, W])
+        # print("shape masks_logits stack: ", masks_logits.shape) # torch.Size([B, num_classes, H, W])
+        # print("shape labels stack: ", labels.shape) # torch.Size([B, H, W])
         # print("outputs: ", outputs)
 
-        loss = self._loss(outputs[0]['masks_logits'], batched_input['label'])
-        metrics = self._compute_metrics(outputs[0]['masks_logits'], batched_input['label'], 'train')
+        loss = self._loss(masks_logits, labels)
+        metrics = self._compute_metrics(masks_logits, labels, 'train')
         
+        self.log("train_loss", loss.item(), on_step=False, on_epoch=True, prog_bar=True, logger=True, sync_dist=True)
         for metric_name, metric_value in metrics.items():
-            self.log(
-                metric_name,
-                metric_value,
-                on_step=False,
-                on_epoch=True,
-                prog_bar=True,
-                logger=True,
-                sync_dist=True,
-            )
+            self.log(metric_name, metric_value.item(), on_step=False, on_epoch=True, prog_bar=True, logger=True, sync_dist=True)
         
-        self.log(
-            "train_loss", 
-            loss,
-            on_step=True,
-            on_epoch=True,
-            prog_bar=True,
-            logger=True,
-            sync_dist=True,
-        )
         return loss
 
     def validation_step(self, batch, batch_idx):
-        batched_input, multimask_output = batch
-        
-        for item in [batched_input]:
-            if "image" in item:
-                item["image"] = item["image"].squeeze(0) # remove a dimensao do batch, pois o SAM só aceita image CxHxW
-        
-        outputs = self([batched_input], multimask_output=multimask_output)
+        batched_input = batch
+        outputs = self(batched_input, multimask_output=batched_input[0]['multimask_output'])
+
+        # stack logits 'masks_logits' and 'labels' for loss and metrics function
+        masks_logits = torch.stack([output['masks_logits'].squeeze(0) for output in outputs])  # [batch_size, 6, H, W]
+        labels = torch.stack([input['label'].squeeze(0) for input in batched_input])  # [batch_size, H, W]
+
         # debug
-        # print("outputs len: ", len(outputs)) # 1
-        # print("label shape: ", type(batched_input['label']), batched_input['label'].shape) # torch.Size([1, H, W])
-        # print("masks shape: ", type(outputs[0]['masks']), outputs[0]['masks'].shape) # torch.Size([1, 3, H, W])
-        # print("iou_predictions shape: ", type(outputs[0]['iou_predictions']), outputs[0]['iou_predictions'].shape) # torch.Size([1, 3])
-        # print("low_res_logits shape: ", type(outputs[0]['low_res_logits']), outputs[0]['low_res_logits'].shape) # torch.Size([1, 3, H_reduzido, W_reduzido])
-        # print("masks_logits shape: ", type(outputs[0]['masks_logits']), outputs[0]['masks_logits'].shape) # torch.Size([1, 3, H, W])
+        # print("batched_input type: ", type(batched_input))
+        # print("outputs type: ", type(outputs))
+        # print("batched_input len: ", len(batched_input)) # batch size
+        # print("outputs len: ", len(outputs)) # batch size
+        # print("label shape: ", type(batched_input[0]['label']), batched_input[0]['label'].shape) # torch.Size([B, H, W])
+        # print("masks shape: ", type(outputs[0]['masks']), outputs[0]['masks'].shape) # torch.Size([B, num_classes, H, W])
+        # print("iou_predictions shape: ", type(outputs[0]['iou_predictions']), outputs[0]['iou_predictions'].shape) # torch.Size([B, num_classes])
+        # print("low_res_logits shape: ", type(outputs[0]['low_res_logits']), outputs[0]['low_res_logits'].shape) # torch.Size([B, num_classes, H_reduzido, W_reduzido])
+        # print("masks_logits shape: ", type(outputs[0]['masks_logits']), outputs[0]['masks_logits'].shape) # torch.Size([B, num_classes, H, W])
+        # print("shape masks_logits stack: ", masks_logits.shape) # torch.Size([B, num_classes, H, W])
+        # print("shape labels stack: ", labels.shape) # torch.Size([B, H, W])
         # print("outputs: ", outputs)
 
-        loss = self._loss(outputs[0]['masks_logits'], batched_input['label'])
-        metrics = self._compute_metrics(outputs[0]['masks_logits'], batched_input['label'], 'val')
+        loss = self._loss(masks_logits, labels)
+        metrics = self._compute_metrics(masks_logits, labels, 'val')
 
+        self.log("val_loss", loss, on_step=False, on_epoch=True, prog_bar=True, logger=True, sync_dist=True)
         for metric_name, metric_value in metrics.items():
-            self.log(
-                metric_name,
-                metric_value,
-                on_step=False,
-                on_epoch=True,
-                prog_bar=True,
-                logger=True,
-                sync_dist=True,
-            )
+            self.log(metric_name, metric_value, on_step=False, on_epoch=True, prog_bar=True, logger=True, sync_dist=True)
         
-        self.log(
-            "val_loss", 
-            loss,
-            on_step=True,
-            on_epoch=True,
-            prog_bar=True,
-            logger=True,
-            sync_dist=True,
-        )
         return loss
     
     def test_step(self, batch: torch.Tensor, batch_idx: int):
-        batched_input, multimask_output = batch
+        batched_input = batch
         
-        for item in [batched_input]:
-            if "image" in item:
-                item["image"] = item["image"].squeeze(0) # remove a dimensao do batch, pois o SAM só aceita image CxHxW
+        outputs = self(batched_input, multimask_output=batched_input[0]['multimask_output'])
         
-        outputs = self([batched_input], multimask_output=multimask_output)
+        # stack logits 'masks_logits' and 'labels' for loss and metrics function
+        masks_logits = torch.stack([output['masks_logits'].squeeze(0) for output in outputs])  # [batch_size, 6, H, W]
+        labels = torch.stack([input['label'].squeeze(0) for input in batched_input])  # [batch_size, H, W]
+
         # debug
-        # print("outputs len: ", len(outputs)) # 1
-        # print("label shape: ", type(batched_input['label']), batched_input['label'].shape) # torch.Size([1, H, W])
-        # print("masks shape: ", type(outputs[0]['masks']), outputs[0]['masks'].shape) # torch.Size([1, 3, H, W])
-        # print("iou_predictions shape: ", type(outputs[0]['iou_predictions']), outputs[0]['iou_predictions'].shape) # torch.Size([1, 3])
-        # print("low_res_logits shape: ", type(outputs[0]['low_res_logits']), outputs[0]['low_res_logits'].shape) # torch.Size([1, 3, H_reduzido, W_reduzido])
-        # print("masks_logits shape: ", type(outputs[0]['masks_logits']), outputs[0]['masks_logits'].shape) # torch.Size([1, 3, H, W])
+        # print("batched_input type: ", type(batched_input))
+        # print("outputs type: ", type(outputs))
+        # print("batched_input len: ", len(batched_input)) # batch size
+        # print("outputs len: ", len(outputs)) # batch size
+        # print("label shape: ", type(batched_input[0]['label']), batched_input[0]['label'].shape) # torch.Size([B, H, W])
+        # print("masks shape: ", type(outputs[0]['masks']), outputs[0]['masks'].shape) # torch.Size([B, num_classes, H, W])
+        # print("iou_predictions shape: ", type(outputs[0]['iou_predictions']), outputs[0]['iou_predictions'].shape) # torch.Size([B, num_classes])
+        # print("low_res_logits shape: ", type(outputs[0]['low_res_logits']), outputs[0]['low_res_logits'].shape) # torch.Size([B, num_classes, H_reduzido, W_reduzido])
+        # print("masks_logits shape: ", type(outputs[0]['masks_logits']), outputs[0]['masks_logits'].shape) # torch.Size([B, num_classes, H, W])
+        # print("shape masks_logits stack: ", masks_logits.shape) # torch.Size([B, num_classes, H, W])
+        # print("shape labels stack: ", labels.shape) # torch.Size([B, H, W])
         # print("outputs: ", outputs)
 
-        loss = self._loss(outputs[0]['masks_logits'], batched_input['label'])
-        metrics = self._compute_metrics(outputs[0]['masks_logits'], batched_input['label'], 'test')
+        loss = self._loss(masks_logits, labels)
+        metrics = self._compute_metrics(masks_logits, labels, 'test')
 
+        self.log("test_loss", loss, on_step=False, on_epoch=True, prog_bar=True, logger=True, sync_dist=True)
         for metric_name, metric_value in metrics.items():
-            self.log(
-                metric_name,
-                metric_value,
-                on_step=False,
-                on_epoch=True,
-                prog_bar=True,
-                logger=True,
-                sync_dist=True,
-            )
+            self.log(metric_name, metric_value, on_step=False, on_epoch=True, prog_bar=True, logger=True, sync_dist=True)
         
-        self.log(
-            "test_loss", 
-            loss,
-            on_step=True,
-            on_epoch=True,
-            prog_bar=True,
-            logger=True,
-            sync_dist=True,
-        )
         return loss
 
     def predict_step(self, batch: torch.Tensor, batch_idx: int, dataloader_idx: Optional[int] = None):
-        batched_input, multimask_output = batch
+        batched_input = batch
         
-        for item in [batched_input]:
-            if "image" in item:
-                item["image"] = item["image"].squeeze(0) # remove a dimensao do batch, pois o SAM só aceita image CxHxW
-        
-        outputs = self([batched_input], multimask_output=multimask_output)
+        outputs = self(batched_input, multimask_output=batched_input[0]['multimask_output'])
         return outputs
     
     def configure_optimizers(self):
