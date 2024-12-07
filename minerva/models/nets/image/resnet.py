@@ -5,9 +5,28 @@ from minerva.models.nets.base import SimpleSupervisedModel
 
 
 class ResNetBlock(nn.Module):
+    """
+    Implementation of a single ResNet block.
+    """
+
     def __init__(
         self, in_channels, intermediate_channels, identity_downsample=None, stride=1
     ):
+        """
+        Parameters
+        ----------
+        in_channels : int
+            The number of input channels to the block.
+        intermediate_channels : int
+            The number of channels in the intermediate convolutional layers within the block.
+        identity_downsample : nn.Module, optional
+            A downsampling layer to match the dimensions of the input and output if they differ. 
+            If `None`, no downsampling is performed. Default is `None`.
+        stride : int, optional
+            The stride value for the first convolutional layer in the block. It determines the 
+            downsampling factor for the spatial dimensions. Default is `1`.
+        """
+
         super().__init__()
         self.expansion = 4
         self.conv1 = nn.Conv2d(
@@ -65,9 +84,26 @@ class ResNetBlock(nn.Module):
         return x
 
 
-class _ResNet(nn.Module):
+class _ResNet(torch.nn.Module):
+    """Implementation of ResNet model."""
+
     def __init__(self, layer_sizes, image_channels, num_classes):
-        super(ResNet, self).__init__()
+        """Implementation of ResNet model.
+
+        Parameters
+        ----------
+        layer_sizes : list of int
+            A list specifying the number of layers in each residual block stage. For example:
+            - ResNet-50: [3, 4, 6, 3]
+            - ResNet-101: [3, 4, 23, 3]
+            - ResNet-152: [3, 8, 36, 3]
+        image_channels : int
+            The number of channels in the input image, typically 3 for RGB images or 1 for grayscale.
+        num_classes : int
+            The number of output classes for the classification task.
+        """
+
+        super().__init__()
         self.in_channels = 64
         self.conv1 = nn.Conv2d(
             image_channels, 64, kernel_size=7, stride=2, padding=3, bias=False
@@ -134,6 +170,37 @@ class _ResNet(nn.Module):
         return x
 
 class ResNet(SimpleSupervisedModel):
+    """
+    This class is a simple implementation of the ResNet (Residual Network) model, 
+    which is widely used in image classification and other computer vision tasks. 
+    The ResNet architecture introduces residual connections, allowing deeper networks 
+    to be trained by mitigating the vanishing gradient problem. The model consists 
+    of repeated building blocks with skip connections that add the input of a 
+    layer to its output after applying transformations. ResNet was originally 
+    proposed by He et al. in 2015.
+
+    This implementation supports ResNet-50, ResNet-101, and ResNet-152, offering 
+    flexibility in network depth based on the specific use case. The model can 
+    handle arbitrary input sizes and supports both RGB and grayscale images.
+
+    References
+    ----------
+    He, Kaiming, et al. "Deep residual learning for image recognition." Proceedings 
+    of the IEEE conference on computer vision and pattern recognition. 2016.
+
+    
+
+    Notes
+    -----
+    - The expected input size is (N, C, H, W), where:
+      - N is the batch size,
+      - C is the number of channels,
+      - H is the height of the input image, and
+      - W is the width of the input image.
+    - The output shape is (N, num_classes), where `num_classes` corresponds to 
+      the number of classes specified during initialization.
+    """
+
     def __init__(
         self,
         type: Literal["50", "101", "152"] = "50",
@@ -143,13 +210,35 @@ class ResNet(SimpleSupervisedModel):
         loss_fn: Optional[torch.nn.Module] = None,
         **kwargs,
     ):
+        """Wrapper implementation of the ResNet model.
+
+        Parameters
+        ----------
+        type : Literal["50", "101", "152"], optional
+            The type of ResNet architecture to use. Options are:
+            - "50": ResNet-50
+            - "101": ResNet-101
+            - "152": ResNet-152
+            Default is "50".
+        img_channel : int, optional
+            The number of channels in the input image, by default 3 (for RGB images).
+        num_classes : int, optional
+            The number of output classes for the classification task, by default 1000.
+        learning_rate : float, optional
+            The learning rate for the Adam optimizer, by default 1e-3.
+        loss_fn : torch.nn.Module, optional
+            The function used to compute the loss. If `None`, `MSELoss` will be used, 
+            by default None.
+        kwargs : dict
+            Additional arguments to be passed to the `SimpleSupervisedModel` class.
+        """
         resnet_type = { "50": [3, 4, 23, 3], "101": [3, 4, 23, 3], "152": [3, 8, 36, 3] } 
         backbone = _ResNet(layer_sizes=resnet_type[type], image_channels=img_channel, num_classes=num_classes)
 
         super().__init__(
             backbone=backbone,
             fc=torch.nn.Identity(),
-            loss_fn=loss_fn or torch.nn.MSELoss(),
+            loss_fn=loss_fn or torch.nn.CrossEntropyLoss(),
             learning_rate=learning_rate,
             flatten=False,
             **kwargs,
