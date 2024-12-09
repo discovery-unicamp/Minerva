@@ -1,5 +1,5 @@
 from itertools import product
-from typing import Any, List, Sequence, Union, Tuple
+from typing import Any, List, Optional, Sequence, Union, Tuple
 import cv2
 import numpy as np
 import torch
@@ -46,6 +46,17 @@ class TransformPipeline(_Transform):
             x = transform(x)
         return x
 
+    def __add__(self, other: _Transform) -> "_Transform":
+        """Add a transform to the pipeline."""
+        if isinstance(other, TransformPipeline):
+            return TransformPipeline(list(self.transforms) + list(other.transforms))
+        return TransformPipeline(list(self.transforms) + [other])
+
+
+    def __radd__(self, other: _Transform) -> "_Transform":
+        """Add a transform to the pipeline."""
+        return self.__add__(other)
+
 
 class Flip(_Transform):
     """Flip the input data along the specified axis."""
@@ -79,7 +90,7 @@ class Flip(_Transform):
             x = np.flip(x, axis=axis)
 
         return x
-    
+
 
 class PerlinMasker(_Transform):
     """Zeroes entries of a tensor according to the sign of Perlin noise. Seed for the noise generator given by torch.randint"""
@@ -95,7 +106,9 @@ class PerlinMasker(_Transform):
             Optionally rescale the Perlin noise. Default is 1 (no rescaling)
         """
         if octaves <= 0:
-            raise ValueError(f"Number of octaves must be positive, but got {octaves=}")
+            raise ValueError(
+                f"Number of octaves must be positive, but got {octaves=}"
+            )
         if scale == 0:
             raise ValueError(f"Scale can't be 0")
         self.octaves = octaves
@@ -158,16 +171,17 @@ class Unsqueeze(_Transform):
 
 class Transpose(_Transform):
     """Reorder the axes of numpy arrays."""
+
     def __init__(self, axes: Sequence[int]):
         """Reorder the axes of numpy arrays.
-        
+
         Parameters
         ----------
         axes : int
             The order of the new axes
         """
         self.axes = axes
-    
+
     def __call__(self, x: np.ndarray) -> np.ndarray:
         """Reorder the axes of numpy arrays."""
         return np.transpose(x, self.axes)
@@ -212,24 +226,24 @@ class Padding(_Transform):
 
 class Gradient(_Transform):
     def __init__(self, direction: int):
-        
-        '''
-        direction: 
+        """
+        direction:
             0 -> Gradient along the x-axis (width)
             1 -> Gradient along the y-axis (height)
-        '''
-        
+        """
+
         assert direction in [0, 1], "Direction must be 0 (x-axis) or 1 (y-axis)"
         self.direction = direction
 
-    def generate_gradient(self, shape: tuple[int, int]) -> np.ndarray:              
-        
-        '''
-        Inputs in format (H, W) 
+    def generate_gradient(self, shape: tuple[int, int]) -> np.ndarray:
+        """
+        Inputs in format (H, W)
         Outputs a gradient from 0 to 1 in either x or y direction based on the direction parameter
-        '''
-        
-        xx, yy = np.meshgrid(np.linspace(0, 1, shape[1]), np.linspace(0, 1, shape[0]))
+        """
+
+        xx, yy = np.meshgrid(
+            np.linspace(0, 1, shape[1]), np.linspace(0, 1, shape[0])
+        )
 
         if self.direction == 0:  # Gradient along the x-axis
             return xx
@@ -237,24 +251,36 @@ class Gradient(_Transform):
             return yy
 
     def __call__(self, x):
-        if x.ndim == 2: 
+        if x.ndim == 2:
             shape = x.shape
-        else: shape = x.shape[1:]
-        gradient = self.generate_gradient(shape)  # Generate gradient in the specified direction
-        
+        else:
+            shape = x.shape[1:]
+        gradient = self.generate_gradient(
+            shape
+        )  # Generate gradient in the specified direction
+
         x_expanded = np.expand_dims(x, axis=0) if x.ndim == 2 else x
         gradient_expanded = np.expand_dims(gradient, axis=0)
-        
+
         output = np.concatenate([x_expanded, gradient_expanded], axis=0)
 
-        assert output.shape == (x_expanded.shape[0] + 1, shape[0], shape[1]), \
-            f"Output shape {output.shape} does not match expected shape {(shape[0], shape[1], x_expanded.shape[0] + 1)}"
-        
+        assert output.shape == (
+            x_expanded.shape[0] + 1,
+            shape[0],
+            shape[1],
+        ), f"Output shape {output.shape} does not match expected shape {(shape[0], shape[1], x_expanded.shape[0] + 1)}"
+
         return output
 
 
 class ColorJitter(_Transform):
-    def __init__(self, brightness: float = 1.0, contrast: float = 1.0, saturation: float = 1.0, hue: float = 0.0):
+    def __init__(
+        self,
+        brightness: float = 1.0,
+        contrast: float = 1.0,
+        saturation: float = 1.0,
+        hue: float = 0.0,
+    ):
         """
         Applies fixed adjustments to brightness, contrast, saturation, and hue to an input image.
 
@@ -282,7 +308,7 @@ class ColorJitter(_Transform):
     def __call__(self, image: np.ndarray) -> np.ndarray:
         # Convert to HSV for hue/saturation adjustment
         image = cv2.cvtColor(image, cv2.COLOR_RGB2HSV).astype(np.float32)
-        
+
         # Brightness adjustment
         image[..., 2] = np.clip(image[..., 2] * self.brightness, 0, 255)
 
@@ -291,16 +317,23 @@ class ColorJitter(_Transform):
 
         # Contrast adjustment
         mean = image[..., 2].mean()
-        image[..., 2] = np.clip((image[..., 2] - mean) * self.contrast + mean, 0, 255)
+        image[..., 2] = np.clip(
+            (image[..., 2] - mean) * self.contrast + mean, 0, 255
+        )
 
         # Hue adjustment
         image[..., 0] = (image[..., 0] + self.hue) % 180
-        
+
         return cv2.cvtColor(image.astype(np.uint8), cv2.COLOR_HSV2RGB)
 
 
 class Crop(_Transform):
-    def __init__(self, output_size: Tuple[int, int], pad_mode: str = 'reflect', coords: Tuple[float, float] = (0, 0)):
+    def __init__(
+        self,
+        output_size: Tuple[int, int],
+        pad_mode: str = "reflect",
+        coords: Tuple[float, float] = (0, 0),
+    ):
         """
         Crops the input image to a specified output size, with optional padding if needed.
 
@@ -313,7 +346,7 @@ class Crop(_Transform):
         coords : Tuple[int, int], optional
             Top-left coordinates for the crop box.
             Values must go from 0 to 1 indicating the relative position on where the
-            new top-left corner can be set, taking in consideration the new size 
+            new top-left corner can be set, taking in consideration the new size
 
         Returns
         -------
@@ -333,9 +366,15 @@ class Crop(_Transform):
         if new_h > h or new_w > w:
             pad_h = max(new_h - h, 0)
             pad_w = max(new_w - w, 0)
-            image = np.pad(image, ((pad_h // 2, pad_h - pad_h // 2), 
-                                    (pad_w // 2, pad_w - pad_w // 2), 
-                                    (0, 0)), mode=self.pad_mode)
+            image = np.pad(
+                image,
+                (
+                    (pad_h // 2, pad_h - pad_h // 2),
+                    (pad_w // 2, pad_w - pad_w // 2),
+                    (0, 0),
+                ),
+                mode=self.pad_mode,
+            )
 
         # Update dimensions after padding
         h, w = image.shape[:2]
@@ -343,7 +382,7 @@ class Crop(_Transform):
         x = (h - new_h) * X
         y = (w - new_w) * Y
 
-        return image[x:x + new_h, y:y + new_w]  
+        return image[x : x + new_h, y : y + new_w]
 
 
 class GrayScale(_Transform):
@@ -364,7 +403,9 @@ class GrayScale(_Transform):
         self.gray = gray
 
     def __call__(self, image: np.ndarray) -> np.ndarray:
-        return np.stack([self.gray] * 3, axis=-1)  # Convert grayscale to RGB format   
+        return np.stack(
+            [self.gray] * 3, axis=-1
+        )  # Convert grayscale to RGB format
 
 
 class Solarize(_Transform):
@@ -387,12 +428,17 @@ class Solarize(_Transform):
     def __call__(self, image: np.ndarray) -> np.ndarray:
         if len(image.shape) == 3:  # Color image
             channels = cv2.split(image)
-            solarized_channels = [np.where(channel < self.threshold, channel, 255 - channel) for channel in channels]
+            solarized_channels = [
+                np.where(channel < self.threshold, channel, 255 - channel)
+                for channel in channels
+            ]
             solarized_image = cv2.merge(solarized_channels)
         else:  # Grayscale image
-            solarized_image = np.where(image < self.threshold, image, 255 - image)
-        
-        return solarized_image  
+            solarized_image = np.where(
+                image < self.threshold, image, 255 - image
+            )
+
+        return solarized_image
 
 
 class Rotation(_Transform):
@@ -416,5 +462,140 @@ class Rotation(_Transform):
         h, w = image.shape[:2]
         center = (w // 2, h // 2)
         rotation_matrix = cv2.getRotationMatrix2D(center, self.degrees, 1.0)
-        return cv2.warpAffine(image, rotation_matrix, (w, h), 
-                              borderMode=cv2.BORDER_REFLECT)  
+        return cv2.warpAffine(
+            image, rotation_matrix, (w, h), borderMode=cv2.BORDER_REFLECT
+        )
+
+
+class PadCrop(_Transform):
+    def __init__(
+        self,
+        target_h_size: int,
+        target_w_size: int,
+        padding_mode: str = "reflect",
+        seed: Optional[int] = None,
+        constant_values: int = 0,
+    ):
+        """Transforms image and pads or crops it to the target size. If the
+        target size is larger than the input size, the image is padded, else,
+        the image is cropped. The same happens for both height and width.
+        The padding mode can be specified, as well as the seed for the random
+        number generator.
+        
+        For padding, the padding is applied symmetrically on both sides of the
+        image, thus, image will be centered in the padded image. For cropping,
+        the crop is applied from a random position in the image.
+        
+        Image is expected to be in C x H x W, or H x W format.
+
+        Parameters
+        ----------
+        target_h_size : int
+            Desired height size.
+        target_w_size : int
+            Desired width size.
+        padding_mode : str, optional
+            The padding mode to use, by default "reflect"
+        seed : int, optional
+            The seed for the random number generator. It is used to generate
+            the random crop position. By default, None.
+        constant_values : int, optional
+            If padding mode is 'constant', the value to use for padding. By
+            default 0.
+        """
+        self.target_h_size = target_h_size
+        self.target_w_size = target_w_size
+        self.padding_mode = padding_mode
+        self.rng = np.random.default_rng(
+            seed
+        )  # Random number generator with the provided seed
+        self.constant_values = constant_values
+
+    def __call__(self, x: np.ndarray) -> np.ndarray:
+        # Input is expected to be in C x H x W format or H x W format
+    
+        # If input is in C x H x W format, convert to H x W x C format
+        if len(x.shape) == 3:
+            x = np.transpose(x, (1, 2, 0))
+        
+        # Get the height and width of the input image (H and W)  
+        h, w = x.shape[:2]
+
+
+        #### HEIGHT ####
+        # Handle height dimension independently: pad if target_h_size > h, else crop
+        if self.target_h_size > h:
+            pad_h = self.target_h_size - h
+            pad_top = pad_h // 2
+            pad_bottom = pad_h - pad_top
+            pad_args = {
+                "array": x,
+                "pad_width": (
+                    ((pad_top, pad_bottom), (0, 0), (0, 0))
+                    if len(x.shape) == 3
+                    else ((pad_top, pad_bottom), (0, 0))
+                ),
+                "mode": self.padding_mode,
+            }
+            if self.padding_mode == "constant":
+                pad_args["constant_values"] = self.constant_values
+
+            x = np.pad(**pad_args)
+
+        elif self.target_h_size < h:
+            crop_h_start = self.rng.integers(0, h - self.target_h_size + 1)
+            x = x[crop_h_start : crop_h_start + self.target_h_size, ...]
+
+        #### WIDTH ####
+        # Handle width dimension independently: pad if target_w_size > w, else crop
+        if self.target_w_size > w:
+            pad_w = self.target_w_size - w
+            pad_left = pad_w // 2
+            pad_right = pad_w - pad_left
+
+            pad_args = {
+                "array": x,
+                "pad_width": (
+                    ((0, 0), (pad_left, pad_right), (0, 0))
+                    if len(x.shape) == 3
+                    else ((0, 0), (pad_left, pad_right))
+                ),
+                "mode": self.padding_mode,
+            }
+
+            if self.padding_mode == "constant":
+                pad_args["constant_values"] = self.constant_values
+
+            x = np.pad(**pad_args)
+
+        elif self.target_w_size < w:
+            crop_w_start = self.rng.integers(0, w - self.target_w_size + 1)
+            x = x[:, crop_w_start : crop_w_start + self.target_w_size, ...]
+
+        #  If input is 3D, convert back to C x H x W format
+        if len(x.shape) == 3:
+            x = np.transpose(x, (2, 0, 1))
+        return x
+
+
+class Identity(_Transform):
+    """This class is a dummy transform that does nothing. It is useful when
+    you want to skip a transform in a pipeline.
+    """
+    def __call__(self, x: np.ndarray) -> np.ndarray:
+        return x
+
+
+class Indexer(_Transform):
+    def __init__(self, index: int):
+        """This transform extracts a single channel from a multi-channel image.
+
+        Parameters
+        ----------
+        index : int
+            The index of the channel to extract.
+        """
+        self.index = index
+
+    def __call__(self, x: np.ndarray) -> np.ndarray:
+        return x[self.index]

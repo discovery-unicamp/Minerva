@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Union
 
 import numpy as np
 
@@ -45,7 +45,11 @@ class SupervisedReconstructionDataset(SimpleDataset):
         ```
     """
 
-    def __init__(self, readers: List[_Reader], transforms: Optional[_Transform] = None):
+    def __init__(
+        self,
+        readers: List[_Reader],
+        transforms: Optional[Union[_Transform, List[_Transform]]] = None,
+    ):
         """A simple dataset class for supervised reconstruction tasks.
 
         Parameters
