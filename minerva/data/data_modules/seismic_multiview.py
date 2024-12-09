@@ -27,9 +27,9 @@ class SeismicImageMultiview(LightningDataModule):
             subdirectory with the respective dataset split.
             
         transform_pipelines : Sequence[\_Transform]
-            A sequence of transformation pipelines to apply to each sample, creating
-            multiple views per image. Each transformation pipeline will generate a
-            distinct view, allowing for contrastive or other multi-view learning
+            A list of transformations to apply to each sample. Each entry in this
+            list generates a distinct view of the sample, and the resulting views are
+            stacked into an array, allowing for contrastive or other multi-view learning
             applications.
             
         batch_size : int

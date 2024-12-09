@@ -1,4 +1,4 @@
-from typing import Any, Sequence, Tuple
+from typing import Sequence
 from torch.utils.data import Dataset
 from minerva.transforms.transform import _Transform
 from minerva.data.readers import _Reader
@@ -28,9 +28,9 @@ class MultiViewDataset(Dataset):
         reader : \_Reader
             The reader instance used to load data samples.
         transform_pipelines : Sequence[\_Transform]
-            A sequence of transformations to apply to each sample. Each pipeline
-            generates a distinct view of the sample, and the resulting views are stacked
-            into an array.
+            A list of transformations to apply to each sample. Each entry in this
+            list generates a distinct view of the sample, and the resulting views are
+            stacked into an array.
         
         Examples
         --------
@@ -78,5 +78,4 @@ class MultiViewDataset(Dataset):
         np.ndarray
             An array containing stacked transformed versions of the sample along axis 0
         """
-        data = [P(self.reader[idx]) for P in self.transform_pipelines]
-        return np.stack(data)
+        return np.stack([P(self.reader[idx]) for P in self.transform_pipelines])
