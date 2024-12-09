@@ -20,7 +20,7 @@ heads_and_middle = [(SETR_PUP, False), (SETR_MLA, True), (DPT, True)]
 
 @pytest.mark.parametrize("head_cls,middle", heads_and_middle)
 def test_dinov2_fit(head_cls, middle):
-    input_shape = (14**2, 14**2)        # Must be divisible by 14
+    input_shape = (14**2, 14**2)  # Must be divisible by 14
     backbone = DinoVisionTransformer(
         patch_size=14,
         embed_dim=384,
@@ -51,6 +51,6 @@ def test_dinov2_fit(head_cls, middle):
     )
 
     trainer = L.Trainer(
-        accelerator="cpu", devices=1, fast_dev_run=True
+        fast_dev_run=True, devices=1, accelerator="cpu", max_epochs=1
     )
     trainer.fit(model, data_module)
