@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import math
-from minerva.models.adapters.lora import LoRA
+from minerva.models.lora_adapters.lora import LoRA
 
 class LoRALinear(LoRA):
     """ LoRA (Low-rank Adaptation) for Linear Layers. Use this for Transformers or Linear layers. """

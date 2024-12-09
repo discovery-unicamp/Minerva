@@ -13,7 +13,4 @@ perlin-noise
 torchmetrics
 torchvision
 timm
-MedPy
-SimpleITK
-einops
 opencv-python
