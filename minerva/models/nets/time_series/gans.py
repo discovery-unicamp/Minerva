@@ -281,7 +281,7 @@ class PatchEmbedding_Linear(nn.Module):
         )
 
     def forward(self, x: Tensor) -> Tensor:
-        #x = x.unsqueeze(dim=2)
+        x = x.unsqueeze(dim=2)
         b = x.shape[0]
         x = self.projection(x)
 
@@ -306,7 +306,7 @@ class RearrangeLayer(nn.Module):
         self.s1 = s1
 
     def forward(self, x: Tensor) -> Tensor:
-        
+
         b, c, h_s1, w_s2 = x.shape
         h, s1 = h_s1, self.s1
         w, s2 = w_s2 // self.patch_size, self.patch_size
@@ -439,6 +439,7 @@ class GAN(L.LightningModule):
         self.beta2 = beta2
 
         self.automatic_optimization = False
+
     def forward(self, x: torch.Tensor):
         pass
 
@@ -448,10 +449,15 @@ class GAN(L.LightningModule):
         )
         gen_imgs = self.gen(gen_z)
         fake_validity = self.dis(gen_imgs)
-        #if not isinstance(fake_validity, list):
+        # if not isinstance(fake_validity, list):
         #    fake_validity = [fake_validity]
         g_loss = 0
-        real_label = torch.full((fake_validity.shape[0],fake_validity.shape[1]), 1., dtype=torch.float, device=self.device)
+        real_label = torch.full(
+            (fake_validity.shape[0], fake_validity.shape[1]),
+            1.0,
+            dtype=torch.float,
+            device=self.device,
+        )
         g_loss = nn.MSELoss()(fake_validity, real_label)
 
         return g_loss * self.generator_weight
@@ -474,11 +480,21 @@ class GAN(L.LightningModule):
 
         fake_validity = self.dis(fake_imgs)
 
-        #if not isinstance(fake_validity, list):
+        # if not isinstance(fake_validity, list):
         #    fake_validity = [fake_validity]
         d_loss = 0
-        real_label = torch.full((real_validity.shape[0],real_validity.shape[1]), 1., dtype=torch.float, device=self.device)
-        fake_label = torch.full((real_validity.shape[0],real_validity.shape[1]), 0., dtype=torch.float, device=self.device)
+        real_label = torch.full(
+            (real_validity.shape[0], real_validity.shape[1]),
+            1.0,
+            dtype=torch.float,
+            device=self.device,
+        )
+        fake_label = torch.full(
+            (real_validity.shape[0], real_validity.shape[1]),
+            0.0,
+            dtype=torch.float,
+            device=self.device,
+        )
         d_real_loss = nn.MSELoss()(real_validity, real_label)
         d_fake_loss = nn.MSELoss()(fake_validity, fake_label)
         d_loss = d_real_loss + d_fake_loss
@@ -496,7 +512,6 @@ class GAN(L.LightningModule):
         opt1.step()
         opt2.step()
 
-
     def configure_optimizers(self):
         opt_g = optim.Adam(
             self.gen.parameters(), lr=self.gen_lr, betas=(self.beta1, self.beta2)
@@ -507,7 +522,6 @@ class GAN(L.LightningModule):
 
         return [opt_g, opt_d], []
 
-    
     def validation_step(self, batch, batch_idx) -> torch.Tensor:
         x, y = batch
 
