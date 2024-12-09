@@ -16,3 +16,4 @@ timm
 MedPy
 SimpleITK
 einops
+opencv-python

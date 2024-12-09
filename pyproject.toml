@@ -53,6 +53,7 @@ dependencies = [
     "MedPy>=0.5.2",
     "SimpleITK>=2.4.0",
     "einops>=0.8.0"
+    "opencv-python>=4.10.0.84"
 ]
 
 [tool.setuptools.packages.find]

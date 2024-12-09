@@ -6,7 +6,7 @@ import torch
 from torch.utils.data import DataLoader
 import lightning as L
 from minerva.models.nets.classic_ml_pipeline import ClassicMLModel, SklearnPipeline
-from minerva.utils.data import SimpleDataset
+from minerva.data.data_module_tools import SimpleDataset
 
 def test_sklearn_pipeline():
     X, y = make_blobs(n_samples=64, centers=2, random_state=42)
