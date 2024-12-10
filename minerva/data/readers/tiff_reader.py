@@ -1,63 +1,53 @@
 from pathlib import Path
-from typing import Union
-
-import numpy as np
 import tifffile as tiff
+import numpy as np
+from minerva.data.readers.base_file_iterator import BaseFileIterator
+from minerva.utils.typing import PathLike
+from typing import Optional, Union, List
 
-from minerva.data.readers.reader import _Reader
 
-
-class TiffReader(_Reader):
-    """This class loads a TIFF file from a directory. It assumes that the TIFF
-    files are named with a number as the filename, starting from 0. This is
-    shown below.
-
-    ```
-    /path/
-    ├── 0.tiff
-    ├── 1.tiff
-    ├── 2.tiff
-    └── ...
-    ```
-
-    Thus, the element at index `i` will be the file `i.tiff`.
-    """
-
-    def __init__(self, path: str):
-        self.path = Path(path)
-        if not self.path.is_dir():
-            raise ValueError(f"Path {path} is not a directory")
-        self.files = list(sorted(self.path.rglob("*.tif"))) + list(
-            sorted(self.path.rglob("*.tiff"))
-        )
-
-    def __getitem__(self, index: Union[int, slice]) -> np.ndarray:
-        """Retrieve the TIFF file at the specified index. The index will be
-        used as the filename of the TIFF file.
+class TiffReader(BaseFileIterator):
+    def __init__(
+        self,
+        path: PathLike,
+        sort_method: Optional[List[str]] = None,
+        delimiter: Optional[str] = None,
+        key_index: Union[int, List[int]] = 0,
+        reverse: bool = False,
+    ):
+        """Load image files from a directory.
 
         Parameters
         ----------
-        index : int
-            Index of the TIFF file to retrieve.
-
-        Returns
-        -------
-        np.ndarray
-            The TIFF file as a NumPy array.
+        path : Union[Path, str]
+            The path to the directory containing the image files. Files will be
+            searched recursively.
+        sort_method : Optional[List[str]], optional
+            A list specifying how to sort each part of the filename. Each
+            element can  be either "text" (lexicographical) or "numeric"
+            (numerically). By default, None, which will use "numeric" if
+            numeric parts are detected.
+        delimiter : Optional[str], optional
+            The delimiter to split filenames into components, by default None.
+        key_index : Union[int, List[int]], optional
+            The index (or list of indices) of the part(s) of the filename to
+            use  for sorting. If a list is provided, files will be sorted
+            based on  multiple parts in sequence. Thus, first by the part at
+            index 0, then by the part at index 1, and so on. By default 0.
+        reverse : bool, optional
+            Whether to sort in reverse order, by default False.
 
         Raises
         ------
-        ValueError
-            If the specified file does not exist in the given path.
+        NotADirectoryError
+            If the path is not a directory.
         """
+        if not Path(path).is_dir():
+            raise NotADirectoryError(f"{path} is not a directory.")
+        
+        files = list(Path(path).rglob("*.tif*"))
+        super().__init__(files, sort_method, delimiter, key_index, reverse)
+
+    def __getitem__(self, index: int) -> np.ndarray:
+        """Retrieve the TIFF file at the specified index."""
         return tiff.imread(self.files[index].as_posix())
-
-    def __len__(self) -> int:
-        """Return the number of TIFF files in the directory.
-
-        Returns
-        -------
-        int
-            The number of TIFF files in the directory.
-        """
-        return len(self.files)

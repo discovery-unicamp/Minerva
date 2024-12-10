@@ -1,13 +1,17 @@
+# Standard library imports
 import math
 from collections import OrderedDict
 from functools import partial
 from typing import Callable, List, Optional, Tuple, Union
 
+# Third-party imports
 import lightning as L
+import numpy as np
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
+import timm.models.vision_transformer
 from timm.models.vision_transformer import Block, PatchEmbed
-from torch import nn
 from torchvision.models.vision_transformer import (
     Conv2dNormActivation,
     ConvStemConfig,
@@ -15,7 +19,10 @@ from torchvision.models.vision_transformer import (
     _log_api_usage_once,
 )
 
+# Local imports
 from minerva.utils.position_embedding import get_2d_sincos_pos_embed
+from minerva.models.nets.base import SimpleSupervisedModel
+
 
 
 class _Encoder(nn.Module):
@@ -32,7 +39,9 @@ class _Encoder(nn.Module):
         attention_dropout: float,
         aux_output: bool = False,
         aux_output_layers: Optional[List[int]] = None,
-        norm_layer: Callable[..., torch.nn.Module] = partial(nn.LayerNorm, eps=1e-6),
+        norm_layer: Callable[..., torch.nn.Module] = partial(
+            nn.LayerNorm, eps=1e-6
+        ),
     ):
         super().__init__()
         # Note that batch_size is on the first dim because
@@ -92,7 +101,9 @@ class _VisionTransformerBackbone(nn.Module):
         num_classes: int = 1000,
         aux_output: bool = False,
         aux_output_layers: Optional[List[int]] = None,
-        norm_layer: Callable[..., torch.nn.Module] = partial(nn.LayerNorm, eps=1e-6),
+        norm_layer: Callable[..., torch.nn.Module] = partial(
+            nn.LayerNorm, eps=1e-6
+        ),
         conv_stem_configs: Optional[List[ConvStemConfig]] = None,
     ):
         """
@@ -138,11 +149,13 @@ class _VisionTransformerBackbone(nn.Module):
 
         if isinstance(image_size, int):
             torch._assert(
-                image_size % patch_size == 0, "Input shape indivisible by patch size!"
+                image_size % patch_size == 0,
+                "Input shape indivisible by patch size!",
             )
         elif isinstance(image_size, tuple):
             torch._assert(
-                image_size[0] % patch_size == 0 and image_size[1] % patch_size == 0,
+                image_size[0] % patch_size == 0
+                and image_size[1] % patch_size == 0,
                 "Input shape indivisible by patch size!",
             )
 
@@ -177,7 +190,9 @@ class _VisionTransformerBackbone(nn.Module):
             seq_proj.add_module(
                 "conv_last",
                 nn.Conv2d(
-                    in_channels=prev_channels, out_channels=hidden_dim, kernel_size=1
+                    in_channels=prev_channels,
+                    out_channels=hidden_dim,
+                    kernel_size=1,
                 ),
             )
             self.conv_proj: nn.Module = seq_proj
@@ -192,7 +207,9 @@ class _VisionTransformerBackbone(nn.Module):
         if isinstance(image_size, int):
             seq_length = (image_size // patch_size) ** 2
         elif isinstance(image_size, tuple):
-            seq_length = (image_size[0] // patch_size) * (image_size[1] // patch_size)
+            seq_length = (image_size[0] // patch_size) * (
+                image_size[1] // patch_size
+            )
 
         # Add a class token
         self.class_token = nn.Parameter(torch.zeros(1, 1, hidden_dim))
@@ -219,7 +236,9 @@ class _VisionTransformerBackbone(nn.Module):
                 * self.conv_proj.kernel_size[0]
                 * self.conv_proj.kernel_size[1]
             )
-            nn.init.trunc_normal_(self.conv_proj.weight, std=math.sqrt(1 / fan_in))
+            nn.init.trunc_normal_(
+                self.conv_proj.weight, std=math.sqrt(1 / fan_in)
+            )
             if self.conv_proj.bias is not None:
                 nn.init.zeros_(self.conv_proj.bias)
         elif self.conv_proj.conv_last is not None and isinstance(
@@ -328,6 +347,11 @@ class _VisionTransformerBackbone(nn.Module):
 
         return x
 
+###################################
+
+############### SFM ###############
+
+###################################
 
 class MaskedAutoencoderViT(L.LightningModule):
     """
@@ -431,7 +455,9 @@ class MaskedAutoencoderViT(L.LightningModule):
             int(self.patch_embed.num_patches**0.5),
             cls_token=True,
         )
-        self.pos_embed.data.copy_(torch.from_numpy(pos_embed).float().unsqueeze(0))
+        self.pos_embed.data.copy_(
+            torch.from_numpy(pos_embed).float().unsqueeze(0)
+        )
 
         decoder_pos_embed = get_2d_sincos_pos_embed(
             self.decoder_pos_embed.shape[-1],
@@ -478,7 +504,9 @@ class MaskedAutoencoderViT(L.LightningModule):
         x = imgs.reshape(
             (imgs.shape[0], self.in_chans, h, p, w, p)
         )  # Transform images into (32, 1, 14, 16, 14, 16)
-        x = torch.einsum("nchpwq->nhwpqc", x)  # reshape into (32, 14, 14, 16, 16, 1)
+        x = torch.einsum(
+            "nchpwq->nhwpqc", x
+        )  # reshape into (32, 14, 14, 16, 16, 1)
         x = x.reshape(
             (imgs.shape[0], h * w, p**2 * self.in_chans)
         )  # Transform into (32, 196, 256)
@@ -523,7 +551,9 @@ class MaskedAutoencoderViT(L.LightningModule):
         ids_restore = torch.argsort(ids_shuffle, dim=1)
 
         ids_keep = ids_shuffle[:, :len_keep]
-        x_masked = torch.gather(x, dim=1, index=ids_keep.unsqueeze(-1).repeat(1, 1, D))
+        x_masked = torch.gather(
+            x, dim=1, index=ids_keep.unsqueeze(-1).repeat(1, 1, D)
+        )
 
         mask = torch.ones(N, L, device=x.device)
         mask[:, :len_keep] = 0
