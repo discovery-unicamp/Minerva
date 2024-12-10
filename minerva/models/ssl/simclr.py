@@ -1,24 +1,24 @@
-# /workspaces/Minerva-Dev/minerva/models/ssl/simclr.py
-
+from typing import Any, Callable, Optional, Sequence, Tuple
 import torch
 import torch.nn as nn
 from torch.nn.functional import normalize
 import lightning as L
 
-
-class MLPHead(nn.Module):
-    """ A simple multilayer perceptron (MLP) head for SimCLR.
-    This class `MLPHead` defines a simple neural network module with 
-    a sequence of two linear layers and a batch normalization layer,
-    implemented using PyTorch. Here's what each method does:
-
-    * `__init__`: Initializes the module with the specified input, hidden,
-    and output dimensions, and defines the sequence of layers.
-    * `forward`: Defines the forward pass through the network, where the
-    input `x` is passed through the sequence of layers defined in `__init__`.
+class ProjectionHead(nn.Module):
     """
-    def __init__(self, input_dim, hidden_dim, output_dim):
-        super(MLPHead, self).__init__()
+    Projection head for SimCLR that maps features to a latent space for contrastive learning.
+
+    Parameters
+    ----------
+    input_dim : int
+        Dimensionality of the input features.
+    hidden_dim : int
+        Dimensionality of the hidden layer.
+    output_dim : int
+        Dimensionality of the output projections.
+    """
+    def __init__(self, input_dim: int, hidden_dim: int, output_dim: int):
+        super(ProjectionHead, self).__init__()
         self.layers = nn.Sequential(
             nn.Linear(input_dim, hidden_dim),
             nn.BatchNorm1d(hidden_dim),
@@ -26,105 +26,274 @@ class MLPHead(nn.Module):
             nn.Linear(hidden_dim, output_dim)
         )
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+
+        """
+        Performs a forward pass through the projection head.
+
+        Parameters
+        ----------
+        x : torch.Tensor
+            Input tensor of features with shape (batch_size, input_dim).
+
+        Returns
+        -------
+        torch.Tensor
+            Output tensor of projected features with shape (batch_size, output_dim).
+        """
+
         return self.layers(x)
 
 class LinearEvalHead(nn.Module):
-    """ A simple linear evaluation head for SimCLR.
-    This class `LinearEvalHead` defines a simple linear evaluation head for SimCLR,
-    implemented using PyTorch. Here's what each method does:
-
-    * `__init__`: Initializes the module with the specified input and output dimensions,
-    and defines the linear layer.
-    * `forward`: Defines the forward pass through the linear layer, where the
-    input `x` is passed through the linear layer defined in `__init__`.
     """
-    def __init__(self, input_dim, num_classes):
+    Linear evaluation head for supervised learning tasks.
+
+    Parameters
+    ----------
+    input_dim : int
+        Dimensionality of the input features.
+    num_classes : int
+        Number of classes for classification.
+    """
+    def __init__(self, input_dim: int, num_classes: int):
+        """
+        Initializes the LinearEvalHead module.`__init__`: Initializes the 
+        module with the specified input and output dimensions,
+        and defines the linear layer.
+        """
         super(LinearEvalHead, self).__init__()
         self.classifier = nn.Linear(input_dim, num_classes)
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Performs a forward pass through the linear evaluation head.
+
+        Parameters
+        ----------
+        x : torch.Tensor
+            Input tensor of features with shape (batch_size, input_dim).
+
+        Returns
+        -------
+        torch.Tensor
+            Output tensor of logits with shape (batch_size, num_classes).
+        """
         return self.classifier(x)
 
 class SimCLR(L.LightningModule):
-    """ A SimCLR model for self-supervised learning.
-    This class `SimCLR` defines a SimCLR model for self-supervised learning, 
-    implemented using PyTorch. Here's what each method does:
-
-    * `__init__`: Initializes the module with the specified backbone, projector,
-    hidden, output, temperature, learning rate, test metric, and number of classes.
-    * `forward`: Defines the forward pass through the backbone and projector,
-    where the input `x` is passed through the backbone and projector defined in `__init__`.
-    * `nt_xent_loss`: Computes the negative training cross-entropy loss for SimCLR,
-    where the input `projections` is passed through the negative training cross-entropy loss function.
-
-    * `training_step`: Defines the training step for SimCLR, where the input `batch`
-    is passed through the backbone and projector, and the negative training cross-entropy loss is computed.
-    * `test_step`: Defines the test step for SimCLR, where the input `batch` is passed through the backbone and projector,
-    and the negative training cross-entropy loss is computed.
-    * `validation_step`: Defines the validation step for SimCLR, where the input `batch` is passed through the backbone and projector,
-    and the negative training cross-entropy loss is computed.
-    * `predict_step`: Defines the predict step for SimCLR, where the input `batch` is passed through the backbone and projector.
-    * `configure_optimizers`: Configures the optimizer for SimCLR, where the learning rate is defined in `__init__`.
-
-    References:
-    Chen, T., Kornblith, S., Norouzi, M., & Hinton, G. (2020). A simple framework for contrastive learning of visual representations.
-    In International Conference on machine learning (pp. 1597-1607). PMLR.
-    - SimCLR: https://arxiv.org/abs/2002.05709
     """
-    def __init__(self, backbone, projector_dim, hidden_dim, output_dim, temperature=0.5, lr=1e-3, test_metric=None, num_classes=None):
+    SimCLR model for self-supervised contrastive learning.
+
+    Parameters
+    ----------
+    backbone : nn.Module
+        Backbone model for feature extraction.
+    projector_dim : int
+        Input dimensionality for the projection head.
+    hidden_dim : int
+        Hidden layer dimensionality for the projection head.
+    output_dim : int
+        Output dimensionality for the projection head.
+    temperature : float, optional, default=0.5
+        Temperature parameter for contrastive loss.
+    lr : float, optional, default=1e-3
+        Learning rate for the optimizer.
+    test_metric : Callable, optional
+        Metric function for evaluating performance on the test set.
+    num_classes : int, optional
+        Number of classes for supervised classification tasks.
+    """
+    def __init__(
+        self,
+        backbone: nn.Module,
+        projector_dim: int,
+        hidden_dim: int,
+        output_dim: int,
+        temperature: float = 0.5,
+        lr: float = 1e-3,
+        test_metric: Optional[Callable] = None,
+        num_classes: Optional[int] = None,
+    ):
+        """
+        Initializes the SimCLR model.
+
+        Parameters
+        ----------
+        backbone : nn.Module
+            Backbone model for feature extraction.
+        projector_dim : int
+            Input dimensionality for the projection head.
+        hidden_dim : int
+            Hidden layer dimensionality for the projection head.
+        output_dim : int
+            Output dimensionality for the projection head.
+        temperature : float, optional, default=0.5
+            Temperature parameter for contrastive loss.
+        lr : float, optional, default=1e-3
+            Learning rate for the optimizer.
+        test_metric : Callable, optional
+            Metric function for evaluating performance on the test set.
+        num_classes : int, optional
+            Number of classes for supervised classification tasks.
+        """
         super(SimCLR, self).__init__()
         self.backbone = backbone
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
-        self.projector = MLPHead(projector_dim, hidden_dim, output_dim)
+        self.projector = ProjectionHead(projector_dim, hidden_dim, output_dim)
         self.temperature = temperature
         self.lr = lr
         self.test_metric = test_metric
         self.num_classes = num_classes
         if num_classes is not None:
-            self.classifier = LinearEvalHead(output_dim, num_classes)  # Add linear classifier
+            self.classifier = LinearEvalHead(output_dim, num_classes)
 
-    
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Forward pass through the SimCLR model.
+
+        Parameters
+        ----------
+        x : torch.Tensor
+            Input tensor of features with shape (batch_size, input_dim).
+
+        Returns
+        -------
+        torch.Tensor
+            Output tensor of projected features with shape (batch_size, output_dim).
+        """
         features = self.backbone(x)
         pooled = self.avgpool(features)
         flattened = torch.flatten(pooled, 1)
         projections = self.projector(flattened)
         return normalize(projections, dim=1)
 
-    def nt_xent_loss(self, projections):
+    def nt_xent_loss(self, projections: torch.Tensor) -> torch.Tensor:
+        """
+        Computes the normalized temperature-scaled cross-entropy loss.
+
+        Parameters
+        ----------
+        projections : torch.Tensor
+            Projections of the input batch.
+
+        Returns
+        -------
+        torch.Tensor
+            Contrastive loss value.
+        """
         batch_size = projections.size(0)
         similarity_matrix = torch.mm(projections, projections.T) / self.temperature
         labels = torch.arange(batch_size).to(projections.device)
         loss = nn.CrossEntropyLoss()(similarity_matrix, labels)
         return loss
 
-    def training_step(self, batch, batch_idx):
-        images, _ = batch  # Assuming labels are not used for unsupervised learning
+    def _single_step(self, batch: Tuple[torch.Tensor, Any]) -> torch.Tensor:
+        """
+        Performs a single forward and loss computation step.
+
+        Parameters
+        ----------
+        batch : Tuple[torch.Tensor, Any]
+            Input batch containing images and optional labels.
+
+        Returns
+        -------
+        torch.Tensor
+            Computed loss for the batch.
+        """
+        images, _ = batch  # Labels are not used for contrastive loss
         projections = self(images)
         loss = self.nt_xent_loss(projections)
-        self.log("train_loss", loss)
-        return loss
-    
-    def test_step(self, batch, batch_idx):
-        images, labels = batch
-        projections = self(images)
-        loss = self.nt_xent_loss(projections)
-        self.log("test_loss", loss)
         return loss
 
-    def validation_step(self, batch, batch_idx):
-        images, labels = batch
-        projetions = self(images)
-        loss = self.nt_xent_loss(projetions)
-        self.log("val_loss", loss)
+    def training_step(self, batch: Tuple[torch.Tensor, Any], batch_idx: int) -> torch.Tensor:
+        """
+        Training step.
+
+        Parameters
+        ----------
+        batch : Tuple[torch.Tensor, Any]
+            Input batch containing images and optional labels.
+        batch_idx : int
+            Index of the current batch.
+
+        Returns
+        -------
+        torch.Tensor
+            Computed loss for the batch.
+        """
+        loss = self._single_step(batch)
+        self.log("train_loss", loss, on_step=True, on_epoch=True, prog_bar=True)
         return loss
-    
-    def predict_step(self, batch, batch_idx, dataloader_idx=None):
-        images, labels = batch
-        projections = self(images)
-        return projections
-    
-    def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
-        return optimizer
+
+    def validation_step(self, batch: Tuple[torch.Tensor, Any], batch_idx: int) -> torch.Tensor:
+        """
+        Validation step.
+
+        Parameters
+        ----------
+        batch : Tuple[torch.Tensor, Any]
+            Input batch containing images and optional labels.
+        batch_idx : int
+            Index of the current batch.
+
+        Returns
+        -------
+        torch.Tensor
+            Computed loss for the batch.
+        """
+        loss = self._single_step(batch)
+        self.log("val_loss", loss, on_epoch=True, prog_bar=True)
+        return loss
+
+    def test_step(self, batch: Tuple[torch.Tensor, Any], batch_idx: int) -> torch.Tensor:
+        """
+        Test step.
+
+        Parameters
+        ----------
+        batch : Tuple[torch.Tensor, Any]
+            Input batch containing images and optional labels.
+        batch_idx : int
+            Index of the current batch.
+
+        Returns
+        -------
+        torch.Tensor
+            Computed loss for the batch.
+        """
+        loss = self._single_step(batch)
+        self.log("test_loss", loss, on_epoch=True, prog_bar=True)
+        return loss
+
+    def predict_step(self, batch: Tuple[torch.Tensor, Any], batch_idx: int, dataloader_idx: Optional[int] = None) -> torch.Tensor:
+        """
+        Predict step.
+
+        Parameters
+        ----------
+        batch : Tuple[torch.Tensor, Any]
+            Input batch containing images and optional labels.
+        batch_idx : int
+            Index of the current batch.
+        dataloader_idx : Optional[int], optional
+            Index of the dataloader, by default None
+
+        Returns
+        -------
+        torch.Tensor
+            Computed loss for the batch.
+        """
+        images, _ = batch
+        return self(images)
+
+    def configure_optimizers(self) -> torch.optim.Optimizer:
+        """
+        Configures the optimizer for training.
+
+        Returns
+        -------
+        torch.optim.Optimizer
+            Optimizer instance.
+        """
+        return torch.optim.Adam(self.parameters(), lr=self.lr)
