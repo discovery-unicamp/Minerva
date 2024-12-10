@@ -26,8 +26,7 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
         unzip \
         vim \
         wget \
-        xdot \
-        python3-opencv
+        xdot
 
 # Create the vscode user (non-root user) and add sudo support
 RUN groupadd --gid $USER_GID $USERNAME && \
@@ -67,8 +66,7 @@ RUN python -m pip install --upgrade pip setuptools pytest && \
         seaborn>=0.11 \
         scipy>=1.10 \
         torchmetrics>=1.3.0 \
-        torchvision>=0.15 \
-        -U numba
+        torchvision>=0.15
 
 
 # Change shell for user b
