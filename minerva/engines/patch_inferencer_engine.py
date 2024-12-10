@@ -4,7 +4,7 @@ import numpy as np
 import lightning as L
 
 
-class BasePatchInferencer(L.LightningModule):
+class BasePatchInferencer:
     """Inference in patches for models
 
     This class provides utility methods for performing inference in patches
@@ -40,7 +40,6 @@ class BasePatchInferencer(L.LightningModule):
                 mode (optional): 'constant', 'reflect', 'replicate' or 'cicular'. Defaults to 'constant'.
                 value (optional): fill value for 'constante'. Defaults to 0.
         """
-        super().__init__()
         self.model = model
         self.input_shape = input_shape
         self.output_shape = output_shape if output_shape is not None else input_shape
@@ -197,7 +196,6 @@ class BasePatchInferencer(L.LightningModule):
         x : torch.Tensor
             Input Tensor.
         """
-        print(f"[forward] x.shape: {x.shape}, self.input_shape: {self.input_shape}")
         assert len(x.shape) == len(
             self.input_shape
         ), "Input and self.input_shape sizes must match"
@@ -236,10 +234,6 @@ class BasePatchInferencer(L.LightningModule):
             [slice(0, lenght) for lenght in x.shape]
         )
         return self._combine_patches(results, offsets, indexes)[output_slice]
-
-    def predict_step(self, batch: torch.Tensor, batch_idx: int):
-        x, y = batch
-        return self(x)
 
 
 class WeightedAvgPatchInferencer(BasePatchInferencer):
