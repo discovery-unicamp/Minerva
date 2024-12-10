@@ -174,3 +174,5 @@ logs/
 lightning_logs/
 shared_data/
 
+data/
+MY_EXPERIMENTS/
