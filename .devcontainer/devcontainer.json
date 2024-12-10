@@ -15,7 +15,7 @@
         "--ulimit",
         "memlock=-1",
         "--ulimit",
-        "stack=67108864",
+        "stack=67108864"
     ],
     "customizations": {
         "vscode": {
@@ -27,8 +27,5 @@
                 "donjayamanne.git-extension-pack"
             ]
         }
-    },
-    "mounts": [
-        "source=/home/shared,target=/workspaces/Minerva-Dev/shared_data,type=bind,consistency=cached"
-    ]
+    }
 }
