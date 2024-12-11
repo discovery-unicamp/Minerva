@@ -5,19 +5,21 @@ from torch.nn.functional import normalize
 import lightning as L
 
 class ProjectionHead(nn.Module):
-    """
-    Projection head for SimCLR that maps features to a latent space for contrastive learning.
-
-    Parameters
-    ----------
-    input_dim : int
-        Dimensionality of the input features.
-    hidden_dim : int
-        Dimensionality of the hidden layer.
-    output_dim : int
-        Dimensionality of the output projections.
-    """
     def __init__(self, input_dim: int, hidden_dim: int, output_dim: int):
+
+        """
+        Projection head for SimCLR that maps features to a latent space for contrastive learning.
+
+        Parameters
+        ----------
+        input_dim : int
+            Dimensionality of the input features.
+        hidden_dim : int
+            Dimensionality of the hidden layer.
+        output_dim : int
+            Dimensionality of the output projections.
+        """
+
         super(ProjectionHead, self).__init__()
         self.layers = nn.Sequential(
             nn.Linear(input_dim, hidden_dim),
@@ -45,21 +47,19 @@ class ProjectionHead(nn.Module):
         return self.layers(x)
 
 class LinearEvalHead(nn.Module):
-    """
-    Linear evaluation head for supervised learning tasks.
-
-    Parameters
-    ----------
-    input_dim : int
-        Dimensionality of the input features.
-    num_classes : int
-        Number of classes for classification.
-    """
+    """Linear evaluation head for supervised learning tasks."""
     def __init__(self, input_dim: int, num_classes: int):
         """
         Initializes the LinearEvalHead module.`__init__`: Initializes the 
         module with the specified input and output dimensions,
         and defines the linear layer.
+
+        Parameters
+        ----------
+        input_dim : int
+            Dimensionality of the input features.
+        num_classes : int
+            Number of classes for classification.
         """
         super(LinearEvalHead, self).__init__()
         self.classifier = nn.Linear(input_dim, num_classes)
@@ -81,28 +81,6 @@ class LinearEvalHead(nn.Module):
         return self.classifier(x)
 
 class SimCLR(L.LightningModule):
-    """
-    SimCLR model for self-supervised contrastive learning.
-
-    Parameters
-    ----------
-    backbone : nn.Module
-        Backbone model for feature extraction.
-    projector_dim : int
-        Input dimensionality for the projection head.
-    hidden_dim : int
-        Hidden layer dimensionality for the projection head.
-    output_dim : int
-        Output dimensionality for the projection head.
-    temperature : float, optional, default=0.5
-        Temperature parameter for contrastive loss.
-    lr : float, optional, default=1e-3
-        Learning rate for the optimizer.
-    test_metric : Callable, optional
-        Metric function for evaluating performance on the test set.
-    num_classes : int, optional
-        Number of classes for supervised classification tasks.
-    """
     def __init__(
         self,
         backbone: nn.Module,
