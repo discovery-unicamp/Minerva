@@ -6,9 +6,9 @@ from minerva.models.nets.image.sam import Sam
 def test_sam_loss():
     model = Sam()
     batch = [{
-        "image": torch.rand(3, 255, 701),
-        "label": torch.rand(1, 255, 701).long(),
-        "original_size": (255, 701),
+        "image": torch.rand(3, 16, 16),
+        "label": torch.rand(1, 16, 16).long(),
+        "original_size": (16, 16),
         "multimask_output": True,
     }]
 
@@ -19,11 +19,11 @@ def test_sam_loss():
 
 def test_sam_predict():
     model = Sam()
-    mask_shape = (1, 3, 255, 701)
+    mask_shape = (1, 3, 16, 16)
     batch = [{
-        "image": torch.rand(3, 255, 701),
-        "label": torch.rand(1, 255, 701).long(),
-        "original_size": (255, 701),
+        "image": torch.rand(3, 16, 16),
+        "label": torch.rand(1, 16, 16).long(),
+        "original_size": (16, 16),
         "multimask_output": True,
     }]
 

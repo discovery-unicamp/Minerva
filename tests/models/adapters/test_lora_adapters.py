@@ -3,11 +3,11 @@ import torch
 from torchinfo import summary
 
 from minerva.models.nets.image.sam import Sam
-from minerva.models.lora_adapters.simple_lora import LoRALinear
+from minerva.models.lora_adapters.lora import LoRA
 
 def test_sam_with_lora_loss():
     apply_freeze={"prompt_encoder": True, "image_encoder": True, "mask_decoder": True}
-    apply_adapter={"image_encoder": LoRALinear, "mask_decoder": LoRALinear}
+    apply_adapter={"image_encoder": LoRA, "mask_decoder": LoRA}
 
     model = Sam(
         apply_freeze=apply_freeze,
@@ -15,9 +15,9 @@ def test_sam_with_lora_loss():
     )
 
     batch = [{
-        "image": torch.rand(3, 255, 701),
-        "label": torch.rand(1, 255, 701).long(),
-        "original_size": (255, 701),
+        "image": torch.rand(3, 16, 16),
+        "label": torch.rand(1, 16, 16).long(),
+        "original_size": (16, 16),
         "multimask_output": True,
     }]
 
