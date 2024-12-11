@@ -3,7 +3,7 @@ import torch
 from torchinfo import summary
 
 from minerva.models.nets.image.sam import Sam
-from minerva.models.lora_adapters.lora import LoRA
+from minerva.models.finetune_adapters import LoRA
 
 def test_sam_with_lora_loss():
     apply_freeze={"prompt_encoder": True, "image_encoder": True, "mask_decoder": True}

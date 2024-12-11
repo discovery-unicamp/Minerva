@@ -16,7 +16,7 @@ import torch
 from torch import Tensor, nn
 from torch.nn import functional as F
 from torchmetrics import Metric
-from minerva.models.lora_adapters.lora import LoRA
+from minerva.models.finetune_adapters import LoRA
 from minerva.models.nets.mlp import MLP
 
 # based on: https://github.com/facebookresearch/segment-anything/blob/main/segment_anything/modeling/common.py
