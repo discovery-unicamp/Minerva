@@ -2361,7 +2361,6 @@ class Sam(L.LightningModule):
                 num = int(rel_pos_key.split('.')[2])
                 if num in encoder_global_attn_indexes:
                     global_rel_pos_keys.append(rel_pos_key)
-            # global_rel_pos_keys = [k for k in rel_pos_keys if '2' in k or '5' in  k or '8' in k or '11' in k]
             for k in global_rel_pos_keys:
                 rel_pos_params = new_state_dict[k]
                 h, w = rel_pos_params.shape
@@ -2377,10 +2376,6 @@ class Sam(L.LightningModule):
     def _compute_metrics(self, y_hat: torch.Tensor, y: torch.Tensor, step_name: str):
         if self.metrics[step_name] is None:
             return {}
-        # debug
-        # print("y_hat shape: ", y_hat.shape) # torch.Size([B, num_classes, H, W])
-        # print("y_hat shape keepdim: ", torch.argmax(y_hat, dim=1, keepdim=True).squeeze(1).shape) # torch.Size([B, H, W])
-        # print("y shape: ", y.shape) # torch.Size([1, H, W])
 
         return {
             f"{step_name}_{metric_name}": metric.to(self.device)(
@@ -2394,22 +2389,8 @@ class Sam(L.LightningModule):
         outputs = self(batched_input, multimask_output=batched_input[0]['multimask_output'])
 
         # stack logits 'masks_logits' and 'labels' for loss and metrics function
-        masks_logits = torch.stack([output['masks_logits'].squeeze(0) for output in outputs])  # [batch_size, 6, H, W]
+        masks_logits = torch.stack([output['masks_logits'].squeeze(0) for output in outputs])  # [batch_size, num_classes, H, W]
         labels = torch.stack([input['label'].squeeze(0) for input in batched_input])  # [batch_size, H, W]
-
-        # debug
-        # print("batched_input type: ", type(batched_input))
-        # print("outputs type: ", type(outputs))
-        # print("batched_input len: ", len(batched_input)) # batch size
-        # print("outputs len: ", len(outputs)) # batch size
-        # print("label shape: ", type(batched_input[0]['label']), batched_input[0]['label'].shape) # torch.Size([B, H, W])
-        # print("masks shape: ", type(outputs[0]['masks']), outputs[0]['masks'].shape) # torch.Size([B, num_classes, H, W])
-        # print("iou_predictions shape: ", type(outputs[0]['iou_predictions']), outputs[0]['iou_predictions'].shape) # torch.Size([B, num_classes])
-        # print("low_res_logits shape: ", type(outputs[0]['low_res_logits']), outputs[0]['low_res_logits'].shape) # torch.Size([B, num_classes, H_reduzido, W_reduzido])
-        # print("masks_logits shape: ", type(outputs[0]['masks_logits']), outputs[0]['masks_logits'].shape) # torch.Size([B, num_classes, H, W])
-        # print("shape masks_logits stack: ", masks_logits.shape) # torch.Size([B, num_classes, H, W])
-        # print("shape labels stack: ", labels.shape) # torch.Size([B, H, W])
-        # print("outputs: ", outputs)
 
         loss = self._loss(masks_logits, labels)
         metrics = self._compute_metrics(masks_logits, labels, step_name)
