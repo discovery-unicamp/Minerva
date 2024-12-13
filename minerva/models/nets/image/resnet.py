@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from typing import Literal, Optional
+from typing import Any, Literal, Optional
 from minerva.models.nets.base import SimpleSupervisedModel
 
 
@@ -10,7 +10,11 @@ class ResNetBlock(nn.Module):
     """
 
     def __init__(
-        self, in_channels, intermediate_channels, identity_downsample=None, stride=1
+        self,
+        in_channels: int,
+        intermediate_channels: int,
+        identity_downsample: Optional[torch.nn.Module] = None,
+        stride: int = 1
     ):
         """
         Parameters
@@ -87,7 +91,12 @@ class ResNetBlock(nn.Module):
 class _ResNet(torch.nn.Module):
     """Implementation of ResNet model."""
 
-    def __init__(self, layer_sizes, image_channels, num_classes):
+    def __init__(
+            self,
+            layer_sizes: list[int],
+            image_channels: int,
+            num_classes: int,
+        ):
         """Implementation of ResNet model.
 
         Parameters
@@ -115,7 +124,6 @@ class _ResNet(torch.nn.Module):
         intermidiate_channels = [64, 128, 256, 512]
         strides = [1, 2, 2, 2]
 
-        # Essentially the entire ResNet architecture are in these 5 lines below
         self.layers = nn.ModuleList([])
 
         for i in range(len(layer_sizes)):
@@ -128,7 +136,6 @@ class _ResNet(torch.nn.Module):
     def make_layer(self, num_residual_blocks, intermediate_channels, stride):
         identity_downsample = None
         layers = []
-        # The expansion size is always 4 for ResNet 50,101,152
         expansion = intermediate_channels * 4
 
         if stride != 1 or self.in_channels != expansion:
@@ -204,11 +211,11 @@ class ResNet(SimpleSupervisedModel):
     def __init__(
         self,
         type: Literal["50", "101", "152"] = "50",
-        img_channel=3, 
-        num_classes=1000,
+        img_channel: int = 3, 
+        num_classes: int = 1000,
         learning_rate: float = 1e-3,
         loss_fn: Optional[torch.nn.Module] = None,
-        **kwargs,
+        **kwargs: dict[str, Any],
     ):
         """Wrapper implementation of the ResNet model.
 
