@@ -2008,9 +2008,9 @@ class Sam(L.LightningModule):
         Dictionary of metrics to compute during testing. Defaults to None.
     apply_freeze : dict of bool, optional
         Dictionary specifying whether to freeze individual model components. Keys include 
-        'image_encoder', 'prompt_encoder', and 'mask_decoder'. Defaults to freezing 'prompt_encoder'.
+        'image_encoder', 'prompt_encoder', and 'mask_decoder'. Defaults to freezing 'prompt_encoder'. Defaut values is {"image_encoder": False, "prompt_encoder": True, "mask_decoder": False}.
     apply_adapter : dict of LoRA, optional
-        Dictionary containing LoRA adapters to apply to model components. Defaults to an empty dictionary.
+        Dictionary containing LoRA adapters to apply to model components. Defaults to an empty dictionary. Default values is {}.
     lora_rank : int, optional
         Rank parameter for LoRA layers. Defaults to 4.
     lora_alpha : int, optional
@@ -2033,8 +2033,8 @@ class Sam(L.LightningModule):
             image_encoder:ImageEncoderViT=None,
             prompt_encoder:PromptEncoder=None,
             mask_decoder:MaskDecoder=None,
-            pixel_mean=[123.675, 116.28, 103.53],
-            pixel_std=[58.395, 57.12, 57.375],
+            pixel_mean:List[float]=None,
+            pixel_std:List[float]=None,
             mask_threshold=0.0,
             learning_rate=1e-5,
             vit_type:str='vit-b',
@@ -2045,18 +2045,21 @@ class Sam(L.LightningModule):
             train_metrics: Optional[Dict[str, Metric]] = None,
             val_metrics: Optional[Dict[str, Metric]] = None,
             test_metrics: Optional[Dict[str, Metric]] = None,
-            apply_freeze:Optional[Dict[str, bool]] = {"image_encoder": False, "prompt_encoder": True, "mask_decoder": False},
-            apply_adapter:Optional[Dict[str, LoRA]] = {},
+            apply_freeze:Optional[Dict[str, bool]] = None,
+            apply_adapter:Optional[Dict[str, LoRA]] = None,
             lora_rank:int=4,
             lora_alpha:int=1
     ):
         super().__init__()
-        self.register_buffer("pixel_mean", torch.Tensor(pixel_mean).view(-1, 1, 1), False)
-        self.register_buffer("pixel_std", torch.Tensor(pixel_std).view(-1, 1, 1), False)
+        self.register_buffer("pixel_mean", torch.Tensor(pixel_mean or [123.675, 116.28, 103.53]).view(-1, 1, 1), False)
+        self.register_buffer("pixel_std", torch.Tensor(pixel_std or [58.395, 57.12, 57.375]).view(-1, 1, 1), False)
         self.mask_threshold = mask_threshold
         self.learning_rate = learning_rate
         self.num_multimask_outputs = num_multimask_outputs
         self.iou_head_depth = iou_head_depth
+
+        self.apply_freeze = apply_freeze or {"image_encoder": False, "prompt_encoder": True, "mask_decoder": False}
+        self.apply_adapter = apply_adapter or {}
 
         self.loss_fn = loss_fn if loss_fn is not None else nn.CrossEntropyLoss()
 
@@ -2119,8 +2122,8 @@ class Sam(L.LightningModule):
 
         self.model = self._build_sam(**self.vit_params[self.vit_type])
 
-        self._apply_freeze(apply_freeze)
-        self._apply_adapter(apply_adapter, alpha=lora_alpha, rank=lora_rank)
+        self._apply_freeze(self.apply_freeze)
+        self._apply_adapter(self.apply_adapter, alpha=lora_alpha, rank=lora_rank)
     
     def _apply_freeze(self, apply_freeze):
         """
