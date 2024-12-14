@@ -14,3 +14,4 @@ torchmetrics
 torchvision
 timm
 opencv-python
+torchinfo

@@ -50,7 +50,8 @@ dependencies = [
     "torchvision>=0.15",
     "wrapt>=1.16",
     "zarr>=2.17",
-    "opencv-python>=4.10.0.84"
+    "opencv-python>=4.10.0.84",
+    "torchinfo>=1.8.0"
 ]
 
 [tool.setuptools.packages.find]
