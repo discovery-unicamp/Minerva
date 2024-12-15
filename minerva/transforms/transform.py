@@ -1,6 +1,7 @@
 from itertools import product
-from typing import Any, List, Sequence, Union
+from typing import Any, List, Literal, Sequence, Tuple, Union
 
+import cv2
 import numpy as np
 import torch
 from perlin_noise import PerlinNoise
@@ -69,16 +70,16 @@ class Flip(_Transform):
         """
 
         if isinstance(self.axis, int):
-            return np.flip(x, axis=self.axis)
+            return np.flip(x, axis=self.axis).copy()
 
         assert (
             len(self.axis) <= x.ndim
-        ), "Axis list has more dimentions than input data. The lenth of axis needs to be less or equal to input dimentions."
+        ), "Axis list has more dimensions than input data. The length of axis needs to be less or equal to input dimensions."
 
         for axis in self.axis:
             x = np.flip(x, axis=axis)
 
-        return x
+        return x.copy()
 
 
 class PerlinMasker(_Transform):
@@ -175,19 +176,193 @@ class CastTo(_Transform):
 
 
 class Padding(_Transform):
-    def __init__(self, target_h_size: int, target_w_size: int):
+    def __init__(
+        self,
+        target_h_size: int,
+        target_w_size: int,
+        padding_mode: Literal["reflect", "constant"] = "reflect",
+        constant_value: int = 0,
+        mask_value: int = 255,
+    ):
         self.target_h_size = target_h_size
         self.target_w_size = target_w_size
+        self.padding_mode = padding_mode
+        self.constant_value = constant_value
+        self.mask_value = mask_value
 
     def __call__(self, x: np.ndarray) -> np.ndarray:
         h, w = x.shape[:2]
         pad_h = max(0, self.target_h_size - h)
         pad_w = max(0, self.target_w_size - w)
-        if len(x.shape) == 2:
-            padded = np.pad(x, ((0, pad_h), (0, pad_w)), mode="reflect")
-            padded = np.expand_dims(padded, axis=2)
-        else:
-            padded = np.pad(x, ((0, pad_h), (0, pad_w), (0, 0)), mode="reflect")
+        is_label = True if x.dtype == np.uint8 else False
 
-        padded = np.transpose(padded, (2, 0, 1))
+        if len(x.shape) == 2:
+            if self.padding_mode == "reflect":
+                padded = np.pad(x, ((0, pad_h), (0, pad_w)), mode="reflect")
+            elif self.padding_mode == "constant":
+                if is_label:
+                    padded = np.pad(
+                        x,
+                        ((0, pad_h), (0, pad_w)),
+                        mode="constant",
+                        constant_values=self.mask_value,
+                    )
+                else:
+                    padded = np.pad(
+                        x,
+                        ((0, pad_h), (0, pad_w)),
+                        mode="constant",
+                        constant_values=self.constant_value,
+                    )
+            padded = np.expand_dims(padded, axis=2)
+
+        else:
+            if self.padding_mode == "reflect":
+                padded = np.pad(x, ((0, pad_h), (0, pad_w), (0, 0)), mode="reflect")
+            elif self.padding_mode == "constant":
+                if is_label:
+                    padded = np.pad(
+                        x,
+                        ((0, pad_h), (0, pad_w), (0, 0)),
+                        mode="constant",
+                        constant_values=self.mask_value,
+                    )
+                else:
+                    padded = np.pad(
+                        x,
+                        ((0, pad_h), (0, pad_w), (0, 0)),
+                        mode="constant",
+                        constant_values=self.constant_value,
+                    )
         return padded
+
+
+class Normalize(_Transform):
+    def __init__(self, mean, std, to_rgb=False, normalize_labels=False):
+        """
+        Initialize the Normalize transform.
+
+        Args:
+            means (list or tuple): A list or tuple containing the mean for each channel.
+            stds (list or tuple): A list or tuple containing the standard deviation for each channel.
+            to_rgb (bool): If True, convert the data from BGR to RGB.
+        """
+        assert len(mean) == len(
+            std
+        ), "Means and standard deviations must have the same length."
+        self.mean = mean
+        self.std = std
+        self.to_rgb = to_rgb
+        self.normalize_labels = normalize_labels
+
+    def __call__(self, data):
+        """
+        Normalize the input data using the provided means and standard deviations.
+
+        Args:
+            data (numpy.ndarray): Input data array of shape (C, H, W) where C is the number of channels.
+
+        Returns:
+            numpy.ndarray: Normalized data.
+        """
+
+        is_label = True if data.dtype == np.uint8 else False
+
+        if is_label and self.normalize_labels:
+            # Convert from gray scale (1 channel) to RGB (3 channels) if to_rgb is True
+            if self.to_rgb and data.shape[0] == 1:
+                data = np.repeat(data, 3, axis=0)
+
+            assert data.shape[0] == len(
+                self.mean
+            ), f"Number of channels in data does not match the number of provided mean/std. {data.shape}"
+
+            # Normalize each channel
+            for i in range(len(self.mean)):
+                data[i, :, :] = (data[i, :, :] - self.mean[i]) / self.std[i]
+
+        return data
+
+
+class Crop(_Transform):
+    def __init__(
+        self,
+        target_h_size: int,
+        target_w_size: int,
+        start_coord: Tuple[int, int] = (0, 0),
+    ):
+        self.target_h_size = target_h_size
+        self.target_w_size = target_w_size
+        self.start_coord = start_coord
+
+    def __call__(self, x: np.ndarray) -> np.ndarray:
+        h, w = x.shape[:2]
+        start_h = (h - self.target_h_size) // 2
+        start_w = (w - self.target_w_size) // 2
+        end_h = start_h + self.target_h_size
+        end_w = start_w + self.target_w_size
+        if len(x.shape) == 2:
+            cropped = x[start_h:end_h, start_w:end_w]
+            cropped = np.expand_dims(cropped, axis=2)
+        else:
+            cropped = x[start_h:end_h, start_w:end_w]
+
+        return cropped
+
+
+class Transpose(_Transform):
+    """Reorder the axes of numpy arrays."""
+
+    def __init__(self, axes: Sequence[int]):
+        """Reorder the axes of numpy arrays.
+
+        Parameters
+        ----------
+        axes : int
+            The order of the new axes
+        """
+        self.axes = axes
+
+    def __call__(self, x: np.ndarray) -> np.ndarray:
+        """Reorder the axes of numpy arrays."""
+
+        if len(x.shape) == 2:
+            x = np.expand_dims(x, axis=2)
+        return np.transpose(x, self.axes)
+
+
+class Resize(_Transform):
+
+    def __init__(
+        self,
+        target_h_size: int,
+        target_w_size: int,
+        keep_aspect_ratio: bool = False,
+    ):
+        self.target_h_size = target_h_size
+        self.target_w_size = target_w_size
+        self.keep_aspect_ratio = keep_aspect_ratio
+
+    def __call__(self, x: np.ndarray) -> np.ndarray:
+        original_height, original_width = x.shape[:2]
+
+        if not self.keep_aspect_ratio:
+            # Direct resize without keeping the aspect ratio
+            return cv2.resize(
+                x,
+                (self.target_w_size, self.target_h_size),
+                interpolation=cv2.INTER_NEAREST,
+            )
+
+        # Calculate scaling factors for both dimensions
+        width_scale = self.target_w_size / original_width
+        height_scale = self.target_h_size / original_height
+
+        # Choose the smaller scale to keep aspect ratio, and round down
+        scale = min(width_scale, height_scale)
+
+        # Compute new dimensions, rounding down to match MMsegmentation's behavior
+        new_width = int(original_width * scale)
+        new_height = int(original_height * scale)
+
+        return cv2.resize(x, (new_width, new_height), interpolation=cv2.INTER_NEAREST)

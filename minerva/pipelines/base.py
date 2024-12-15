@@ -159,11 +159,11 @@ class Pipeline(HyperparametersMixin):
             The dictionary with the pipeline information
         """
         return {
-            "class_name": self.__class__.__name__,
-            "created_time": self._created_at,
+            "class_name": str(self.__class__.__name__),
+            "created_time": str(self._created_at),
             "pipeline_id": self.pipeline_id,
             "log_dir": str(self.log_dir),
-            "run_count": self._run_count,
+            "run_count": str(self._run_count),
         }
 
     @property

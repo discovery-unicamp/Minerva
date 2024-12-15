@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple
+from typing import Any, List, Optional, Tuple
 
 import numpy as np
 
@@ -15,7 +15,7 @@ class SupervisedReconstructionDataset(SimpleDataset):
     Usually, both input and target data have the same shape.
 
     This dataset is useful for supervised tasks such as image reconstruction,
-    segmantic segmentation, and object detection, where the input data is the
+    semantic segmentation, and object detection, where the input data is the
     original data and the target is a mask or a segmentation map.
 
     Examples
@@ -45,7 +45,12 @@ class SupervisedReconstructionDataset(SimpleDataset):
         ```
     """
 
-    def __init__(self, readers: List[_Reader], transforms: Optional[_Transform] = None):
+    def __init__(
+        self,
+        readers: List[_Reader],
+        transforms: Optional[_Transform] = None,
+        support_context_transforms: bool = False,
+    ):
         """A simple dataset class for supervised reconstruction tasks.
 
         Parameters
@@ -62,12 +67,13 @@ class SupervisedReconstructionDataset(SimpleDataset):
             AssertionError: If the number of readers is not exactly 2.
         """
         super().__init__(readers, transforms)
+        self.support_context_transforms = support_context_transforms
 
         assert (
             len(self.readers) == 2
         ), "SupervisedReconstructionDataset requires exactly 2 readers"
 
-    def __getitem__(self, index: int) -> Tuple[np.ndarray, np.ndarray]:
+    def __getitem__(self, index: int) -> Tuple[Any, Any]:
         """Load data from sources and apply specified transforms. The same
         transform is applied to both input and target data.
 
@@ -78,10 +84,29 @@ class SupervisedReconstructionDataset(SimpleDataset):
 
         Returns
         -------
-        Tuple[np.ndarray, np.ndarray]
-            A tuple containing two numpy arrays representing the data.
+        Tuple[Any, Any]
+            A tuple containing two elements: the input data and the target data.
 
         """
-        data = super().__getitem__(index)
+        if not self.support_context_transforms:
+            data = super().__getitem__(index)
 
-        return (data[0], data[1])
+            return (data[0], data[1])
+        else:
+
+            data = []
+
+            # For each reader and transform, read the data and apply the transform.
+            # Then, append the transformed data to the list of data.
+            for reader, transform in zip(reversed(self.readers), self.transforms):
+                sample = reader[index]
+                # Apply the transform if it is not None
+                if transform is not None:
+                    sample = transform(sample)
+                data.append(sample)
+            # Return the list of transformed data or a single sample if return_single
+            # is True and there is only one reader.
+            if self.return_single:
+                return data[1]
+            else:
+                return tuple(reversed(data))
