@@ -216,12 +216,8 @@ class SimpleLightningPipeline(Pipeline):
             for i, (y_i, y_hat_i) in enumerate(zip(y, y_hat)):
                 res = metric(y_i, y_hat_i).float().item()
                 final_results.append(res)
-                print(
-                    f"Calculating {metric_name} for sample {i}: y.shape={y_i.shape}, y_hat.shape={y_hat_i.shape}. Result: {res:.3f}"
-                )
             results[metric_name] = final_results
-            print(f"done.")
-
+            print("done!")
         return results
 
     # Private methods
