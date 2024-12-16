@@ -306,7 +306,6 @@ class RearrangeLayer(nn.Module):
         self.s1 = s1
 
     def forward(self, x: Tensor) -> Tensor:
-
         b, c, h_s1, w_s2 = x.shape
         h, s1 = h_s1, self.s1
         w, s2 = w_s2 // self.patch_size, self.patch_size
@@ -447,10 +446,9 @@ class GAN(L.LightningModule):
         gen_z = torch.tensor(
             np.random.normal(0, 1, (len(x), self.latent_dim)), dtype=torch.float
         )
-        gen_imgs = self.gen(gen_z)
+        gen_imgs = self.gen(gen_z).squeeze()
         fake_validity = self.dis(gen_imgs)
-        # if not isinstance(fake_validity, list):
-        #    fake_validity = [fake_validity]
+
         g_loss = 0
         real_label = torch.full(
             (fake_validity.shape[0], fake_validity.shape[1]),
@@ -468,11 +466,11 @@ class GAN(L.LightningModule):
             np.random.normal(0, 1, (len(x), self.latent_dim)), dtype=torch.float
         )
 
-        real_imgs = real_imgs.unsqueeze(dim=2).to(self.device)
+        real_imgs = real_imgs.to(self.device)
         z = z.to(self.device)
 
         real_validity = self.dis(real_imgs)
-        fake_imgs = self.gen(z).detach()
+        fake_imgs = self.gen(z).detach().squeeze()
 
         assert (
             fake_imgs.size() == real_imgs.size()
