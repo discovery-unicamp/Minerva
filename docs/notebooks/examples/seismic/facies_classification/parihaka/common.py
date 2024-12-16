@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Optional
 import lightning as L
 from matplotlib import pyplot as plt
-from torchmetrics import Accuracy, JaccardIndex
+from torchmetrics import Accuracy, JaccardIndex, F1Score, AUROC, Dice
 
 from minerva.pipelines.lightning_pipeline import SimpleLightningPipeline
 
@@ -145,13 +145,26 @@ def get_evaluation_pipeline(
         log_dir=log_dir,
         save_run_status=False,
         seed=seed,
+        apply_metrics_per_sample=True,
         classification_metrics={
             "mIoU": JaccardIndex(
                 num_classes=6, average="macro", task="multiclass"
             ),
             "acc": Accuracy(num_classes=6, task="multiclass"),
+            "f1-micro": F1Score(
+                num_classes=6, task="multiclass", average="micro"
+            ),
+            "f1-macro": F1Score(
+                num_classes=6, task="multiclass", average="macro"
+            ),
+            "f1-weighted": F1Score(
+                num_classes=6, task="multiclass", average="weighted"
+            ),
+            "dice-micro": Dice(num_classes=6, average="micro"),
+            "dice-macro": Dice(num_classes=6, average="macro"),
         },
         save_predictions=True,
+        classification_reduce="squeeze",
     )
 
 
