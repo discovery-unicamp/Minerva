@@ -3,6 +3,7 @@ from typing import Any, Dict, Literal, Optional, Union
 
 import lightning as L
 
+import numpy as np
 import torch
 import time
 import yaml
@@ -27,8 +28,8 @@ class PredictWrapper(L.LightningModule):
 
     def predict_step(self, batch, batch_idx, dataloader_idx=0):
         x, y = batch
-        predictions = self.model.predict_step(batch, batch_idx, dataloader_idx)
-        return (x, y, predictions)
+        y_hat = self.model.predict_step(batch)
+        return (x, y, y_hat)
 
 
 class SimpleLightningPipeline(Pipeline):
@@ -49,6 +50,7 @@ class SimpleLightningPipeline(Pipeline):
         apply_metrics_per_sample: bool = False,
         seed: Optional[int] = None,
         save_predictions: Optional[Union[bool, PathLike]] = None,
+        classification_reduce: Optional[str] = "argmax",
     ):
         """Train/test/predict/evaluate a Pytorch Lightning model.
 
@@ -111,6 +113,12 @@ class SimpleLightningPipeline(Pipeline):
             PathLike object is provided, save the predictions to the given file.
             Note that the predictions will be saved in the log directory,
             without any argmax applied. By default None.
+        classification_reduce : Optional[str], optional
+            The reduction method to be applied to the classification
+            predictions before calculating the metrics (on dimension=1). The
+            options are "argmax" (apply argmax to the predictions), "none" (do
+            not apply any reduction), "squeeze" (squeeze the predictions). By
+            default "argmax".
         """
         if log_dir is None and trainer.log_dir is not None:
             log_dir = trainer.log_dir
@@ -132,6 +140,7 @@ class SimpleLightningPipeline(Pipeline):
         self._data = None
         self._model_analysis = model_analysis
         self._classification_metrics = classification_metrics
+        self._classification_reduce = classification_reduce
         self._regression_metrics = regression_metrics
         self._apply_metrics_per_sample = apply_metrics_per_sample
         self._save_predictions_file = save_predictions
@@ -194,16 +203,24 @@ class SimpleLightningPipeline(Pipeline):
         """
         results = {}
         if self._apply_metrics_per_sample:
-            y, y_hat = y.split(1), y_hat.split(1)
+            # Iterate over the batch dimension
+            pass
         else:
+            # Calculate the metric for the whole dataset at once (create a
+            # batch dimension with size 1)
             y, y_hat = y.unsqueeze(0), y_hat.unsqueeze(0)
 
         for metric_name, metric in metrics.items():
             final_results = []
+            print(f"\tCalculating {metric_name}...", end=" ")
             for i, (y_i, y_hat_i) in enumerate(zip(y, y_hat)):
                 res = metric(y_i, y_hat_i).float().item()
                 final_results.append(res)
+                print(
+                    f"Calculating {metric_name} for sample {i}: y.shape={y_i.shape}, y_hat.shape={y_hat_i.shape}. Result: {res:.3f}"
+                )
             results[metric_name] = final_results
+            print(f"done.")
 
         return results
 
@@ -289,15 +306,13 @@ class SimpleLightningPipeline(Pipeline):
         """
         metrics = defaultdict(dict)
 
-        x, y, y_hat = [], [], []
-
         start_time = time.time()
         preds = self.trainer.predict(
             PredictWrapper(self._model), datamodule=data, ckpt_path=ckpt_path
         )
         overall_time = time.time() - start_time
         print(f"Inference took: {overall_time:.3f} seconds!")
-        
+
         if preds is None:
             raise ValueError("No predictions were generated.")
 
@@ -308,19 +323,32 @@ class SimpleLightningPipeline(Pipeline):
 
         if self._save_predictions_file is not None:
             if isinstance(self._save_predictions_file, bool):
-                path = self.log_dir / "predictions.pth"
+                path = self.log_dir / "predictions.npy"
             else:
                 path = self.log_dir / self._save_predictions_file
-            torch.save(y_hat, path)
+            np.save(str(path), y_hat.numpy())
             print(f"Predictions saved to {path}. Shape: {y_hat.shape}")
+
             metrics["predictions"]["file"] = str(path)
             metrics["predictions"]["shape"] = list(y_hat.shape)
             metrics["predictions"]["time"] = overall_time
-        
+
         # Argmax and calculate metrics
         if self._classification_metrics is not None:
             print(f"Running classification metrics...")
-            y_hat = torch.argmax(y_hat, dim=1)
+            if self._classification_reduce == "argmax":
+                y_hat = torch.argmax(y_hat, dim=1)
+            elif (
+                self._classification_reduce == "none"
+                or self._classification_reduce is None
+            ):
+                pass
+            elif self._classification_reduce == "squeeze":
+                y_hat = torch.squeeze(y_hat, dim=1)
+            else:
+                raise ValueError(
+                    f"Unknown classification reduce method: {self._classification_reduce}"
+                )
             metrics["classification"] = self._calculate_metrics(
                 self._classification_metrics, y_hat, y
             )
@@ -404,7 +432,6 @@ class SimpleLightningPipeline(Pipeline):
 
 def cli_main():
     from jsonargparse import CLI
-
 
     CLI(
         SimpleLightningPipeline, as_positional=False
