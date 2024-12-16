@@ -4,7 +4,7 @@ import numpy as np
 import lightning as L
 
 
-class BasePatchInferencer:
+class BasePatchInferencer(L.LightningModule):
     """Inference in patches for models
 
     This class provides utility methods for performing inference in patches
@@ -40,9 +40,12 @@ class BasePatchInferencer:
                 mode (optional): 'constant', 'reflect', 'replicate' or 'cicular'. Defaults to 'constant'.
                 value (optional): fill value for 'constante'. Defaults to 0.
         """
-        self.model = model
+        super().__init__()
+        self.model = model.eval()
         self.input_shape = input_shape
-        self.output_shape = output_shape if output_shape is not None else input_shape
+        self.output_shape = (
+            output_shape if output_shape is not None else input_shape
+        )
         self.weight_function = weight_function
 
         if offsets is not None:
@@ -208,7 +211,9 @@ class BasePatchInferencer:
         slices = [
             tuple(
                 [
-                    slice(i + base, None)  # TODO: if ((i + base >= 0) and (i < in_dim))
+                    slice(
+                        i + base, None
+                    )  # TODO: if ((i + base >= 0) and (i < in_dim))
                     for i, base, in_dim in zip(offset, base, x.shape)
                 ]
             )
@@ -227,14 +232,22 @@ class BasePatchInferencer:
         results = []
         indexes = []
         for sl in slices:
-            patch_set, patch_idx = self._extract_patches(x_padded[sl], self.input_shape)
-            results.append(self.model(patch_set))
+            patch_set, patch_idx = self._extract_patches(
+                x_padded[sl], self.input_shape
+            )
+            r = self.model(patch_set)
+            if len(r.shape) == 4:
+                r = r.unsqueeze(1)
+                r = r.permute(0, 1, 3, 4, 2).contiguous()
+            results.append(r)
             indexes.append(patch_idx)
-        output_slice = tuple(
-            [slice(0, lenght) for lenght in x.shape]
-        )
+        output_slice = tuple([slice(0, lenght) for lenght in x.shape])
         return self._combine_patches(results, offsets, indexes)[output_slice]
 
+    def predict_step(self, batch, *args, **kwargs):
+        if isinstance(batch, tuple) or isinstance(batch, list):
+            batch = batch[0]
+        return torch.stack([self(x) for x in batch])
 
 class WeightedAvgPatchInferencer(BasePatchInferencer):
     """
@@ -261,7 +274,9 @@ class WeightedAvgPatchInferencer(BasePatchInferencer):
             weights.append(weight)
         reconstructed = torch.stack(reconstructed, dim=0)
         weights = torch.stack(weights, dim=0)
-        return torch.sum(reconstructed * weights, dim=0) / torch.sum(weights, dim=0)
+        return torch.sum(reconstructed * weights, dim=0) / torch.sum(
+            weights, dim=0
+        )
 
 
 class VotingPatchInferencer(BasePatchInferencer):
@@ -309,7 +324,10 @@ class VotingPatchInferencer(BasePatchInferencer):
         super().__init__(
             model, input_shape, output_shape, weight_function, offsets, padding
         )
-        assert voting in ["soft", "hard"], "voting should be either 'soft' or 'hard'"
+        assert voting in [
+            "soft",
+            "hard",
+        ], "voting should be either 'soft' or 'hard'"
         self.num_classes = num_classes
         self.voting = voting
 
@@ -360,10 +378,13 @@ class VotingPatchInferencer(BasePatchInferencer):
         """
         reconstructed = []
         for patches, offset, shape in zip(results, offsets, indexes):
+            # print(f"Patches shape: {patches.shape}, Offset: {offset}, Shape: {shape}")
             reconstruct, _ = self._reconstruct_patches(
                 patches, shape, weights=False, inner_dim=self.num_classes
             )
-            reconstruct = self._adjust_patches([reconstruct], self.ref_shape, offset)[0]
+            reconstruct = self._adjust_patches(
+                [reconstruct], self.ref_shape, offset
+            )[0]
             reconstructed.append(reconstruct)
         reconstructed = torch.stack(reconstructed, dim=0)
         return torch.argmax(torch.sum(reconstructed, dim=0), dim=-1)
