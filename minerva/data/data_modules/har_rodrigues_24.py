@@ -10,14 +10,15 @@ class HARDataModuleCPC(LightningDataModule):
     def __init__(
         self,
         data_path: Union[PathLike, List[PathLike]],
-        input_size: int = 6,
-        window: int = 60,
-        overlap: int = 30,
-        batch_size: int = 64,
-        use_train_as_val: bool = False,
+        input_size=6,
+        window=60,
+        overlap=30,
+        batch_size=64,
+        use_train_as_val=False,
         columns: Optional[List[str]] = None,
         num_workers: int = 8,
         drop_last: bool = True,
+        use_index_as_label: bool = False
     ):
         """Data module for Human Activity Recognition (HAR) using CPC.
 
@@ -39,12 +40,15 @@ class HARDataModuleCPC(LightningDataModule):
             The overlap size for the sliding window (default is 30).
         batch_size : int, optional
             The batch size for the dataloaders (default is 64).
+        use_index_as_label : bool, optional
+            Whether to use the Datum Index as label for DIET compatibility (default is False).
         """
         super().__init__()
         self.data_path = data_path
         self.batch_size = batch_size
         self.num_workers = num_workers
         self.drop_last = drop_last
+        self.use_index_as_label = use_index_as_label
 
         self.train_dataset = HARDatasetCPC(
             data_path,
@@ -54,6 +58,7 @@ class HARDataModuleCPC(LightningDataModule):
             phase="train",
             use_train_as_val=use_train_as_val,
             columns=columns,
+            use_index_as_label=use_index_as_label
         )
         self.val_dataset = HARDatasetCPC(
             data_path,
@@ -103,3 +108,5 @@ class HARDataModuleCPC(LightningDataModule):
 
     def __repr__(self):
         return f"HARDataModuleCPC(batch_size={self.batch_size}, datasets={self.data_path})"
+    
+    
