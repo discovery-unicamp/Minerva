@@ -173,4 +173,5 @@ experiments/
 logs/
 lightning_logs/
 shared_data/
+data/
 
