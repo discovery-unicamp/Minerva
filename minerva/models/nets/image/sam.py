@@ -17,7 +17,7 @@ from torch import Tensor, nn
 from torch.nn import functional as F
 from torchmetrics import Metric
 from minerva.models.finetune_adapters import LoRA
-from minerva.models.nets.mlp import MLP
+# from minerva.models.nets.mlp import MLP
 
 # based on: https://github.com/facebookresearch/segment-anything/blob/main/segment_anything/modeling/common.py
 class MLPBlock(nn.Module):
@@ -1196,32 +1196,16 @@ class MaskDecoder(nn.Module):
             nn.ConvTranspose2d(transformer_dim // 4, transformer_dim // 8, kernel_size=2, stride=2),
             activation(),
         )
-        # self.output_hypernetworks_mlps = nn.ModuleList(
-        #     [
-        #         MLP(transformer_dim, transformer_dim, transformer_dim // 8, 3)
-        #         for i in range(self.num_mask_tokens)
-        #     ]
-        # )
+
         self.output_hypernetworks_mlps = nn.ModuleList(
             [
-                MLP(
-                    layer_sizes=[
-                        transformer_dim,  # Input layer
-                        transformer_dim,  # Hidden layer 1
-                        transformer_dim,  # Hidden layer 2
-                        transformer_dim // 8  # Output layer
-                    ],
-                    activation_cls=nn.ReLU  # Define a ativação como ReLU
-                )
+                MLP(transformer_dim, transformer_dim, transformer_dim // 8, 3)
                 for i in range(self.num_mask_tokens)
             ]
         )
 
         self.iou_prediction_head = MLP(
-            layer_sizes=[
-                transformer_dim,
-            ]* (iou_head_depth - 1) + [iou_head_hidden_dim] + [self.num_mask_tokens], # Hidden layers e output layer
-            activation_cls=nn.ReLU
+            transformer_dim, iou_head_hidden_dim, self.num_mask_tokens, iou_head_depth
         )
 
     def forward(
@@ -1330,6 +1314,30 @@ class MaskDecoder(nn.Module):
         iou_pred = self.iou_prediction_head(iou_token_out)
 
         return masks, iou_pred
+
+class MLP(nn.Module):
+    def __init__(
+        self,
+        input_dim: int,
+        hidden_dim: int,
+        output_dim: int,
+        num_layers: int,
+        sigmoid_output: bool = False,
+    ) -> None:
+        super().__init__()
+        self.num_layers = num_layers
+        h = [hidden_dim] * (num_layers - 1)
+        self.layers = nn.ModuleList(
+            nn.Linear(n, k) for n, k in zip([input_dim] + h, h + [output_dim])
+        )
+        self.sigmoid_output = sigmoid_output
+
+    def forward(self, x):
+        for i, layer in enumerate(self.layers):
+            x = F.relu(layer(x)) if i < self.num_layers - 1 else layer(x)
+        if self.sigmoid_output:
+            x = F.sigmoid(x)
+        return x
 
 # based on: https://github.com/facebookresearch/segment-anything/blob/main/segment_anything/modeling/mask_decoder.py
 class TwoWayTransformer(nn.Module):
