@@ -1316,6 +1316,48 @@ class MaskDecoder(nn.Module):
         return masks, iou_pred
 
 class MLP(nn.Module):
+    """
+    A Multi-Layer Perceptron (MLP) for general-purpose feedforward neural networks.
+
+    Parameters
+    ----------
+    input_dim : int
+        The size of the input features.
+    hidden_dim : int
+        The number of units in each hidden layer.
+    output_dim : int
+        The size of the output features.
+    num_layers : int
+        The total number of layers, including the output layer.
+    sigmoid_output : bool, optional
+        If True, applies a sigmoid activation to the output layer. Default is False.
+
+    Attributes
+    ----------
+    num_layers : int
+        The total number of layers in the network.
+    layers : torch.nn.ModuleList
+        A list of `torch.nn.Linear` layers that define the MLP architecture.
+    sigmoid_output : bool
+        Indicates whether a sigmoid activation is applied to the output layer.
+
+    Methods
+    -------
+    forward(x)
+        Forward pass through the network.
+
+    Examples
+    --------
+    >>> import torch
+    >>> from torch import nn
+    >>> import torch.nn.functional as F
+    >>> model = MLP(input_dim=10, hidden_dim=20, output_dim=5, num_layers=3, sigmoid_output=True)
+    >>> x = torch.randn(4, 10)  # Batch size of 4 with 10 input features
+    >>> output = model(x)
+    >>> print(output.shape)
+    torch.Size([4, 5])
+    """
+
     def __init__(
         self,
         input_dim: int,
@@ -1333,6 +1375,26 @@ class MLP(nn.Module):
         self.sigmoid_output = sigmoid_output
 
     def forward(self, x):
+        """
+        Perform a forward pass through the MLP.
+
+        Parameters
+        ----------
+        x : torch.Tensor
+            Input tensor with shape (batch_size, input_dim).
+
+        Returns
+        -------
+        torch.Tensor
+            Output tensor with shape (batch_size, output_dim).
+
+        Notes
+        -----
+        ReLU activation is applied to all hidden layers. The output layer is linear
+        unless `sigmoid_output` is set to True, in which case a sigmoid activation
+        is applied to the output.
+
+        """
         for i, layer in enumerate(self.layers):
             x = F.relu(layer(x)) if i < self.num_layers - 1 else layer(x)
         if self.sigmoid_output:
