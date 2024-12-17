@@ -26,9 +26,9 @@ class PredictWrapper(L.LightningModule):
         super().__init__()
         self.model = model
 
-    def predict_step(self, batch, batch_idx, dataloader_idx=0):
+    def predict_step(self, batch, *args, **kwargs):
         x, y = batch
-        y_hat = self.model.predict_step(batch)
+        y_hat = self.model.predict_step(batch, *args, **kwargs)
         return (x, y, y_hat)
 
 
