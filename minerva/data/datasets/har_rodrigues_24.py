@@ -16,10 +16,14 @@ def norm_shape(shape):
     even for one-dimensional shapes.
 
     Parameters
-        shape - an int, or a tuple of ints
+    ----------
+    shape : int, tuple, or numpy.ndarray
+        The shape to be normalized.
 
     Returns
-        a shape tuple
+    -------
+    Tuple[int, ...]
+        The normalized shape.
     """
     if isinstance(shape, int):
         return (shape,)
@@ -116,11 +120,11 @@ class HARDatasetCPC(Dataset):
     def __init__(
         self,
         data_path: Union[PathLike, List[PathLike]],
-        input_size,
-        window,
-        overlap,
-        phase,
-        use_train_as_val=False,
+        input_size: int,
+        window: int,
+        overlap: int,
+        phase: str = "train",
+        use_train_as_val: bool = False,
         columns: Optional[List[str]] = None,
         use_index_as_label: bool = False
     ):
@@ -131,8 +135,10 @@ class HARDatasetCPC(Dataset):
 
         Parameters
         ----------
-        root_dir : PathLike or List[PathLike]
-            The root directory where the dataset files are located.
+        data_path : Union[PathLike, List[PathLike]]
+            The path to the directory containing the dataset files. If a list of
+            paths is provided, the datasets will be concatenated, in the order
+            provided, into a single dataset.
         input_size : int
             The expected size of input features.
         window : int
@@ -141,28 +147,14 @@ class HARDatasetCPC(Dataset):
             The overlap between consecutive windows.
         phase : str
             The phase of the dataset ('train', 'val', or 'test').
+        use_train_as_val : bool
+            Whether to use the training set as the validation set.
+        columns : Optional[List[str]]
+            The columns to be used as input features. If None, the default
+            columns ['accel-x', 'accel-y', 'accel-z', 'gyro-x', 'gyro-y',
+            'gyro-z'] will be used.
         use_index_as_label : bool, optional
             Whether to use the Datum Index as label for DIET compatibility (default is False).
-        Attributes
-        ----------
-        filename : str
-            The full path to the dataset file.
-        data_raw : dict
-            A dictionary containing the loaded datasets for 'train', 'val', and 'test'
-            phases, each with 'data' and 'labels' entries.
-        data : numpy.ndarray
-            The segmented data for the specified phase.
-        labels : numpy.ndarray
-            The labels corresponding to the segmented data.
-
-        Methods
-        -------
-        load_dataset():
-            Loads and concatenates the datasets from CSV files into a dictionary format.
-        __len__():
-            Returns the number of segmented data samples.
-        __getitem__(index):
-            Retrieves a segmented data sample and its corresponding label at the given index.
         """
         # Create a list of paths if only one path is provided
         self.paths = (
