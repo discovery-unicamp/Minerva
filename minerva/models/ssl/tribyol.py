@@ -91,7 +91,6 @@ class TriBYOL(L.LightningModule):
         momentum: float = 0.9,
         weight_decay: float = 0.0004,
         tau: float = 0.996,
-        #enable_augment: bool = True
     ):
         """
         Initializes the TriBYOL model.
@@ -114,8 +113,6 @@ class TriBYOL(L.LightningModule):
             Weight decay (L2 regularization) for the optimizer (default is 0.0004).
         tau : float, optional
             Exponential moving average (EMA) decay rate for target networks (default is 0.996).
-        enable_augment : bool, optional
-            If True, apply data augmentations; otherwise, use plain images (default is True).
         """
         super(TriBYOL, self).__init__()
         self.save_hyperparameters(ignore=['backbone'])
@@ -138,7 +135,6 @@ class TriBYOL(L.LightningModule):
         self.lr = lr
         self.momentum = momentum
         self.weight_decay = weight_decay
-        #self.enable_augment = enable_augment
 
         # Pooling layer
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
