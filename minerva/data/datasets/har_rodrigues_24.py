@@ -1,4 +1,4 @@
-from typing import Iterable, List, Optional, Tuple, Union
+from typing import Iterable, List, Optional, Union
 import numpy as np
 import os
 from minerva.utils.typing import PathLike
@@ -10,10 +10,9 @@ import numpy as np
 from numpy.lib.stride_tricks import as_strided as ast
 
 
-def norm_shape(
-    shape: Union[int, Tuple[int, ...], np.ndarray]
-) -> Tuple[int, ...]:
-    """Normalize numpy array shapes so they're always expressed as a tuple,
+def norm_shape(shape):
+    """
+    Normalize numpy array shapes so they're always expressed as a tuple,
     even for one-dimensional shapes.
 
     Parameters
@@ -38,8 +37,9 @@ def norm_shape(
         )
 
 
-def sliding_window(a, ws, ss, flatten=True):
-    """Return a sliding window over a in any number of dimensions
+def sliding_window(a, ws, ss=None, flatten=True):
+    """
+    Return a sliding window over a in any number of dimensions
 
     Parameters:
         a  - an n-dimensional numpy array
@@ -126,6 +126,7 @@ class HARDatasetCPC(Dataset):
         phase: str = "train",
         use_train_as_val: bool = False,
         columns: Optional[List[str]] = None,
+        use_index_as_label: bool = False
     ):
         """
         Initializes the dataset by loading the dataset from CSV files,
@@ -152,15 +153,27 @@ class HARDatasetCPC(Dataset):
             The columns to be used as input features. If None, the default
             columns ['accel-x', 'accel-y', 'accel-z', 'gyro-x', 'gyro-y',
             'gyro-z'] will be used.
+        use_index_as_label : bool, optional
+            Whether to use the Datum Index as label for DIET compatibility (default is False).
         """
         # Create a list of paths if only one path is provided
-        self.paths = data_path if isinstance(data_path, list) else [data_path]
+        self.paths = (
+            data_path if isinstance(data_path, list) else [data_path]
+        )
         self.use_train_as_val = use_train_as_val
+        self.use_index_as_label = use_index_as_label
         self.input_size = input_size
         self.columns = (
             columns
             if columns is not None
-            else ["accel-x", "accel-y", "accel-z", "gyro-x", "gyro-y", "gyro-z"]
+            else [
+                "accel-x",
+                "accel-y",
+                "accel-z",
+                "gyro-x",
+                "gyro-y",
+                "gyro-z",
+            ]
         )
 
         self.data_raw = self.load_dataset()
@@ -189,7 +202,7 @@ class HARDatasetCPC(Dataset):
             is a numpy array of concatenated labels.
         """
         datasets = {}
-
+        
         for phase in ["train", "val", "test"]:
             if phase == "val":
                 if self.use_train_as_val:
@@ -200,10 +213,8 @@ class HARDatasetCPC(Dataset):
             data_y = []
 
             for path in self.paths:
-                # Transform it to a path and add phase
                 path = Path(path)
                 phase_path = path / phase
-                
                 for f in phase_path.glob("*.csv"):
                     data = pd.read_csv(f)
                     x = data[self.columns].values
@@ -215,7 +226,9 @@ class HARDatasetCPC(Dataset):
                 "data": np.concatenate(data_x),
                 "labels": np.concatenate(data_y),
             }
-            datasets[phase]["data"] = datasets[phase]["data"].astype(np.float32)
+            datasets[phase]["data"] = datasets[phase]["data"].astype(
+                np.float32
+            )
             datasets[phase]["labels"] = datasets[phase]["labels"].astype(
                 np.uint8
             )
@@ -226,10 +239,20 @@ class HARDatasetCPC(Dataset):
         return len(self.data)
 
     def __getitem__(self, index):
-        data = self.data[index, :, :]
+        data = torch.tensor(self.data[index], dtype=torch.float32)
+        
+        # Apply permute according to dimensions
+        if data.dim() == 2:
+            data = data.permute(1, 0)
+        elif data.dim() == 3:
+            data = data.permute(0, 2, 1)
 
-        # Aplicar permute para ter a forma [64, 6, 60]
-        data = torch.from_numpy(data).float().permute(1, 0)
-
-        label = torch.from_numpy(np.asarray(self.labels[index])).long()
+        
+        # For DIET compatibility
+        if self.use_index_as_label:
+            label_content = list(range(len(self.data)))
+            label = torch.tensor(label_content, dtype=torch.float32)
+        else:
+            label_content = self.labels[index]
+            label = torch.tensor(label_content, dtype=torch.long)
         return data, label
