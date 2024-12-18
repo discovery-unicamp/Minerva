@@ -7,6 +7,7 @@ import copy
 from typing import Tuple, Optional
 import lightning as L
 from PIL import Image
+import numpy as np
 
 
 class MLPHead(nn.Module):
@@ -200,16 +201,21 @@ class TriBYOL(L.LightningModule):
             target_params_1.data = self.tau * target_params_1.data + (1 - self.tau) * online_params.data
             target_params_2.data = self.tau * target_params_2.data + (1 - self.tau) * online_params.data
 
-    def on_before_optimizer_step(self, optimizer):
+    def on_after_optimizer_step(self, optimizer):
+        """
+        Update the target networks using exponential moving average (EMA) after each optimizer step.
+        This is called by Lightning's Trainer after each optimizer step.
+        """
         self.update_target_networks()
 
-    def ensure_tensor(self, image: torch.Tensor) -> torch.Tensor:
-        """Ensure the input image is a PyTorch tensor."""
-        if not isinstance(image, Image.Image):
-            image = transforms.ToPILImage()(image)
-            image = transforms.ToTensor()(image)
-
+    def ensure_tensor(self, image):
+        if isinstance(image, Image.Image):
+            transform = transforms.ToTensor()
+            image = transform(image).unsqueeze(0)  # Add batch dimension
+        elif isinstance(image, np.ndarray):
+            image = torch.tensor(image).permute(2, 0, 1).unsqueeze(0)  # Convert HWC to CHW and add batch dim
         return image
+
 
     @staticmethod
     def loss_fn(x: torch.Tensor, y: torch.Tensor):
