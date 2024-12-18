@@ -168,7 +168,7 @@ class TriBYOL(L.LightningModule):
         # Compute triple-view loss
         loss = self.loss_fn(p1, t2) + self.loss_fn(p1, t3)
 
-        self.log(f"{log_prefix}_loss", loss, batch_size=8, on_step=True, on_epoch=True, prog_bar=True)
+        self.log(f"{log_prefix}_loss", loss, on_step=True, on_epoch=True, prog_bar=True)
         return loss
 
     def training_step(self, batch, batch_idx):
