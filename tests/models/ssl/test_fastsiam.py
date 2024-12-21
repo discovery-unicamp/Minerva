@@ -1,85 +1,87 @@
 import unittest
+from unittest.mock import MagicMock
 import torch
 import torch.nn as nn
-from minerva.models.ssl.fastsiam import FastSiam, MLPHead
-
-
-# Mock backbone for testing purposes
-class MockBackbone(nn.Module):
-    def __init__(self, output_dim=2048):
-        super(MockBackbone, self).__init__()
-        self.output_dim = output_dim
-        self.conv = nn.Conv2d(3, output_dim, kernel_size=3, stride=1, padding=1)
-
-    def forward(self, x):
-        # Simple convolution followed by global average pooling
-        return self.conv(x)
-
+from minerva.models.ssl.fastsiam import FastSiam, SimSiamMLPHead
 
 class TestFastSiam(unittest.TestCase):
-
     def setUp(self):
-        """Set up a FastSiam model with a mock backbone for each test."""
-        self.backbone = MockBackbone(output_dim=2048)
-        self.model = FastSiam(backbone=self.backbone)
+        # Mock backbone
+        self.mock_backbone = MagicMock(spec=nn.Module)
+        self.mock_backbone.return_value = torch.rand(4, 2048, 1, 1)  # Mock output of backbone
 
-    def test_mlp_head(self):
-        """Test the MLPHead for correct output dimensions."""
-        mlp = MLPHead(input_dim=512, hidden_dim=256, output_dim=128)
-        x = torch.randn(4, 512)  # Batch of 4, feature size 512
-        output = mlp(x)
-        self.assertEqual(output.shape, (4, 128), f"Expected output shape (4, 128), got {output.shape}")
+        # Initialize FastSiam
+        self.model = FastSiam(
+            backbone=self.mock_backbone,
+            in_dim=2048,
+            hid_dim=512,
+            out_dim=128,
+            K=2,
+            momentum=0.996,
+            lr=1e-3,
+        )
 
-    def test_fastsiam_initialization(self):
-        """Test if the FastSiam model initializes properly."""
-        self.assertIsInstance(self.model.backbone, nn.Module, "Backbone is not an instance of nn.Module")
-        self.assertIsInstance(self.model.student_projector, MLPHead, "Student projector is not an MLPHead")
-        self.assertIsInstance(self.model.student_predictor, MLPHead, "Student predictor is not an MLPHead")
-        self.assertIsInstance(self.model.teacher_backbone, nn.Module, "Teacher backbone is not an instance of nn.Module")
-        self.assertIsInstance(self.model.teacher_projector, MLPHead, "Teacher projector is not an MLPHead")
+    def test_forward(self):
+        # Test the forward pass
+        views = [torch.rand(4, 3, 224, 224) for _ in range(3)]  # Mock 3 augmented views
+        prediction, target = self.model(views)
+        
+        # Assertions
+        self.assertEqual(prediction.shape, (4, 128))
+        self.assertEqual(target.shape, (4, 128))
 
-    def test_forward_pass(self):
-        """Test the forward pass of the FastSiam model."""
-        # Create a batch of 2 images (3 channels, 224x224)
-        views = [torch.randn(2, 3, 224, 224) for _ in range(4)]  # 4 views for K=3 (3 teacher + 1 student)
+    def test_update_target_branch(self):
+        # Test momentum update of target branch
+        original_params = [p.clone() for p in self.model.target_branch_backbone.parameters()]
+        self.model.update_target_branch()
+        updated_params = [p for p in self.model.target_branch_backbone.parameters()]
 
-        student_predicted, avg_teacher_projected = self.model(views)
+        for orig, updated in zip(original_params, updated_params):
+            self.assertFalse(torch.equal(orig, updated), "Target branch parameters did not update correctly.")
 
-        # Check the output dimensions
-        self.assertEqual(student_predicted.shape, (2, 128), f"Expected student_predicted shape (2, 128), got {student_predicted.shape}")
-        self.assertEqual(avg_teacher_projected.shape, (2, 128), f"Expected avg_teacher_projected shape (2, 128), got {avg_teacher_projected.shape}")
+    def test_fastsiam_loss(self):
+        # Test the FastSiam loss function
+        pred = torch.rand(4, 128)
+        target = torch.rand(4, 128)
+        loss = self.model.fastsiam_loss(pred, target)
 
-    def test_teacher_update(self):
-        """Test the teacher network's parameters are updated correctly with momentum."""
-        # Get a snapshot of the teacher parameters before update
-        initial_teacher_params = [p.clone().detach() for p in self.model.teacher_backbone.parameters()]
+        # Assertions
+        self.assertIsInstance(loss, torch.Tensor)
+        self.assertEqual(loss.dim(), 0)
 
-        # Perform a forward pass to simulate training
-        views = [torch.randn(2, 3, 224, 224) for _ in range(4)]
-        self.model(views)
+    def test_training_step(self):
+        # Mock batch
+        batch = (torch.rand(4, 3, 224, 224),)
 
-        # Update the teacher network
-        self.model.update_teacher()
+        # Run training step
+        loss = self.model.training_step(batch, 0)
 
-        # Ensure teacher parameters have changed
-        for initial, updated in zip(initial_teacher_params, self.model.teacher_backbone.parameters()):
-            self.assertFalse(torch.equal(initial, updated), "Teacher parameters were not updated")
-
-    def test_single_step_loss(self):
-        """Test if the _single_step method returns a valid loss value."""
-        images = torch.randn(2, 3, 224, 224)  # Batch of 2 images
-        batch = (images,)
-
-        loss = self.model._single_step(batch, self.model.K, log_prefix="train")
-        self.assertIsInstance(loss, torch.Tensor, "Loss should be a torch.Tensor")
-        self.assertIsNotNone(loss, "Loss should not be None")
+        # Assertions
+        self.assertIsInstance(loss, torch.Tensor)
+        self.assertEqual(loss.dim(), 0)
 
     def test_configure_optimizers(self):
-        """Test if the optimizer is configured correctly."""
-        optimizer = self.model.configure_optimizers()
-        self.assertIsInstance(optimizer, torch.optim.Adam, "Optimizer should be an instance of torch.optim.Adam")
-        self.assertEqual(optimizer.defaults["lr"], self.model.lr, f"Expected learning rate {self.model.lr}, got {optimizer.defaults['lr']}")
+        # Mock the Trainer
+        mock_trainer = MagicMock()
+        mock_trainer.max_epochs = 10  # or any integer value you want to simulate
+        self.model.trainer = mock_trainer
 
+        # Test optimizer and scheduler configuration
+        optimizers, schedulers = self.model.configure_optimizers()
+        self.assertEqual(len(optimizers), 1)
+        self.assertEqual(len(schedulers), 1)
+        self.assertIsInstance(optimizers[0], torch.optim.SGD)
+        self.assertIsInstance(schedulers[0], torch.optim.lr_scheduler.CosineAnnealingLR)
+
+
+    def test_mlp_head(self):
+        # Test the SimSiamMLPHead
+        mlp = SimSiamMLPHead([128, 256, 128], activation_cls=nn.ReLU, batch_norm=True, final_bn=True, final_relu=False)
+        input_tensor = torch.rand(4, 128)
+        output_tensor = mlp(input_tensor)
+
+        # Assertions
+        self.assertEqual(output_tensor.shape, (4, 128))
 
 if __name__ == "__main__":
     unittest.main()
