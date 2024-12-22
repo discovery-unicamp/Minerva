@@ -92,7 +92,3 @@ class TestTriBYOL(unittest.TestCase):
 
         self.assertIsInstance(tensor, torch.Tensor)
         self.assertEqual(tensor.shape, (1, 3, 32, 32))
-
-
-if __name__ == "__main__":
-    unittest.main()
