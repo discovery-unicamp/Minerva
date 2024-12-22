@@ -2085,6 +2085,8 @@ class Sam(L.LightningModule):
         Rank parameter for LoRA layers. Defaults to 4.
     lora_alpha : int, optional
         Scaling factor for LoRA layers. Defaults to 1.
+    multimask_output : bool, optional
+        If True, segment all of 'num_multimask_outputs' masks. Else, return only the mask with mostly iou predicted by Sam.
 
     Raises
     ------
@@ -2118,7 +2120,8 @@ class Sam(L.LightningModule):
             apply_freeze:Optional[Dict[str, bool]] = None,
             apply_adapter:Optional[Dict[str, LoRA]] = None,
             lora_rank:int=4,
-            lora_alpha:int=1
+            lora_alpha:int=1,
+            multimask_output:bool=True
     ):
         super().__init__()
         self.register_buffer("pixel_mean", torch.Tensor(pixel_mean or [123.675, 116.28, 103.53]).view(-1, 1, 1), False)
@@ -2127,6 +2130,7 @@ class Sam(L.LightningModule):
         self.learning_rate = learning_rate
         self.num_multimask_outputs = num_multimask_outputs
         self.iou_head_depth = iou_head_depth
+        self.multimask_output = multimask_output
 
         self.apply_freeze = apply_freeze or {"image_encoder": False, "prompt_encoder": True, "mask_decoder": False}
         self.apply_adapter = apply_adapter or {}
@@ -2458,12 +2462,27 @@ class Sam(L.LightningModule):
         }
     
     def _single_step(self, batch, batch_idx:int, step_name:str):
-        batched_input = batch
-        outputs = self(batched_input, multimask_output=batched_input[0]['multimask_output'])
+        if isinstance(batch, list) and len(batch) == 2:
+            # this is an adaptation due to the use of default Dataset() of Minerva
+            data = []
+            for sample_idx in range(len(batch[0])):
+                data.append({
+                    'image': batch[0][sample_idx],
+                    'label': batch[1][sample_idx],
+                    'original_size': (batch[0][sample_idx].shape[1], batch[0][sample_idx].shape[2])
+                })
+            batch = data
+        elif isinstance(batch, list) and all(isinstance(item, dict) for item in batch):
+            # this is for train Sam(), where default is list of dict
+            pass
+        else:
+            raise ValueError("batch can be 'tuple' (default for Minerva) of 'list' (default for original Sam class).")
+
+        outputs = self(batch, multimask_output=self.multimask_output)
 
         # stack logits 'masks_logits' and 'labels' for loss and metrics function
         masks_logits = torch.stack([output['masks_logits'].squeeze(0) for output in outputs])  # [batch_size, num_classes, H, W]
-        labels = torch.stack([input['label'].squeeze(0) for input in batched_input])  # [batch_size, H, W]
+        labels = torch.stack([input['label'].squeeze(0) for input in batch])  # [batch_size, H, W]
 
         loss = self._loss(masks_logits, labels)
         metrics = self._compute_metrics(masks_logits, labels, step_name)
