@@ -1,10 +1,14 @@
-from typing import List, Tuple, Optional, Dict, Any
-import torch
-import numpy as np
+from typing import Any, Callable, Dict, List, Literal, Optional, Tuple, Union
+
 import lightning as L
+import numpy as np
+import torch
+import torch.nn as nn
+
+from minerva.engines.engine import _Engine
 
 
-class BasePatchInferencer:
+class PatchInferencer(L.LightningModule):
     """Inference in patches for models
 
     This class provides utility methods for performing inference in patches
@@ -15,9 +19,10 @@ class BasePatchInferencer:
         model: L.LightningModule,
         input_shape: Tuple,
         output_shape: Optional[Tuple] = None,
-        weight_function: Optional[callable] = None,
+        weight_function: Optional[Callable] = None,
         offsets: Optional[List[Tuple]] = None,
         padding: Optional[Dict[str, Any]] = None,
+        return_tuple: Optional[int] = None,
     ):
         """Initialize the patch inference auxiliary class
 
@@ -37,12 +42,116 @@ class BasePatchInferencer:
         padding : Dict[str, Any], optional
             Dictionary describing padding strategy. Keys:
                 pad: tuple with pad width (int) for each dimension, e.g. (0, 3, 3) when working with a tensor with 3 dimensions
-                mode (optional): 'constant', 'reflect', 'replicate' or 'cicular'. Defaults to 'constant'.
-                value (optional): fill value for 'constante'. Defaults to 0.
+                mode (optional): 'constant', 'reflect', 'replicate' or 'circular'. Defaults to 'constant'.
+                value (optional): fill value for 'constant'. Defaults to 0.
         """
+        super().__init__()
         self.model = model
-        self.input_shape = input_shape
-        self.output_shape = output_shape if output_shape is not None else input_shape
+        self.patch_inferencer = PatchInferencerEngine(
+            input_shape, output_shape, offsets, padding, weight_function, return_tuple
+        )
+
+    def __call__(self, x: torch.Tensor) -> torch.Tensor:
+        return self.forward(x)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Perform Inference in Patches
+
+        Parameters
+        ----------
+        x : torch.Tensor
+            Input Tensor.
+        """
+        return self.patch_inferencer(self.model, x)
+
+    def _single_step(self, batch: torch.Tensor, batch_idx: int, step_name: str):
+        """Perform a single step of the training/validation loop.
+
+        Parameters
+        ----------
+        batch : torch.Tensor
+            The input data.
+        batch_idx : int
+            The index of the batch.
+        step_name : str
+            The name of the step, either "train" or "val".
+
+        Returns
+        -------
+        torch.Tensor
+            The loss value.
+        """
+        x, y = batch
+        y_hat = self.forward(x.float())
+        loss = self.model._loss_func(y_hat, y.squeeze(1))
+
+        metrics = self.model._compute_metrics(y_hat, y, step_name)
+        for metric_name, metric_value in metrics.items():
+            self.log(
+                metric_name,
+                metric_value,
+                on_step=False,
+                on_epoch=True,
+                prog_bar=True,
+                logger=True,
+                sync_dist=True,
+            )
+
+        self.log(
+            f"{step_name}_loss",
+            loss,
+            on_step=True,
+            on_epoch=True,
+            prog_bar=True,
+            logger=True,
+            sync_dist=True,
+        )
+
+        return loss
+
+    def training_step(self, batch: torch.Tensor, batch_idx: int):
+        return self._single_step(batch, batch_idx, "train")
+
+    def validation_step(self, batch: torch.Tensor, batch_idx: int):
+        return self._single_step(batch, batch_idx, "val")
+
+    def test_step(self, batch: torch.Tensor, batch_idx: int):
+        return self._single_step(batch, batch_idx, "test")
+
+
+# region _PatchInferencer
+class PatchInferencerEngine(_Engine):
+
+    def __init__(
+        self,
+        input_shape: Tuple[int],
+        output_shape: Optional[Tuple[int]] = None,
+        offsets: Optional[List[Tuple]] = None,
+        padding: Optional[Dict[str, Any]] = None,
+        weight_function: Optional[Callable] = None,
+        return_tuple: Optional[int] = None,
+    ):
+        """
+        Parameters
+        ----------
+        model : nn.Module
+            The neural network model for inference.
+        input_shape : Tuple[int]
+            Shape of each patch to process.
+        output_shape : Tuple[int], optional
+            Expected shape of the model output per patch. Defaults to input_shape.
+        padding : dict, optional
+            Padding configuration with keys:
+                - 'pad': Tuple of padding for each expected final dimension, e.g., (0, 512, 512) - (c, h, w).
+                - 'mode': Padding mode, e.g., 'constant', 'reflect'.
+                - 'value': Padding value if mode is 'constant'.
+        """
+        self.input_shape = (1, *input_shape)
+        self.output_shape = (
+            (1, *output_shape) if output_shape is not None else self.input_shape
+        )
+
         self.weight_function = weight_function
 
         if offsets is not None:
@@ -59,44 +168,34 @@ class BasePatchInferencer:
                 padding["pad"]
             ), f"Pad tuple does not match expected size ({len(input_shape)})"
             self.padding = padding
+            self.padding["pad"] = (0, *self.padding["pad"])
         else:
-            self.padding = {"pad": tuple([0] * len(input_shape))}
-
-    def __call__(self, x: torch.Tensor) -> torch.Tensor:
-        return self.forward(x)
+            self.padding = {"pad": tuple([0] * (len(input_shape) + 1))}
+        self.return_tuple = return_tuple
 
     def _reconstruct_patches(
         self,
         patches: torch.Tensor,
         index: Tuple[int],
-        weights: bool,
-        inner_dim: int = None,
-    ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         Rearranges patches to reconstruct area of interest from patches and weights
         """
         reconstruct_shape = np.array(self.output_shape) * np.array(index)
-        if weights:
-            weight = torch.zeros(tuple(reconstruct_shape))
-            base_weight = (
-                self.weight_function(self.input_shape)
-                if self.weight_function
-                else torch.ones(self.input_shape)
-            )
-        else:
-            weight = None
-        if inner_dim is not None:
-            reconstruct_shape = np.append(reconstruct_shape, inner_dim)
-        reconstruct = torch.zeros(tuple(reconstruct_shape))
+        weight = torch.zeros(tuple(reconstruct_shape), device=patches.device)
+        base_weight = (
+            self.weight_function(self.output_shape)
+            if self.weight_function
+            else torch.ones(self.output_shape, device=patches.device)
+        )
+
+        reconstruct = torch.zeros(tuple(reconstruct_shape), device=patches.device)
         for patch_index, patch in zip(np.ndindex(index), patches):
             sl = [
                 slice(idx * patch_len, (idx + 1) * patch_len, None)
-                for idx, patch_len in zip(patch_index, self.input_shape)
+                for idx, patch_len in zip(patch_index, self.output_shape)
             ]
-            if weights:
-                weight[tuple(sl)] = base_weight
-            if inner_dim is not None:
-                sl.append(slice(None, None, None))
+            weight[tuple(sl)] = base_weight
             reconstruct[tuple(sl)] = patch
         return reconstruct, weight
 
@@ -110,30 +209,20 @@ class BasePatchInferencer:
         """
         Pads reconstructed_patches with 'pad_value' to have same shape as the reference shape from the base patch set
         """
-        has_inner_dim = len(offset) < len(arrays[0].shape)
         pad_width = []
         sl = []
         ref_shape = list(ref_shape)
         arr_shape = list(arrays[0].shape)
-        if has_inner_dim:
-            arr_shape = arr_shape[:-1]
-        for idx, lenght, ref in zip(offset, arr_shape, ref_shape):
+        for idx, length, ref in zip([0, *offset], arr_shape, ref_shape):
             if idx > 0:
-                sl.append(slice(0, min(lenght, ref), None))
-                pad_width = [idx, max(ref - lenght - idx, 0)] + pad_width
+                sl.append(slice(0, min(length, ref), None))
+                pad_width = [idx, max(ref - length - idx, 0)] + pad_width
             else:
-                sl.append(slice(np.abs(idx), min(lenght, ref - idx), None))
-                pad_width = [0, max(ref - lenght - idx, 0)] + pad_width
+                sl.append(slice(np.abs(idx), min(length, ref - idx), None))
+                pad_width = [0, max(ref - length - idx, 0)] + pad_width
         adjusted = [
             (
                 torch.nn.functional.pad(
-                    arr[tuple([*sl, slice(None, None, None)])],
-                    pad=tuple([0, 0, *pad_width]),
-                    mode="constant",
-                    value=pad_value,
-                )
-                if has_inner_dim
-                else torch.nn.functional.pad(
                     arr[tuple(sl)],
                     pad=tuple(pad_width),
                     mode="constant",
@@ -151,11 +240,20 @@ class BasePatchInferencer:
         indexes: List[Tuple[int]],
     ) -> torch.Tensor:
         """
-        How results are combined is dependent on what is being combined.
-        RegressionPatchInferencer uses Weighted Average
-        ClassificationPatchInferencer uses Voting (hard or soft)
+        Combination of results
         """
-        raise NotImplementedError("Combine patches method must be implemented")
+        reconstructed = []
+        weights = []
+        for patches, offset, shape in zip(results, offsets, indexes):
+            reconstruct, weight = self._reconstruct_patches(patches, shape)
+            reconstruct, weight = self._adjust_patches(
+                [reconstruct, weight], self.ref_shape, offset
+            )
+            reconstructed.append(reconstruct)
+            weights.append(weight)
+        reconstructed = torch.stack(reconstructed, dim=0)
+        weights = torch.stack(weights, dim=0)
+        return torch.sum(reconstructed * weights, dim=0) / torch.sum(weights, dim=0)
 
     def _extract_patches(
         self, data: torch.Tensor, patch_shape: Tuple[int]
@@ -187,7 +285,18 @@ class BasePatchInferencer:
                 shape.append(t)
         return tuple(shape)
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
+    def _compute_base_padding(self, tensor: torch.Tensor):
+        """
+        Computes the padding for the base patch set based on the input tensor shape and the model's input shape.
+        """
+        padding = [0, 0]
+        for i, t in zip(self.padding["pad"][2:], tensor.shape[1:]):
+            padding.append(max(0, i - t))
+        return padding
+
+    def __call__(
+        self, model: Union[L.LightningModule, torch.nn.Module], x: torch.Tensor
+    ):
         """
         Perform Inference in Patches
 
@@ -196,20 +305,22 @@ class BasePatchInferencer:
         x : torch.Tensor
             Input Tensor.
         """
-        assert len(x.shape) == len(
-            self.input_shape
-        ), "Input and self.input_shape sizes must match"
+        if len(x.shape) == len(self.input_shape) - 1:
+            x = x.unsqueeze(0)
+        elif len(x.shape) == len(self.input_shape):
+            pass
+        else:
+            raise RuntimeError("Invalid input shape")
 
         self.ref_shape = self._compute_output_shape(x)
         offsets = list(self.offsets)
-        base = self.padding["pad"]
-        offsets.insert(0, tuple([0] * len(base)))
-
+        base = self._compute_base_padding(x)
+        offsets.insert(0, tuple([0] * (len(base) - 1)))
         slices = [
             tuple(
                 [
-                    slice(i + base, None)  # TODO: if ((i + base >= 0) and (i < in_dim))
-                    for i, base, in_dim in zip(offset, base, x.shape)
+                    slice(i, None)  # TODO: if ((i + base >= 0) and (i < in_dim))
+                    for i, in_dim in zip([0, *offset], x.shape)
                 ]
             )
             for offset in offsets
@@ -217,153 +328,36 @@ class BasePatchInferencer:
 
         torch_pad = []
         for pad_value in reversed(base):
-            torch_pad = torch_pad + [pad_value, pad_value]
+            torch_pad = torch_pad + [0, pad_value]
         x_padded = torch.nn.functional.pad(
             x,
             pad=tuple(torch_pad),
             mode=self.padding.get("mode", "constant"),
             value=self.padding.get("value", 0),
         )
-        results = []
+        results = (
+            tuple([] for _ in range(self.return_tuple)) if self.return_tuple else []
+        )
         indexes = []
         for sl in slices:
             patch_set, patch_idx = self._extract_patches(x_padded[sl], self.input_shape)
-            results.append(self.model(patch_set))
+            patch_set = patch_set.squeeze(1)
+            inference = model(patch_set)
+            if self.return_tuple:
+                for i in range(self.return_tuple):
+                    results[i].append(inference[i])
+            else:
+                results.append(inference)
             indexes.append(patch_idx)
-        output_slice = tuple(
-            [slice(0, lenght) for lenght in x.shape]
-        )
-        return self._combine_patches(results, offsets, indexes)[output_slice]
-
-
-class WeightedAvgPatchInferencer(BasePatchInferencer):
-    """
-    PatchInferencer with Weighted Average combination function.
-    """
-
-    def _combine_patches(
-        self,
-        results: List[torch.Tensor],
-        offsets: List[Tuple[int]],
-        indexes: List[Tuple[int]],
-    ) -> torch.Tensor:
-        reconstructed = []
-        weights = []
-        for patches, offset, shape in zip(results, offsets, indexes):
-            reconstruct, weight = self._reconstruct_patches(
-                patches, shape, weights=True
-            )
-            reconstruct, weight = self._adjust_patches(
-                [reconstruct, weight], self.ref_shape, offset
-            )
-
-            reconstructed.append(reconstruct)
-            weights.append(weight)
-        reconstructed = torch.stack(reconstructed, dim=0)
-        weights = torch.stack(weights, dim=0)
-        return torch.sum(reconstructed * weights, dim=0) / torch.sum(weights, dim=0)
-
-
-class VotingPatchInferencer(BasePatchInferencer):
-    """
-    PatchInferencer with Voting combination function.
-    Note: Models used with VotingPatchInferencer must return class probabilities in inner dimension
-    """
-
-    def __init__(
-        self,
-        model: L.LightningModule,
-        num_classes: int,
-        input_shape: Tuple,
-        output_shape: Optional[Tuple] = None,
-        weight_function: Optional[callable] = None,
-        offsets: Optional[List[Tuple]] = None,
-        padding: Optional[Dict[str, Any]] = None,
-        voting: str = "soft",
-    ):
-        """Initialize the patch inference auxiliary class
-
-        Parameters
-        ----------
-        model : L.LightningModule
-            Model used in inference.
-        num_classes: int
-            number of classes of the classification task
-        input_shape : Tuple
-            Expected input shape of the model
-        output_shape : Tuple, optional
-            Expected output shape of the model. Defaults to input_shape
-        weight_function: callable, optional
-            Function that receives a tensor shape and returns the weights for each position of a tensor with the given shape
-            Useful when regions of the inference present diminishing performance when getting closer to borders, for instance.
-        offsets : Tuple, optional
-            List of tuples with offsets that determine the shift of the initial position of the patch subdivision
-        padding : Dict[str, Any], optional
-            Dictionary describing padding strategy. Keys:
-                pad: tuple with pad width (int) for each dimension, e.g. (0, 3, 3) when working with a tensor with 3 dimensions
-                mode (optional): 'constant', 'reflect', 'replicate' or 'cicular'. Defaults to 'constant'.
-                value (optional): fill value for 'constante'. Defaults to 0.
-        voting: str
-            voting method to use, can be either 'soft'or 'hard'. Defaults to 'soft'.
-        """
-        super().__init__(
-            model, input_shape, output_shape, weight_function, offsets, padding
-        )
-        assert voting in ["soft", "hard"], "voting should be either 'soft' or 'hard'"
-        self.num_classes = num_classes
-        self.voting = voting
-
-    def _combine_patches(
-        self,
-        results: List[torch.Tensor],
-        offsets: List[Tuple[int]],
-        indexes: List[Tuple[int]],
-    ) -> torch.Tensor:
-        voting_method = getattr(self, f"_{self.voting}_voting")
-        return voting_method(results, offsets, indexes)
-
-    def _hard_voting(
-        self,
-        results: List[torch.Tensor],
-        offsets: List[Tuple[int]],
-        indexes: List[Tuple[int]],
-    ) -> torch.Tensor:
-        """
-        Hard voting combination function
-        """
-        # torch.mode does not work like scipy.stats.mode
-        raise NotImplementedError("Hard voting not yet supported")
-        # reconstructed = []
-        # for patches, offset, shape in zip(results, offsets, indexes):
-        #     reconstruct, _ = self._reconstruct_patches(
-        #         patches, shape, weights=False, inner_dim=self.num_classes
-        #     )
-        #     reconstruct = torch.argmax(reconstruct, dim=-1).float()
-        #     reconstruct = self._adjust_patches(
-        #         [reconstruct], self.ref_shape, offset, pad_value=torch.nan
-        #     )[0]
-        #     reconstructed.append(reconstruct)
-        # reconstructed = torch.stack(reconstructed, dim=0)
-        # ret = torch.mode(reconstructed, dim=0, keepdims=False)[
-        #     0
-        # ]  # TODO check behaviour on GPU, according to issues may have nonsense results
-        # return ret
-
-    def _soft_voting(
-        self,
-        results: List[torch.Tensor],
-        offsets: List[Tuple[int]],
-        indexes: List[Tuple[int]],
-    ) -> torch.Tensor:
-        """
-        Soft voting combination function
-        """
-        reconstructed = []
-        for patches, offset, shape in zip(results, offsets, indexes):
-            reconstruct, _ = self._reconstruct_patches(
-                patches, shape, weights=False, inner_dim=self.num_classes
-            )
-            reconstruct = self._adjust_patches([reconstruct], self.ref_shape, offset)[0]
-            reconstructed.append(reconstruct)
-        reconstructed = torch.stack(reconstructed, dim=0)
-        return torch.argmax(torch.sum(reconstructed, dim=0), dim=-1)
+        output_slice = tuple([slice(0, length) for length in self.ref_shape])
+        if self.return_tuple:
+            comb_list = []
+            for i in range(self.return_tuple):
+                comb = self._combine_patches(results[i], offsets, indexes)
+                comb = comb[output_slice]
+                comb_list.append(comb)
+            comb = tuple(comb_list)
+        else:
+            comb = self._combine_patches(results, offsets, indexes)
+            comb = comb[output_slice]
+        return comb
