@@ -17,7 +17,7 @@ from torch import Tensor, nn
 from torch.nn import functional as F
 from torchmetrics import Metric
 from minerva.models.finetune_adapters import LoRA
-from minerva.models.nets.mlp import MLP
+# from minerva.models.nets.mlp import MLP
 
 # based on: https://github.com/facebookresearch/segment-anything/blob/main/segment_anything/modeling/common.py
 class MLPBlock(nn.Module):
@@ -1196,32 +1196,16 @@ class MaskDecoder(nn.Module):
             nn.ConvTranspose2d(transformer_dim // 4, transformer_dim // 8, kernel_size=2, stride=2),
             activation(),
         )
-        # self.output_hypernetworks_mlps = nn.ModuleList(
-        #     [
-        #         MLP(transformer_dim, transformer_dim, transformer_dim // 8, 3)
-        #         for i in range(self.num_mask_tokens)
-        #     ]
-        # )
+
         self.output_hypernetworks_mlps = nn.ModuleList(
             [
-                MLP(
-                    layer_sizes=[
-                        transformer_dim,  # Input layer
-                        transformer_dim,  # Hidden layer 1
-                        transformer_dim,  # Hidden layer 2
-                        transformer_dim // 8  # Output layer
-                    ],
-                    activation_cls=nn.ReLU  # Define a ativação como ReLU
-                )
+                MLP(transformer_dim, transformer_dim, transformer_dim // 8, 3)
                 for i in range(self.num_mask_tokens)
             ]
         )
 
         self.iou_prediction_head = MLP(
-            layer_sizes=[
-                transformer_dim,
-            ]* (iou_head_depth - 1) + [iou_head_hidden_dim] + [self.num_mask_tokens], # Hidden layers e output layer
-            activation_cls=nn.ReLU
+            transformer_dim, iou_head_hidden_dim, self.num_mask_tokens, iou_head_depth
         )
 
     def forward(
@@ -1330,6 +1314,92 @@ class MaskDecoder(nn.Module):
         iou_pred = self.iou_prediction_head(iou_token_out)
 
         return masks, iou_pred
+
+class MLP(nn.Module):
+    """
+    A Multi-Layer Perceptron (MLP) for general-purpose feedforward neural networks.
+
+    Parameters
+    ----------
+    input_dim : int
+        The size of the input features.
+    hidden_dim : int
+        The number of units in each hidden layer.
+    output_dim : int
+        The size of the output features.
+    num_layers : int
+        The total number of layers, including the output layer.
+    sigmoid_output : bool, optional
+        If True, applies a sigmoid activation to the output layer. Default is False.
+
+    Attributes
+    ----------
+    num_layers : int
+        The total number of layers in the network.
+    layers : torch.nn.ModuleList
+        A list of `torch.nn.Linear` layers that define the MLP architecture.
+    sigmoid_output : bool
+        Indicates whether a sigmoid activation is applied to the output layer.
+
+    Methods
+    -------
+    forward(x)
+        Forward pass through the network.
+
+    Examples
+    --------
+    >>> import torch
+    >>> from torch import nn
+    >>> import torch.nn.functional as F
+    >>> model = MLP(input_dim=10, hidden_dim=20, output_dim=5, num_layers=3, sigmoid_output=True)
+    >>> x = torch.randn(4, 10)  # Batch size of 4 with 10 input features
+    >>> output = model(x)
+    >>> print(output.shape)
+    torch.Size([4, 5])
+    """
+
+    def __init__(
+        self,
+        input_dim: int,
+        hidden_dim: int,
+        output_dim: int,
+        num_layers: int,
+        sigmoid_output: bool = False,
+    ) -> None:
+        super().__init__()
+        self.num_layers = num_layers
+        h = [hidden_dim] * (num_layers - 1)
+        self.layers = nn.ModuleList(
+            nn.Linear(n, k) for n, k in zip([input_dim] + h, h + [output_dim])
+        )
+        self.sigmoid_output = sigmoid_output
+
+    def forward(self, x):
+        """
+        Perform a forward pass through the MLP.
+
+        Parameters
+        ----------
+        x : torch.Tensor
+            Input tensor with shape (batch_size, input_dim).
+
+        Returns
+        -------
+        torch.Tensor
+            Output tensor with shape (batch_size, output_dim).
+
+        Notes
+        -----
+        ReLU activation is applied to all hidden layers. The output layer is linear
+        unless `sigmoid_output` is set to True, in which case a sigmoid activation
+        is applied to the output.
+
+        """
+        for i, layer in enumerate(self.layers):
+            x = F.relu(layer(x)) if i < self.num_layers - 1 else layer(x)
+        if self.sigmoid_output:
+            x = F.sigmoid(x)
+        return x
 
 # based on: https://github.com/facebookresearch/segment-anything/blob/main/segment_anything/modeling/mask_decoder.py
 class TwoWayTransformer(nn.Module):
