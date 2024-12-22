@@ -604,6 +604,9 @@ class SETR_PUP(L.LightningModule):
         if head_lr_factor != 1:
             self.automatic_optimization = False
             self.multiple_optimizers = True
+        else:
+            self.automatic_optimization = True
+            self.multiple_optimizers = False
 
         self.loss_fn = (
             loss_fn
