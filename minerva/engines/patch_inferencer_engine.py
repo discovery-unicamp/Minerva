@@ -6,6 +6,7 @@ import torch
 import torch.nn as nn
 
 from minerva.engines.engine import _Engine
+from minerva.models.nets.base import SimpleSupervisedModel
 
 
 class PatchInferencer(L.LightningModule):
@@ -16,11 +17,11 @@ class PatchInferencer(L.LightningModule):
 
     def __init__(
         self,
-        model: L.LightningModule,
-        input_shape: Tuple,
-        output_shape: Optional[Tuple] = None,
+        model: SimpleSupervisedModel,
+        input_shape: Tuple[int, ...],
+        output_shape: Optional[Tuple[int, ...]] = None,
         weight_function: Optional[Callable] = None,
-        offsets: Optional[List[Tuple]] = None,
+        offsets: Optional[List[Tuple[int, ...]]] = None,
         padding: Optional[Dict[str, Any]] = None,
         return_tuple: Optional[int] = None,
     ):
@@ -28,8 +29,8 @@ class PatchInferencer(L.LightningModule):
 
         Parameters
         ----------
-        model : L.LightningModule
-            Model used in inference.
+        model : SimpleSupervisedModel
+            Model used in inference. It must be, or implement an interface like, a SimpleSupervisedModel.
         input_shape : Tuple
             Expected input shape of the model
         output_shape : Tuple, optional
@@ -125,9 +126,9 @@ class PatchInferencerEngine(_Engine):
 
     def __init__(
         self,
-        input_shape: Tuple[int],
-        output_shape: Optional[Tuple[int]] = None,
-        offsets: Optional[List[Tuple]] = None,
+        input_shape: Tuple[int, ...],
+        output_shape: Optional[Tuple[int, ...]] = None,
+        offsets: Optional[List[Tuple[int, ...]]] = None,
         padding: Optional[Dict[str, Any]] = None,
         weight_function: Optional[Callable] = None,
         return_tuple: Optional[int] = None,
@@ -146,6 +147,10 @@ class PatchInferencerEngine(_Engine):
                 - 'pad': Tuple of padding for each expected final dimension, e.g., (0, 512, 512) - (c, h, w).
                 - 'mode': Padding mode, e.g., 'constant', 'reflect'.
                 - 'value': Padding value if mode is 'constant'.
+        weight_function : Callable, optional
+            Function to calculate the weight of each patch. Defaults to None.
+        return_tuple : int, optional
+            Number of outputs to return. Defaults to None.
         """
         self.input_shape = (1, *input_shape)
         self.output_shape = (
