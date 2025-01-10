@@ -30,7 +30,7 @@ class PatchedMDIOReader(PatchedZarrReader):
         path : PathLike
             Path to the MDIO array.
         mdio_data: str
-            Name of data array inside MDIO subdirectory. Defaults to 'data.zarr'
+            Name of data array inside MDIO subdirectory. Defaults to 'data/chunked_012'
         Notes
         -----
         1.  The MDIO array is expected to be stored on disk. If the array is not
@@ -89,7 +89,7 @@ class LazyPaddedPatchedMDIOReader(LazyPaddedPatchedZarrReader):
         path : PathLike
             Path to the MDIO array.
         mdio_data: str
-            Name of data array inside MDIO subdirectory. Defaults to 'data.zarr'
+            Name of data array inside MDIO subdirectory. Defaults to 'data/chunked_012'
         Notes
         -----
         1.  The MDIO array is expected to be stored on disk. If the array is not
