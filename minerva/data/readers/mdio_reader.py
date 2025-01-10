@@ -1,7 +1,5 @@
 import os
 
-import zarr
-
 from minerva.data.readers.zarr_reader import (
     PatchedZarrReader,
     LazyPaddedPatchedZarrReader,
@@ -19,7 +17,7 @@ class PatchedMDIOReader(PatchedZarrReader):
         self,
         *args,
         path: PathLike,
-        mdio_data: str = "data.zarr",
+        mdio_data: str = "data/chunked_012",
         **kwargs,
     ):
         """Reads patches from a MDIO array. This class is a subclass of
@@ -62,7 +60,7 @@ class PatchedMDIOReader(PatchedZarrReader):
 
         self.mdio_path = path
 
-        path = zarr.open(os.path.join(path, mdio_data))
+        path = os.path.join(path, mdio_data)
         super().__init__(path=path, *args, **kwargs)
 
 
@@ -71,13 +69,14 @@ class LazyPaddedPatchedMDIOReader(LazyPaddedPatchedZarrReader):
     `LazyPaddedPatchedZarrReader` and is designed to read patches from the the
     data Zarr array inside thre MDIO array subdirectory,
     performing padding in a lazy manner (padding is done in `__getitem__` call).
+    If no padding is necessary, use PatchedMDIOReader.
     """
 
     def __init__(
         self,
         *args,
         path: PathLike,
-        mdio_data: str = "data.zarr",
+        mdio_data: str = "data/chunked_012",
         **kwargs,
     ):
         """Reads patches from a MDIO array. This class is a subclass of
@@ -118,5 +117,5 @@ class LazyPaddedPatchedMDIOReader(LazyPaddedPatchedZarrReader):
 
         self.mdio_path = path
 
-        path = zarr.open(os.path.join(path, mdio_data))
+        path = os.path.join(path, mdio_data)
         super().__init__(path=path, *args, **kwargs)

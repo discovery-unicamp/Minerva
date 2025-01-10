@@ -63,6 +63,7 @@ class LazyPaddedPatchedZarrReader(LazyPaddedPatchedArrayReader):
     """Reads patches from a Zarr array. This class is a subclass of
     `LazyPaddedPatchedArrayReader` and is designed to read patches from a Zarr array,
     performing padding in a lazy manner (padding is done in `__getitem__` call).
+    If no padding is necessary, use PatchedZarrReader.
     """
 
     def __init__(

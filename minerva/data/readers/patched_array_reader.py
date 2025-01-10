@@ -1,4 +1,5 @@
 from typing import Dict, List, Optional, Tuple
+import warnings
 
 import numpy as np
 from numpy.typing import ArrayLike
@@ -185,6 +186,7 @@ class LazyPaddedPatchedArrayReader(PatchedArrayReader):
     """Reads patches from a NumPy array.
     This class is a subclass of `PatchedArrayReader` and is designed to perform padding only when the patch
     consumed by `__get_item__` is in a region that uses the padding (boundary regions).
+    If no padding is necessary, use PatchedArrayReader.
     """
 
     def _pad_data(
@@ -199,14 +201,14 @@ class LazyPaddedPatchedArrayReader(PatchedArrayReader):
         mode : str, optional
             The padding mode, by default "constant"
         """
-        if self.pad_mode in [
+        if mode in [
             "maximum",
             "mean",
             "median",
             "minimum",
             "wrap",
         ]:  # TODO: add support if necessary
-            raise NotImplementedError(f"Pad mode not supported: {self.pad_mode}")
+            raise NotImplementedError(f"Pad mode not supported: {mode}")
         self.shape = tuple(i + p[0] + p[1] for i, p in zip(self.data.shape, pad_width))
 
     def _get_patches(self) -> List[Tuple[str, Tuple[int, ...]]]:
@@ -272,8 +274,14 @@ class LazyPaddedPatchedArrayReader(PatchedArrayReader):
         """
         pad_loc, padded_left_upper_corner = self.indices[idx]
 
+        if self.pad_width:
+            data_pad_width = self.pad_width
+        else:
+            warnings.warn("Padding is not being used! Non-LazyPadded class is recommended, e.g., PatchedArrayReader")
+            data_pad_width = [(0, 0)]*len(self.data_shape)
+
         original_left_upper_corner = tuple(
-            min(i - p[0], 0) for i, p in zip(padded_left_upper_corner, self.pad_width)
+            max(i - p[0], 0) for i, p in zip(padded_left_upper_corner, data_pad_width)
         )
         slice_base = tuple(
             slice(i, i + s) for i, s in zip(original_left_upper_corner, self.data_shape)
@@ -281,11 +289,11 @@ class LazyPaddedPatchedArrayReader(PatchedArrayReader):
         base_patch = self.data[slice_base]
 
         # no padding necessary
-        if pad_loc == "n":
+        if not ("l" in pad_loc or "u" in pad_loc or "b" in pad_loc) :
             item = base_patch
 
         # padding cases
-        if self.pad_mode in [
+        elif self.pad_mode in [
             "constant",
             "edge",
             "linear_ramp",
@@ -294,7 +302,7 @@ class LazyPaddedPatchedArrayReader(PatchedArrayReader):
             "symmetric",
         ]:
             pad_width = []
-            for opt, p in zip(pad_loc, self.pad_width):
+            for opt, p in zip(pad_loc, data_pad_width):
                 cur_pad_l = p[0] if opt in ["l", "b"] else 0
                 cur_pad_u = p[1] if opt in ["u", "b"] else 0
                 pad_width.append((cur_pad_l, cur_pad_u))
