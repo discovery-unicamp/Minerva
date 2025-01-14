@@ -6,9 +6,8 @@ from minerva.models.nets.time_series.gans import (
 )
 import torch
 
-
 def test_ttsgan_discriminator_forward():
-    input_shape = (6, 1, 60)
+    input_shape = (6, 60)
 
     model = TTSGAN_Discriminator(seq_len=60, channels=6)
 
@@ -17,6 +16,7 @@ def test_ttsgan_discriminator_forward():
     x = torch.rand(1, *input_shape)
     y = model(x)
     assert y is not None
+
 
 def test_ttsgan_generator_forward():
     input_shape = (1, 100)
