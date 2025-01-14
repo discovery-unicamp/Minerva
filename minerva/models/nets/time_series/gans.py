@@ -20,30 +20,30 @@ class TTSGAN_Generator(nn.Module):
         forward_drop_rate: float = 0.5,
         attn_drop_rate: float = 0.5,
     ):
-        """_summary_
+        """The TTSGAN generator is designed to generate time series data using a 
+        transformer-based architecture. It takes a latent vector as input and outputs
+        a time series data.
 
         Parameters
         ----------
         seq_len : int, optional
-            _description_, by default 150
+            size of the time sequence, by default 150
         patch_size : int, optional
-            _description_, by default 15
+            size of the transformer patch size, by default 15
         channels : int, optional
-            _description_, by default 3
-        num_classes : int, optional
-            _description_, by default 9
+            number of axis or channels, by default 3
         latent_dim : int, optional
-            _description_, by default 100
+            latent dimention, by default 100
         embed_dim : int, optional
-            _description_, by default 10
+            embeded dimention, by default 10
         depth : int, optional
-            _description_, by default 3
+            times the network will be repeted (transformer), by default 3
         num_heads : int, optional
-            _description_, by default 5
+            number of transformer heads, by default 5
         forward_drop_rate : float, optional
-            _description_, by default 0.5
+            forward dropout rate, by default 0.5
         attn_drop_rate : float, optional
-            _description_, by default 0.5
+            attention drop rate, by default 0.5
         """
         super(TTSGAN_Generator, self).__init__()
         self.channels = channels
@@ -329,22 +329,24 @@ class TTSGAN_Discriminator(nn.Sequential):
         n_classes=1,
         **kwargs,
     ):
-        """_summary_
+        """The TTSGAN discriminator is designed to diferentiate synthetic time series 
+        data from real data using a transformer-based architecture. It takes a time 
+        series as an input and outputs a class label.
 
         Parameters
         ----------
         channels : int, optional
-            _description_, by default 3
+            number of axis or channels, by default 3
         patch_size : int, optional
-            _description_, by default 15
+            size of the transformer patch size, by default 15
         emb_size : int, optional
-            _description_, by default 50
+            _embedding size, by default 50
         seq_len : int, optional
-            _description_, by default 150
+            size of the time sequence, by default 150
         depth : int, optional
-            _description_, by default 3
+            times the network will be repeted (transformer), by default 3
         n_classes : int, optional
-            _description_, by default 1
+            number of classes that will be discriminated, by default 1
         """
         super().__init__(
             PatchEmbedding_Linear(channels, patch_size, emb_size, seq_len),
@@ -357,25 +359,26 @@ class TTSGAN_Discriminator(nn.Sequential):
 
 class TTSGAN_Encoder(nn.Sequential):
     def __init__(
-        self, in_channels=3, patch_size=15, emb_size=50, seq_len=150, depth=3, **kwargs
+        self, channels=3, patch_size=15, emb_size=50, seq_len=150, depth=3, **kwargs
     ):
-        """_summary_
+        """The TTSGAN encoder is designed to encode time series data using a 
+        transformer-based architecture.
 
         Parameters
         ----------
-        in_channels : int, optional
-            _description_, by default 3
+        channels : int, optional
+            number of axis or channels, by default 3
         patch_size : int, optional
-            _description_, by default 15
+            size of the transformer patch size, by default 15
         emb_size : int, optional
-            _description_, by default 50
+            _embedding size, by default 50
         seq_len : int, optional
-            _description_, by default 150
+            size of the time sequence, by default 150
         depth : int, optional
-            _description_, by default 3
+            times the network will be repeted (transformer), by default 3
         """
         super().__init__(
-            PatchEmbedding_Linear(in_channels, patch_size, emb_size, seq_len),
+            PatchEmbedding_Linear(channels, patch_size, emb_size, seq_len),
             Dis_TransformerEncoder(
                 depth, emb_size=emb_size, drop_p=0.5, forward_drop_p=0.5, **kwargs
             ),
@@ -397,32 +400,33 @@ class GAN(L.LightningModule):
         beta1: float = 0.0,
         beta2: float = 0.9,
     ):
-        """_summary_
+        """The GAN class is designed to train a generator and a discriminator network.
+        It is designed to be a base class for GAN training.
 
         Parameters
         ----------
         generator : torch.nn.Module
-            _description_
+            Model of the generator network
         discriminator : torch.nn.Module
-            _description_
+            Model of the discriminator network
         loss_gen : torch.nn.Module
-            _description_
+            loss function for the generator network
         loss_dis : torch.nn.Module
-            _description_
+            loss function for the discriminator network
         latent_dim : int, optional
-            _description_, by default 100
+            latent dimention of the generator for data generation, by default 100
         generator_weight : float, optional
-            _description_, by default 1
+            weight of the generator network, by default 1
         discriminator_weight : float, optional
-            _description_, by default 1
+            weight of the discriminator network, by default 1
         generator_lr : float, optional
-            _description_, by default 0.0001
+            leraning rate of the generator network, by default 0.0001
         discriminator_lr : float, optional
-            _description_, by default 0.0001
+            learning rate of the discriminator network, by default 0.0001
         beta1 : float, optional
-            _description_, by default 0.0
+            initial beta of the adam optimizer, by default 0.0
         beta2 : float, optional
-            _description_, by default 0.9
+            final beta of the adam optimizer, by default 0.9
         """
         super().__init__()
         self.gen = generator
