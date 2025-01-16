@@ -3,7 +3,6 @@ from typing import Any, Callable, Dict, List, Literal, Optional, Tuple, Union
 import lightning as L
 import numpy as np
 import torch
-import torch.nn as nn
 
 from minerva.engines.engine import _Engine
 from minerva.models.nets.base import SimpleSupervisedModel
@@ -34,7 +33,7 @@ class PatchInferencer(L.LightningModule):
         input_shape : Tuple
             Expected input shape of the model
         output_shape : Tuple, optional
-            Expected output shape of the model. Defaults to input_shape
+            Expected output shape of the model. When handling classification models that return the logits, output shape must have one additional dimension placed at the first position, to accomodate the logits. So a classification model that receives a tensor (1, 128, 128) ans returns the predictions for 10 classes must have an output shape of (10, 1, 128, 128). Defaults to input_shape.
         weight_function: callable, optional
             Function that receives a tensor shape and returns the weights for each position of a tensor with the given shape
             Useful when regions of the inference present diminishing performance when getting closer to borders, for instance.
@@ -45,6 +44,8 @@ class PatchInferencer(L.LightningModule):
                 pad: tuple with pad width (int) for each dimension, e.g. (0, 3, 3) when working with a tensor with 3 dimensions
                 mode (optional): 'constant', 'reflect', 'replicate' or 'circular'. Defaults to 'constant'.
                 value (optional): fill value for 'constant'. Defaults to 0.
+        return_tuple: int, optional
+            Number of outputs to return. Defaults to None.
         """
         super().__init__()
         self.model = model
@@ -123,7 +124,6 @@ class PatchInferencer(L.LightningModule):
 
 # region _PatchInferencer
 class PatchInferencerEngine(_Engine):
-
     def __init__(
         self,
         input_shape: Tuple[int, ...],
@@ -141,7 +141,7 @@ class PatchInferencerEngine(_Engine):
         input_shape : Tuple[int]
             Shape of each patch to process.
         output_shape : Tuple[int], optional
-            Expected shape of the model output per patch. Defaults to input_shape.
+            Expected shape of the model output per patch. When handling classification models that return the logits, output shape must self.output_shapetensor (1, 128, 128) ans returns the predictions for 10 classes must have an output shape of (10, 1, 128, 128). Defaults to input_shape.
         padding : dict, optional
             Padding configuration with keys:
                 - 'pad': Tuple of padding for each expected final dimension, e.g., (0, 512, 512) - (c, h, w).
@@ -155,6 +155,14 @@ class PatchInferencerEngine(_Engine):
         self.input_shape = (1, *input_shape)
         self.output_shape = (
             (1, *output_shape) if output_shape is not None else self.input_shape
+        )
+
+        # Check if possible classification task
+        self.logits_dim = len(self.input_shape) != len(self.output_shape)
+        self.output_simplified_shape = (
+            tuple([*self.output_shape[:1], *self.output_shape[2:]])
+            if self.logits_dim
+            else self.output_shape
         )
 
         self.weight_function = weight_function
@@ -186,12 +194,22 @@ class PatchInferencerEngine(_Engine):
         """
         Rearranges patches to reconstruct area of interest from patches and weights
         """
+        index = tuple([index[0], 1, *index[1:]]) if self.logits_dim else index
         reconstruct_shape = np.array(self.output_shape) * np.array(index)
-        weight = torch.zeros(tuple(reconstruct_shape), device=patches.device)
+
+        weight = (
+            torch.zeros(
+                tuple([*reconstruct_shape[:1], *reconstruct_shape[2:]]),
+                device=patches.device,
+            )
+            if self.logits_dim
+            else torch.zeros(tuple(reconstruct_shape), device=patches.device)
+        )
+
         base_weight = (
-            self.weight_function(self.output_shape)
+            self.weight_function(self.output_simplified_shape)
             if self.weight_function
-            else torch.ones(self.output_shape, device=patches.device)
+            else torch.ones(self.output_simplified_shape, device=patches.device)
         )
 
         reconstruct = torch.zeros(tuple(reconstruct_shape), device=patches.device)
@@ -200,8 +218,12 @@ class PatchInferencerEngine(_Engine):
                 slice(idx * patch_len, (idx + 1) * patch_len, None)
                 for idx, patch_len in zip(patch_index, self.output_shape)
             ]
-            weight[tuple(sl)] = base_weight
             reconstruct[tuple(sl)] = patch
+            if self.logits_dim:
+                sl.pop(1)
+            weight[tuple(sl)] = base_weight
+        if self.logits_dim:
+            weight = weight.unsqueeze(1)
         return reconstruct, weight
 
     def _adjust_patches(
@@ -218,9 +240,10 @@ class PatchInferencerEngine(_Engine):
         sl = []
         ref_shape = list(ref_shape)
         arr_shape = list(arrays[0].shape)
-        for idx, length, ref in zip([0, *offset], arr_shape, ref_shape):
+        adjusted_offset = [0, 0, *offset] if self.logits_dim else [0, *offset]
+        for idx, length, ref in zip(adjusted_offset, arr_shape, ref_shape):
             if idx > 0:
-                sl.append(slice(0, min(length, ref), None))
+                sl.append(slice(0, min(length, ref - idx), None))
                 pad_width = [idx, max(ref - length - idx, 0)] + pad_width
             else:
                 sl.append(slice(np.abs(idx), min(length, ref - idx), None))
@@ -283,11 +306,17 @@ class PatchInferencerEngine(_Engine):
         if self.input_shape == self.output_shape:
             return tensor.shape
         shape = []
-        for i, o, t in zip(self.input_shape, self.output_shape, tensor.shape):
+        for i, o, t in zip(
+            self.input_shape, self.output_simplified_shape, tensor.shape
+        ):
             if i != o:
                 shape.append(int(t * o // i))
             else:
                 shape.append(t)
+
+        if self.logits_dim:
+            shape.insert(1, self.output_shape[1])
+
         return tuple(shape)
 
     def _compute_base_padding(self, tensor: torch.Tensor):
@@ -295,7 +324,7 @@ class PatchInferencerEngine(_Engine):
         Computes the padding for the base patch set based on the input tensor shape and the model's input shape.
         """
         padding = [0, 0]
-        for i, t in zip(self.padding["pad"][2:], tensor.shape[1:]):
+        for i, t in zip(self.padding["pad"][2:], tensor.shape[2:]):
             padding.append(max(0, i - t))
         return padding
 
