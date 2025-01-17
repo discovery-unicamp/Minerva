@@ -2465,12 +2465,19 @@ class Sam(L.LightningModule):
         if isinstance(batch, list) and len(batch) == 2:
             # this is an adaptation due to the use of default Dataset() of Minerva
             data = []
-            for sample_idx in range(len(batch[0])):
-                data.append({
-                    'image': batch[0][sample_idx],
-                    'label': batch[1][sample_idx],
-                    'original_size': (batch[0][sample_idx].shape[1], batch[0][sample_idx].shape[2])
-                })
+            for sample_idx in range(len(batch)):
+                sample_data = {
+                    'image': batch[sample_idx]['image'],
+                    'label': batch[sample_idx]['label'],
+                    'original_size': (batch[sample_idx]['image'].shape[1], batch[sample_idx]['image'].shape[2]),
+                }
+
+                if 'point_coords' in batch[sample_idx]:
+                    sample_data['point_coords'] = batch[sample_idx]['point_coords']
+                if 'point_labels' in batch[sample_idx]:
+                    sample_data['point_labels'] = batch[sample_idx]['point_labels']
+                
+                data.append(sample_data)
             batch = data
         elif isinstance(batch, list) and all(isinstance(item, dict) for item in batch):
             # this is for train Sam(), where default is list of dict
@@ -2503,9 +2510,30 @@ class Sam(L.LightningModule):
         return self._single_step(batch, batch_idx, "test")
 
     def predict_step(self, batch: torch.Tensor, batch_idx: int, dataloader_idx: Optional[int] = None):
-        batched_input = batch
-        
-        outputs = self(batched_input, multimask_output=batched_input[0]['multimask_output'])
+        if isinstance(batch, list) and len(batch) == 2:
+            # this is an adaptation due to the use of default Dataset() of Minerva
+            data = []
+            for sample_idx in range(len(batch)):
+                sample_data = {
+                    'image': batch[sample_idx]['image'],
+                    'label': batch[sample_idx]['label'],
+                    'original_size': (batch[sample_idx]['image'].shape[1], batch[sample_idx]['image'].shape[2]),
+                }
+
+                if 'point_coords' in batch[sample_idx]:
+                    sample_data['point_coords'] = batch[sample_idx]['point_coords']
+                if 'point_labels' in batch[sample_idx]:
+                    sample_data['point_labels'] = batch[sample_idx]['point_labels']
+                
+                data.append(sample_data)
+            batch = data
+        elif isinstance(batch, list) and all(isinstance(item, dict) for item in batch):
+            # this is for train Sam(), where default is list of dict
+            pass
+        else:
+            raise ValueError("batch can be 'tuple' (default for Minerva) of 'list' (default for original Sam class).")
+
+        outputs = self(batch, multimask_output=self.multimask_output)
         return outputs
     
     def configure_optimizers(self):
