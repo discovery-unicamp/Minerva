@@ -16,10 +16,10 @@ class PatchInferencer(L.LightningModule):
     tensor into patches, perform inference in each patch, and combine them into
     a single output of the desired size. The combination of patches can be
     parametrized by a `weight_function` allowing a customizable combination of
-    patches (e.g, combining using weighted average or hard voting). It is
-    important to note that only model's forward are wrapped, and, thus, any
-    method that requires the forward method (e.g., training_step, predict_step)
-    will be performed in patches, transparently to the user.
+    patches (e.g, combining using weighted average). It is important to note 
+    that only model's forward are wrapped, and, thus, any method that requires 
+    the forward method (e.g., training_step, predict_step) will be performed in 
+    patches, transparently to the user.
     """
 
     def __init__(
