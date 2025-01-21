@@ -21,6 +21,7 @@ from minerva.transforms.transform import (
     Transpose,
     Unsqueeze,
     CastTo,
+    Identity,
 )
 
 
@@ -53,13 +54,21 @@ def default_train_transforms(
         TransformPipeline(  # Image reader transform
             [
                 Transpose([2, 0, 1]),
-                PadCrop(*img_size, padding_mode="reflect", seed=seed),
+                (
+                    PadCrop(*img_size, padding_mode="reflect", seed=seed)
+                    if img_size
+                    else Identity()
+                ),
                 CastTo("float32"),
             ]
         ),
         TransformPipeline(  # Label reader transform
             [
-                PadCrop(*img_size, padding_mode="reflect", seed=seed),
+                (
+                    PadCrop(*img_size, padding_mode="reflect", seed=seed)
+                    if img_size
+                    else Identity()
+                ),
                 Unsqueeze(0),
                 CastTo("int32"),
             ]
@@ -80,32 +89,30 @@ def default_test_transforms(
         A 2-element list of transform pipelines for the image and label reader
         transform pipelines.
     """
-    if img_size is None:
-        return [
-            TransformPipeline(
-                [Transpose([2, 0, 1]), CastTo("float32")]
-            ),  # Image reader transform
-            TransformPipeline(
-                [Unsqueeze(0), CastTo("int32")]
-            ),  # Label reader transform
-        ]
-    else:
-        return [
-            TransformPipeline(
-                [
-                    Transpose([2, 0, 1]),
-                    PadCrop(*img_size, padding_mode="reflect", seed=seed),
-                    CastTo("float32"),
-                ]
-            ),  # Image reader transform
-            TransformPipeline(  # Label reader transform
-                [
-                    PadCrop(*img_size, padding_mode="reflect", seed=seed),
-                    Unsqueeze(0),
-                    CastTo("int32"),
-                ]
-            ),
-        ]
+    return [
+        TransformPipeline(
+            [
+                Transpose([2, 0, 1]),
+                (
+                    PadCrop(*img_size, padding_mode="reflect", seed=seed)
+                    if img_size
+                    else Identity()
+                ),
+                CastTo("float32"),
+            ]
+        ),  # Image reader transform
+        TransformPipeline(  # Label reader transform
+            [
+                (
+                    PadCrop(*img_size, padding_mode="reflect", seed=seed)
+                    if img_size
+                    else Identity()
+                ),
+                Unsqueeze(0),
+                CastTo("int32"),
+            ]
+        ),
+    ]
 
 
 # Partial functions for the TiffReader and PNGReader with numeric sort
