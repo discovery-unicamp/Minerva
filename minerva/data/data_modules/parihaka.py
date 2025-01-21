@@ -157,6 +157,7 @@ class ParihakaDataModule(L.LightningDataModule):
         batch_size: int = 1,
         num_workers: Optional[int] = None,
         drop_last: bool = True,
+        data_loader_kwargs: Optional[dict] = None,
     ):
         """Initialize the ParihakaDataModule with the root data and annotation
         directories. The data module is initialized with default training and
@@ -199,6 +200,12 @@ class ParihakaDataModule(L.LightningDataModule):
         drop_last : bool, optional
             Whether to drop the last batch if it is smaller than the batch size,
             by default True.
+        data_loader_kwargs : Optional[dict], optional
+            Aditional keyword arguments to pass to the DataLoader instantiation.
+            By default None. Note that, some frequently used parameters as 
+            `batch_size`, `num_workers`, and `drop_last` are ignored, as they 
+            are already presented as arguments to the ParihakaDataModule for 
+            simplicity.
         """
         super().__init__()
         self.root_data_dir = Path(root_data_dir)
@@ -213,6 +220,16 @@ class ParihakaDataModule(L.LightningDataModule):
         self.num_workers = num_workers or 1
         self.drop_last = drop_last
         self.datasets = {}
+        
+        # 
+        self.data_loader_kwargs = data_loader_kwargs or {}
+        self.data_loader_kwargs.update(
+            {
+                "batch_size": self.batch_size,
+                "num_workers": self.num_workers,
+                "drop_last": self.drop_last,
+            }
+        )
 
     def setup(self, stage=None):
         if stage == "fit":
@@ -261,10 +278,8 @@ class ParihakaDataModule(L.LightningDataModule):
     def _get_dataloader(self, partition: str, shuffle: bool):
         return DataLoader(
             self.datasets[partition],
-            batch_size=self.batch_size,
-            num_workers=self.num_workers,  # type: ignore
             shuffle=shuffle,
-            drop_last=self.drop_last,
+            **self.data_loader_kwargs
         )
 
     def train_dataloader(self):
