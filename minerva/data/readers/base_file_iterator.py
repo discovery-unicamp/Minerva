@@ -117,7 +117,7 @@ class BaseFileIterator(_Reader):
         return len(self.files)
 
     def __str__(self) -> str:
-        return f"{self.__class__.__name__}. Number of files: {len(self.files)})"
+        return f"{self.__class__.__name__}. Number of files: {len(self.files)}"
     
     def __repr__(self) -> str:
         return str(self)

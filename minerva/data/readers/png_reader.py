@@ -44,12 +44,16 @@ class PNGReader(BaseFileIterator):
         NotADirectoryError
             If the path is not a directory.
         """
-        if not Path(path).is_dir():
+        self.root_dir = Path(path)
+        if not self.root_dir.is_dir():
             raise NotADirectoryError(f"{path} is not a directory.")
         
-        files = list(Path(path).rglob("*.png"))
+        files = list(self.root_dir.rglob("*.png"))
         super().__init__(files, sort_method, delimiter, key_index, reverse)
 
     def __getitem__(self, index: int) -> np.ndarray:
         """Retrieve the PNG file at the specified index."""
         return np.array(Image.open(self.files[index].as_posix()))
+    
+    def __str__(self) -> str:
+        return f"PNGReader at '{self.root_dir}' ({len(self.files)} files)"

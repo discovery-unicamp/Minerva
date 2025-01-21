@@ -168,3 +168,11 @@ class SimpleDataset(Dataset):
             return data[0]
         else:
             return tuple(data)
+
+    def __str__(self) -> str:
+        readers = self.readers if isinstance(self.readers, list) else [self.readers]
+        readers_str = "\n".join([f"    Reader {i}: {str(r)}" for i, r in enumerate(readers)])
+        return f"{self.__class__.__name__} with {len(self.readers)} readers:\n{readers_str}"
+    
+    def __repr__(self) -> str:
+        return str(self)

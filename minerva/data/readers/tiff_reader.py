@@ -42,12 +42,16 @@ class TiffReader(BaseFileIterator):
         NotADirectoryError
             If the path is not a directory.
         """
-        if not Path(path).is_dir():
+        self.root_dir = Path(path)
+        if not self.root_dir.is_dir():
             raise NotADirectoryError(f"{path} is not a directory.")
         
-        files = list(Path(path).rglob("*.tif*"))
+        files = list(self.root_dir.rglob("*.tif*"))
         super().__init__(files, sort_method, delimiter, key_index, reverse)
 
     def __getitem__(self, index: int) -> np.ndarray:
         """Retrieve the TIFF file at the specified index."""
         return tiff.imread(self.files[index].as_posix())
+
+    def __str__(self) -> str:
+        return f"TiffReader at '{self.root_dir}' ({len(self.files)} files)"
