@@ -1,15 +1,20 @@
-from .patched_array_reader import PatchedArrayReader
+from .patched_array_reader import PatchedArrayReader, LazyPaddedPatchedArrayReader
 from .png_reader import PNGReader
 from .reader import _Reader
 from .tiff_reader import TiffReader
-from .zarr_reader import PatchedZarrReader
+from .zarr_reader import PatchedZarrReader, LazyPaddedPatchedZarrReader
+from .mdio_reader import PatchedMDIOReader, LazyPaddedPatchedMDIOReader
 from .multi_reader import MultiReader
 
 __all__ = [
     "PatchedArrayReader",
+    "LazyPaddedPatchedArrayReader",
     "PatchedZarrReader",
+    "LazyPaddedPatchedZarrReader",
+    "PatchedMDIOReader",
+    "LazyPaddedPatchedMDIOReader",
     "PNGReader",
     "TiffReader",
-    "MultiRead",
+    "MultiReader",
     "_Reader",
 ]
