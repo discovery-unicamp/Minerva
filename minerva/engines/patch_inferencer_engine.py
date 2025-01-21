@@ -9,9 +9,10 @@ from minerva.models.nets.base import SimpleSupervisedModel
 
 
 class PatchInferencer(L.LightningModule):
-    """Inference in patches for models
-
-    This class provides utility methods for performing inference in patches
+    """This class provides utility methods for performing inference in patches,
+    allowing predictions to be made in patches and combined into a single
+    output. This class wraps a SimpleSupervisedModel and uses a
+    PatchInferencerEngine to perform the inference in patches.
     """
 
     def __init__(
@@ -19,51 +20,76 @@ class PatchInferencer(L.LightningModule):
         model: SimpleSupervisedModel,
         input_shape: Tuple[int, ...],
         output_shape: Optional[Tuple[int, ...]] = None,
-        weight_function: Optional[Callable] = None,
+        weight_function: Optional[
+            Callable[[Tuple[int, ...]], torch.Tensor]
+        ] = None,
         offsets: Optional[List[Tuple[int, ...]]] = None,
         padding: Optional[Dict[str, Any]] = None,
         return_tuple: Optional[int] = None,
     ):
-        """Initialize the patch inference auxiliary class
+        """Initialize the patch inferencer wrapper class.
 
         Parameters
         ----------
         model : SimpleSupervisedModel
-            Model used in inference. It must be, or implement an interface like, a SimpleSupervisedModel.
+            Model used in inference.
         input_shape : Tuple
-            Expected input shape of the model
+            Expected input shape of the model.
         output_shape : Tuple, optional
-            Expected output shape of the model. When handling classification models that return the logits, output shape must have one additional dimension placed at the first position, to accomodate the logits. So a classification model that receives a tensor (1, 128, 128) ans returns the predictions for 10 classes must have an output shape of (10, 1, 128, 128). Defaults to input_shape.
-        weight_function: callable, optional
-            Function that receives a tensor shape and returns the weights for each position of a tensor with the given shape
-            Useful when regions of the inference present diminishing performance when getting closer to borders, for instance.
-        offsets : Tuple, optional
-            List of tuples with offsets that determine the shift of the initial position of the patch subdivision
+            Expected output shape of the model. For models that return logits,
+            the `output_shape` must include an additional dimension at the
+            beginning to accommodate the number of output classes. For example,
+            if the model processes an input tensor of shape (1, 128, 128) and
+            outputs logits for 10 classes, the expected `output_shape` should
+            be (10, 1, 128, 128). If the model does not return logits (e.g.,
+            return a tensor after applying an `argmax` operation), the
+            `output_shape` should have the same number of dimensions as the
+            input shape. Defaults to None, which assumes the output shape is
+            the same as the `input_shape` parameter.
+        weight_function: Callable[[Tuple[int, ...]], torch.Tensor], optional
+            Function that receives a tensor shape and returns the weights for
+            each position of a tensor with the given shape. Useful when regions
+            of the inference present diminishing performance when getting
+            closer to borders, for instance.
+        offsets : List[Tuple[int, ...]], optional
+            List of tuples with offsets that determine the shift of the initial
+            position of the patch subdivision.
         padding : Dict[str, Any], optional
             Dictionary describing padding strategy. Keys:
-                pad: tuple with pad width (int) for each dimension, e.g. (0, 3, 3) when working with a tensor with 3 dimensions
-                mode (optional): 'constant', 'reflect', 'replicate' or 'circular'. Defaults to 'constant'.
-                value (optional): fill value for 'constant'. Defaults to 0.
+                - pad: tuple with pad width (int) for each dimension, e.g.
+                    (0, 3, 3) when working with a tensor with 3 dimensions
+                - mode (optional): 'constant', 'reflect', 'replicate' or
+                    'circular'. Defaults to 'constant'.
+                - value (optional): fill value for 'constant'. Defaults to 0.
         return_tuple: int, optional
-            Number of outputs to return. Defaults to None.
+            Optional integer that defines the number of outputs the model 
+            generates. By default, the inference engine assumes a single input 
+            and output based on the specified `input_shape` and `output_shape`. 
+            However, when set, it indicates that the model handles multiple 
+            inputs and produces patched inference results for each (i.e., 
+            batched input/output).
         """
         super().__init__()
         self.model = model
         self.patch_inferencer = PatchInferencerEngine(
-            input_shape, output_shape, offsets, padding, weight_function, return_tuple
+            input_shape,
+            output_shape,
+            offsets,
+            padding,
+            weight_function,
+            return_tuple,
         )
 
     def __call__(self, x: torch.Tensor) -> torch.Tensor:
         return self.forward(x)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """
-        Perform Inference in Patches
+        """Perform inference in patches.
 
         Parameters
         ----------
         x : torch.Tensor
-            Input Tensor.
+            Input tensor corresponding of a single sample.
         """
         return self.patch_inferencer(self.model, x)
 
@@ -120,8 +146,7 @@ class PatchInferencer(L.LightningModule):
 
     def test_step(self, batch: torch.Tensor, batch_idx: int):
         return self._single_step(batch, batch_idx, "test")
-
-
+    
 # region _PatchInferencer
 class PatchInferencerEngine(_Engine):
     def __init__(
@@ -136,28 +161,34 @@ class PatchInferencerEngine(_Engine):
         """
         Parameters
         ----------
-        model : nn.Module
-            The neural network model for inference.
-        input_shape : Tuple[int]
+        input_shape : Tuple[int, ...]
             Shape of each patch to process.
-        output_shape : Tuple[int], optional
-            Expected shape of the model output per patch. When handling classification models that return the logits, output shape must self.output_shapetensor (1, 128, 128) ans returns the predictions for 10 classes must have an output shape of (10, 1, 128, 128). Defaults to input_shape.
-        padding : dict, optional
+        output_shape : Tuple[int, ...], optional
+            Expected output shape of the model. For models that return logits,
+            the `output_shape` must include an additional dimension at the
+            beginning to accommodate the number of output classes. Else, the
+            `output_shape` should have the same number of dimensions as the
+            `input_shape` (i.e., no logits are returned). Defaults to 
+            input_shape.
+        padding : Dict[str, Any], optional
             Padding configuration with keys:
-                - 'pad': Tuple of padding for each expected final dimension, e.g., (0, 512, 512) - (c, h, w).
+                - 'pad': Tuple of padding for each expected final dimension, 
+                    e.g., (0, 512, 512) - (c, h, w).
                 - 'mode': Padding mode, e.g., 'constant', 'reflect'.
                 - 'value': Padding value if mode is 'constant'.
         weight_function : Callable, optional
             Function to calculate the weight of each patch. Defaults to None.
         return_tuple : int, optional
-            Number of outputs to return. Defaults to None.
+            Number of outputs to return. By default, only one input and output
+            are expected. If set, the model handles multiple inputs and outputs.
+            By default, None.
         """
         self.input_shape = (1, *input_shape)
         self.output_shape = (
             (1, *output_shape) if output_shape is not None else self.input_shape
         )
 
-        # Check if possible classification task
+        # Check if possible classification task (has logits)
         self.logits_dim = len(self.input_shape) != len(self.output_shape)
         self.output_simplified_shape = (
             tuple([*self.output_shape[:1], *self.output_shape[2:]])
@@ -191,8 +222,8 @@ class PatchInferencerEngine(_Engine):
         patches: torch.Tensor,
         index: Tuple[int],
     ) -> Tuple[torch.Tensor, torch.Tensor]:
-        """
-        Rearranges patches to reconstruct area of interest from patches and weights
+        """Rearranges patches to reconstruct area of interest from patches and 
+        weights.
         """
         index = tuple([index[0], 1, *index[1:]]) if self.logits_dim else index
         reconstruct_shape = np.array(self.output_shape) * np.array(index)
@@ -212,7 +243,9 @@ class PatchInferencerEngine(_Engine):
             else torch.ones(self.output_simplified_shape, device=patches.device)
         )
 
-        reconstruct = torch.zeros(tuple(reconstruct_shape), device=patches.device)
+        reconstruct = torch.zeros(
+            tuple(reconstruct_shape), device=patches.device
+        )
         for patch_index, patch in zip(np.ndindex(index), patches):
             sl = [
                 slice(idx * patch_len, (idx + 1) * patch_len, None)
@@ -233,8 +266,8 @@ class PatchInferencerEngine(_Engine):
         offset: Tuple[int],
         pad_value: int = 0,
     ) -> List[torch.Tensor]:
-        """
-        Pads reconstructed_patches with 'pad_value' to have same shape as the reference shape from the base patch set
+        """Pads reconstructed_patches with `pad_value` to have same shape as 
+        the reference shape from the base patch set.
         """
         pad_width = []
         sl = []
@@ -267,8 +300,7 @@ class PatchInferencerEngine(_Engine):
         offsets: List[Tuple[int]],
         indexes: List[Tuple[int]],
     ) -> torch.Tensor:
-        """
-        Combination of results
+        """Combination of results
         """
         reconstructed = []
         weights = []
@@ -281,13 +313,15 @@ class PatchInferencerEngine(_Engine):
             weights.append(weight)
         reconstructed = torch.stack(reconstructed, dim=0)
         weights = torch.stack(weights, dim=0)
-        return torch.sum(reconstructed * weights, dim=0) / torch.sum(weights, dim=0)
+        return torch.sum(reconstructed * weights, dim=0) / torch.sum(
+            weights, dim=0
+        )
 
     def _extract_patches(
         self, data: torch.Tensor, patch_shape: Tuple[int]
     ) -> Tuple[torch.Tensor, Tuple[int]]:
-        """
-        Patch extraction method. It will be called once for the base patch set and also for the requested offsets (overlapping patch sets)
+        """Patch extraction method. It will be called once for the base patch 
+        set and also for the requested offsets (overlapping patch sets).
         """
         indexes = tuple(np.array(data.shape) // np.array(patch_shape))
         patches = []
@@ -300,8 +334,8 @@ class PatchInferencerEngine(_Engine):
         return torch.stack(patches), indexes
 
     def _compute_output_shape(self, tensor: torch.Tensor) -> Tuple[int]:
-        """
-        Computes PatchInferencer output shape based on input tensor shape, and model's input and output shapes.
+        """Computes `PatchInferencer` output shape based on input tensor shape, 
+        and model's input and output shapes.
         """
         if self.input_shape == self.output_shape:
             return tensor.shape
@@ -320,8 +354,8 @@ class PatchInferencerEngine(_Engine):
         return tuple(shape)
 
     def _compute_base_padding(self, tensor: torch.Tensor):
-        """
-        Computes the padding for the base patch set based on the input tensor shape and the model's input shape.
+        """Computes the padding for the base patch set based on the input 
+        tensor shape and the model's input shape.
         """
         padding = [0, 0]
         for i, t in zip(self.padding["pad"][2:], tensor.shape[2:]):
@@ -331,13 +365,12 @@ class PatchInferencerEngine(_Engine):
     def __call__(
         self, model: Union[L.LightningModule, torch.nn.Module], x: torch.Tensor
     ):
-        """
-        Perform Inference in Patches
+        """Perform Inference in patches for a single sample.
 
         Parameters
         ----------
         x : torch.Tensor
-            Input Tensor.
+            Input tensorof the sample.
         """
         if len(x.shape) == len(self.input_shape) - 1:
             x = x.unsqueeze(0)
@@ -353,7 +386,9 @@ class PatchInferencerEngine(_Engine):
         slices = [
             tuple(
                 [
-                    slice(i, None)  # TODO: if ((i + base >= 0) and (i < in_dim))
+                    slice(
+                        i, None
+                    )  # TODO: if ((i + base >= 0) and (i < in_dim))
                     for i, in_dim in zip([0, *offset], x.shape)
                 ]
             )
@@ -370,11 +405,15 @@ class PatchInferencerEngine(_Engine):
             value=self.padding.get("value", 0),
         )
         results = (
-            tuple([] for _ in range(self.return_tuple)) if self.return_tuple else []
+            tuple([] for _ in range(self.return_tuple))
+            if self.return_tuple
+            else []
         )
         indexes = []
         for sl in slices:
-            patch_set, patch_idx = self._extract_patches(x_padded[sl], self.input_shape)
+            patch_set, patch_idx = self._extract_patches(
+                x_padded[sl], self.input_shape
+            )
             patch_set = patch_set.squeeze(1)
             inference = model(patch_set)
             if self.return_tuple:
