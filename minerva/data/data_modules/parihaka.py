@@ -201,11 +201,11 @@ class ParihakaDataModule(L.LightningDataModule):
             Whether to drop the last batch if it is smaller than the batch size,
             by default True.
         data_loader_kwargs : Optional[dict], optional
-            Aditional keyword arguments to pass to the DataLoader instantiation.
-            By default None. Note that, some frequently used parameters as 
-            `batch_size`, `num_workers`, and `drop_last` are ignored, as they 
-            are already presented as arguments to the ParihakaDataModule for 
-            simplicity.
+            Aditional keyword arguments to pass to the DataLoader instantiation,
+            for training, validation, testing, and prediction dataloaders.
+            By default None. Note that, `batch_size`, `num_workers`, and 
+            `drop_last` are ignored if passed in this dictionary, as they are
+            already presented in the ParihakaDataModule constructor.
         """
         super().__init__()
         self.root_data_dir = Path(root_data_dir)
@@ -221,8 +221,9 @@ class ParihakaDataModule(L.LightningDataModule):
         self.drop_last = drop_last
         self.datasets = {}
         
-        # 
         self.data_loader_kwargs = data_loader_kwargs or {}
+        # Update the data loader kwargs with the batch size, num workers, and
+        # drop last parameters, passed to the ParihakaDataModule.
         self.data_loader_kwargs.update(
             {
                 "batch_size": self.batch_size,
@@ -230,6 +231,9 @@ class ParihakaDataModule(L.LightningDataModule):
                 "drop_last": self.drop_last,
             }
         )
+        # Remove the shuffle parameter from the data loader kwargs, as it is
+        # handled by the dataloaders.
+        self.data_loader_kwargs.pop("shuffle", None)
 
     def setup(self, stage=None):
         if stage == "fit":
