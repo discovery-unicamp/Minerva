@@ -43,9 +43,9 @@ class PatchInferencer(L.LightningModule):
         ----------
         model : SimpleSupervisedModel
             Model to be wrapped.
-        input_shape : Tuple
+        input_shape : Tuple[int, ...]
             Expected input shape of the wrapped model.
-        output_shape : Tuple, optional
+        output_shape : Tuple[int, ...], optional
             Expected output shape of the wrapped model. For models that return
             logits (e.g., classification models), the `output_shape` must
             include an  additional dimension at the beginning to accommodate
