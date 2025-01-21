@@ -74,7 +74,7 @@ class PatchInferencer(L.LightningModule):
                 - mode (optional): 'constant', 'reflect', 'replicate' or
                     'circular'. Defaults to 'constant'.
                 - value (optional): fill value for 'constant'. Defaults to 0.
-            If None, a constant padding of 0 is used.
+            If None, no padding is applied.
         return_tuple: int, optional
             Some models may return multiple outputs for a single sample (e.g.,
             outputs from multiple auxiliary heads). This parameter is a integer
@@ -192,7 +192,7 @@ class PatchInferencerEngine(_Engine):
                     e.g., (0, 512, 512) - (c, h, w).
                 - 'mode': Padding mode, e.g., 'constant', 'reflect'.
                 - 'value': Padding value if mode is 'constant'.
-            Defaults to None, which means that a constant padding of 0 is used.
+            Defaults to None, which means no padding is applyied.
         weight_function : Callable, optional
             Function to calculate the weight of each patch. Defaults to None.
         return_tuple : int, optional
