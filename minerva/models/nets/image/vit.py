@@ -39,7 +39,9 @@ class _Encoder(nn.Module):
         attention_dropout: float,
         aux_output: bool = False,
         aux_output_layers: Optional[List[int]] = None,
-        norm_layer: Callable[..., torch.nn.Module] = partial(nn.LayerNorm, eps=1e-6),
+        norm_layer: Callable[..., torch.nn.Module] = partial(
+            nn.LayerNorm, eps=1e-6
+        ),
     ):
         super().__init__()
         # Note that batch_size is on the first dim because
@@ -100,7 +102,9 @@ class _VisionTransformerBackbone(nn.Module):
         num_classes: int = 1000,
         aux_output: bool = False,
         aux_output_layers: Optional[List[int]] = None,
-        norm_layer: Callable[..., torch.nn.Module] = partial(nn.LayerNorm, eps=1e-6),
+        norm_layer: Callable[..., torch.nn.Module] = partial(
+            nn.LayerNorm, eps=1e-6
+        ),
         conv_stem_configs: Optional[List[ConvStemConfig]] = None,
     ):
         """
@@ -110,7 +114,8 @@ class _VisionTransformerBackbone(nn.Module):
         ----------
         image_size : int or Tuple[int, int]
             The size of the input image. If an int is provided, it is assumed
-            to be a square image. If a tuple of ints is provided, it represents the height and width of the image.
+            to be a square image. If a tuple of ints is provided, it represents 
+            the height and width of the image.
         patch_size : int
             The size of each patch in the image.
         num_layers : int
@@ -120,21 +125,25 @@ class _VisionTransformerBackbone(nn.Module):
         hidden_dim : int
             The dimensionality of the hidden layers in the transformer.
         mlp_dim : int
-            The dimensionality of the feed-forward MLP layers in the transformer.
+            The dimensionality of the feed-forward MLP layers in the transformer
         original_resolution : Tuple[int, int], optional
-            The original resolution of the input image in the pre-training weights. When None, positional embeddings will not be interpolated. Defaults to None.
+            The original resolution of the input image in the pre-training 
+            weights. When None, positional embeddings will not be interpolated. 
+            Defaults to None.
         dropout : float, optional
             The dropout rate to apply. Defaults to 0.0.
         attention_dropout : float, optional
-            The dropout rate to apply to the attention weights. Defaults to 0.0.
+            The dropout rate to apply to the attention weights. Defaults to 0.0
         num_classes : int, optional
             The number of output classes. Defaults to 1000.
         norm_layer : Callable[..., torch.nn.Module], optional
-            The normalization layer to use. Defaults to nn.LayerNorm with epsilon=1e-6.
+            The normalization layer to use. Defaults to nn.LayerNorm with 
+            epsilon=1e-6.
         conv_stem_configs : List[ConvStemConfig], optional
             The configuration for the convolutional stem layers.
-            If provided, the input image will be processed by these convolutional layers before being passed to
-            the transformer. Defaults to None.
+            If provided, the input image will be processed by these 
+            convolutional layers before being passed to the transformer. 
+            Defaults to None.
 
         """
         super().__init__()
@@ -148,11 +157,13 @@ class _VisionTransformerBackbone(nn.Module):
 
         if isinstance(image_size, int):
             torch._assert(
-                image_size % patch_size == 0, "Input shape indivisible by patch size!"
+                image_size % patch_size == 0,
+                "Input shape indivisible by patch size!",
             )
         elif isinstance(image_size, tuple):
             torch._assert(
-                image_size[0] % patch_size == 0 and image_size[1] % patch_size == 0,
+                image_size[0] % patch_size == 0
+                and image_size[1] % patch_size == 0,
                 "Input shape indivisible by patch size!",
             )
 
@@ -190,7 +201,9 @@ class _VisionTransformerBackbone(nn.Module):
             seq_proj.add_module(
                 "conv_last",
                 nn.Conv2d(
-                    in_channels=prev_channels, out_channels=hidden_dim, kernel_size=1
+                    in_channels=prev_channels,
+                    out_channels=hidden_dim,
+                    kernel_size=1,
                 ),
             )
             self.conv_proj: nn.Module = seq_proj
@@ -205,7 +218,9 @@ class _VisionTransformerBackbone(nn.Module):
         if isinstance(image_size, int):
             seq_length = (image_size // patch_size) ** 2
         elif isinstance(image_size, tuple):
-            seq_length = (image_size[0] // patch_size) * (image_size[1] // patch_size)
+            seq_length = (image_size[0] // patch_size) * (
+                image_size[1] // patch_size
+            )
 
         # Add a class token
         self.class_token = nn.Parameter(torch.zeros(1, 1, hidden_dim))
@@ -232,7 +247,9 @@ class _VisionTransformerBackbone(nn.Module):
                 * self.conv_proj.kernel_size[0]
                 * self.conv_proj.kernel_size[1]
             )
-            nn.init.trunc_normal_(self.conv_proj.weight, std=math.sqrt(1 / fan_in))
+            nn.init.trunc_normal_(
+                self.conv_proj.weight, std=math.sqrt(1 / fan_in)
+            )
             if self.conv_proj.bias is not None:
                 nn.init.zeros_(self.conv_proj.bias)
         elif self.conv_proj.conv_last is not None and isinstance(
@@ -254,7 +271,8 @@ class _VisionTransformerBackbone(nn.Module):
             x (torch.Tensor): The input tensor.
 
         Returns:
-            Tuple[torch.Tensor, int, int]: The reshaped tensor, number of rows, and number of columns.
+            Tuple[torch.Tensor, int, int]: The reshaped tensor, number of rows, 
+            and number of columns.
         """
         n, c, h, w = x.shape
         p = self.patch_size
@@ -304,7 +322,10 @@ class _VisionTransformerBackbone(nn.Module):
             pretrained_pos_embed (torch.Tensor): Pretrained positional embeddings.
             new_img_size (Tuple[int, int]): New height and width of the input image.
         """
-        h, w = new_img_size[0] // self.patch_size, new_img_size[1] // self.patch_size
+        h, w = (
+            new_img_size[0] // self.patch_size,
+            new_img_size[1] // self.patch_size,
+        )
         new_grid_size = (h, w)
 
         # Reshape pretrained positional embeddings to match the original grid size
@@ -338,14 +359,17 @@ class _VisionTransformerBackbone(nn.Module):
 
         # Concatenate the CLS token and the interpolated positional embeddings
         cls_token = pretrained_pos_embed[:, :1]
-        pos_embed_interpolated = torch.cat((cls_token, pos_embed_interpolated), dim=1)
+        pos_embed_interpolated = torch.cat(
+            (cls_token, pos_embed_interpolated), dim=1
+        )
 
         return pos_embed_interpolated
 
         return pos_embed_interpolated
 
     def load_backbone(self, path: str, freeze: bool = False):
-        """Loads pretrained weights and handles positional embedding resizing if necessary."""
+        """Loads pretrained weights and handles positional embedding resizing 
+        if necessary."""
         # Load the pretrained state dict
         state_dict = torch.load(path)
 
@@ -359,17 +383,24 @@ class _VisionTransformerBackbone(nn.Module):
 
         expected_pos_embed_shape = (
             1,
-            (image_size[0] // self.patch_size) * (image_size[1] // self.patch_size) + 1,
+            (image_size[0] // self.patch_size)
+            * (image_size[1] // self.patch_size)
+            + 1,
             self.hidden_dim,
         )
 
         # Check if positional embeddings need interpolation
-        if state_dict["encoder.pos_embedding"].shape != expected_pos_embed_shape:
+        if (
+            state_dict["encoder.pos_embedding"].shape
+            != expected_pos_embed_shape
+        ):
             # Extract the positional embeddings from the state dict
             pretrained_pos_embed = state_dict["encoder.pos_embedding"]
 
             # Interpolate to match the current image size
-            print("Interpolating positional embeddings to match the new image size.")
+            print(
+                "Interpolating positional embeddings to match the new image size."
+            )
             with torch.no_grad():
                 pos_embed_interpolated = self.interpolate_pos_embeddings(
                     pretrained_pos_embed, (image_size[0], image_size[1])
@@ -443,17 +474,24 @@ class _VisionTransformerBackbone(nn.Module):
 
         expected_pos_embed_shape = (
             1,
-            (image_size[0] // self.patch_size) * (image_size[1] // self.patch_size) + 1,
+            (image_size[0] // self.patch_size)
+            * (image_size[1] // self.patch_size)
+            + 1,
             self.hidden_dim,
         )
 
         # Check if positional embeddings need interpolation
-        if state_dict["encoder.pos_embedding"].shape != expected_pos_embed_shape:
+        if (
+            state_dict["encoder.pos_embedding"].shape
+            != expected_pos_embed_shape
+        ):
             # Extract the positional embeddings from the state dict
             pretrained_pos_embed = state_dict["encoder.pos_embedding"]
 
             # Interpolate to match the current image size
-            print("Interpolating positional embeddings to match the new image size.")
+            print(
+                "Interpolating positional embeddings to match the new image size."
+            )
             with torch.no_grad():
                 pos_embed_interpolated = self.interpolate_pos_embeddings(
                     pretrained_pos_embed, (image_size[0], image_size[1])
@@ -578,7 +616,9 @@ class MaskedAutoencoderViT(L.LightningModule):
             int(self.patch_embed.num_patches**0.5),
             cls_token=True,
         )
-        self.pos_embed.data.copy_(torch.from_numpy(pos_embed).float().unsqueeze(0))
+        self.pos_embed.data.copy_(
+            torch.from_numpy(pos_embed).float().unsqueeze(0)
+        )
 
         decoder_pos_embed = get_2d_sincos_pos_embed(
             self.decoder_pos_embed.shape[-1],
@@ -625,7 +665,9 @@ class MaskedAutoencoderViT(L.LightningModule):
         x = imgs.reshape(
             (imgs.shape[0], self.in_chans, h, p, w, p)
         )  # Transform images into (32, 1, 14, 16, 14, 16)
-        x = torch.einsum("nchpwq->nhwpqc", x)  # reshape into (32, 14, 14, 16, 16, 1)
+        x = torch.einsum(
+            "nchpwq->nhwpqc", x
+        )  # reshape into (32, 14, 14, 16, 16, 1)
         x = x.reshape(
             (imgs.shape[0], h * w, p**2 * self.in_chans)
         )  # Transform into (32, 196, 256)
@@ -659,7 +701,8 @@ class MaskedAutoencoderViT(L.LightningModule):
             mask_ratio (float): Ratio of values to mask.
 
         Returns:
-            Tuple[torch.Tensor, torch.Tensor, torch.Tensor]: Masked input, binary mask, shuffled indices.
+            Tuple[torch.Tensor, torch.Tensor, torch.Tensor]: Masked input, 
+            binary mask, shuffled indices.
         """
         N, L, D = x.shape
         len_keep = int(L * (1 - mask_ratio))
@@ -670,7 +713,9 @@ class MaskedAutoencoderViT(L.LightningModule):
         ids_restore = torch.argsort(ids_shuffle, dim=1)
 
         ids_keep = ids_shuffle[:, :len_keep]
-        x_masked = torch.gather(x, dim=1, index=ids_keep.unsqueeze(-1).repeat(1, 1, D))
+        x_masked = torch.gather(
+            x, dim=1, index=ids_keep.unsqueeze(-1).repeat(1, 1, D)
+        )
 
         mask = torch.ones(N, L, device=x.device)
         mask[:, :len_keep] = 0
@@ -687,7 +732,8 @@ class MaskedAutoencoderViT(L.LightningModule):
             mask_ratio (float): Ratio of values to mask.
 
         Returns:
-            Tuple[torch.Tensor, torch.Tensor, torch.Tensor]: Encoded representation, binary mask, shuffled indices.
+            Tuple[torch.Tensor, torch.Tensor, torch.Tensor]: Encoded 
+            representation, binary mask, shuffled indices.
         """
         x = self.patch_embed(x)
         x = x + self.pos_embed[:, 1:, :]
@@ -710,7 +756,8 @@ class MaskedAutoencoderViT(L.LightningModule):
 
         Args:
             x (torch.Tensor): Input tensor of shape (N, L, D).
-            ids_restore (torch.Tensor): Indices to restore the original order of patches.
+            ids_restore (torch.Tensor): Indices to restore the original order 
+            of patches.
 
         Returns:
             torch.Tensor: Decoded output tensor of shape (N, L, patch_size^2 * in_chans).
@@ -769,7 +816,8 @@ class MaskedAutoencoderViT(L.LightningModule):
             mask_ratio (float): Ratio of values to mask.
 
         Returns:
-            Tuple[torch.Tensor, torch.Tensor, torch.Tensor]: Loss value, predicted output, binary mask.
+            Tuple[torch.Tensor, torch.Tensor, torch.Tensor]: Loss value, 
+            predicted output, binary mask.
         """
         latent, mask, ids_restore = self.forward_encoder(imgs, mask_ratio)
         pred = self.forward_decoder(latent, ids_restore)
@@ -785,7 +833,8 @@ class MaskedAutoencoderViT(L.LightningModule):
             batch_idx (int): Index of the current batch.
 
         Returns:
-            Dict[str, torch.Tensor]: Dictionary containing the loss value for the current step.
+            Dict[str, torch.Tensor]: Dictionary containing the loss value for 
+            the current step.
         """
         imgs, _ = batch
         loss, _, _ = self(imgs)
@@ -797,11 +846,13 @@ class MaskedAutoencoderViT(L.LightningModule):
         Validation step.
 
         Args:
-            batch (Tuple[torch.Tensor]): Input batch of images and corresponding labels.
+            batch (Tuple[torch.Tensor]): Input batch of images and 
+            corresponding labels.
             batch_idx (int): Index of the current batch.
 
         Returns:
-            Dict[str, torch.Tensor]: Dictionary containing the loss value for the current step.
+            Dict[str, torch.Tensor]: Dictionary containing the loss value for 
+            the current step.
         """
         imgs, _ = batch
         loss, _, _ = self(imgs)
@@ -1101,7 +1152,9 @@ class DecoderCup(nn.Module):
         # skip_channels=[128,64,32,8]
         blocks = [
             DecoderBlock(in_ch, out_ch, sk_ch)
-            for in_ch, out_ch, sk_ch in zip(in_channels, out_channels, skip_channels)
+            for in_ch, out_ch, sk_ch in zip(
+                in_channels, out_channels, skip_channels
+            )
         ]
         self.blocks = nn.ModuleList(blocks)
 
@@ -1153,7 +1206,9 @@ class MLAHead(nn.Module):
             nn.Conv2d(mla_channels, mlahead_channels, 3, padding=1, bias=False),
             nn.BatchNorm2d(mlahead_channels),
             nn.ReLU(),
-            nn.Conv2d(mlahead_channels, mlahead_channels, 3, padding=1, bias=False),
+            nn.Conv2d(
+                mlahead_channels, mlahead_channels, 3, padding=1, bias=False
+            ),
             nn.BatchNorm2d(mlahead_channels),
             nn.ReLU(),
         )
@@ -1161,7 +1216,9 @@ class MLAHead(nn.Module):
             nn.Conv2d(mla_channels, mlahead_channels, 3, padding=1, bias=False),
             nn.BatchNorm2d(mlahead_channels),
             nn.ReLU(),
-            nn.Conv2d(mlahead_channels, mlahead_channels, 3, padding=1, bias=False),
+            nn.Conv2d(
+                mlahead_channels, mlahead_channels, 3, padding=1, bias=False
+            ),
             nn.BatchNorm2d(mlahead_channels),
             nn.ReLU(),
         )
@@ -1169,7 +1226,9 @@ class MLAHead(nn.Module):
             nn.Conv2d(mla_channels, mlahead_channels, 3, padding=1, bias=False),
             nn.BatchNorm2d(mlahead_channels),
             nn.ReLU(),
-            nn.Conv2d(mlahead_channels, mlahead_channels, 3, padding=1, bias=False),
+            nn.Conv2d(
+                mlahead_channels, mlahead_channels, 3, padding=1, bias=False
+            ),
             nn.BatchNorm2d(mlahead_channels),
             nn.ReLU(),
         )
@@ -1177,7 +1236,9 @@ class MLAHead(nn.Module):
             nn.Conv2d(mla_channels, mlahead_channels, 3, padding=1, bias=False),
             nn.BatchNorm2d(mlahead_channels),
             nn.ReLU(),
-            nn.Conv2d(mlahead_channels, mlahead_channels, 3, padding=1, bias=False),
+            nn.Conv2d(
+                mlahead_channels, mlahead_channels, 3, padding=1, bias=False
+            ),
             nn.BatchNorm2d(mlahead_channels),
             nn.ReLU(),
         )
@@ -1235,7 +1296,9 @@ class VIT_MLAHead(nn.Module):
             mlahead_channels=self.mlahead_channels,
             norm_cfg=self.norm_cfg,
         )
-        self.cls = nn.Conv2d(4 * self.mlahead_channels, self.num_classes, 3, padding=1)
+        self.cls = nn.Conv2d(
+            4 * self.mlahead_channels, self.num_classes, 3, padding=1
+        )
 
     def forward(self, x1, x2, x3, x4, h=14, w=14):
         B, n_patch, hidden = x1.size()
@@ -1251,7 +1314,9 @@ class VIT_MLAHead(nn.Module):
         x4 = x4.contiguous().view(B, hidden, h, w)
         x = self.mlahead(x1, x2, x3, x4)
         x = self.cls(x)
-        x = F.interpolate(x, size=(h * 16, w * 16), mode="bilinear", align_corners=True)
+        x = F.interpolate(
+            x, size=(h * 16, w * 16), mode="bilinear", align_corners=True
+        )
         return x
 
 
@@ -1297,14 +1362,18 @@ def vit_huge_patch14_downstream_regression(**kwargs):
     return model
 
 
-def interpolate_pos_embed(model, checkpoint_model, newsize1=None, newsize2=None):
+def interpolate_pos_embed(
+    model, checkpoint_model, newsize1=None, newsize2=None
+):
     if "pos_embed" in checkpoint_model:
         pos_embed_checkpoint = checkpoint_model["pos_embed"]
         embedding_size = pos_embed_checkpoint.shape[-1]
         num_patches = model.patch_embed.num_patches
         num_extra_tokens = model.pos_embed.shape[-2] - num_patches
         # height (== width) for the checkpoint position embedding
-        orig_size = int((pos_embed_checkpoint.shape[-2] - num_extra_tokens) ** 0.5)
+        orig_size = int(
+            (pos_embed_checkpoint.shape[-2] - num_extra_tokens) ** 0.5
+        )
         # height (== width) for the new position embedding
         new_size = int(num_patches**0.5)
         # class_token and dist_token are kept unchanged
