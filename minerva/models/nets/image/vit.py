@@ -33,9 +33,7 @@ class _Encoder(nn.Module):
         attention_dropout: float,
         aux_output: bool = False,
         aux_output_layers: Optional[List[int]] = None,
-        norm_layer: Callable[..., torch.nn.Module] = partial(
-            nn.LayerNorm, eps=1e-6
-        ),
+        norm_layer: Callable[..., torch.nn.Module] = partial(nn.LayerNorm, eps=1e-6),
     ):
         super().__init__()
         # Note that batch_size is on the first dim because
@@ -96,9 +94,7 @@ class _VisionTransformerBackbone(nn.Module):
         num_classes: int = 1000,
         aux_output: bool = False,
         aux_output_layers: Optional[List[int]] = None,
-        norm_layer: Callable[..., torch.nn.Module] = partial(
-            nn.LayerNorm, eps=1e-6
-        ),
+        norm_layer: Callable[..., torch.nn.Module] = partial(nn.LayerNorm, eps=1e-6),
         conv_stem_configs: Optional[List[ConvStemConfig]] = None,
     ):
         """
@@ -108,7 +104,7 @@ class _VisionTransformerBackbone(nn.Module):
         ----------
         image_size : int or Tuple[int, int]
             The size of the input image. If an int is provided, it is assumed
-            to be a square image. If a tuple of ints is provided, it represents 
+            to be a square image. If a tuple of ints is provided, it represents
             the height and width of the image.
         patch_size : int
             The size of each patch in the image.
@@ -121,8 +117,8 @@ class _VisionTransformerBackbone(nn.Module):
         mlp_dim : int
             The dimensionality of the feed-forward MLP layers in the transformer
         original_resolution : Tuple[int, int], optional
-            The original resolution of the input image in the pre-training 
-            weights. When None, positional embeddings will not be interpolated. 
+            The original resolution of the input image in the pre-training
+            weights. When None, positional embeddings will not be interpolated.
             Defaults to None.
         dropout : float, optional
             The dropout rate to apply. Defaults to 0.0.
@@ -131,12 +127,12 @@ class _VisionTransformerBackbone(nn.Module):
         num_classes : int, optional
             The number of output classes. Defaults to 1000.
         norm_layer : Callable[..., torch.nn.Module], optional
-            The normalization layer to use. Defaults to nn.LayerNorm with 
+            The normalization layer to use. Defaults to nn.LayerNorm with
             epsilon=1e-6.
         conv_stem_configs : List[ConvStemConfig], optional
             The configuration for the convolutional stem layers.
-            If provided, the input image will be processed by these 
-            convolutional layers before being passed to the transformer. 
+            If provided, the input image will be processed by these
+            convolutional layers before being passed to the transformer.
             Defaults to None.
 
         """
@@ -156,8 +152,7 @@ class _VisionTransformerBackbone(nn.Module):
             )
         elif isinstance(image_size, tuple):
             torch._assert(
-                image_size[0] % patch_size == 0
-                and image_size[1] % patch_size == 0,
+                image_size[0] % patch_size == 0 and image_size[1] % patch_size == 0,
                 "Input shape indivisible by patch size!",
             )
 
@@ -212,9 +207,7 @@ class _VisionTransformerBackbone(nn.Module):
         if isinstance(image_size, int):
             seq_length = (image_size // patch_size) ** 2
         elif isinstance(image_size, tuple):
-            seq_length = (image_size[0] // patch_size) * (
-                image_size[1] // patch_size
-            )
+            seq_length = (image_size[0] // patch_size) * (image_size[1] // patch_size)
 
         # Add a class token
         self.class_token = nn.Parameter(torch.zeros(1, 1, hidden_dim))
@@ -241,9 +234,7 @@ class _VisionTransformerBackbone(nn.Module):
                 * self.conv_proj.kernel_size[0]
                 * self.conv_proj.kernel_size[1]
             )
-            nn.init.trunc_normal_(
-                self.conv_proj.weight, std=math.sqrt(1 / fan_in)
-            )
+            nn.init.trunc_normal_(self.conv_proj.weight, std=math.sqrt(1 / fan_in))
             if self.conv_proj.bias is not None:
                 nn.init.zeros_(self.conv_proj.bias)
         elif self.conv_proj.conv_last is not None and isinstance(
@@ -265,7 +256,7 @@ class _VisionTransformerBackbone(nn.Module):
             x (torch.Tensor): The input tensor.
 
         Returns:
-            Tuple[torch.Tensor, int, int]: The reshaped tensor, number of rows, 
+            Tuple[torch.Tensor, int, int]: The reshaped tensor, number of rows,
             and number of columns.
         """
         n, c, h, w = x.shape
@@ -353,16 +344,14 @@ class _VisionTransformerBackbone(nn.Module):
 
         # Concatenate the CLS token and the interpolated positional embeddings
         cls_token = pretrained_pos_embed[:, :1]
-        pos_embed_interpolated = torch.cat(
-            (cls_token, pos_embed_interpolated), dim=1
-        )
+        pos_embed_interpolated = torch.cat((cls_token, pos_embed_interpolated), dim=1)
 
         return pos_embed_interpolated
 
         return pos_embed_interpolated
 
     def load_backbone(self, path: str, freeze: bool = False):
-        """Loads pretrained weights and handles positional embedding resizing 
+        """Loads pretrained weights and handles positional embedding resizing
         if necessary."""
         # Load the pretrained state dict
         state_dict = torch.load(path)
@@ -377,24 +366,17 @@ class _VisionTransformerBackbone(nn.Module):
 
         expected_pos_embed_shape = (
             1,
-            (image_size[0] // self.patch_size)
-            * (image_size[1] // self.patch_size)
-            + 1,
+            (image_size[0] // self.patch_size) * (image_size[1] // self.patch_size) + 1,
             self.hidden_dim,
         )
 
         # Check if positional embeddings need interpolation
-        if (
-            state_dict["encoder.pos_embedding"].shape
-            != expected_pos_embed_shape
-        ):
+        if state_dict["encoder.pos_embedding"].shape != expected_pos_embed_shape:
             # Extract the positional embeddings from the state dict
             pretrained_pos_embed = state_dict["encoder.pos_embedding"]
 
             # Interpolate to match the current image size
-            print(
-                "Interpolating positional embeddings to match the new image size."
-            )
+            print("Interpolating positional embeddings to match the new image size.")
             with torch.no_grad():
                 pos_embed_interpolated = self.interpolate_pos_embeddings(
                     pretrained_pos_embed, (image_size[0], image_size[1])
@@ -468,24 +450,17 @@ class _VisionTransformerBackbone(nn.Module):
 
         expected_pos_embed_shape = (
             1,
-            (image_size[0] // self.patch_size)
-            * (image_size[1] // self.patch_size)
-            + 1,
+            (image_size[0] // self.patch_size) * (image_size[1] // self.patch_size) + 1,
             self.hidden_dim,
         )
 
         # Check if positional embeddings need interpolation
-        if (
-            state_dict["encoder.pos_embedding"].shape
-            != expected_pos_embed_shape
-        ):
+        if state_dict["encoder.pos_embedding"].shape != expected_pos_embed_shape:
             # Extract the positional embeddings from the state dict
             pretrained_pos_embed = state_dict["encoder.pos_embedding"]
 
             # Interpolate to match the current image size
-            print(
-                "Interpolating positional embeddings to match the new image size."
-            )
+            print("Interpolating positional embeddings to match the new image size.")
             with torch.no_grad():
                 pos_embed_interpolated = self.interpolate_pos_embeddings(
                     pretrained_pos_embed, (image_size[0], image_size[1])
@@ -498,6 +473,8 @@ class _VisionTransformerBackbone(nn.Module):
         # Optionally freeze parameters
         if freeze:
             for param in self.parameters():
+                param.requires_grad = False
+
 
 class MaskedAutoencoderViT(L.LightningModule):
     """
