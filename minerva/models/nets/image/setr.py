@@ -12,12 +12,9 @@ from minerva.models.nets.image.vit import _VisionTransformerBackbone
 from minerva.utils.upsample import Upsample
 
 
-# region _SETRUPHead
 class _SETRUPHead(nn.Module):
-    """Naive upsampling head and Progressive upsampling head of SETR.
-
-    Naive or PUP head of `SETR  <https://arxiv.org/pdf/2012.15840.pdf>`_.
-
+    """Naive upsampling head and Progressive upsampling head of SETR
+    (as in https://arxiv.org/pdf/2012.15840.pdf).
     """
 
     def __init__(
@@ -35,8 +32,7 @@ class _SETRUPHead(nn.Module):
         dropout: float,
         interpolate_mode: str,
     ):
-        """
-        Initializes the SETR model.
+        """The SETR PUP Head.
 
         Parameters
         ----------
@@ -122,11 +118,11 @@ class _SETRUPHead(nn.Module):
         return out
 
 
-# region _SETRMLAHead
 class _SETRMLAHead(nn.Module):
-    """Multi level feature aggretation head of SETR.
-    This has not been tested yet.
-    MLA head of `SETR  <https://arxiv.org/pdf/2012.15840.pdf>`_.
+    """Multi level feature aggretation head of SETR (as in
+    https://arxiv.org/pdf/2012.15840.pdf)
+
+    Note: This has not been tested yet!
     """
 
     def __init__(
@@ -134,7 +130,7 @@ class _SETRMLAHead(nn.Module):
         channels: int,
         conv_norm: Optional[nn.Module],
         conv_act: Optional[nn.Module],
-        in_channels: list[int],
+        in_channels: List[int],
         out_channels: int,
         num_classes: int,
         mla_channels: int = 128,
@@ -222,9 +218,7 @@ class _SETRMLAHead(nn.Module):
         return out
 
 
-# region _SetR_PUP
 class _SetR_PUP(nn.Module):
-
     def __init__(
         self,
         image_size: Union[int, Tuple[int, int]],
@@ -246,11 +240,10 @@ class _SetR_PUP(nn.Module):
         conv_act: nn.Module,
         align_corners: bool,
         aux_output: bool,
-        aux_output_layers: list[int] | None,
+        aux_output_layers: Optional[List[int]],
         original_resolution: Optional[Tuple[int, int]],
     ):
-        """
-        Initializes the SETR PUP model.
+        """Initializes the SETR PUP head.
 
         Parameters
         ----------
@@ -265,7 +258,7 @@ class _SetR_PUP(nn.Module):
         hidden_dim : int
             The hidden dimension of the transformer encoder.
         mlp_dim : int
-            The dimension of the feed-forward network in the transformer encoder.
+            The dimension of the feed-forward network in the transformer encoder
         num_convs : int
             The number of convolutional layers in the decoder.
         num_classes : int
@@ -285,11 +278,21 @@ class _SetR_PUP(nn.Module):
         interpolate_mode : str
             The mode for interpolation during upsampling.
         conv_norm : nn.Module
-            The normalization layer to be used in the decoder convolutional layers.
+            The normalization layer to be used in the decoder convolutional
+            layers.
         conv_act : nn.Module
-            The activation function to be used in the decoder convolutional layers.
+            The activation function to be used in the decoder convolutional
+            layers.
         align_corners : bool
             Whether to align corners during upsampling.
+        aux_output: bool
+            Whether to use auxiliary outputs. If True, aux_output_layers must
+            be provided.
+        aux_output_layers: List[int], optional
+            The layers to use for auxiliary outputs. Must have exacly 3 values.
+        original_resolution: Tuple[int, int], optional
+            The original resolution of the input image in the pre-training
+            weights. When None, positional embeddings will not be interpolated.
 
         """
         super().__init__()
@@ -397,75 +400,8 @@ class _SetR_PUP(nn.Module):
                 param.requires_grad = False
 
 
-# region SETR_PUP
 class SETR_PUP(L.LightningModule):
-    """
-    SETR_PUP is a PyTorch Lightning Module for the SETR (Segmenter Transformer) model with Patch Up-sampling (PUP).
-
-    Parameters
-    ----------
-    image_size : Union[int, Tuple[int, int]], default=512
-        The size of the input image.
-    patch_size : int, default=16
-        The size of the patches to be extracted from the input image.
-    num_layers : int, default=24
-        The number of transformer layers in the encoder.
-    num_heads : int, default=16
-        The number of attention heads in each transformer layer.
-    hidden_dim : int, default=1024
-        The hidden dimension of the transformer layers.
-    mlp_dim : int, default=4096
-        The dimension of the MLP (Feed-Forward) layers in the transformer.
-    encoder_dropout : float, default=0.1
-        The dropout rate for the encoder.
-    num_classes : int, default=1000
-        The number of output classes.
-    norm_layer : Optional[nn.Module], default=None
-        The normalization layer to be used in the transformer.
-    decoder_channels : int, default=256
-        The number of channels in the decoder.
-    num_convs : int, default=4
-        The number of convolutional layers in the decoder.
-    up_scale : int, default=2
-        The up-sampling scale factor.
-    kernel_size : int, default=3
-        The kernel size for the convolutional layers.
-    align_corners : bool, default=False
-        Whether to align corners when interpolating.
-    decoder_dropout : float, default=0.1
-        The dropout rate for the decoder.
-    conv_norm : Optional[nn.Module], default=None
-        The normalization layer to be used in the convolutional layers.
-    conv_act : Optional[nn.Module], default=None
-        The activation function to be used in the convolutional layers.
-    interpolate_mode : str, default="bilinear"
-        The interpolation mode to be used for up-sampling.
-    loss_fn : Optional[nn.Module], default=None
-        The loss function to be used.
-    optimizer_type : Optional[type], default=None
-        The type of optimizer to be used.
-    optimizer_params : Optional[Dict], default=None
-        The parameters for the optimizer.
-    train_metrics : Optional[Dict[str, Metric]], default=None
-        The metrics to be used during training.
-    val_metrics : Optional[Dict[str, Metric]], default=None
-        The metrics to be used during validation.
-    test_metrics : Optional[Dict[str, Metric]], default=None
-        The metrics to be used during testing.
-    aux_output : bool, default=True
-        Whether to use auxiliary outputs.
-    aux_output_layers : list[int] | None, default=[9, 14, 19]
-        The layers from which to take auxiliary outputs.
-    aux_weights : list[float], default=[0.3, 0.3, 0.3]
-        The weights for the auxiliary outputs.
-    load_backbone_path : Optional[str], default=None
-        The path to the pre-trained backbone to be loaded.
-    freeze_backbone_on_load : bool, default=True
-        Whether to freeze the backbone after loading.
-    learning_rate : float, default=1e-3
-        The learning rate for the optimizer.
-    loss_weights : Optional[list[float]], default=None
-        The weights for the loss function.
+    """SET-R model with PUP head for image segmentation.
 
     Methods
     -------
@@ -520,8 +456,8 @@ class SETR_PUP(L.LightningModule):
         val_metrics: Optional[Dict[str, Metric]] = None,
         test_metrics: Optional[Dict[str, Metric]] = None,
         aux_output: bool = True,
-        aux_output_layers: list[int] | None = [9, 14, 19],
-        aux_weights: list[float] = [0.3, 0.3, 0.3],
+        aux_output_layers: Optional[list[int]] = None,
+        aux_weights: Optional[list[float]] = None,
         load_backbone_path: Optional[str] = None,
         freeze_backbone_on_load: bool = True,
         learning_rate: float = 1e-3,
@@ -530,15 +466,15 @@ class SETR_PUP(L.LightningModule):
         head_lr_factor: float = 1.0,
         test_engine: Optional[_Engine] = None,
     ):
-        """
-        Initialize the SETR model.
+        """Initialize the SETR model with Progressive Upsampling Head.
 
         Parameters
         ----------
         image_size : Union[int, Tuple[int, int]], optional
             Size of the input image, by default 512.
         patch_size : int, optional
-            Size of the patches to be extracted from the input image, by default 16.
+            Size of the patches to be extracted from the input image, by
+            default 16.
         num_layers : int, optional
             Number of transformer layers, by default 24.
         num_heads : int, optional
@@ -572,7 +508,8 @@ class SETR_PUP(L.LightningModule):
         interpolate_mode : str, optional
             Interpolation mode, by default "bilinear".
         loss_fn : Optional[nn.Module], optional
-            Loss function, by default None.
+            Loss function, when None defaults to nn.CrossEntropyLoss, by
+            default None.
         optimizer_type : Optional[type], optional
             Type of optimizer, by default None.
         optimizer_params : Optional[Dict], optional
@@ -585,10 +522,10 @@ class SETR_PUP(L.LightningModule):
             Metrics for testing, by default None.
         aux_output : bool, optional
             Whether to use auxiliary outputs, by default True.
-        aux_output_layers : list[int] | None, optional
-            Layers for auxiliary outputs, by default [9, 14, 19].
+        aux_output_layers : list[int], optional
+            Layers for auxiliary outputs, when None it defaults to [9, 14, 19].
         aux_weights : list[float], optional
-            Weights for auxiliary outputs, by default [0.3, 0.3, 0.3].
+            Weights for auxiliary outputs, when None it defaults [0.3, 0.3, 0.3].
         load_backbone_path : Optional[str], optional
             Path to load the backbone model, by default None.
         freeze_backbone_on_load : bool, optional
@@ -597,19 +534,33 @@ class SETR_PUP(L.LightningModule):
             Learning rate, by default 1e-3.
         loss_weights : Optional[list[float]], optional
             Weights for the loss function, by default None.
+        original_resolution : Optional[Tuple[int, int]], optional
+            The original resolution of the input image in the pre-training
+            weights. When None, positional embeddings will not be interpolated.
+            Defaults to None.
+        head_lr_factor : float, optional
+            Learning rate factor for the head. used if you need different
+            learning rates for backbone and prediction head, by default 1.0.
+        test_engine : Optional[_Engine], optional
+            Engine used for test and validation steps. When None, behavior of
+            all steps, training, testing and validation is the same, by default None.
         """
-
         super().__init__()
 
         if head_lr_factor != 1:
             self.automatic_optimization = False
             self.multiple_optimizers = True
+        else:
+            self.automatic_optimization = True
+            self.multiple_optimizers = False
 
         self.loss_fn = (
             loss_fn
             if loss_fn is not None
             else nn.CrossEntropyLoss(
-                weight=torch.tensor(loss_weights) if loss_weights is not None else None
+                weight=(
+                    torch.tensor(loss_weights) if loss_weights is not None else None
+                )
             )
         )
         norm_layer = norm_layer if norm_layer is not None else nn.LayerNorm(hidden_dim)
@@ -619,13 +570,19 @@ class SETR_PUP(L.LightningModule):
         conv_act = conv_act if conv_act is not None else nn.ReLU()
 
         if aux_output:
-            assert aux_output_layers is not None, "aux_output_layers must be provided."
+            if aux_output_layers is None:
+                aux_output_layers = [9, 14, 19]
+                warnings.warn(
+                    "aux_output_layers not provided. Using default values [9, 14, 19]."
+                )
+            if aux_weights is None:
+                aux_weights = [0.3, 0.3, 0.3]
+                warnings.warn(
+                    "aux_weights not provided. Using default values [0.3, 0.3, 0.3]."
+                )
             assert (
                 len(aux_output_layers) == 3
             ), "aux_output_layers must have 3 values. Only 3 aux heads are supported."
-            assert len(aux_weights) == len(
-                aux_output_layers
-            ), "aux_weights must have the same length as aux_output_layers."
 
         self.optimizer_type = optimizer_type
         if optimizer_type is not None:
@@ -688,7 +645,8 @@ class SETR_PUP(L.LightningModule):
     def _loss_func(
         self,
         y_hat: Union[
-            torch.Tensor, Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]
+            torch.Tensor,
+            Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor],
         ],
         y: torch.Tensor,
     ) -> torch.Tensor:
@@ -794,7 +752,10 @@ class SETR_PUP(L.LightningModule):
         return self._single_step(batch, batch_idx, "test")
 
     def predict_step(
-        self, batch: torch.Tensor, batch_idx: int, dataloader_idx: Optional[int] = None
+        self,
+        batch: torch.Tensor,
+        batch_idx: int,
+        dataloader_idx: Optional[int] = None,
     ):
         x, _ = batch
         return self.model(x)[0]
