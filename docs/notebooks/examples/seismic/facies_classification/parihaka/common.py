@@ -24,7 +24,7 @@ from minerva.transforms.transform import Indexer, Unsqueeze, Squeeze
 def get_data_module(
     root_data_dir: PathLike,
     root_annotation_dir: PathLike,
-    img_size: Tuple[int, int] = (1006, 590),
+    img_size: Optional[Tuple[int, int]] = (1006, 590),
     batch_size: int = 1,
     num_workers: Optional[int] = None,
     seed: int = 42,
