@@ -5,7 +5,7 @@
 ## Checklist before requesting a review
 
 - [ ] I have performed a self-review of my code.
-- [ ] I have added tests to this funtionality.
+- [ ] I have added tests to this functionality.
 - [ ] All tests are passing.
 - [ ] I have updated the documentation as needed.
 - [ ] I have followed the project's coding guidelines.
