@@ -392,7 +392,7 @@ class _SetR_PUP(nn.Module):
         x = self.encoder(x)
         x = self.decoder(x)
         return x
-
+      
     def load_backbone(self, path: str, freeze: bool = False):
         self.encoder.load_backbone(path)
         if freeze:
