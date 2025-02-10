@@ -9,7 +9,7 @@
 
 import numpy as np
 import math
-from typing import Any, Dict, List, Tuple, Optional, Type
+from typing import Any, Dict, List, Tuple, Optional, Type, Union
 from functools import partial
 import lightning as L
 import torch
@@ -17,7 +17,8 @@ from torch import Tensor, nn
 from torch.nn import functional as F
 from torchmetrics import Metric
 from minerva.models.finetune_adapters import LoRA
-# from minerva.models.nets.mlp import MLP
+from minerva.models.nets.mlp import MLP
+
 
 # based on: https://github.com/facebookresearch/segment-anything/blob/main/segment_anything/modeling/common.py
 class MLPBlock(nn.Module):
@@ -35,7 +36,7 @@ class MLPBlock(nn.Module):
     mlp_dim : int
         The size of the hidden layer in the MLP.
     act : Type[nn.Module], optional
-        The activation function to use between the two linear layers. 
+        The activation function to use between the two linear layers.
         By default, it uses GELU activation (`nn.GELU`).
 
     Attributes
@@ -90,13 +91,14 @@ class MLPBlock(nn.Module):
         """
         return self.lin2(self.act(self.lin1(x)))
 
+
 # based on: https://github.com/facebookresearch/segment-anything/blob/main/segment_anything/modeling/common.py
 class LayerNorm2d(nn.Module):
     """
     A 2D Layer Normalization module.
 
     This module normalizes each channel independently across the spatial dimensions
-    (height and width) for a 4D input tensor. It is commonly used in vision-based models 
+    (height and width) for a 4D input tensor. It is commonly used in vision-based models
     to stabilize training and improve convergence.
 
     Parameters
@@ -141,7 +143,7 @@ class LayerNorm2d(nn.Module):
         """
         Applies 2D layer normalization to the input tensor.
 
-        The normalization is applied across the spatial dimensions (height and width) 
+        The normalization is applied across the spatial dimensions (height and width)
         for each channel independently.
 
         Parameters
@@ -160,20 +162,22 @@ class LayerNorm2d(nn.Module):
         x = self.weight[:, None, None] * x + self.bias[:, None, None]
         return x
 
+
 """
 *****
 ImageEncoderViT
 *****
 """
 
+
 # based on: https://github.com/facebookresearch/segment-anything/blob/main/segment_anything/modeling/image_encoder.py
 class ImageEncoderViT(nn.Module):
     """
     Vision Transformer (ViT)-based image encoder for feature extraction.
 
-    This class implements an image encoder based on the Vision Transformer (ViT) architecture. 
-    It divides an image into patches, embeds these patches into a higher-dimensional space, 
-    processes them through a series of transformer blocks, and outputs a feature map 
+    This class implements an image encoder based on the Vision Transformer (ViT) architecture.
+    It divides an image into patches, embeds these patches into a higher-dimensional space,
+    processes them through a series of transformer blocks, and outputs a feature map
     suitable for downstream tasks.
 
     Parameters
@@ -270,7 +274,9 @@ class ImageEncoderViT(nn.Module):
         if use_abs_pos:
             # Initialize absolute positional embedding with pretrain image size.
             self.pos_embed = nn.Parameter(
-                torch.zeros(1, img_size // patch_size, img_size // patch_size, embed_dim)
+                torch.zeros(
+                    1, img_size // patch_size, img_size // patch_size, embed_dim
+                )
             )
 
         self.blocks = nn.ModuleList()
@@ -312,7 +318,7 @@ class ImageEncoderViT(nn.Module):
         Forward pass of the Vision Transformer encoder.
 
         Divides the input image into patches, applies positional embeddings (if enabled),
-        processes the patches through a series of transformer blocks, and applies a 
+        processes the patches through a series of transformer blocks, and applies a
         convolutional neck to produce the final feature map.
 
         Parameters
@@ -336,6 +342,7 @@ class ImageEncoderViT(nn.Module):
         x = self.neck(x.permute(0, 3, 1, 2))
 
         return x
+
 
 # based on: https://github.com/facebookresearch/segment-anything/blob/main/segment_anything/modeling/image_encoder.py
 class Block(nn.Module):
@@ -406,11 +413,15 @@ class Block(nn.Module):
             qkv_bias=qkv_bias,
             use_rel_pos=use_rel_pos,
             rel_pos_zero_init=rel_pos_zero_init,
-            input_size=input_size if window_size == 0 else (window_size, window_size),
+            input_size=(
+                input_size if window_size == 0 else (window_size, window_size)
+            ),
         )
 
         self.norm2 = norm_layer(dim)
-        self.mlp = MLPBlock(embedding_dim=dim, mlp_dim=int(dim * mlp_ratio), act=act_layer)
+        self.mlp = MLPBlock(
+            embedding_dim=dim, mlp_dim=int(dim * mlp_ratio), act=act_layer
+        )
 
         self.window_size = window_size
 
@@ -444,9 +455,11 @@ class Block(nn.Module):
         x = x + self.mlp(self.norm2(x))
 
         return x
-    
+
     # based on: https://github.com/facebookresearch/segment-anything/blob/main/segment_anything/modeling/image_encoder.py
-    def window_partition(self, x: torch.Tensor, window_size: int) -> Tuple[torch.Tensor, Tuple[int, int]]:
+    def window_partition(
+        self, x: torch.Tensor, window_size: int
+    ) -> Tuple[torch.Tensor, Tuple[int, int]]:
         """
         Partition into non-overlapping windows with padding if needed.
         Args:
@@ -465,13 +478,23 @@ class Block(nn.Module):
             x = F.pad(x, (0, 0, 0, pad_w, 0, pad_h))
         Hp, Wp = H + pad_h, W + pad_w
 
-        x = x.view(B, Hp // window_size, window_size, Wp // window_size, window_size, C)
-        windows = x.permute(0, 1, 3, 2, 4, 5).contiguous().view(-1, window_size, window_size, C)
+        x = x.view(
+            B, Hp // window_size, window_size, Wp // window_size, window_size, C
+        )
+        windows = (
+            x.permute(0, 1, 3, 2, 4, 5)
+            .contiguous()
+            .view(-1, window_size, window_size, C)
+        )
         return windows, (Hp, Wp)
-    
+
     # based on: https://github.com/facebookresearch/segment-anything/blob/main/segment_anything/modeling/image_encoder.py
     def window_unpartition(
-        self, windows: torch.Tensor, window_size: int, pad_hw: Tuple[int, int], hw: Tuple[int, int]
+        self,
+        windows: torch.Tensor,
+        window_size: int,
+        pad_hw: Tuple[int, int],
+        hw: Tuple[int, int],
     ) -> torch.Tensor:
         """
         Window unpartition into original sequences and removing padding.
@@ -487,12 +510,20 @@ class Block(nn.Module):
         Hp, Wp = pad_hw
         H, W = hw
         B = windows.shape[0] // (Hp * Wp // window_size // window_size)
-        x = windows.view(B, Hp // window_size, Wp // window_size, window_size, window_size, -1)
+        x = windows.view(
+            B,
+            Hp // window_size,
+            Wp // window_size,
+            window_size,
+            window_size,
+            -1,
+        )
         x = x.permute(0, 1, 3, 2, 4, 5).contiguous().view(B, Hp, Wp, -1)
 
         if Hp > H or Wp > W:
             x = x[:, :H, :W, :].contiguous()
         return x
+
 
 # based on: https://github.com/facebookresearch/segment-anything/blob/main/segment_anything/modeling/image_encoder.py
 class Attention(nn.Module):
@@ -548,7 +579,7 @@ class Attention(nn.Module):
     forward(x)
         Performs the forward pass of the attention block, computing the attention
         scores and applying the learned projections.
-    
+
     Raises
     ------
     AssertionError
@@ -578,8 +609,12 @@ class Attention(nn.Module):
                 input_size is not None
             ), "Input size must be provided if using relative positional encoding."
             # initialize relative positional embeddings
-            self.rel_pos_h = nn.Parameter(torch.zeros(2 * input_size[0] - 1, head_dim))
-            self.rel_pos_w = nn.Parameter(torch.zeros(2 * input_size[1] - 1, head_dim))
+            self.rel_pos_h = nn.Parameter(
+                torch.zeros(2 * input_size[0] - 1, head_dim)
+            )
+            self.rel_pos_w = nn.Parameter(
+                torch.zeros(2 * input_size[1] - 1, head_dim)
+            )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
@@ -603,23 +638,36 @@ class Attention(nn.Module):
         """
         B, H, W, _ = x.shape
         # qkv with shape (3, B, nHead, H * W, C)
-        qkv = self.qkv(x).reshape(B, H * W, 3, self.num_heads, -1).permute(2, 0, 3, 1, 4)
+        qkv = (
+            self.qkv(x)
+            .reshape(B, H * W, 3, self.num_heads, -1)
+            .permute(2, 0, 3, 1, 4)
+        )
         # q, k, v with shape (B * nHead, H * W, C)
         q, k, v = qkv.reshape(3, B * self.num_heads, H * W, -1).unbind(0)
 
         attn = (q * self.scale) @ k.transpose(-2, -1)
 
         if self.use_rel_pos:
-            attn = self.add_decomposed_rel_pos(attn, q, self.rel_pos_h, self.rel_pos_w, (H, W), (H, W))
+            attn = self.add_decomposed_rel_pos(
+                attn, q, self.rel_pos_h, self.rel_pos_w, (H, W), (H, W)
+            )
 
         attn = attn.softmax(dim=-1)
-        x = (attn @ v).view(B, self.num_heads, H, W, -1).permute(0, 2, 3, 1, 4).reshape(B, H, W, -1)
+        x = (
+            (attn @ v)
+            .view(B, self.num_heads, H, W, -1)
+            .permute(0, 2, 3, 1, 4)
+            .reshape(B, H, W, -1)
+        )
         x = self.proj(x)
 
         return x
-    
+
     # based on: https://github.com/facebookresearch/segment-anything/blob/main/segment_anything/modeling/image_encoder.py
-    def get_rel_pos(self, q_size: int, k_size: int, rel_pos: torch.Tensor) -> torch.Tensor:
+    def get_rel_pos(
+        self, q_size: int, k_size: int, rel_pos: torch.Tensor
+    ) -> torch.Tensor:
         """
         Get relative positional embeddings according to the relative positions of
             query and key sizes.
@@ -640,26 +688,30 @@ class Attention(nn.Module):
                 size=max_rel_dist,
                 mode="linear",
             )
-            rel_pos_resized = rel_pos_resized.reshape(-1, max_rel_dist).permute(1, 0)
+            rel_pos_resized = rel_pos_resized.reshape(-1, max_rel_dist).permute(
+                1, 0
+            )
         else:
             rel_pos_resized = rel_pos
 
         # Scale the coords with short length if shapes for q and k are different.
         q_coords = torch.arange(q_size)[:, None] * max(k_size / q_size, 1.0)
         k_coords = torch.arange(k_size)[None, :] * max(q_size / k_size, 1.0)
-        relative_coords = (q_coords - k_coords) + (k_size - 1) * max(q_size / k_size, 1.0)
+        relative_coords = (q_coords - k_coords) + (k_size - 1) * max(
+            q_size / k_size, 1.0
+        )
 
         return rel_pos_resized[relative_coords.long()]
 
     # based on: https://github.com/facebookresearch/segment-anything/blob/main/segment_anything/modeling/image_encoder.py
     def add_decomposed_rel_pos(
-            self,
-            attn: torch.Tensor,
-            q: torch.Tensor,
-            rel_pos_h: torch.Tensor,
-            rel_pos_w: torch.Tensor,
-            q_size: Tuple[int, int],
-            k_size: Tuple[int, int],
+        self,
+        attn: torch.Tensor,
+        q: torch.Tensor,
+        rel_pos_h: torch.Tensor,
+        rel_pos_w: torch.Tensor,
+        q_size: Tuple[int, int],
+        k_size: Tuple[int, int],
     ) -> torch.Tensor:
         """
         Calculate decomposed Relative Positional Embeddings from :paper:`mvitv2`.
@@ -686,35 +738,38 @@ class Attention(nn.Module):
         rel_w = torch.einsum("bhwc,wkc->bhwk", r_q, Rw)
 
         attn = (
-            attn.view(B, q_h, q_w, k_h, k_w) + rel_h[:, :, :, :, None] + rel_w[:, :, :, None, :]
+            attn.view(B, q_h, q_w, k_h, k_w)
+            + rel_h[:, :, :, :, None]
+            + rel_w[:, :, :, None, :]
         ).view(B, q_h * q_w, k_h * k_w)
 
         return attn
+
 
 # based on: https://github.com/facebookresearch/segment-anything/blob/main/segment_anything/modeling/image_encoder.py
 class PatchEmbed(nn.Module):
     """
     Image to Patch Embedding.
 
-    This class performs the conversion of input images into a sequence of patch embeddings. 
+    This class performs the conversion of input images into a sequence of patch embeddings.
     It uses a convolutional layer to project the image patches into the desired embedding dimension.
 
     Parameters
     ----------
     kernel_size : tuple of int, optional
-        The size of the convolutional kernel, which determines the size of each patch. 
+        The size of the convolutional kernel, which determines the size of each patch.
         Default is (16, 16).
     stride : tuple of int, optional
-        The stride of the convolutional layer, which controls the step size of the kernel when sliding over the image. 
+        The stride of the convolutional layer, which controls the step size of the kernel when sliding over the image.
         Default is (16, 16).
     padding : tuple of int, optional
-        The padding size applied to the input image before performing the convolution. 
+        The padding size applied to the input image before performing the convolution.
         Default is (0, 0).
     in_chans : int, optional
         The number of input channels in the image. Typically, 3 for RGB images.
         Default is 3.
     embed_dim : int, optional
-        The number of output channels (embedding dimension) for each patch. 
+        The number of output channels (embedding dimension) for each patch.
         This determines the size of the resulting patch embeddings.
         Default is 768.
 
@@ -740,7 +795,11 @@ class PatchEmbed(nn.Module):
         super().__init__()
 
         self.proj = nn.Conv2d(
-            in_chans, embed_dim, kernel_size=kernel_size, stride=stride, padding=padding
+            in_chans,
+            embed_dim,
+            kernel_size=kernel_size,
+            stride=stride,
+            padding=padding,
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -750,13 +809,13 @@ class PatchEmbed(nn.Module):
         Args
         ----
         x : torch.Tensor
-            The input tensor of shape (B, C, H, W), where B is the batch size, 
+            The input tensor of shape (B, C, H, W), where B is the batch size,
             C is the number of channels, and H and W are the height and width of the input image.
 
         Returns
         -------
         torch.Tensor
-            The output tensor of shape (B, H', W', C'), where H' and W' are the spatial 
+            The output tensor of shape (B, H', W', C'), where H' and W' are the spatial
             dimensions of the patch embeddings, and C' is the embedding dimension.
         """
         x = self.proj(x)
@@ -764,11 +823,13 @@ class PatchEmbed(nn.Module):
         x = x.permute(0, 2, 3, 1)
         return x
 
+
 """
 *****
 PromptEncoder
 *****
 """
+
 
 # based on: https://github.com/facebookresearch/segment-anything/blob/main/segment_anything/modeling/prompt_encoder.py
 class PromptEncoder(nn.Module):
@@ -814,7 +875,7 @@ class PromptEncoder(nn.Module):
             A series of convolutional layers for downscaling and processing mask inputs.
         no_mask_embed : nn.Embedding
             Embedding for cases where no mask is provided.
-    
+
     Methods:
     --------
         get_dense_pe():
@@ -822,19 +883,19 @@ class PromptEncoder(nn.Module):
 
         _embed_points(points, labels, pad):
             Embeds the point prompts with their respective labels.
-        
+
         _embed_boxes(boxes):
             Embeds the box prompts.
-        
+
         _embed_masks(masks):
             Embeds the mask prompts.
-        
+
         _get_batch_size(points, boxes, masks):
             Returns the batch size based on the input prompts (points, boxes, or masks).
-        
+
         _get_device():
             Returns the device of the point embeddings (used for placement of tensors).
-        
+
         forward(points, boxes, masks):
             Encodes the provided prompts into both sparse and dense embeddings.
     """
@@ -854,16 +915,23 @@ class PromptEncoder(nn.Module):
         self.pe_layer = PositionEmbeddingRandom(embed_dim // 2)
 
         self.num_point_embeddings: int = 4  # pos/neg point + 2 box corners
-        point_embeddings = [nn.Embedding(1, embed_dim) for i in range(self.num_point_embeddings)]
+        point_embeddings = [
+            nn.Embedding(1, embed_dim) for i in range(self.num_point_embeddings)
+        ]
         self.point_embeddings = nn.ModuleList(point_embeddings)
         self.not_a_point_embed = nn.Embedding(1, embed_dim)
 
-        self.mask_input_size = (4 * image_embedding_size[0], 4 * image_embedding_size[1])
+        self.mask_input_size = (
+            4 * image_embedding_size[0],
+            4 * image_embedding_size[1],
+        )
         self.mask_downscaling = nn.Sequential(
             nn.Conv2d(1, mask_in_chans // 4, kernel_size=2, stride=2),
             LayerNorm2d(mask_in_chans // 4),
             activation(),
-            nn.Conv2d(mask_in_chans // 4, mask_in_chans, kernel_size=2, stride=2),
+            nn.Conv2d(
+                mask_in_chans // 4, mask_in_chans, kernel_size=2, stride=2
+            ),
             LayerNorm2d(mask_in_chans),
             activation(),
             nn.Conv2d(mask_in_chans, embed_dim, kernel_size=1),
@@ -887,14 +955,20 @@ class PromptEncoder(nn.Module):
         labels: torch.Tensor,
         pad: bool,
     ) -> torch.Tensor:
-        """ Embeds point prompts. """
+        """Embeds point prompts."""
         points = points + 0.5  # Shift to center of pixel
         if pad:
-            padding_point = torch.zeros((points.shape[0], 1, 2), device=points.device)
-            padding_label = -torch.ones((labels.shape[0], 1), device=labels.device)
+            padding_point = torch.zeros(
+                (points.shape[0], 1, 2), device=points.device
+            )
+            padding_label = -torch.ones(
+                (labels.shape[0], 1), device=labels.device
+            )
             points = torch.cat([points, padding_point], dim=1)
             labels = torch.cat([labels, padding_label], dim=1)
-        point_embedding = self.pe_layer.forward_with_coords(points, self.input_image_size)
+        point_embedding = self.pe_layer.forward_with_coords(
+            points, self.input_image_size
+        )
         point_embedding[labels == -1] = 0.0
         point_embedding[labels == -1] += self.not_a_point_embed.weight
         point_embedding[labels == 0] += self.point_embeddings[0].weight
@@ -902,16 +976,18 @@ class PromptEncoder(nn.Module):
         return point_embedding
 
     def _embed_boxes(self, boxes: torch.Tensor) -> torch.Tensor:
-        """ Embeds box prompts. """
+        """Embeds box prompts."""
         boxes = boxes + 0.5  # Shift to center of pixel
         coords = boxes.reshape(-1, 2, 2)
-        corner_embedding = self.pe_layer.forward_with_coords(coords, self.input_image_size)
+        corner_embedding = self.pe_layer.forward_with_coords(
+            coords, self.input_image_size
+        )
         corner_embedding[:, 0, :] += self.point_embeddings[2].weight
         corner_embedding[:, 1, :] += self.point_embeddings[3].weight
         return corner_embedding
 
     def _embed_masks(self, masks: torch.Tensor) -> torch.Tensor:
-        """ Embeds mask inputs. """
+        """Embeds mask inputs."""
         mask_embedding = self.mask_downscaling(masks)
         return mask_embedding
 
@@ -962,32 +1038,46 @@ class PromptEncoder(nn.Module):
                 - Dense embeddings (Bx(embed_dim)x(embed_H)x(embed_W)) for masks.
         """
         bs = self._get_batch_size(points, boxes, masks)
-        sparse_embeddings = torch.empty((bs, 0, self.embed_dim), device=self._get_device())
+        sparse_embeddings = torch.empty(
+            (bs, 0, self.embed_dim), device=self._get_device()
+        )
         if points is not None:
             coords, labels = points
-            point_embeddings = self._embed_points(coords, labels, pad=(boxes is None))
-            sparse_embeddings = torch.cat([sparse_embeddings, point_embeddings], dim=1)
+            point_embeddings = self._embed_points(
+                coords, labels, pad=(boxes is None)
+            )
+            sparse_embeddings = torch.cat(
+                [sparse_embeddings, point_embeddings], dim=1
+            )
         if boxes is not None:
             box_embeddings = self._embed_boxes(boxes)
-            sparse_embeddings = torch.cat([sparse_embeddings, box_embeddings], dim=1)
+            sparse_embeddings = torch.cat(
+                [sparse_embeddings, box_embeddings], dim=1
+            )
 
         if masks is not None:
             dense_embeddings = self._embed_masks(masks)
         else:
-            dense_embeddings = self.no_mask_embed.weight.reshape(1, -1, 1, 1).expand(
-                bs, -1, self.image_embedding_size[0], self.image_embedding_size[1]
+            dense_embeddings = self.no_mask_embed.weight.reshape(
+                1, -1, 1, 1
+            ).expand(
+                bs,
+                -1,
+                self.image_embedding_size[0],
+                self.image_embedding_size[1],
             )
 
         return sparse_embeddings, dense_embeddings
+
 
 # based on: https://github.com/facebookresearch/segment-anything/blob/main/segment_anything/modeling/prompt_encoder.py
 class PositionEmbeddingRandom(nn.Module):
     """
     Positional encoding using random spatial frequencies for embedding coordinates.
 
-    This module generates positional encodings using random spatial frequencies, which are 
-    learned through a Gaussian distribution. The resulting encoding represents spatial 
-    positions in a coordinate system, and can be used for tasks such as image processing 
+    This module generates positional encodings using random spatial frequencies, which are
+    learned through a Gaussian distribution. The resulting encoding represents spatial
+    positions in a coordinate system, and can be used for tasks such as image processing
     or object detection where positional information is required.
 
     Parameters:
@@ -995,19 +1085,21 @@ class PositionEmbeddingRandom(nn.Module):
     num_pos_feats : int, optional, default: 64
         The number of positional features to generate for each coordinate. Higher values
         provide more fine-grained spatial encoding.
-    
+
     scale : float, optional, default: None
         A scaling factor for the random positional encoding matrix. If `None` or non-positive,
         the scale defaults to 1.0. This can be used to control the magnitude of the encoding.
-    
+
     Attributes:
     -----------
     positional_encoding_gaussian_matrix : torch.Tensor
-        A buffer tensor containing the Gaussian distribution used to generate the positional 
+        A buffer tensor containing the Gaussian distribution used to generate the positional
         encodings with spatial frequencies.
     """
 
-    def __init__(self, num_pos_feats: int = 64, scale: Optional[float] = None) -> None:
+    def __init__(
+        self, num_pos_feats: int = 64, scale: Optional[float] = None
+    ) -> None:
         super().__init__()
         if scale is None or scale <= 0.0:
             scale = 1.0
@@ -1020,9 +1112,9 @@ class PositionEmbeddingRandom(nn.Module):
         """
         Positionally encode points that are normalized to [0, 1].
 
-        This method applies a random spatial frequency encoding to normalized coordinates in 
-        the range [0, 1] to produce sinusoidal encodings. The encoding involves mapping the 
-        coordinates to a new space using a learned random matrix, followed by applying sine and 
+        This method applies a random spatial frequency encoding to normalized coordinates in
+        the range [0, 1] to produce sinusoidal encodings. The encoding involves mapping the
+        coordinates to a new space using a learned random matrix, followed by applying sine and
         cosine transformations.
 
         Parameters:
@@ -1034,7 +1126,7 @@ class PositionEmbeddingRandom(nn.Module):
         Returns:
         --------
         torch.Tensor
-            A tensor containing the positional encoding with the shape (..., 2 * num_pos_feats), 
+            A tensor containing the positional encoding with the shape (..., 2 * num_pos_feats),
             where `num_pos_feats` is the number of positional features per coordinate.
         """
         # assuming coords are in [0, 1]^2 square and have d_1 x ... x d_n x 2 shape
@@ -1048,21 +1140,21 @@ class PositionEmbeddingRandom(nn.Module):
         """
         Generate positional encoding for a grid of the specified size.
 
-        This method generates a positional encoding for a 2D grid of the given height and width. 
-        The coordinates of the grid are normalized to the range [0, 1], and the corresponding 
+        This method generates a positional encoding for a 2D grid of the given height and width.
+        The coordinates of the grid are normalized to the range [0, 1], and the corresponding
         positional encoding is computed using the learned random spatial frequencies.
 
         Parameters:
         -----------
         size : Tuple[int, int]
-            A tuple representing the height (h) and width (w) of the grid for which the 
+            A tuple representing the height (h) and width (w) of the grid for which the
             positional encoding should be generated.
 
         Returns:
         --------
         torch.Tensor
             A tensor containing the positional encoding for the grid, with shape (C, H, W),
-            where C is the number of positional features, and H and W are the height and 
+            where C is the number of positional features, and H and W are the height and
             width of the grid, respectively.
         """
         h, w = size
@@ -1082,25 +1174,25 @@ class PositionEmbeddingRandom(nn.Module):
         """
         Positionally encode points that are not normalized to [0, 1].
 
-        This method generates positional encodings for coordinates that are not normalized 
-        to the range [0, 1]. The coordinates are first rescaled to the [0, 1] range based 
+        This method generates positional encodings for coordinates that are not normalized
+        to the range [0, 1]. The coordinates are first rescaled to the [0, 1] range based
         on the provided image size, and then the positional encoding is computed.
 
         Parameters:
         -----------
         coords_input : torch.Tensor
-            A tensor of coordinates with shape (B, N, 2), where B is the batch size and N is 
+            A tensor of coordinates with shape (B, N, 2), where B is the batch size and N is
             the number of points. Each coordinate is a 2D point that is not normalized.
 
         image_size : Tuple[int, int]
-            A tuple representing the height and width of the image, used to normalize the coordinates 
+            A tuple representing the height and width of the image, used to normalize the coordinates
             to the [0, 1] range.
 
         Returns:
         --------
         torch.Tensor
-            A tensor containing the positional encoding for the input coordinates, with 
-            shape (B, N, C), where B is the batch size, N is the number of points, and C 
+            A tensor containing the positional encoding for the input coordinates, with
+            shape (B, N, C), where B is the batch size, N is the number of points, and C
             is the number of positional features.
         """
         coords = coords_input.clone()
@@ -1108,11 +1200,13 @@ class PositionEmbeddingRandom(nn.Module):
         coords[:, :, 1] = coords[:, :, 1] / image_size[0]
         return self._pe_encoding(coords.to(torch.float))  # B x N x C
 
+
 """
 *****
 MaskDecoder
 *****
 """
+
 
 # based on: https://github.com/facebookresearch/segment-anything/blob/main/segment_anything/modeling/mask_decoder.py
 class MaskDecoder(nn.Module):
@@ -1120,7 +1214,7 @@ class MaskDecoder(nn.Module):
     A Mask Decoder module that predicts segmentation masks from image and prompt embeddings
     using a transformer architecture.
 
-    This model takes an image embedding, a set of prompt embeddings, and generates segmentation 
+    This model takes an image embedding, a set of prompt embeddings, and generates segmentation
     masks, optionally predicting multiple masks. It also predicts the quality of the masks using
     an IOU (Intersection over Union) prediction head.
 
@@ -1190,22 +1284,48 @@ class MaskDecoder(nn.Module):
         self.mask_tokens = nn.Embedding(self.num_mask_tokens, transformer_dim)
 
         self.output_upscaling = nn.Sequential(
-            nn.ConvTranspose2d(transformer_dim, transformer_dim // 4, kernel_size=2, stride=2),
+            nn.ConvTranspose2d(
+                transformer_dim, transformer_dim // 4, kernel_size=2, stride=2
+            ),
             LayerNorm2d(transformer_dim // 4),
             activation(),
-            nn.ConvTranspose2d(transformer_dim // 4, transformer_dim // 8, kernel_size=2, stride=2),
+            nn.ConvTranspose2d(
+                transformer_dim // 4,
+                transformer_dim // 8,
+                kernel_size=2,
+                stride=2,
+            ),
             activation(),
         )
-
+        # self.output_hypernetworks_mlps = nn.ModuleList(
+        #     [
+        #         MLP(transformer_dim, transformer_dim, transformer_dim // 8, 3)
+        #         for i in range(self.num_mask_tokens)
+        #     ]
+        # )
         self.output_hypernetworks_mlps = nn.ModuleList(
             [
-                MLP(transformer_dim, transformer_dim, transformer_dim // 8, 3)
+                MLP(
+                    layer_sizes=[
+                        transformer_dim,  # Input layer
+                        transformer_dim,  # Hidden layer 1
+                        transformer_dim,  # Hidden layer 2
+                        transformer_dim // 8,  # Output layer
+                    ],
+                    activation_cls=nn.ReLU,  # Define a ativação como ReLU
+                )
                 for i in range(self.num_mask_tokens)
             ]
         )
 
         self.iou_prediction_head = MLP(
-            transformer_dim, iou_head_hidden_dim, self.num_mask_tokens, iou_head_depth
+            layer_sizes=[
+                transformer_dim,
+            ]
+            * (iou_head_depth - 1)
+            + [iou_head_hidden_dim]
+            + [self.num_mask_tokens],  # Hidden layers e output layer
+            activation_cls=nn.ReLU,
         )
 
     def forward(
@@ -1285,8 +1405,12 @@ class MaskDecoder(nn.Module):
         """
 
         # Concatenate output tokens
-        output_tokens = torch.cat([self.iou_token.weight, self.mask_tokens.weight], dim=0)
-        output_tokens = output_tokens.unsqueeze(0).expand(sparse_prompt_embeddings.size(0), -1, -1)
+        output_tokens = torch.cat(
+            [self.iou_token.weight, self.mask_tokens.weight], dim=0
+        )
+        output_tokens = output_tokens.unsqueeze(0).expand(
+            sparse_prompt_embeddings.size(0), -1, -1
+        )
         tokens = torch.cat((output_tokens, sparse_prompt_embeddings), dim=1)
 
         # Expand per-image data in batch direction to be per-mask
@@ -1305,101 +1429,20 @@ class MaskDecoder(nn.Module):
         upscaled_embedding = self.output_upscaling(src)
         hyper_in_list: List[torch.Tensor] = []
         for i in range(self.num_mask_tokens):
-            hyper_in_list.append(self.output_hypernetworks_mlps[i](mask_tokens_out[:, i, :]))
+            hyper_in_list.append(
+                self.output_hypernetworks_mlps[i](mask_tokens_out[:, i, :])
+            )
         hyper_in = torch.stack(hyper_in_list, dim=1)
         b, c, h, w = upscaled_embedding.shape
-        masks = (hyper_in @ upscaled_embedding.view(b, c, h * w)).view(b, -1, h, w)
+        masks = (hyper_in @ upscaled_embedding.view(b, c, h * w)).view(
+            b, -1, h, w
+        )
 
         # Generate mask quality predictions
         iou_pred = self.iou_prediction_head(iou_token_out)
 
         return masks, iou_pred
 
-class MLP(nn.Module):
-    """
-    A Multi-Layer Perceptron (MLP) for general-purpose feedforward neural networks.
-
-    Parameters
-    ----------
-    input_dim : int
-        The size of the input features.
-    hidden_dim : int
-        The number of units in each hidden layer.
-    output_dim : int
-        The size of the output features.
-    num_layers : int
-        The total number of layers, including the output layer.
-    sigmoid_output : bool, optional
-        If True, applies a sigmoid activation to the output layer. Default is False.
-
-    Attributes
-    ----------
-    num_layers : int
-        The total number of layers in the network.
-    layers : torch.nn.ModuleList
-        A list of `torch.nn.Linear` layers that define the MLP architecture.
-    sigmoid_output : bool
-        Indicates whether a sigmoid activation is applied to the output layer.
-
-    Methods
-    -------
-    forward(x)
-        Forward pass through the network.
-
-    Examples
-    --------
-    >>> import torch
-    >>> from torch import nn
-    >>> import torch.nn.functional as F
-    >>> model = MLP(input_dim=10, hidden_dim=20, output_dim=5, num_layers=3, sigmoid_output=True)
-    >>> x = torch.randn(4, 10)  # Batch size of 4 with 10 input features
-    >>> output = model(x)
-    >>> print(output.shape)
-    torch.Size([4, 5])
-    """
-
-    def __init__(
-        self,
-        input_dim: int,
-        hidden_dim: int,
-        output_dim: int,
-        num_layers: int,
-        sigmoid_output: bool = False,
-    ) -> None:
-        super().__init__()
-        self.num_layers = num_layers
-        h = [hidden_dim] * (num_layers - 1)
-        self.layers = nn.ModuleList(
-            nn.Linear(n, k) for n, k in zip([input_dim] + h, h + [output_dim])
-        )
-        self.sigmoid_output = sigmoid_output
-
-    def forward(self, x):
-        """
-        Perform a forward pass through the MLP.
-
-        Parameters
-        ----------
-        x : torch.Tensor
-            Input tensor with shape (batch_size, input_dim).
-
-        Returns
-        -------
-        torch.Tensor
-            Output tensor with shape (batch_size, output_dim).
-
-        Notes
-        -----
-        ReLU activation is applied to all hidden layers. The output layer is linear
-        unless `sigmoid_output` is set to True, in which case a sigmoid activation
-        is applied to the output.
-
-        """
-        for i, layer in enumerate(self.layers):
-            x = F.relu(layer(x)) if i < self.num_layers - 1 else layer(x)
-        if self.sigmoid_output:
-            x = F.sigmoid(x)
-        return x
 
 # based on: https://github.com/facebookresearch/segment-anything/blob/main/segment_anything/modeling/mask_decoder.py
 class TwoWayTransformer(nn.Module):
@@ -1422,7 +1465,7 @@ class TwoWayTransformer(nn.Module):
             The activation function to use in the MLP block. Default is nn.ReLU.
         attention_downsample_rate : int, optional
             Downsampling rate for attention mechanisms. Default is 2.
-    
+
     Attributes:
     -----------
         depth : int
@@ -1486,12 +1529,12 @@ class TwoWayTransformer(nn.Module):
         Args:
         -----
             image_embedding : torch.Tensor
-                The image embedding to attend to. Shape should be (B, embedding_dim, H, W), 
+                The image embedding to attend to. Shape should be (B, embedding_dim, H, W),
                 where B is the batch size, and H, W are the spatial dimensions of the image.
             image_pe : torch.Tensor
                 The positional encoding for the image, with the same shape as image_embedding.
             point_embedding : torch.Tensor
-                The embedding for the query points. Shape should be (B, N_points, embedding_dim), 
+                The embedding for the query points. Shape should be (B, N_points, embedding_dim),
                 where N_points is the number of points.
 
         Returns:
@@ -1526,6 +1569,7 @@ class TwoWayTransformer(nn.Module):
         queries = self.norm_final_attn(queries)
 
         return queries, keys
+
 
 # based on: https://github.com/facebookresearch/segment-anything/blob/main/segment_anything/modeling/mask_decoder.py
 class TwoWayAttentionBlock(nn.Module):
@@ -1681,16 +1725,17 @@ class TwoWayAttentionBlock(nn.Module):
 
         return queries, keys
 
+
 # based on: https://github.com/facebookresearch/segment-anything/blob/main/segment_anything/modeling/mask_decoder.py
 class AttentionMaskDecoder(nn.Module):
     """
     An attention layer that allows for downscaling the size of the embedding
     after projection to queries, keys, and values.
 
-    This class implements a multi-head self-attention mechanism with optional 
-    downsampling of the embedding dimension. It projects the input tensors 
-    (queries, keys, and values) into a lower-dimensional space, performs scaled 
-    dot-product attention, and then projects the result back to the original 
+    This class implements a multi-head self-attention mechanism with optional
+    downsampling of the embedding dimension. It projects the input tensors
+    (queries, keys, and values) into a lower-dimensional space, performs scaled
+    dot-product attention, and then projects the result back to the original
     embedding dimension.
 
     Parameters
@@ -1700,7 +1745,7 @@ class AttentionMaskDecoder(nn.Module):
     num_heads : int
         The number of attention heads. Must evenly divide the `internal_dim`.
     downsample_rate : int, optional
-        The rate at which the embedding dimension is downscaled internally. 
+        The rate at which the embedding dimension is downscaled internally.
         Default is 1 (no downscaling).
 
     Attributes
@@ -1708,7 +1753,7 @@ class AttentionMaskDecoder(nn.Module):
     embedding_dim : int
         The original embedding dimension of the input.
     internal_dim : int
-        The downsampled embedding dimension, calculated as 
+        The downsampled embedding dimension, calculated as
         `embedding_dim // downsample_rate`.
     num_heads : int
         The number of attention heads.
@@ -1737,7 +1782,9 @@ class AttentionMaskDecoder(nn.Module):
         self.embedding_dim = embedding_dim
         self.internal_dim = embedding_dim // downsample_rate
         self.num_heads = num_heads
-        assert self.internal_dim % num_heads == 0, "num_heads must divide embedding_dim."
+        assert (
+            self.internal_dim % num_heads == 0
+        ), "num_heads must divide embedding_dim."
 
         self.q_proj = nn.Linear(embedding_dim, self.internal_dim)
         self.k_proj = nn.Linear(embedding_dim, self.internal_dim)
@@ -1758,7 +1805,7 @@ class AttentionMaskDecoder(nn.Module):
         Returns
         -------
         Tensor
-            Tensor with shape (batch_size, num_heads, num_tokens, head_dim), 
+            Tensor with shape (batch_size, num_heads, num_tokens, head_dim),
             where `head_dim = embedding_dim // num_heads`.
         """
         b, n, c = x.shape
@@ -1824,11 +1871,13 @@ class AttentionMaskDecoder(nn.Module):
 
         return out
 
+
 """
 *****
 SAM class
 *****
 """
+
 
 # based on: https://github.com/facebookresearch/segment-anything/blob/main/segment_anything/modeling/sam.py
 class _SAM(nn.Module):
@@ -1868,19 +1917,23 @@ class _SAM(nn.Module):
         mask_decoder: MaskDecoder,
         pixel_mean: List[float] = [123.675, 116.28, 103.53],
         pixel_std: List[float] = [58.395, 57.12, 57.375],
-        mask_threshold: float = 0.0
+        mask_threshold: float = 0.0,
     ) -> None:
         super().__init__()
         self.image_encoder = image_encoder
         self.prompt_encoder = prompt_encoder
         self.mask_decoder = mask_decoder
-        self.register_buffer("pixel_mean", torch.Tensor(pixel_mean).view(-1, 1, 1), False)
-        self.register_buffer("pixel_std", torch.Tensor(pixel_std).view(-1, 1, 1), False)
+        self.register_buffer(
+            "pixel_mean", torch.Tensor(pixel_mean).view(-1, 1, 1), False
+        )
+        self.register_buffer(
+            "pixel_std", torch.Tensor(pixel_std).view(-1, 1, 1), False
+        )
         self.mask_threshold = mask_threshold
 
     def forward(
         self,
-        batched_input: List[Dict[str, Any]],
+        batched_input: Union[List[Tensor], List[Dict[str, Any]]],
         multimask_output: bool,
     ) -> List[Dict[str, torch.Tensor]]:
         """
@@ -1924,14 +1977,30 @@ class _SAM(nn.Module):
         This method processes each input image and associated prompts through
         the encoders and decoder to generate masks.
         """
-        input_images = torch.stack([self.preprocess(x["image"]) for x in batched_input], dim=0)
+        if not isinstance(batched_input[0], dict):
+            batched_input = [
+                {
+                    "image": x, 
+                    "original_size": (x.shape[1], x.shape[2])
+                } 
+                for x in batched_input
+            ]
+        
+        input_images = torch.stack(
+            [self.preprocess(x["image"]) for x in batched_input], dim=0
+        )
         image_embeddings = self.image_encoder(input_images)
 
         outputs = []
-        for image_record, curr_embedding in zip(batched_input, image_embeddings):
+        for image_record, curr_embedding in zip(
+            batched_input, image_embeddings
+        ):
             # check if point coordinates was sent
             if "point_coords" in image_record:
-                points = (image_record["point_coords"], image_record["point_labels"])
+                points = (
+                    image_record["point_coords"],
+                    image_record["point_labels"],
+                )
             else:
                 points = None
             # apply prompt encoder
@@ -1953,7 +2022,7 @@ class _SAM(nn.Module):
                 image_pe=self.prompt_encoder.get_dense_pe(),
                 sparse_prompt_embeddings=sparse_embeddings,
                 dense_prompt_embeddings=dense_embeddings,
-                multimask_output=multimask_output
+                multimask_output=multimask_output,
             )
             # apply postprosses in mask for get original size
             masks = self.postprocess_masks(
@@ -1973,7 +2042,7 @@ class _SAM(nn.Module):
                 }
             )
         return outputs
-    
+
     def preprocess(self, x: torch.Tensor) -> torch.Tensor:
         """
         Normalize pixel values and pad input images to a square size.
@@ -1998,7 +2067,7 @@ class _SAM(nn.Module):
         padw = self.image_encoder.img_size - w
         x = F.pad(x, (0, padw, 0, padh))
         return x
-    
+
     def postprocess_masks(
         self,
         masks: torch.Tensor,
@@ -2030,14 +2099,18 @@ class _SAM(nn.Module):
             align_corners=False,
         )
         masks = masks[..., : input_size[0], : input_size[1]]
-        masks = F.interpolate(masks, original_size, mode="bilinear", align_corners=False)
+        masks = F.interpolate(
+            masks, original_size, mode="bilinear", align_corners=False
+        )
         return masks
+
 
 """
 *****
 SAM torch lightning
 *****
 """
+
 
 class Sam(L.LightningModule):
     """
@@ -2046,7 +2119,7 @@ class Sam(L.LightningModule):
     Parameters
     ----------
     image_encoder : ImageEncoderViT, optional
-        The backbone used to encode the image into image embeddings that allow for efficient 
+        The backbone used to encode the image into image embeddings that allow for efficient
         mask prediction. Defaults to None.
     prompt_encoder : PromptEncoder, optional
         Encodes various types of input prompts (point/box). Defaults to None.
@@ -2077,7 +2150,7 @@ class Sam(L.LightningModule):
     test_metrics : dict of Metric, optional
         Dictionary of metrics to compute during testing. Defaults to None.
     apply_freeze : dict of bool, optional
-        Dictionary specifying whether to freeze individual model components. Keys include 
+        Dictionary specifying whether to freeze individual model components. Keys include
         'image_encoder', 'prompt_encoder', and 'mask_decoder'. Defaults to freezing 'prompt_encoder'. Defaut values is {"image_encoder": False, "prompt_encoder": True, "mask_decoder": False}.
     apply_adapter : dict of LoRA, optional
         Dictionary containing LoRA adapters to apply to model components. Defaults to an empty dictionary. Default values is {}.
@@ -2101,38 +2174,53 @@ class Sam(L.LightningModule):
     """
 
     def __init__(
-            self,
-            image_encoder:ImageEncoderViT=None,
-            prompt_encoder:PromptEncoder=None,
-            mask_decoder:MaskDecoder=None,
-            pixel_mean:List[float]=None,
-            pixel_std:List[float]=None,
-            mask_threshold=0.0,
-            learning_rate=1e-5,
-            vit_type:str='vit-b',
-            checkpoint:str=None,
-            num_multimask_outputs:int=3,
-            iou_head_depth:int=3,
-            loss_fn: Optional[nn.Module] = None,
-            train_metrics: Optional[Dict[str, Metric]] = None,
-            val_metrics: Optional[Dict[str, Metric]] = None,
-            test_metrics: Optional[Dict[str, Metric]] = None,
-            apply_freeze:Optional[Dict[str, bool]] = None,
-            apply_adapter:Optional[Dict[str, LoRA]] = None,
-            lora_rank:int=4,
-            lora_alpha:int=1,
-            multimask_output:bool=True
+        self,
+        image_encoder: ImageEncoderViT = None,
+        prompt_encoder: PromptEncoder = None,
+        mask_decoder: MaskDecoder = None,
+        pixel_mean: List[float] = None,
+        pixel_std: List[float] = None,
+        mask_threshold=0.0,
+        learning_rate=1e-5,
+        vit_type: str = "vit-b",
+        checkpoint: str = None,
+        num_multimask_outputs: int = 3,
+        iou_head_depth: int = 3,
+        loss_fn: Optional[nn.Module] = None,
+        train_metrics: Optional[Dict[str, Metric]] = None,
+        val_metrics: Optional[Dict[str, Metric]] = None,
+        test_metrics: Optional[Dict[str, Metric]] = None,
+        apply_freeze: Optional[Dict[str, bool]] = None,
+        apply_adapter: Optional[Dict[str, LoRA]] = None,
+        lora_rank: int = 4,
+        lora_alpha: int = 1,
+        multimask_output: bool = True,
+        return_prediction_only: bool = False
     ):
         super().__init__()
-        self.register_buffer("pixel_mean", torch.Tensor(pixel_mean or [123.675, 116.28, 103.53]).view(-1, 1, 1), False)
-        self.register_buffer("pixel_std", torch.Tensor(pixel_std or [58.395, 57.12, 57.375]).view(-1, 1, 1), False)
+        self.register_buffer(
+            "pixel_mean",
+            torch.Tensor(pixel_mean or [123.675, 116.28, 103.53]).view(
+                -1, 1, 1
+            ),
+            False,
+        )
+        self.register_buffer(
+            "pixel_std",
+            torch.Tensor(pixel_std or [58.395, 57.12, 57.375]).view(-1, 1, 1),
+            False,
+        )
         self.mask_threshold = mask_threshold
         self.learning_rate = learning_rate
         self.num_multimask_outputs = num_multimask_outputs
         self.iou_head_depth = iou_head_depth
         self.multimask_output = multimask_output
 
-        self.apply_freeze = apply_freeze or {"image_encoder": False, "prompt_encoder": True, "mask_decoder": False}
+        self.apply_freeze = apply_freeze or {
+            "image_encoder": False,
+            "prompt_encoder": True,
+            "mask_decoder": False,
+        }
         self.apply_adapter = apply_adapter or {}
 
         self.loss_fn = loss_fn if loss_fn is not None else nn.CrossEntropyLoss()
@@ -2143,62 +2231,68 @@ class Sam(L.LightningModule):
             "test": test_metrics,
         }
 
-        valid_vit_types = {'vit-b', 'vit-h', 'vit-l'}
+        valid_vit_types = {"vit-b", "vit-h", "vit-l"}
         if vit_type not in valid_vit_types:
-            raise ValueError(f"Invalid vit_type '{vit_type}'. Choose one of {valid_vit_types}.")
-        
+            raise ValueError(
+                f"Invalid vit_type '{vit_type}'. Choose one of {valid_vit_types}."
+            )
+
         self.vit_type = vit_type
 
         self.vit_params = {
-            'vit-b': {
-                'vit_type': 'vit-b',
-                'image_encoder': image_encoder,
-                'prompt_encoder': prompt_encoder,
-                'mask_decoder': mask_decoder,
-                'encoder_embed_dim': 768,
-                'encoder_depth': 12,
-                'encoder_num_heads': 12,
-                'mask_threshold': self.mask_threshold,
-                'encoder_global_attn_indexes': [2, 5, 8, 11],
-                'checkpoint': checkpoint,
-                'num_multimask_outputs': self.num_multimask_outputs,
-                'iou_head_depth': self.iou_head_depth
+            "vit-b": {
+                "vit_type": "vit-b",
+                "image_encoder": image_encoder,
+                "prompt_encoder": prompt_encoder,
+                "mask_decoder": mask_decoder,
+                "encoder_embed_dim": 768,
+                "encoder_depth": 12,
+                "encoder_num_heads": 12,
+                "mask_threshold": self.mask_threshold,
+                "encoder_global_attn_indexes": [2, 5, 8, 11],
+                "checkpoint": checkpoint,
+                "num_multimask_outputs": self.num_multimask_outputs,
+                "iou_head_depth": self.iou_head_depth,
             },
-            'vit-l': {
-                'vit_type': 'vit-l',
-                'image_encoder': image_encoder,
-                'prompt_encoder': prompt_encoder,
-                'mask_decoder': mask_decoder,
-                'encoder_embed_dim': 1024,
-                'encoder_depth': 24,
-                'encoder_num_heads': 16,
-                'mask_threshold': self.mask_threshold,
-                'encoder_global_attn_indexes': [5, 11, 17, 23],
-                'checkpoint': checkpoint,
-                'num_multimask_outputs': self.num_multimask_outputs,
-                'iou_head_depth': self.iou_head_depth
+            "vit-l": {
+                "vit_type": "vit-l",
+                "image_encoder": image_encoder,
+                "prompt_encoder": prompt_encoder,
+                "mask_decoder": mask_decoder,
+                "encoder_embed_dim": 1024,
+                "encoder_depth": 24,
+                "encoder_num_heads": 16,
+                "mask_threshold": self.mask_threshold,
+                "encoder_global_attn_indexes": [5, 11, 17, 23],
+                "checkpoint": checkpoint,
+                "num_multimask_outputs": self.num_multimask_outputs,
+                "iou_head_depth": self.iou_head_depth,
             },
-            'vit-h': {
-                'vit_type': 'vit-h',
-                'image_encoder': image_encoder,
-                'prompt_encoder': prompt_encoder,
-                'mask_decoder': mask_decoder,
-                'encoder_embed_dim': 1280,
-                'encoder_depth': 32,
-                'encoder_num_heads': 16,
-                'mask_threshold': self.mask_threshold,
-                'encoder_global_attn_indexes': [7, 15, 23, 31],
-                'checkpoint': checkpoint,
-                'num_multimask_outputs': self.num_multimask_outputs,
-                'iou_head_depth': self.iou_head_depth
+            "vit-h": {
+                "vit_type": "vit-h",
+                "image_encoder": image_encoder,
+                "prompt_encoder": prompt_encoder,
+                "mask_decoder": mask_decoder,
+                "encoder_embed_dim": 1280,
+                "encoder_depth": 32,
+                "encoder_num_heads": 16,
+                "mask_threshold": self.mask_threshold,
+                "encoder_global_attn_indexes": [7, 15, 23, 31],
+                "checkpoint": checkpoint,
+                "num_multimask_outputs": self.num_multimask_outputs,
+                "iou_head_depth": self.iou_head_depth,
             },
         }
 
         self.model = self._build_sam(**self.vit_params[self.vit_type])
 
         self._apply_freeze(self.apply_freeze)
-        self._apply_adapter(self.apply_adapter, alpha=lora_alpha, rank=lora_rank)
-    
+        self._apply_adapter(
+            self.apply_adapter, alpha=lora_alpha, rank=lora_rank
+        )
+
+        self.return_prediction_only = return_prediction_only
+
     def _apply_freeze(self, apply_freeze):
         """
         Freezes specified components of the model.
@@ -2206,22 +2300,31 @@ class Sam(L.LightningModule):
         Parameters
         ----------
         apply_freeze : dict of bool
-            Dictionary specifying components to freeze. Keys include 'image_encoder', 
+            Dictionary specifying components to freeze. Keys include 'image_encoder',
             'prompt_encoder', and 'mask_decoder'.
         """
-        if 'image_encoder' in apply_freeze and apply_freeze['image_encoder'] == True:
+        if (
+            "image_encoder" in apply_freeze
+            and apply_freeze["image_encoder"] == True
+        ):
             print("Image Encoder freeze!")
             for param in self.model.image_encoder.parameters():
                 param.requires_grad = False
-        if 'prompt_encoder' in apply_freeze and apply_freeze['prompt_encoder'] == True:
+        if (
+            "prompt_encoder" in apply_freeze
+            and apply_freeze["prompt_encoder"] == True
+        ):
             print("Prompt Encoder freeze!")
             for param in self.model.prompt_encoder.parameters():
                 param.requires_grad = False
-        if 'mask_decoder' in apply_freeze and apply_freeze['mask_decoder'] == True:
+        if (
+            "mask_decoder" in apply_freeze
+            and apply_freeze["mask_decoder"] == True
+        ):
             print("Mask Decoder freeze!")
             for param in self.model.mask_decoder.parameters():
                 param.requires_grad = False
-        
+
     def _apply_adapter(self, apply_adapter, alpha=1, rank=4):
         """
         Applies LoRA adapters to specified model components.
@@ -2235,18 +2338,47 @@ class Sam(L.LightningModule):
         rank : int, optional
             Rank parameter for LoRA layers. Defaults to 4.
         """
-        if 'image_encoder' in apply_adapter:
+        if "image_encoder" in apply_adapter:
             print("LoRA applied in Image Encoder!")
             for layer in self.model.image_encoder.blocks:
-                layer.attn.qkv = apply_adapter['image_encoder'](original_module=layer.attn.qkv, bias=True, alpha=alpha, r=rank)
-        if 'mask_decoder' in apply_adapter:
+                layer.attn.qkv = apply_adapter["image_encoder"](
+                    original_module=layer.attn.qkv,
+                    bias=True,
+                    alpha=alpha,
+                    r=rank,
+                )
+        if "mask_decoder" in apply_adapter:
             print("LoRA applied in Mask Decoder!")
             for layer in self.model.mask_decoder.transformer.layers:
-                layer.self_attn.q_proj = apply_adapter['mask_decoder'](original_module=layer.self_attn.q_proj, bias=True, alpha=alpha, r=rank)
-                layer.self_attn.v_proj = apply_adapter['mask_decoder'](original_module=layer.self_attn.v_proj, bias=True, alpha=alpha, r=rank)
-                layer.cross_attn_token_to_image.q_proj = apply_adapter['mask_decoder'](original_module=layer.cross_attn_token_to_image.q_proj, bias=True, alpha=alpha, r=rank)
-                layer.cross_attn_token_to_image.v_proj = apply_adapter['mask_decoder'](original_module=layer.cross_attn_token_to_image.v_proj, bias=True, alpha=alpha, r=rank)
-    
+                layer.self_attn.q_proj = apply_adapter["mask_decoder"](
+                    original_module=layer.self_attn.q_proj,
+                    bias=True,
+                    alpha=alpha,
+                    r=rank,
+                )
+                layer.self_attn.v_proj = apply_adapter["mask_decoder"](
+                    original_module=layer.self_attn.v_proj,
+                    bias=True,
+                    alpha=alpha,
+                    r=rank,
+                )
+                layer.cross_attn_token_to_image.q_proj = apply_adapter[
+                    "mask_decoder"
+                ](
+                    original_module=layer.cross_attn_token_to_image.q_proj,
+                    bias=True,
+                    alpha=alpha,
+                    r=rank,
+                )
+                layer.cross_attn_token_to_image.v_proj = apply_adapter[
+                    "mask_decoder"
+                ](
+                    original_module=layer.cross_attn_token_to_image.v_proj,
+                    bias=True,
+                    alpha=alpha,
+                    r=rank,
+                )
+
     def _build_sam(
         self,
         vit_type,
@@ -2258,8 +2390,8 @@ class Sam(L.LightningModule):
         encoder_num_heads,
         mask_threshold,
         encoder_global_attn_indexes,
-        num_multimask_outputs=3, # classes
-        iou_head_depth=3, # classes
+        num_multimask_outputs=3,  # classes
+        iou_head_depth=3,  # classes
         checkpoint=None,
     ):
         """
@@ -2303,7 +2435,8 @@ class Sam(L.LightningModule):
         image_embedding_size = image_size // vit_patch_size
         sam = _SAM(
             mask_threshold=mask_threshold,
-            image_encoder=image_encoder or ImageEncoderViT(
+            image_encoder=image_encoder
+            or ImageEncoderViT(
                 depth=encoder_depth,
                 embed_dim=encoder_embed_dim,
                 img_size=image_size,
@@ -2317,15 +2450,20 @@ class Sam(L.LightningModule):
                 window_size=14,
                 out_chans=prompt_embed_dim,
             ),
-            prompt_encoder=prompt_encoder or PromptEncoder(
+            prompt_encoder=prompt_encoder
+            or PromptEncoder(
                 embed_dim=prompt_embed_dim,
-                image_embedding_size=(image_embedding_size, image_embedding_size),
+                image_embedding_size=(
+                    image_embedding_size,
+                    image_embedding_size,
+                ),
                 input_image_size=(image_size, image_size),
                 mask_in_chans=16,
             ),
-            mask_decoder=mask_decoder or MaskDecoder(
-                num_multimask_outputs=num_multimask_outputs, # default = 3 classes
-                iou_head_depth=iou_head_depth, # default = 3 classes
+            mask_decoder=mask_decoder
+            or MaskDecoder(
+                num_multimask_outputs=num_multimask_outputs,  # default = 3 classes
+                iou_head_depth=iou_head_depth,  # default = 3 classes
                 transformer=TwoWayTransformer(
                     depth=2,
                     embedding_dim=prompt_embed_dim,
@@ -2344,11 +2482,21 @@ class Sam(L.LightningModule):
             try:
                 sam.load_state_dict(state_dict)
             except:
-                print("Error when load original weights. Applying now remaping.")
-                if vit_type == 'vit-b':
-                    new_state_dict = self.load_from_b(sam, state_dict, image_size, vit_patch_size) # using remaping for vit_b
-                elif vit_type == 'vit-h':
-                    new_state_dict = self.load_from_h(sam, state_dict, image_size, vit_patch_size, encoder_global_attn_indexes) # using remaping for vit_h
+                print(
+                    "Error when load original weights. Applying now remaping."
+                )
+                if vit_type == "vit-b":
+                    new_state_dict = self.load_from_b(
+                        sam, state_dict, image_size, vit_patch_size
+                    )  # using remaping for vit_b
+                elif vit_type == "vit-h":
+                    new_state_dict = self.load_from_h(
+                        sam,
+                        state_dict,
+                        image_size,
+                        vit_patch_size,
+                        encoder_global_attn_indexes,
+                    )  # using remaping for vit_h
                 sam.load_state_dict(new_state_dict)
         return sam
 
@@ -2374,30 +2522,61 @@ class Sam(L.LightningModule):
             Remapped state dictionary compatible with the SAM model.
         """
         sam_dict = sam.state_dict()
-        except_keys = ['mask_tokens', 'output_hypernetworks_mlps', 'iou_prediction_head']
-        new_state_dict = {k: v for k, v in state_dict.items() if
-                        k in sam_dict.keys() and except_keys[0] not in k and except_keys[1] not in k and except_keys[2] not in k}
-        pos_embed = new_state_dict['image_encoder.pos_embed']
+        except_keys = [
+            "mask_tokens",
+            "output_hypernetworks_mlps",
+            "iou_prediction_head",
+        ]
+        new_state_dict = {
+            k: v
+            for k, v in state_dict.items()
+            if k in sam_dict.keys()
+            and except_keys[0] not in k
+            and except_keys[1] not in k
+            and except_keys[2] not in k
+        }
+        pos_embed = new_state_dict["image_encoder.pos_embed"]
         token_size = int(image_size // vit_patch_size)
         if pos_embed.shape[1] != token_size:
             # resize pos embedding, which may sacrifice the performance, but I have no better idea
             pos_embed = pos_embed.permute(0, 3, 1, 2)  # [b, c, h, w]
-            pos_embed = F.interpolate(pos_embed, (token_size, token_size), mode='bilinear', align_corners=False)
+            pos_embed = F.interpolate(
+                pos_embed,
+                (token_size, token_size),
+                mode="bilinear",
+                align_corners=False,
+            )
             pos_embed = pos_embed.permute(0, 2, 3, 1)  # [b, h, w, c]
-            new_state_dict['image_encoder.pos_embed'] = pos_embed
-            rel_pos_keys = [k for k in sam_dict.keys() if 'rel_pos' in k]
-            global_rel_pos_keys = [k for k in rel_pos_keys if '2' in k or '5' in  k or '8' in k or '11' in k]
+            new_state_dict["image_encoder.pos_embed"] = pos_embed
+            rel_pos_keys = [k for k in sam_dict.keys() if "rel_pos" in k]
+            global_rel_pos_keys = [
+                k
+                for k in rel_pos_keys
+                if "2" in k or "5" in k or "8" in k or "11" in k
+            ]
             for k in global_rel_pos_keys:
                 rel_pos_params = new_state_dict[k]
                 h, w = rel_pos_params.shape
                 rel_pos_params = rel_pos_params.unsqueeze(0).unsqueeze(0)
-                rel_pos_params = F.interpolate(rel_pos_params, (token_size * 2 - 1, w), mode='bilinear', align_corners=False)
+                rel_pos_params = F.interpolate(
+                    rel_pos_params,
+                    (token_size * 2 - 1, w),
+                    mode="bilinear",
+                    align_corners=False,
+                )
                 new_state_dict[k] = rel_pos_params[0, 0, ...]
         sam_dict.update(new_state_dict)
         return sam_dict
-    
+
     # mapping weights: developed by https://github.com/hitachinsk/SAMed/blob/main/SAMed_h/segment_anything/build_sam.py
-    def load_from_h(self, sam, state_dict, image_size, vit_patch_size, encoder_global_attn_indexes):
+    def load_from_h(
+        self,
+        sam,
+        state_dict,
+        image_size,
+        vit_patch_size,
+        encoder_global_attn_indexes,
+    ):
         """
         Loads and remaps the pretrained weights for 'vit-h' model.
 
@@ -2421,36 +2600,66 @@ class Sam(L.LightningModule):
         """
         ega = encoder_global_attn_indexes
         sam_dict = sam.state_dict()
-        except_keys = ['mask_tokens', 'output_hypernetworks_mlps', 'iou_prediction_head']
-        new_state_dict = {k: v for k, v in state_dict.items() if
-                        k in sam_dict.keys() and except_keys[0] not in k and except_keys[1] not in k and except_keys[2] not in k}
-        pos_embed = new_state_dict['image_encoder.pos_embed']
+        except_keys = [
+            "mask_tokens",
+            "output_hypernetworks_mlps",
+            "iou_prediction_head",
+        ]
+        new_state_dict = {
+            k: v
+            for k, v in state_dict.items()
+            if k in sam_dict.keys()
+            and except_keys[0] not in k
+            and except_keys[1] not in k
+            and except_keys[2] not in k
+        }
+        pos_embed = new_state_dict["image_encoder.pos_embed"]
         token_size = int(image_size // vit_patch_size)
         if pos_embed.shape[1] != token_size:
             # resize pos embedding, which may sacrifice the performance, but I have no better idea
             pos_embed = pos_embed.permute(0, 3, 1, 2)  # [b, c, h, w]
-            pos_embed = F.interpolate(pos_embed, (token_size, token_size), mode='bilinear', align_corners=False)
+            pos_embed = F.interpolate(
+                pos_embed,
+                (token_size, token_size),
+                mode="bilinear",
+                align_corners=False,
+            )
             pos_embed = pos_embed.permute(0, 2, 3, 1)  # [b, h, w, c]
-            new_state_dict['image_encoder.pos_embed'] = pos_embed
-            rel_pos_keys = [k for k in sam_dict.keys() if 'rel_pos' in k]
+            new_state_dict["image_encoder.pos_embed"] = pos_embed
+            rel_pos_keys = [k for k in sam_dict.keys() if "rel_pos" in k]
             global_rel_pos_keys = []
             for rel_pos_key in rel_pos_keys:
-                num = int(rel_pos_key.split('.')[2])
+                num = int(rel_pos_key.split(".")[2])
                 if num in encoder_global_attn_indexes:
                     global_rel_pos_keys.append(rel_pos_key)
             for k in global_rel_pos_keys:
                 rel_pos_params = new_state_dict[k]
                 h, w = rel_pos_params.shape
                 rel_pos_params = rel_pos_params.unsqueeze(0).unsqueeze(0)
-                rel_pos_params = F.interpolate(rel_pos_params, (token_size * 2 - 1, w), mode='bilinear', align_corners=False)
+                rel_pos_params = F.interpolate(
+                    rel_pos_params,
+                    (token_size * 2 - 1, w),
+                    mode="bilinear",
+                    align_corners=False,
+                )
                 new_state_dict[k] = rel_pos_params[0, 0, ...]
         sam_dict.update(new_state_dict)
         return sam_dict
 
-    def forward(self, batched_input:List[Dict[str, Any]], multimask_output:bool) -> torch.Tensor:
-        return self.model(batched_input, multimask_output)
-    
-    def _compute_metrics(self, y_hat: torch.Tensor, y: torch.Tensor, step_name: str):
+    def forward(
+        self, batched_input: List[Dict[str, Any]], multimask_output: Optional[bool] = None
+    ) -> torch.Tensor:
+        if multimask_output is None:
+            multimask_output = self.multimask_output
+        res = self.model(batched_input, multimask_output)
+        
+        if self.return_prediction_only:
+            return torch.stack([x["masks_logits"][0] for x in res], dim=0)
+        return res
+
+    def _compute_metrics(
+        self, y_hat: torch.Tensor, y: torch.Tensor, step_name: str
+    ):
         if self.metrics[step_name] is None:
             return {}
 
@@ -2460,85 +2669,93 @@ class Sam(L.LightningModule):
             )
             for metric_name, metric in self.metrics[step_name].items()
         }
-    
-    def _single_step(self, batch, batch_idx:int, step_name:str):
+
+    def _single_step(self, batch, batch_idx: int, step_name: str):
         if isinstance(batch, list) and len(batch) == 2:
             # this is an adaptation due to the use of default Dataset() of Minerva
             data = []
-            for sample_idx in range(len(batch)):
-                sample_data = {
-                    'image': batch[sample_idx]['image'],
-                    'label': batch[sample_idx]['label'],
-                    'original_size': (batch[sample_idx]['image'].shape[1], batch[sample_idx]['image'].shape[2]),
-                }
-
-                if 'point_coords' in batch[sample_idx]:
-                    sample_data['point_coords'] = batch[sample_idx]['point_coords']
-                if 'point_labels' in batch[sample_idx]:
-                    sample_data['point_labels'] = batch[sample_idx]['point_labels']
-                
-                data.append(sample_data)
+            for sample_idx in range(len(batch[0])):
+                data.append(
+                    {
+                        "image": batch[0][sample_idx],
+                        "label": batch[1][sample_idx],
+                        "original_size": (
+                            batch[0][sample_idx].shape[1],
+                            batch[0][sample_idx].shape[2],
+                        ),
+                    }
+                )
             batch = data
-        elif isinstance(batch, list) and all(isinstance(item, dict) for item in batch):
+        elif isinstance(batch, list) and all(
+            isinstance(item, dict) for item in batch
+        ):
             # this is for train Sam(), where default is list of dict
             pass
         else:
-            raise ValueError("batch can be 'tuple' (default for Minerva) of 'list' (default for original Sam class).")
+            raise ValueError(
+                "batch can be 'tuple' (default for Minerva) of 'list' (default for original Sam class)."
+            )
 
         outputs = self(batch, multimask_output=self.multimask_output)
 
         # stack logits 'masks_logits' and 'labels' for loss and metrics function
-        masks_logits = torch.stack([output['masks_logits'].squeeze(0) for output in outputs])  # [batch_size, num_classes, H, W]
-        labels = torch.stack([input['label'].squeeze(0) for input in batch])  # [batch_size, H, W]
+        masks_logits = torch.stack(
+            [output["masks_logits"].squeeze(0) for output in outputs]
+        )  # [batch_size, num_classes, H, W]
+        labels = torch.stack(
+            [input["label"].squeeze(0) for input in batch]
+        )  # [batch_size, H, W]
 
         loss = self._loss(masks_logits, labels)
         metrics = self._compute_metrics(masks_logits, labels, step_name)
-        
-        self.log(f"{step_name}_loss", loss.item(), on_step=True, on_epoch=True, prog_bar=True, logger=True, sync_dist=True)
+
+        self.log(
+            f"{step_name}_loss",
+            loss.item(),
+            on_step=True,
+            on_epoch=True,
+            prog_bar=True,
+            logger=True,
+            sync_dist=True,
+        )
         for metric_name, metric_value in metrics.items():
-            self.log(metric_name, metric_value.item(), on_step=True, on_epoch=True, prog_bar=True, logger=True, sync_dist=True)
-        
+            self.log(
+                metric_name,
+                metric_value.item(),
+                on_step=True,
+                on_epoch=True,
+                prog_bar=True,
+                logger=True,
+                sync_dist=True,
+            )
+
         return loss
-    
+
     def training_step(self, batch, batch_idx):
         return self._single_step(batch, batch_idx, "train")
 
     def validation_step(self, batch, batch_idx):
         return self._single_step(batch, batch_idx, "val")
-    
+
     def test_step(self, batch: torch.Tensor, batch_idx: int):
         return self._single_step(batch, batch_idx, "test")
 
-    def predict_step(self, batch: torch.Tensor, batch_idx: int, dataloader_idx: Optional[int] = None):
-        if isinstance(batch, list) and len(batch) == 2:
-            # this is an adaptation due to the use of default Dataset() of Minerva
-            data = []
-            for sample_idx in range(len(batch)):
-                sample_data = {
-                    'image': batch[sample_idx]['image'],
-                    'label': batch[sample_idx]['label'],
-                    'original_size': (batch[sample_idx]['image'].shape[1], batch[sample_idx]['image'].shape[2]),
-                }
+    def predict_step(
+        self,
+        batch: torch.Tensor,
+        batch_idx: int,
+        dataloader_idx: Optional[int] = None,
+    ):
+        batched_input = batch
 
-                if 'point_coords' in batch[sample_idx]:
-                    sample_data['point_coords'] = batch[sample_idx]['point_coords']
-                if 'point_labels' in batch[sample_idx]:
-                    sample_data['point_labels'] = batch[sample_idx]['point_labels']
-                
-                data.append(sample_data)
-            batch = data
-        elif isinstance(batch, list) and all(isinstance(item, dict) for item in batch):
-            # this is for train Sam(), where default is list of dict
-            pass
-        else:
-            raise ValueError("batch can be 'tuple' (default for Minerva) of 'list' (default for original Sam class).")
-
-        outputs = self(batch, multimask_output=self.multimask_output)
+        outputs = self(
+            batched_input, multimask_output=batched_input[0]["multimask_output"]
+        )
         return outputs
-    
+
     def configure_optimizers(self):
         return torch.optim.Adam(self.parameters(), lr=self.learning_rate)
-    
+
     def _loss(self, masks, label):
         loss_ce = self.loss_fn(masks, label[:].long())
         return loss_ce
