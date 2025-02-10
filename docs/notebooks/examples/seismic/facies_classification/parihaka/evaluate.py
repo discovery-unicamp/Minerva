@@ -9,19 +9,23 @@ from common import get_data_module
 import math
 from minerva.engines.patch_inferencer_engine import PatchInferencer
 import lightning as L
-from finetuned_models import (
-    byol,
-    fastsiam,
-    kenshodense,
-    simclr,
-    tribyol,
-    sam,
-    lfr,
-    dinov2_dpt,
-    dinov2_mla,
-    dinov2_pup,
-    sfm_base_patch16,
-)
+import finetuned_models
+# from finetuned_models import (
+#     byol,
+#     fastsiam,
+#     kenshodense,
+#     simclr,
+#     tribyol,
+#     sam,
+#     lfr,
+#     dinov2_dpt,
+#     dinov2_mla,
+#     dinov2_pup,
+#     sfm_base_patch16,
+#     deeplabv3,
+#     setr_pup
+
+# )
 import traceback
 from typing import Tuple
 
@@ -32,7 +36,7 @@ root_annotation_dir = Path(
     "/workspaces/HIAAC-KR-Dev-Container/shared_data/seam_ai_datasets/seam_ai/annotations"
 )
 
-predictions_path = Path.cwd() / "predictions"
+root_predictions_path = Path.cwd() / "predictions"
 
 
 class PredictorWrapper(L.LightningModule):
@@ -44,6 +48,9 @@ class PredictorWrapper(L.LightningModule):
         # Adds a dimension after logits to match PatchInferencer requirements
         # 6x1006x590 -> 6x1x1006x590
         res = self.model(x)
+        # For SET-R model, the output is a tuple (y_hat and more 3 aux outputs)
+        if isinstance(res, tuple):
+            res = res[0]
         res = res.unsqueeze(2)
         return res
 
@@ -154,6 +161,7 @@ def load_model_and_data_module(
 
 def perform_inference(
     model_instantiator_func,
+    predictions_path: Path,
     batch_size=1,
     n_classes=6,
     img_shape: Tuple[int, int] = (1006, 590),
@@ -166,6 +174,7 @@ def perform_inference(
         n_classes=n_classes,
         batch_size=batch_size,
     )
+    print(f"Loading model from ckpt at: {model_info['ckpt_file']}")
     predictions_file = predictions_path / f"{model_info['name']}.npy"
     if predictions_file.exists():
         print(
@@ -194,33 +203,46 @@ def perform_inference(
 
 
 def main():
-    predictions_path.mkdir(parents=True, exist_ok=True)
-
-    for model_instantiator_func in [
-        byol,
-        fastsiam,
-        kenshodense,
-        simclr,
-        tribyol,
-        sam,
-        lfr,
-        dinov2_dpt,
-        dinov2_mla,
-        dinov2_pup,
-        sfm_base_patch16,
-    ]:
-        model_name = model_instantiator_func.__name__
-        print("-" * 80)
+    finetuned_models_path = [
+        # Path.cwd() / "finetuned_parihaka_models_run_1",
+        # Path.cwd() / "finetuned_parihaka_models_run_2",
+        Path.cwd() / "finetuned_parihaka_models_run_3"
+    ]
+    
+    for path in finetuned_models_path:
+        # Change the default checkpoint directory to run path
+        finetuned_models.set_default_ckpt_dir(path)
         
-        try:
-            print("*" * 20)
-            print(f"Model: {model_name}")
-            print("*" * 20)
-            perform_inference(model_instantiator_func)
-        except Exception as e:
-            traceback.print_exc()
-            print(f"Error executing model: {model_name}")
-        print("-" * 80, "\n")
+        predictions_path = root_predictions_path / path.name
+        predictions_path.mkdir(parents=True, exist_ok=True)
+
+        for model_instantiator_func in [
+            finetuned_models.byol,
+            finetuned_models.fastsiam,
+            finetuned_models.kenshodense,
+            finetuned_models.simclr,
+            finetuned_models.tribyol,
+            finetuned_models.sam,
+            finetuned_models.lfr,
+            finetuned_models.dinov2_dpt,
+            finetuned_models.dinov2_mla,
+            finetuned_models.dinov2_pup,
+            finetuned_models.sfm_base_patch16,
+            finetuned_models.deeplabv3,
+            finetuned_models.setr_pup,
+        ]:
+            model_name = model_instantiator_func.__name__
+            print("-" * 80)
+            
+            try:
+                print("*" * 20)
+                print(f"Model: {model_name}")
+                print("*" * 20)
+                perform_inference(model_instantiator_func, predictions_path)
+            except Exception as e:
+                traceback.print_exc()
+                print(f"Error executing model: {model_name}")
+            print("-" * 80, "\n")
 
 
 if __name__ == "__main__":

@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import torch
+from torchmetrics import JaccardIndex
 from minerva.models.nets.image.deeplabv3 import DeepLabV3
 from minerva.models.ssl.dinov2 import (
     DinoVisionTransformer,
@@ -15,9 +16,10 @@ from minerva.models.nets.image.sam import Sam
 from minerva.models.nets.image.vit import SFM_BasePatch16_Downstream
 from functools import partial
 import lightning as L
+from minerva.models.nets.image.setr import SETR_PUP as SETR_PUP_model
 
 
-default_ckpt_dir = Path.cwd() / "finetuned_parihaka_models"
+default_ckpt_dir = Path.cwd() / "finetuned_parihaka_models_run_1"
 
 # DeepLabV3 with 1x1006x590 input size + Logits
 
@@ -304,3 +306,51 @@ def sfm_base_patch16():
         "img_size": img_size,
         "single_channel": True,
     }
+
+
+
+def deeplabv3():
+    img_size = (1006, 590)
+    model = DeepLabV3() 
+    
+    return {    
+        "name": "deeplabv3",
+        "model": model,
+        "ckpt_file": default_ckpt_dir
+        / "deeplabv3"
+        / "seam_ai"
+        / "checkpoints"
+        / "last.ckpt",
+        "img_size": img_size,
+        "single_channel": False,
+    }
+    
+
+def setr_pup():
+    img_size = (1008, 784)
+    model = SETR_PUP_model(
+        image_size=img_size,
+        num_classes=6,
+        load_backbone_path=None,
+        original_resolution=(256, 576),
+        train_metrics={"IoU": JaccardIndex(task="multiclass", num_classes=6)},
+        val_metrics={"IoU": JaccardIndex(task="multiclass", num_classes=6)},
+        test_metrics={"IoU": JaccardIndex(task="multiclass", num_classes=6)},
+    )
+    
+    return {
+        "name": "setr_pup",
+        "model": model,
+        "ckpt_file": default_ckpt_dir
+        / "setr_pup"
+        / "seam_ai"
+        / "checkpoints"
+        / "last.ckpt",
+        "img_size": img_size,
+        "single_channel": False,
+    }
+    
+def set_default_ckpt_dir(ckpt_dir: Path):
+    global default_ckpt_dir
+    default_ckpt_dir = ckpt_dir
+    print(f"Set default checkpoint directory to {default_ckpt_dir}")
