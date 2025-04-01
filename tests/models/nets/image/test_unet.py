@@ -3,7 +3,7 @@ import torch
 import torchmetrics
 
 from minerva.models.nets import UNet
-from minerva.utils.data import RandomDataModule
+from minerva.data.data_module_tools import RandomDataModule
 
 
 def test_unet():
@@ -46,7 +46,9 @@ def test_unet_train_metrics():
 
     # Test the class instantiation
     model = UNet(train_metrics=metrics)
-    trainer = L.Trainer(accelerator="cpu", max_epochs=1, devices=1)
+    trainer = L.Trainer(
+        fast_dev_run=True, devices=1, accelerator="cpu", max_epochs=1
+    )
 
     assert data_module is not None
     assert model is not None
