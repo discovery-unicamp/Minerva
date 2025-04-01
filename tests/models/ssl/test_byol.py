@@ -1,9 +1,6 @@
 import torch
-from torch.nn import Sequential, Conv2d, CrossEntropyLoss
-from torchvision.transforms import Resize
 import numpy as np
 
-from minerva.models.ssl.lfr import RepeatedModuleList, LearnFromRandomnessModel
 from minerva.models.nets.image.deeplabv3 import DeepLabV3Backbone
 from minerva.models.ssl.byol import BYOL
 
