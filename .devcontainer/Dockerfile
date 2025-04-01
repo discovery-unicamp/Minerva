@@ -1,34 +1,55 @@
+# Let's pull from nvidia pytorch 23.06 (https://docs.nvidia.com/deeplearning/frameworks/pytorch-release-notes/rel-23-06.html)
+# This is a ubuntu 22.04 based with:
+#   - python 3.10 
+#   - CUDA 12.1.1
+#   - CUDNN 8.9.2
+#   - Pytorch 2.1.0a0+4136153 (may 2, 2023 - https://github.com/pytorch/pytorch/tree/41361538a978eb03fa1e88bf5b8e4410db7a6927)
+# It requeres Nvidia Driver release 530 or later 
 FROM nvcr.io/nvidia/pytorch:23.06-py3
 
 ARG USERNAME=vscode
 ARG USER_UID=1000
 ARG USER_GID=$USER_UID
 
-# Install common apt packages
+# ******************************************************** 
+# Install common apt packages for developing
+# ********************************************************
 RUN export DEBIAN_FRONTEND=noninteractive && \
     apt-get update &&  \
+    # Remove imagemagick due to https://security-tracker.debian.org/tracker/CVE-2019-10131
+    apt-get purge -y imagemagick imagemagick-6-common  && \ 
     apt install -y  build-essential \
         bzip2 \
         ca-certificates \
         cmake \
         curl \
-        curl \
+        ffmpeg \
         git \
         htop \
+        libsm6 \
         libssl-dev \
+        libxext6 \
         nvtop \
-        net-tools \
         pandoc \
+        python3-opencv \
+        python3-pip \
         python3-sphinx \
         tmux \
-        tree \
         unrar \
         unzip \
         vim \
-        wget \
-        xdot
+        wget 
 
+
+# ********************************************************
+# * Some common python packages
+# ********************************************************
+RUN python3 -m pip install --upgrade pip>=23 setuptools>=75.8.0
+
+
+# ********************************************************
 # Create the vscode user (non-root user) and add sudo support
+# ********************************************************
 RUN groupadd --gid $USER_GID $USERNAME && \
     useradd --uid $USER_UID --gid $USER_GID -m $USERNAME  && \
     apt-get update && \
@@ -41,35 +62,20 @@ RUN groupmod --gid $USER_GID $USERNAME \
     && usermod --uid $USER_UID --gid $USER_GID $USERNAME \
     && chown -R $USER_UID:$USER_GID /home/$USERNAME
 
+
 # ********************************************************
 # * Anything else you want to do like clean up goes here *
 # ********************************************************
-RUN     rm -rf /var/lib/apt/lists/* && \
-        ldconfig && \
-        apt autoremove && \
-        apt clean
-
-# ***************** Specific packages ********************
-
-# System-wide python packages
-RUN python -m pip install --upgrade pip setuptools pytest && \
-    python -m pip install \
-        black \
-        ipykernel \
-        kaleido>=0.2 \
-        lightning>=2.1.9 \
-        matplotlib>=3.7 \
-        nbformat \
-        numpy>=1.22 \
-        pandas>=2.0 \
-        plotly>=5.18 \
-        seaborn>=0.11 \
-        scipy>=1.10 \
-        torchmetrics>=1.3.0 \
-        torchvision>=0.15
+RUN rm -rf /var/lib/apt/lists/* && \
+    ldconfig && \
+    apt autoremove && \
+    apt clean
 
 
-# Change shell for user b
+# ********************************************************
+# Final operations
+# ********************************************************
+# Change shell for user to bash
 RUN chsh --shell /bin/bash $USERNAME
 #  Set the default user
 USER $USERNAME
