@@ -83,3 +83,19 @@ Module Contents
 
 
 
+   .. py:attribute:: cast_to
+      :value: None
+
+
+
+   .. py:attribute:: columns_to_select
+
+
+   .. py:attribute:: data_shape
+      :value: None
+
+
+
+   .. py:attribute:: df
+
+

@@ -15,56 +15,51 @@ Classes
 Module Contents
 ---------------
 
-.. py:class:: TiffReader(path)
+.. py:class:: TiffReader(path, sort_method = None, delimiter = None, key_index = 0, reverse = False)
 
-   Bases: :py:obj:`minerva.data.readers.reader._Reader`
+   Bases: :py:obj:`minerva.data.readers.base_file_iterator.BaseFileIterator`
 
 
-   This class loads a TIFF file from a directory. It assumes that the TIFF
-   files are named with a number as the filename, starting from 0. This is
-   shown below.
+   A base class for iterating over files in a directory in a custom sorted 
+   order.
 
-   ```
-   /path/
-   ├── 0.tiff
-   ├── 1.tiff
-   ├── 2.tiff
-   └── ...
-   ```
+   Load image files from a directory.
 
-   Thus, the element at index `i` will be the file `i.tiff`.
+   Parameters
+   ----------
+   path : Union[Path, str]
+       The path to the directory containing the image files. Files will be
+       searched recursively.
+   sort_method : Optional[List[str]], optional
+       A list specifying how to sort each part of the filename. Each
+       element can  be either "text" (lexicographical) or "numeric"
+       (numerically). By default, None, which will use "numeric" if
+       numeric parts are detected.
+   delimiter : Optional[str], optional
+       The delimiter to split filenames into components, by default None.
+   key_index : Union[int, List[int]], optional
+       The index (or list of indices) of the part(s) of the filename to
+       use  for sorting. If a list is provided, files will be sorted
+       based on  multiple parts in sequence. Thus, first by the part at
+       index 0, then by the part at index 1, and so on. By default 0.
+   reverse : bool, optional
+       Whether to sort in reverse order, by default False.
+
+   Raises
+   ------
+   NotADirectoryError
+       If the path is not a directory.
 
 
    .. py:method:: __getitem__(index)
 
-      Retrieve the TIFF file at the specified index. The index will be
-      used as the filename of the TIFF file.
-
-      Parameters
-      ----------
-      index : int
-          Index of the TIFF file to retrieve.
-
-      Returns
-      -------
-      np.ndarray
-          The TIFF file as a NumPy array.
-
-      Raises
-      ------
-      ValueError
-          If the specified file does not exist in the given path.
+      Retrieve the TIFF file at the specified index.
 
 
 
-   .. py:method:: __len__()
+   .. py:method:: __str__()
 
-      Return the number of TIFF files in the directory.
 
-      Returns
-      -------
-      int
-          The number of TIFF files in the directory.
-
+   .. py:attribute:: root_dir
 
 

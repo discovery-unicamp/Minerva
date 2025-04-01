@@ -1,0 +1,47 @@
+minerva.losses.negative_cossine_similatiry
+==========================================
+
+.. py:module:: minerva.losses.negative_cossine_similatiry
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   minerva.losses.negative_cossine_similatiry.NegativeCosineSimilarity
+
+
+Module Contents
+---------------
+
+.. py:class:: NegativeCosineSimilarity(dim = 1, eps = 1e-08)
+
+   Bases: :py:obj:`torch.nn.Module`
+
+
+   Implementation of the Negative Cosine Simililarity used in the SimSiam[0] paper.
+   [0] SimSiam, 2020, https://arxiv.org/abs/2011.10566
+
+   Same parameters as in torch.nn.CosineSimilarity
+
+   Args:
+       dim (int, optional):
+           Dimension where cosine similarity is computed. Default: 1
+       eps (float, optional):
+           Small value to avoid division by zero. Default: 1e-8
+
+
+   .. py:attribute:: dim
+      :value: 1
+
+
+
+   .. py:attribute:: eps
+      :value: 1e-08
+
+
+
+   .. py:method:: forward(x0, x1)
+
+

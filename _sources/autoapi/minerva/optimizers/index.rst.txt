@@ -1,0 +1,71 @@
+minerva.optimizers
+==================
+
+.. py:module:: minerva.optimizers
+
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   /autoapi/minerva/optimizers/lars/index
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   minerva.optimizers.LARS
+
+
+Package Contents
+----------------
+
+.. py:class:: LARS(params, lr, momentum = 0.9, dampening = 0, weight_decay = 0.9, nesterov = False, trust_coefficient = 0.001, eps = 1e-08)
+
+   Bases: :py:obj:`torch.optim.Optimizer`
+
+
+   Implements the Layer-wise Adaptive Rate Scaling (LARS) optimizer.
+   Implementation borrowed from lightly SSL library.
+
+   Constructs a new LARS optimizer.
+
+   Parameters
+   ----------
+   params : Any
+       Parameters to optimize.
+   lr : float
+       Learning rate.
+   momentum : float, optional
+       Momentum factor, by default 0.9
+   dampening : float, optional
+       Dampening for momentum, by default 0
+   weight_decay : float, optional
+       Weight decay (L2 penalty), by default 0.9
+   nesterov : bool, optional
+       Enables Nesterov momentum, by default False
+   trust_coefficient : float, optional
+       Trust coefficient for computing learning rate, by default 0.001
+   eps : float, optional
+       Eps for division denominator, by default 1e-8
+
+
+
+   .. py:method:: __setstate__(state)
+
+
+   .. py:method:: step(closure: None = None) -> None
+                  step(closure: Callable[[], float]) -> float
+
+      Performs a single optimization step.
+
+      Args:
+          closure (callable, optional): A closure that reevaluates the model
+              and returns the loss.
+
+
+

@@ -1,0 +1,236 @@
+minerva.models.nets.image.deeplabv3
+===================================
+
+.. py:module:: minerva.models.nets.image.deeplabv3
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   minerva.models.nets.image.deeplabv3.DeepLabV3
+   minerva.models.nets.image.deeplabv3.DeepLabV3Backbone
+   minerva.models.nets.image.deeplabv3.DeepLabV3PredictionHead
+
+
+Module Contents
+---------------
+
+.. py:class:: DeepLabV3(backbone = None, pred_head = None, loss_fn = None, learning_rate = 0.001, num_classes = 6, train_metrics = None, val_metrics = None, test_metrics = None)
+
+   Bases: :py:obj:`minerva.models.nets.base.SimpleSupervisedModel`
+
+
+   A DeeplabV3 with a ResNet50 backbone
+
+   References
+   ----------
+   Liang-Chieh Chen, George Papandreou, Florian Schroff, Hartwig Adam.
+   "Rethinking Atrous Convolution for Semantic Image Segmentation", 2017
+
+   Initializes a DeepLabV3 model.
+
+   Parameters
+   ----------
+   backbone: Optional[nn.Module]
+       The backbone network. Defaults to None.
+   pred_head: Optional[nn.Module]
+       The prediction head network. Defaults to None.
+   loss_fn: Optional[nn.Module]
+       The loss function. Defaults to None.
+   learning_rate: float
+       The learning rate for the optimizer. Defaults to 0.001.
+   num_classes: int
+       The number of classes for prediction. Defaults to 6.
+   train_metrics: Optional[Dict[str, Metric]]
+       The metrics to be computed during training. Defaults to None.
+   val_metrics: Optional[Dict[str, Metric]]
+       The metrics to be computed during validation. Defaults to None.
+   test_metrics: Optional[Dict[str, Metric]]
+       The metrics to be computed during testing. Defaults to None.
+
+
+   .. py:method:: _loss_func(y_hat, y)
+
+      Calculate the loss between the output and the input data.
+
+      Parameters
+      ----------
+      y_hat : torch.Tensor
+          The output data from the forward pass.
+      y : torch.Tensor
+          The input data/label.
+
+      Returns
+      -------
+      torch.Tensor
+          The loss value.
+
+
+
+   .. py:method:: configure_optimizers()
+
+      Choose what optimizers and learning-rate schedulers to use in your optimization. Normally you'd need one.
+      But in the case of GANs or similar you might have multiple. Optimization with multiple optimizers only works in
+      the manual optimization mode.
+
+      Return:
+          Any of these 6 options.
+
+          - **Single optimizer**.
+          - **List or Tuple** of optimizers.
+          - **Two lists** - The first list has multiple optimizers, and the second has multiple LR schedulers
+            (or multiple ``lr_scheduler_config``).
+          - **Dictionary**, with an ``"optimizer"`` key, and (optionally) a ``"lr_scheduler"``
+            key whose value is a single LR scheduler or ``lr_scheduler_config``.
+          - **None** - Fit will run without any optimizer.
+
+      The ``lr_scheduler_config`` is a dictionary which contains the scheduler and its associated configuration.
+      The default configuration is shown below.
+
+      .. code-block:: python
+
+          lr_scheduler_config = {
+              # REQUIRED: The scheduler instance
+              "scheduler": lr_scheduler,
+              # The unit of the scheduler's step size, could also be 'step'.
+              # 'epoch' updates the scheduler on epoch end whereas 'step'
+              # updates it after a optimizer update.
+              "interval": "epoch",
+              # How many epochs/steps should pass between calls to
+              # `scheduler.step()`. 1 corresponds to updating the learning
+              # rate after every epoch/step.
+              "frequency": 1,
+              # Metric to monitor for schedulers like `ReduceLROnPlateau`
+              "monitor": "val_loss",
+              # If set to `True`, will enforce that the value specified 'monitor'
+              # is available when the scheduler is updated, thus stopping
+              # training if not found. If set to `False`, it will only produce a warning
+              "strict": True,
+              # If using the `LearningRateMonitor` callback to monitor the
+              # learning rate progress, this keyword can be used to specify
+              # a custom logged name
+              "name": None,
+          }
+
+      When there are schedulers in which the ``.step()`` method is conditioned on a value, such as the
+      :class:`torch.optim.lr_scheduler.ReduceLROnPlateau` scheduler, Lightning requires that the
+      ``lr_scheduler_config`` contains the keyword ``"monitor"`` set to the metric name that the scheduler
+      should be conditioned on.
+
+      .. testcode::
+
+          # The ReduceLROnPlateau scheduler requires a monitor
+          def configure_optimizers(self):
+              optimizer = Adam(...)
+              return {
+                  "optimizer": optimizer,
+                  "lr_scheduler": {
+                      "scheduler": ReduceLROnPlateau(optimizer, ...),
+                      "monitor": "metric_to_track",
+                      "frequency": "indicates how often the metric is updated",
+                      # If "monitor" references validation metrics, then "frequency" should be set to a
+                      # multiple of "trainer.check_val_every_n_epoch".
+                  },
+              }
+
+
+          # In the case of two optimizers, only one using the ReduceLROnPlateau scheduler
+          def configure_optimizers(self):
+              optimizer1 = Adam(...)
+              optimizer2 = SGD(...)
+              scheduler1 = ReduceLROnPlateau(optimizer1, ...)
+              scheduler2 = LambdaLR(optimizer2, ...)
+              return (
+                  {
+                      "optimizer": optimizer1,
+                      "lr_scheduler": {
+                          "scheduler": scheduler1,
+                          "monitor": "metric_to_track",
+                      },
+                  },
+                  {"optimizer": optimizer2, "lr_scheduler": scheduler2},
+              )
+
+      Metrics can be made available to monitor by simply logging it using
+      ``self.log('metric_to_track', metric_val)`` in your :class:`~lightning.pytorch.core.LightningModule`.
+
+      Note:
+          Some things to know:
+
+          - Lightning calls ``.backward()`` and ``.step()`` automatically in case of automatic optimization.
+          - If a learning rate scheduler is specified in ``configure_optimizers()`` with key
+            ``"interval"`` (default "epoch") in the scheduler configuration, Lightning will call
+            the scheduler's ``.step()`` method automatically in case of automatic optimization.
+          - If you use 16-bit precision (``precision=16``), Lightning will automatically handle the optimizer.
+          - If you use :class:`torch.optim.LBFGS`, Lightning handles the closure function automatically for you.
+          - If you use multiple optimizers, you will have to switch to 'manual optimization' mode and step them
+            yourself.
+          - If you need to control how often the optimizer steps, override the :meth:`optimizer_step` hook.
+
+
+
+
+   .. py:method:: forward(x)
+
+      Perform a forward pass with the input data on the backbone model.
+
+      Parameters
+      ----------
+      x : torch.Tensor
+          The input data.
+
+      Returns
+      -------
+      torch.Tensor
+          The output data from the forward pass.
+
+
+
+.. py:class:: DeepLabV3Backbone(num_classes = 6)
+
+   Bases: :py:obj:`torch.nn.Module`
+
+
+   A ResNet50 backbone for DeepLabV3
+
+   Initializes the DeepLabV3 model.
+
+   Parameters
+   ----------
+   num_classes: int
+       The number of classes for classification. Default is 6.
+
+
+   .. py:attribute:: RN50model
+
+
+   .. py:method:: forward(x)
+
+
+   .. py:method:: freeze_weights()
+
+
+   .. py:method:: unfreeze_weights()
+
+
+.. py:class:: DeepLabV3PredictionHead(in_channels = 2048, num_classes = 6, atrous_rates = (12, 24, 36))
+
+   Bases: :py:obj:`torch.nn.Sequential`
+
+
+   The prediction head for DeepLabV3
+
+   Initializes the DeepLabV3 model.
+
+   Parameters
+   ----------
+   in_channels: int
+       Number of input channels. Defaults to 2048.
+   num_classes: int
+       Number of output classes. Defaults to 6.
+   atrous_rates: Sequence[int]
+       A sequence of atrous rates for the ASPP module. Defaults to (12, 24, 36).
+
+

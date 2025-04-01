@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" data-content_root="../../../">
 <head>
@@ -5,26 +7,22 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>minerva.pipelines &mdash; minerva  documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=fd3f3429" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
-        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../../../_static/documentation_options.js?v=5929fcd5"></script>
-        <script src="../../../_static/doctools.js?v=9a2dae69"></script>
-        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
-        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
     <link rel="next" title="minerva.pipelines.base" href="base/index.html" />
-    <link rel="prev" title="minerva.models.nets.wisenet" href="../models/nets/wisenet/index.html" /> 
+    <link rel="prev" title="minerva.optimizers.lars" href="../optimizers/lars/index.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -46,19 +44,24 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../design.html">Minerva: A Modular Framework for Time-Series and Seismic ML</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../experiments.html">Managing Experiments with Minerva</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing to Minerva</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorials.html">Tutorials</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../../../api.html">Programming Reference</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="../index.html">minerva</a><ul class="current">
-<li class="toctree-l3 current"><a class="reference internal" href="../index.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="../index.html#submodules">Submodules</a><ul class="current">
 <li class="toctree-l4"><a class="reference internal" href="../analysis/index.html">minerva.analysis</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../data/index.html">minerva.data</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../losses/index.html">minerva.losses</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../models/index.html">minerva.models</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../optimizers/index.html">minerva.optimizers</a></li>
 <li class="toctree-l4 current"><a class="current reference internal" href="#">minerva.pipelines</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../samplers/index.html">minerva.samplers</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../transforms/index.html">minerva.transforms</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../utils/index.html">minerva.utils</a></li>
 </ul>
@@ -120,7 +123,7 @@
 <h2>Package Contents<a class="headerlink" href="#package-contents" title="Link to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="minerva.pipelines.Pipeline">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.pipelines.</span></span><span class="sig-name descname"><span class="pre">Pipeline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">log_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_result</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_run_status</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#minerva.pipelines.Pipeline" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.pipelines.</span></span><span class="sig-name descname"><span class="pre">Pipeline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">log_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_result</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_run_status</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/minerva/pipelines/base.html#Pipeline"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.pipelines.Pipeline" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">lightning.pytorch.core.mixins.HyperparametersMixin</span></code></p>
 <p>Pipelines provide a versatile API for automating tasks efficiently.
 They are runnable objects that keeps track of their parameters, results, and
@@ -141,10 +144,10 @@ property (if the <cite>cache_result</cite> is set to True).</p>
 <section id="parameters">
 <h3>Parameters<a class="headerlink" href="#parameters" title="Link to this heading"></a></h3>
 <dl class="simple">
-<dt>log_dir<span class="classifier">Path | str, optional</span></dt><dd><p>The default logging directory where all related pipeline files
+<dt>log_dir<span class="classifier">PathLike, optional</span></dt><dd><p>The default logging directory where all related pipeline files
 should be saved. By default None (uses current working directory)</p>
 </dd>
-<dt>ignore<span class="classifier">str | List[str], optional</span></dt><dd><p>Pipeline __init__ attributes are saved into config attibute. This
+<dt>ignore<span class="classifier">Union[str, List[str]], optional</span></dt><dd><p>Pipeline __init__ attributes are saved into config attibute. This
 option allows to ignore some attributes from being saved. This is
 quite useful when the attributes are not serializable or very large.
 By default None (save all __init__ attribute values)</p>
@@ -158,17 +161,45 @@ default False</p>
 be saved in the working directory with the name
 <cite>run_{pipeline_id}.yaml</cite>. By default False.</p>
 </dd>
+<dt>seed<span class="classifier">Optional[int], optional</span></dt><dd><p>Seed to be used by the pipeline. If None, a random seed is generated
+and used. By default None.</p>
+</dd>
 </dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.pipelines.Pipeline._cache_result">
+<span class="sig-name descname"><span class="pre">_cache_result</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#minerva.pipelines.Pipeline._cache_result" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.pipelines.Pipeline._cached_run_status">
+<span class="sig-name descname"><span class="pre">_cached_run_status</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[]</span></em><a class="headerlink" href="#minerva.pipelines.Pipeline._cached_run_status" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.pipelines.Pipeline._generate_seed">
+<span class="sig-name descname"><span class="pre">_generate_seed</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/minerva/pipelines/base.html#Pipeline._generate_seed"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.pipelines.Pipeline._generate_seed" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="minerva.pipelines.Pipeline._initialize_vars">
-<span class="sig-name descname"><span class="pre">_initialize_vars</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#minerva.pipelines.Pipeline._initialize_vars" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">_initialize_vars</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/minerva/pipelines/base.html#Pipeline._initialize_vars"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.pipelines.Pipeline._initialize_vars" title="Link to this definition"></a></dt>
 <dd><p>Initialize the internal variables of the pipeline. This method is
 used on __init__ and on clone method.</p>
 </dd></dl>
 
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.pipelines.Pipeline._pipeline_id">
+<span class="sig-name descname"><span class="pre">_pipeline_id</span></span><a class="headerlink" href="#minerva.pipelines.Pipeline._pipeline_id" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="minerva.pipelines.Pipeline._run">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">_run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#minerva.pipelines.Pipeline._run" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">_run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/minerva/pipelines/base.html#Pipeline._run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.pipelines.Pipeline._run" title="Link to this definition"></a></dt>
 <dd><p>Default pipeline method to be implemented in derived classes. This
 implements the pipeline logic.</p>
 <section id="returns">
@@ -187,7 +218,7 @@ implements the pipeline logic.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="minerva.pipelines.Pipeline._save_pipeline_info">
-<span class="sig-name descname"><span class="pre">_save_pipeline_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#minerva.pipelines.Pipeline._save_pipeline_info" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">_save_pipeline_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/minerva/pipelines/base.html#Pipeline._save_pipeline_info"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.pipelines.Pipeline._save_pipeline_info" title="Link to this definition"></a></dt>
 <dd><p>Save the pipeline information to a YAML file.</p>
 <section id="id1">
 <h4>Parameters<a class="headerlink" href="#id1" title="Link to this heading"></a></h4>
@@ -203,9 +234,14 @@ implements the pipeline logic.</p>
 </dl>
 </dd></dl>
 
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.pipelines.Pipeline._save_run_status">
+<span class="sig-name descname"><span class="pre">_save_run_status</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#minerva.pipelines.Pipeline._save_run_status" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="minerva.pipelines.Pipeline.clone">
-<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">clone</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#minerva.pipelines.Pipeline.clone" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">clone</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/minerva/pipelines/base.html#Pipeline.clone"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.pipelines.Pipeline.clone" title="Link to this definition"></a></dt>
 <dd><p>Clone a pipeline object. This method creates a new pipeline object
 with the same configuration as the original pipeline. The new pipeline
 will have a new pipeline ID and a new run count.</p>
@@ -311,7 +347,7 @@ object and is generated at the creation of the object.</p>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="minerva.pipelines.Pipeline.pipeline_info">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">pipeline_info</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#minerva.pipelines.Pipeline.pipeline_info" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">pipeline_info</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#minerva.pipelines.Pipeline.pipeline_info" title="Link to this definition"></a></dt>
 <dd><p>Return default information about the pipeline. This information
 includes the class name, the creation time, the pipeline ID, the working
 directory, and the number of runs.</p>
@@ -324,7 +360,7 @@ directory, and the number of runs.</p>
 </section>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>Dict[str, str]</p>
+<dd class="field-odd"><p>Dict[str, Union[str, float, int]]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -350,7 +386,7 @@ set to False, this property will return None.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="minerva.pipelines.Pipeline.run">
-<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#minerva.pipelines.Pipeline.run" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../_modules/minerva/pipelines/base.html#Pipeline.run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.pipelines.Pipeline.run" title="Link to this definition"></a></dt>
 <dd><p>Default entry-point for running the pipeline. This method calls the
 <cite>_run</cite> method, which should be implemented in the derived classes. This
 method handles the status of the run, the caching of the result, and the
@@ -394,9 +430,14 @@ saving of the run status.</p>
 </dl>
 </dd></dl>
 
-<dl class="py method">
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.pipelines.Pipeline.seed">
+<span class="sig-name descname"><span class="pre">seed</span></span><a class="headerlink" href="#minerva.pipelines.Pipeline.seed" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
 <dt class="sig sig-object py" id="minerva.pipelines.Pipeline.system_info">
-<span class="sig-name descname"><span class="pre">system_info</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#minerva.pipelines.Pipeline.system_info" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">system_info</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#minerva.pipelines.Pipeline.system_info" title="Link to this definition"></a></dt>
 <dd><p>System information about the host, the python environment, and the
 git repository (if available).</p>
 <section id="id12">
@@ -417,10 +458,11 @@ git repository (if available).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>log_dir</strong> (<em>pathlib.Path</em><em> | </em><em>str</em>)</p></li>
-<li><p><strong>ignore</strong> (<em>str</em><em> | </em><em>List</em><em>[</em><em>str</em><em>]</em>)</p></li>
+<li><p><strong>log_dir</strong> (<em>Optional</em><em>[</em><em>minerva.utils.typing.PathLike</em><em>]</em>)</p></li>
+<li><p><strong>ignore</strong> (<em>Optional</em><em>[</em><em>Union</em><em>[</em><em>str</em><em>, </em><em>List</em><em>[</em><em>str</em><em>]</em><em>]</em><em>]</em>)</p></li>
 <li><p><strong>cache_result</strong> (<em>bool</em>)</p></li>
 <li><p><strong>save_run_status</strong> (<em>bool</em>)</p></li>
+<li><p><strong>seed</strong> (<em>Optional</em><em>[</em><em>int</em><em>]</em>)</p></li>
 </ul>
 </dd>
 </dl>
@@ -433,14 +475,14 @@ git repository (if available).</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="../models/nets/wisenet/index.html" class="btn btn-neutral float-left" title="minerva.models.nets.wisenet" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../optimizers/lars/index.html" class="btn btn-neutral float-left" title="minerva.optimizers.lars" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="base/index.html" class="btn btn-neutral float-right" title="minerva.pipelines.base" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024, Unicamp.</p>
+    <p>&#169; Copyright 2025, Unicamp.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

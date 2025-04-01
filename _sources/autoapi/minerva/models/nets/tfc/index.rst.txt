@@ -1,0 +1,317 @@
+minerva.models.nets.tfc
+=======================
+
+.. py:module:: minerva.models.nets.tfc
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   minerva.models.nets.tfc.IgnoreWhenBatch1
+   minerva.models.nets.tfc.TFC_Backbone
+   minerva.models.nets.tfc.TFC_Conv_Block
+   minerva.models.nets.tfc.TFC_PredicionHead
+   minerva.models.nets.tfc.TFC_Standard_Projector
+
+
+Module Contents
+---------------
+
+.. py:class:: IgnoreWhenBatch1(module, active = False)
+
+   Bases: :py:obj:`torch.nn.Module`
+
+
+   This class is used to ignore some processes when the batch size is 1. It is necessary in Batch Normalization.
+
+
+   Parameters
+   ----------
+   - module: nn.Module
+       The module to be used in the forward method that will be ignored when the batch size is 1.
+   - active: bool
+       If True, the module is only used in the forward method if batch size is different from 1. If False, the module is always used.
+
+
+
+   .. py:attribute:: active
+      :value: False
+
+
+
+   .. py:method:: forward(x)
+
+      The forward method of the IgnoreWhenBatch1 class. It receives the input data and returns the
+      output of the module if the batch size is greater than 1. Otherwise, it returns the input data.
+
+      Parameters
+      ----------
+      - x: torch.Tensor
+          The input data
+
+      Returns
+      -------
+      - torch.Tensor
+          The output of the module if the batch size is greater than 1. Otherwise, the input data.
+
+
+
+
+   .. py:attribute:: module
+
+
+.. py:class:: TFC_Backbone(input_channels, TS_length, single_encoding_size = 128, transform = None, time_encoder = None, frequency_encoder = None, time_projector = None, frequency_projector = None, adapter = None, batch_1_correction = False)
+
+   Bases: :py:obj:`torch.nn.Module`
+
+
+   A convolutional version of backbone of the Temporal-Frequency Convolutional (TFC) model.
+   The backbone is composed of two convolutional neural networks that extract features from the input data in the time domain and frequency domain.
+   The features are then projected to a latent space.
+   This class implements the forward method that receives the input data and returns the features extracted in the time domain and frequency domain.
+
+   Constructor of the TFC_Backbone class.
+
+   Parameters
+   ----------
+   - input_channels: int
+       The number of channels in the input data
+   - TS_length: int
+       The number of time steps in the input data
+   - single_encoding_size: int
+       The size of the encoding in the latent space of frequency or time domain individually
+   - transform: _Transform
+       The transformation to be applied to the input data. If None, a default transformation is applied that includes data augmentation and frequency domain transformation
+   - time_encoder: Optional[nn.Module]
+       The encoder for the time domain. If None, a default encoder is used
+   - frequency_encoder: Optional[nn.Module]
+       The encoder for the frequency domain. If None, a default encoder is used
+   - time_projector: Optional[nn.Module]
+       The projector for the time domain. If None, a default projector is used. If passing, make sure to correct calculate the input features by backbone
+   - frequency_projector: Optional[nn.Module]
+       The projector for the frequency domain. If None, a default projector is used. If passing, make sure to correct calculate the input features by backbone
+   - adapter : Callable[[torch.Tensor], torch.Tensor], optional
+       An adapter to be used from the backbone to the head, by default None.
+   - batch_1_correction: bool
+       If True, the batch normalization is ignored when the batch size is 1,
+       If False, a runtime error is raised when the batch size is 1
+       Standard is False
+
+
+
+   .. py:method:: _calculate_fc_input_features(encoder, input_shape, adapter = None)
+
+      Calculate the input features of the fully connected layer after the encoders (conv blocks).
+
+      Parameters
+      ----------
+      - encoder: torch.nn.Module
+          The encoder to calculate the input features
+      - input_shape: Tuple[int, int]
+          The input shape of the data
+      - adapter : Callable[[torch.Tensor], torch.Tensor], optional
+          An adapter to be used from the backbone to the head, by default None.
+
+      Returns
+      -------
+      - int
+          The number of features to be passed to the fully connected layer
+
+
+
+   .. py:attribute:: adapter
+      :value: None
+
+
+
+   .. py:method:: forward(x)
+
+      The forward method of the backbone. It receives the input data in the time domain and frequency domain and returns the features extracted in the time domain and frequency domain.
+
+      Parameters
+      ----------
+      - x: torch.Tensor
+          The input data
+
+      Returns
+      -------
+      - tuple
+          A tuple with the features extracted in the time domain and frequency domain, h_time, z_time, h_freq, z_freq respectively
+
+
+
+   .. py:attribute:: frequency_encoder
+      :value: None
+
+
+
+   .. py:attribute:: frequency_projector
+      :value: None
+
+
+
+   .. py:method:: get_representations()
+
+      This function returns the representations of the time and frequency domain extracted by the backbone.
+      The h and z representations, after ther encoder and after the projector, respectively.
+      This function must be called after the forward method.
+
+
+      Returns
+      -------
+      - Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]
+
+
+
+
+   .. py:attribute:: time_encoder
+      :value: None
+
+
+
+   .. py:attribute:: time_projector
+      :value: None
+
+
+
+   .. py:attribute:: transform
+      :value: None
+
+
+
+.. py:class:: TFC_Conv_Block(input_channels, batch_1_correction = False)
+
+   Bases: :py:obj:`torch.nn.Module`
+
+
+   A standart convolutional block for the Temporal-Frequency Convolutional (TFC) model.
+
+   This class implements the forward method that receives the input data and returns the features extracted by the block.
+
+   Constructor of the TFC_Conv_Block class.
+
+   Parameters
+   ----------
+   - input_channels: int
+       The number of channels in the input data
+   - batch_1_correction: bool
+       If True, the batch normalization is ignored when the batch size is 1,
+       If False, a runtime error is raised when the batch size is 1
+       Standard is False
+
+
+   .. py:attribute:: block
+
+
+   .. py:method:: forward(x)
+
+      The forward method of the convolutional block. It receives the input data and returns the features extracted by the block.
+
+      Parameters
+      ----------
+      - x: torch.Tensor
+          The input data
+
+      Returns
+      -------
+      - torch.Tensor
+          The features extracted by the block
+
+
+
+.. py:class:: TFC_PredicionHead(num_classes, connections = 2, single_encoding_size = 128, argmax_output = False)
+
+   Bases: :py:obj:`torch.nn.Module`
+
+
+   A simple prediction head for the Temporal-Frequency Convolutional (TFC) model.
+   The prediction head is composed of a linear layer that receives the features extracted by the backbone and returns the prediction of the model.
+   This class implements the forward method that receives the features extracted by the backbone and returns the prediction of the model.
+
+   Constructor of the TFC_PredicionHead class.
+
+   Parameters
+   ----------
+   - num_classes: int
+       The number of classes in the classification task
+   - connections: int
+       The number of pipelines in the backbone. If 1, only the time or frequency domain is used. If 2, both domains are used. Other values are treated as 1.
+   - single_encoding_size: int
+       The size of the encoding in the latent space of frequency or time domain individually
+   - argmax: bool
+       If True, the argmax function is applied to the prediction. If False, the prediction returns the logits
+
+
+   .. py:attribute:: argmax_output
+      :value: False
+
+
+
+   .. py:method:: forward(emb)
+
+      The forward method of the prediction head. It receives the features extracted by the backbone and returns the prediction of the model.
+
+      Parameters
+      ----------
+      - emb: torch.Tensor
+          The features extracted by the backbone
+
+      Returns
+      -------
+      - torch.Tensor
+          The prediction of the model
+
+
+
+
+   .. py:attribute:: logits
+
+
+   .. py:attribute:: logits_simple
+
+
+.. py:class:: TFC_Standard_Projector(input_channels, single_encoding_size, batch_1_correction = False)
+
+   Bases: :py:obj:`torch.nn.Module`
+
+
+   A standart projector for the Temporal-Frequency Convolutional (TFC) model.
+
+   This class implements the forward method that receives the input data and returns the features extracted by the projector.
+
+   Constructor of the TFC_Standard_Projector class.
+
+   Parameters
+   ----------
+   - input_channels: int
+       The number of channels in the input data
+   - single_encoding_size: int
+       The size of the encoding in the latent space of frequency or time domain individually
+   - batch_1_correction: bool
+       If True, the batch normalization is ignored when the batch size is 1,
+       If False, a runtime error is raised when the batch size is 1
+       Standard is False
+
+
+
+   .. py:method:: forward(x)
+
+      The forward method of the projector. It receives the input data and returns the features extracted by the projector.
+
+      Parameters
+      ----------
+      - x: torch.Tensor
+          The input data
+
+      Returns
+      -------
+      - torch.Tensor
+          The features extracted by the projector
+
+
+
+   .. py:attribute:: projector
+
+

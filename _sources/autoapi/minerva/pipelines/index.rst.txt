@@ -25,7 +25,7 @@ Classes
 Package Contents
 ----------------
 
-.. py:class:: Pipeline(log_dir = None, ignore = None, cache_result = False, save_run_status = False)
+.. py:class:: Pipeline(log_dir = None, ignore = None, cache_result = False, save_run_status = False, seed = None)
 
    Bases: :py:obj:`lightning.pytorch.core.mixins.HyperparametersMixin`
 
@@ -53,10 +53,10 @@ Package Contents
 
    Parameters
    ----------
-   log_dir : Path | str, optional
-       The default logging directory where all related pipeline files 
+   log_dir : PathLike, optional
+       The default logging directory where all related pipeline files
        should be saved. By default None (uses current working directory)
-   ignore : str | List[str], optional
+   ignore : Union[str, List[str]], optional
        Pipeline __init__ attributes are saved into config attibute. This
        option allows to ignore some attributes from being saved. This is
        quite useful when the attributes are not serializable or very large.
@@ -70,6 +70,22 @@ Package Contents
        If True, save the status of each run in a YAML file. This file will
        be saved in the working directory with the name
        `run_{pipeline_id}.yaml`. By default False.
+   seed : Optional[int], optional
+       Seed to be used by the pipeline. If None, a random seed is generated
+       and used. By default None.
+
+
+   .. py:attribute:: _cache_result
+      :value: False
+
+
+
+   .. py:attribute:: _cached_run_status
+      :value: []
+
+
+
+   .. py:method:: _generate_seed()
 
 
    .. py:method:: _initialize_vars()
@@ -77,6 +93,9 @@ Package Contents
       Initialize the internal variables of the pipeline. This method is
       used on __init__ and on clone method.
 
+
+
+   .. py:attribute:: _pipeline_id
 
 
    .. py:method:: _run(*args, **kwargs)
@@ -104,6 +123,11 @@ Package Contents
 
 
 
+   .. py:attribute:: _save_run_status
+      :value: False
+
+
+
    .. py:method:: clone(other)
       :staticmethod:
 
@@ -127,6 +151,7 @@ Package Contents
    .. py:property:: config
       :type: Dict[str, Any]
 
+
       Configuration of the pipeline. This configuration includes the
       __init__ attributes of the pipeline, except the ones that are ignored.
 
@@ -139,6 +164,7 @@ Package Contents
 
    .. py:property:: full_info
       :type: Dict[str, Any]
+
 
       Get all information about the pipeline. This includes, the pipeline
       information, the configuration, the system information, and the status
@@ -154,6 +180,7 @@ Package Contents
    .. py:property:: log_dir
       :type: pathlib.Path
 
+
       Return the log_dir where everything inside pipeline should be saved.
 
       Returns
@@ -166,6 +193,7 @@ Package Contents
    .. py:property:: pipeline_id
       :type: str
 
+
       Return the ID of the pipeline. This ID is unique for each pipeline
       object and is generated at the creation of the object.
 
@@ -177,7 +205,8 @@ Package Contents
 
 
    .. py:property:: pipeline_info
-      :type: Dict[str, str]
+      :type: Dict[str, Union[str, float, int]]
+
 
       Return default information about the pipeline. This information
       includes the class name, the creation time, the pipeline ID, the working
@@ -192,6 +221,7 @@ Package Contents
 
    .. py:property:: result
       :type: Any
+
 
       Return the cached result of the last run. If the `cache_result` is
       set to False, this property will return None.
@@ -225,6 +255,7 @@ Package Contents
    .. py:property:: run_status
       :type: Dict[str, Any]
 
+
       Status of the last run of the pipeline.
 
       Returns
@@ -234,7 +265,12 @@ Package Contents
 
 
 
-   .. py:method:: system_info()
+   .. py:attribute:: seed
+
+
+   .. py:property:: system_info
+      :type: Dict[str, Any]
+
 
       System information about the host, the python environment, and the
       git repository (if available).

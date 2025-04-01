@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" data-content_root="../../../../../">
 <head>
@@ -5,21 +7,17 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>minerva.data.readers.tabular_reader &mdash; minerva  documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=80d5e7a1" />
-      <link rel="stylesheet" type="text/css" href="../../../../../_static/css/theme.css?v=19f00094" />
-      <link rel="stylesheet" type="text/css" href="../../../../../_static/graphviz.css?v=fd3f3429" />
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/graphviz.css?v=4ae1632d" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../../../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script src="../../../../../_static/jquery.js?v=5d32c60e"></script>
-        <script src="../../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../../../../../_static/documentation_options.js?v=5929fcd5"></script>
-        <script src="../../../../../_static/doctools.js?v=9a2dae69"></script>
-        <script src="../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
-        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="../../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../../../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../../search.html" />
@@ -46,19 +44,24 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../../../../../installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../design.html">Minerva: A Modular Framework for Time-Series and Seismic ML</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../experiments.html">Managing Experiments with Minerva</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../contributing.html">Contributing to Minerva</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../tutorials.html">Tutorials</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../../../../../api.html">Programming Reference</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="../../../index.html">minerva</a><ul class="current">
-<li class="toctree-l3 current"><a class="reference internal" href="../../../index.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="../../../index.html#submodules">Submodules</a><ul class="current">
 <li class="toctree-l4"><a class="reference internal" href="../../../analysis/index.html">minerva.analysis</a></li>
 <li class="toctree-l4 current"><a class="reference internal" href="../../index.html">minerva.data</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../losses/index.html">minerva.losses</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../models/index.html">minerva.models</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../optimizers/index.html">minerva.optimizers</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../pipelines/index.html">minerva.pipelines</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../samplers/index.html">minerva.samplers</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../transforms/index.html">minerva.transforms</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../utils/index.html">minerva.utils</a></li>
 </ul>
@@ -113,7 +116,7 @@
 <h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="minerva.data.readers.tabular_reader.TabularReader">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.data.readers.tabular_reader.</span></span><span class="sig-name descname"><span class="pre">TabularReader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">columns_to_select</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cast_to</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#minerva.data.readers.tabular_reader.TabularReader" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.data.readers.tabular_reader.</span></span><span class="sig-name descname"><span class="pre">TabularReader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">columns_to_select</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cast_to</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/minerva/data/readers/tabular_reader.html#TabularReader"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.data.readers.tabular_reader.TabularReader" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="../reader/index.html#minerva.data.readers.reader._Reader" title="minerva.data.readers.reader._Reader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">minerva.data.readers.reader._Reader</span></code></a></p>
 <p>Base class for readers. Readers define an ordered collection of data and
 provide methods to access it. This class primarily handles:</p>
@@ -149,7 +152,7 @@ the specified shape. (default is None)</p>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="minerva.data.readers.tabular_reader.TabularReader.__getitem__">
-<span class="sig-name descname"><span class="pre">__getitem__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#minerva.data.readers.tabular_reader.TabularReader.__getitem__" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">__getitem__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/minerva/data/readers/tabular_reader.html#TabularReader.__getitem__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.data.readers.tabular_reader.TabularReader.__getitem__" title="Link to this definition"></a></dt>
 <dd><p>Return the columns of the DataFrame at the specified row index as a NumPy
 array. The columns are selected based on the <cite>self.columns_to_select</cite>.</p>
 <section id="id1">
@@ -178,7 +181,7 @@ array. The columns are selected based on the <cite>self.columns_to_select</cite>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="minerva.data.readers.tabular_reader.TabularReader.__len__">
-<span class="sig-name descname"><span class="pre">__len__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#minerva.data.readers.tabular_reader.TabularReader.__len__" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">__len__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/minerva/data/readers/tabular_reader.html#TabularReader.__len__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.data.readers.tabular_reader.TabularReader.__len__" title="Link to this definition"></a></dt>
 <dd><p>Return the number of samples in the DataFrame. The number of samples
 is equal to the number of rows in the DataFrame.</p>
 <section id="id2">
@@ -195,14 +198,34 @@ is equal to the number of rows in the DataFrame.</p>
 </dl>
 </dd></dl>
 
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.data.readers.tabular_reader.TabularReader.cast_to">
+<span class="sig-name descname"><span class="pre">cast_to</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#minerva.data.readers.tabular_reader.TabularReader.cast_to" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.data.readers.tabular_reader.TabularReader.columns_to_select">
+<span class="sig-name descname"><span class="pre">columns_to_select</span></span><a class="headerlink" href="#minerva.data.readers.tabular_reader.TabularReader.columns_to_select" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.data.readers.tabular_reader.TabularReader.data_shape">
+<span class="sig-name descname"><span class="pre">data_shape</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#minerva.data.readers.tabular_reader.TabularReader.data_shape" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.data.readers.tabular_reader.TabularReader.df">
+<span class="sig-name descname"><span class="pre">df</span></span><a class="headerlink" href="#minerva.data.readers.tabular_reader.TabularReader.df" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
 </section>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>df</strong> (<em>pandas.DataFrame</em>)</p></li>
-<li><p><strong>columns_to_select</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>list</em><em>[</em><em>str</em><em>]</em><em>]</em>)</p></li>
-<li><p><strong>cast_to</strong> (<em>str</em>)</p></li>
-<li><p><strong>data_shape</strong> (<em>tuple</em><em>[</em><em>int</em><em>, </em><em>Ellipsis</em><em>]</em>)</p></li>
+<li><p><strong>columns_to_select</strong> (<em>Union</em><em>[</em><em>str</em><em>, </em><em>List</em><em>[</em><em>str</em><em>]</em><em>]</em>)</p></li>
+<li><p><strong>cast_to</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>)</p></li>
+<li><p><strong>data_shape</strong> (<em>Optional</em><em>[</em><em>Tuple</em><em>[</em><em>int</em><em>, </em><em>Ellipsis</em><em>]</em><em>]</em>)</p></li>
 </ul>
 </dd>
 </dl>
@@ -222,7 +245,7 @@ is equal to the number of rows in the DataFrame.</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024, Unicamp.</p>
+    <p>&#169; Copyright 2025, Unicamp.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

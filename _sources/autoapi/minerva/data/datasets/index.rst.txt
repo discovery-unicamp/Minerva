@@ -11,7 +11,6 @@ Submodules
    :maxdepth: 1
 
    /autoapi/minerva/data/datasets/base/index
-   /autoapi/minerva/data/datasets/supervised_dataset/index
 
 
 Classes
@@ -20,7 +19,6 @@ Classes
 .. autoapisummary::
 
    minerva.data.datasets.SimpleDataset
-   minerva.data.datasets.SupervisedReconstructionDataset
 
 
 Package Contents
@@ -144,78 +142,22 @@ Package Contents
 
 
 
-.. py:class:: SupervisedReconstructionDataset(readers, transforms = None)
-
-   Bases: :py:obj:`minerva.data.datasets.base.SimpleDataset`
+   .. py:method:: __repr__()
 
 
-   A simple dataset class for supervised reconstruction tasks.
-
-   In summary, each element of the dataset is a pair of data, where the first
-   element is the input data and the second element is the target data.
-   Usually, both input and target data have the same shape.
-
-   This dataset is useful for supervised tasks such as image reconstruction,
-   segmantic segmentation, and object detection, where the input data is the
-   original data and the target is a mask or a segmentation map.
-
-   Examples
-   --------
-
-   1. Semantic Segmentation Dataset:
-
-       ```python
-       from minerva.data.readers import ImageReader
-       from minerva.transforms import ImageTransform
-       from minerva.data.datasets import SupervisedReconstructionDataset
-
-       # Create the readers
-       image_reader = ImageReader("path/to/images")
-       mask_reader = ImageReader("path/to/masks")
-
-       # Create the transforms
-       image_transform = ImageTransform()
-
-       # Create the dataset
-       dataset = SupervisedReconstructionDataset(
-           readers=[image_reader, mask_reader],
-           transforms=image_transform
-       )
-       # Load the first sample
-       dataset[0]  # Returns a tuple: (image, mask)
-       ```
-
-   A simple dataset class for supervised reconstruction tasks.
-
-   Parameters
-   ----------
-   readers: List[_Reader]
-       List of data readers. It must contain exactly 2 readers.
-       The first reader for the input data and the second reader for the
-       target data.
-   transforms: _Transform | None
-       Optional data transformation pipeline.
-
-   Raises
-   -------
-       AssertionError: If the number of readers is not exactly 2.
+   .. py:method:: __str__()
 
 
-   .. py:method:: __getitem__(index)
+   .. py:attribute:: readers
 
-      Load data from sources and apply specified transforms. The same
-      transform is applied to both input and target data.
 
-      Parameters
-      ----------
-      index : int
-          The index of the sample to load.
+   .. py:attribute:: return_single
+      :value: False
 
-      Returns
-      -------
-      Tuple[np.ndarray, np.ndarray]
-          A tuple containing two numpy arrays representing the data.
 
+
+   .. py:attribute:: transforms
+      :value: None
 
 
 

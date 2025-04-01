@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" data-content_root="../../../../">
 <head>
@@ -5,25 +7,21 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>minerva.pipelines.lightning_pipeline &mdash; minerva  documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=80d5e7a1" />
-      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
-      <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=fd3f3429" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
-        <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../../../../_static/documentation_options.js?v=5929fcd5"></script>
-        <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
-        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
-        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
-    <link rel="next" title="minerva.transforms" href="../../transforms/index.html" />
+    <link rel="next" title="minerva.samplers" href="../../samplers/index.html" />
     <link rel="prev" title="minerva.pipelines.base" href="../base/index.html" /> 
 </head>
 
@@ -46,19 +44,24 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../../../../installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../design.html">Minerva: A Modular Framework for Time-Series and Seismic ML</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../experiments.html">Managing Experiments with Minerva</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../contributing.html">Contributing to Minerva</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../tutorials.html">Tutorials</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../../../../api.html">Programming Reference</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="../../index.html">minerva</a><ul class="current">
-<li class="toctree-l3 current"><a class="reference internal" href="../../index.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="../../index.html#submodules">Submodules</a><ul class="current">
 <li class="toctree-l4"><a class="reference internal" href="../../analysis/index.html">minerva.analysis</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../data/index.html">minerva.data</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../losses/index.html">minerva.losses</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../models/index.html">minerva.models</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../optimizers/index.html">minerva.optimizers</a></li>
 <li class="toctree-l4 current"><a class="reference internal" href="../index.html">minerva.pipelines</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../samplers/index.html">minerva.samplers</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../transforms/index.html">minerva.transforms</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../utils/index.html">minerva.utils</a></li>
 </ul>
@@ -112,7 +115,10 @@
 <h2>Functions<a class="headerlink" href="#functions" title="Link to this heading"></a></h2>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#minerva.pipelines.lightning_pipeline.main" title="minerva.pipelines.lightning_pipeline.main"><code class="xref py py-obj docutils literal notranslate"><span class="pre">main</span></code></a>()</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#minerva.pipelines.lightning_pipeline.cli_main" title="minerva.pipelines.lightning_pipeline.cli_main"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cli_main</span></code></a>()</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#minerva.pipelines.lightning_pipeline.predict_batch" title="minerva.pipelines.lightning_pipeline.predict_batch"><code class="xref py py-obj docutils literal notranslate"><span class="pre">predict_batch</span></code></a>(classification_metrics, regression_metrics)</p></td>
 <td><p></p></td>
 </tr>
 </tbody>
@@ -122,7 +128,7 @@
 <h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="minerva.pipelines.lightning_pipeline.SimpleLightningPipeline">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.pipelines.lightning_pipeline.</span></span><span class="sig-name descname"><span class="pre">SimpleLightningPipeline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trainer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_run_status</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">classification_metrics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regression_metrics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">apply_metrics_per_sample</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#minerva.pipelines.lightning_pipeline.SimpleLightningPipeline" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.pipelines.lightning_pipeline.</span></span><span class="sig-name descname"><span class="pre">SimpleLightningPipeline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trainer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_run_status</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">classification_metrics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regression_metrics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_analysis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">apply_metrics_per_sample</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/pipelines/lightning_pipeline.html#SimpleLightningPipeline"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.pipelines.lightning_pipeline.SimpleLightningPipeline" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="../base/index.html#minerva.pipelines.base.Pipeline" title="minerva.pipelines.base.Pipeline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">minerva.pipelines.base.Pipeline</span></code></a></p>
 <p>Simple pipeline to train, test, predict and evaluate models using Pytorch
 Lightning. This class is intended to be seamlessly integrated with
@@ -167,16 +173,29 @@ able to receive two tensors (y_true, y_pred) and return a tensor
 with the metric value. If None, no regression metrics will be
 calculated. By default None.</p>
 </dd>
+<dt>model_analysis: Dict[str, _ModelAnalysis], optional</dt><dd><p>The model analysis to be performed after the model is trained. This
+dictionary should have the analysis name as key and the
+<cite>_ModelAnalysis</cite>-like object as value. The analysis should be able
+to receive the model and the data and return a result. If None, no
+model analysis will be performed. By default None.</p>
+</dd>
 <dt>apply_metrics_per_sample<span class="classifier">bool, optional</span></dt><dd><p>Apply the metrics per sample. If True, the metrics will be
 calculated for each sample and the results will be a list of
 metrics. If False, the metrics will be calculated for the whole
 dataset and the results will be a single metric (single-element
 list). By default False</p>
 </dd>
+<dt>seed<span class="classifier">int, optional</span></dt><dd><p>The seed to be used in the pipeline. By default None.</p>
+</dd>
 </dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.pipelines.lightning_pipeline.SimpleLightningPipeline._apply_metrics_per_sample">
+<span class="sig-name descname"><span class="pre">_apply_metrics_per_sample</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#minerva.pipelines.lightning_pipeline.SimpleLightningPipeline._apply_metrics_per_sample" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="minerva.pipelines.lightning_pipeline.SimpleLightningPipeline._calculate_metrics">
-<span class="sig-name descname"><span class="pre">_calculate_metrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metrics</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_hat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#minerva.pipelines.lightning_pipeline.SimpleLightningPipeline._calculate_metrics" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">_calculate_metrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metrics</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_hat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/pipelines/lightning_pipeline.html#SimpleLightningPipeline._calculate_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.pipelines.lightning_pipeline.SimpleLightningPipeline._calculate_metrics" title="Link to this definition"></a></dt>
 <dd><p>Calculate the metrics for the given predictions and targets.</p>
 <section id="id1">
 <h4>Parameters<a class="headerlink" href="#id1" title="Link to this heading"></a></h4>
@@ -213,9 +232,19 @@ values as value. The list will have a single element if
 </dl>
 </dd></dl>
 
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.pipelines.lightning_pipeline.SimpleLightningPipeline._classification_metrics">
+<span class="sig-name descname"><span class="pre">_classification_metrics</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#minerva.pipelines.lightning_pipeline.SimpleLightningPipeline._classification_metrics" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.pipelines.lightning_pipeline.SimpleLightningPipeline._data">
+<span class="sig-name descname"><span class="pre">_data</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#minerva.pipelines.lightning_pipeline.SimpleLightningPipeline._data" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="minerva.pipelines.lightning_pipeline.SimpleLightningPipeline._evaluate">
-<span class="sig-name descname"><span class="pre">_evaluate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ckpt_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#minerva.pipelines.lightning_pipeline.SimpleLightningPipeline._evaluate" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">_evaluate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ckpt_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/pipelines/lightning_pipeline.html#SimpleLightningPipeline._evaluate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.pipelines.lightning_pipeline.SimpleLightningPipeline._evaluate" title="Link to this definition"></a></dt>
 <dd><p>Evaluate the model and calculate regression and/or classification
 metrics.</p>
 <section id="id2">
@@ -239,7 +268,7 @@ metrics.</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>data</strong> (<em>lightning.LightningDataModule</em>)</p></li>
-<li><p><strong>ckpt_path</strong> (<em>minerva.utils.typing.PathLike</em>)</p></li>
+<li><p><strong>ckpt_path</strong> (<em>Optional</em><em>[</em><em>minerva.utils.typing.PathLike</em><em>]</em>)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
@@ -250,7 +279,7 @@ metrics.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="minerva.pipelines.lightning_pipeline.SimpleLightningPipeline._fit">
-<span class="sig-name descname"><span class="pre">_fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ckpt_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#minerva.pipelines.lightning_pipeline.SimpleLightningPipeline._fit" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">_fit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ckpt_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/pipelines/lightning_pipeline.html#SimpleLightningPipeline._fit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.pipelines.lightning_pipeline.SimpleLightningPipeline._fit" title="Link to this definition"></a></dt>
 <dd><p>Fit the model using the given data.</p>
 <section id="id4">
 <h4>Parameters<a class="headerlink" href="#id4" title="Link to this heading"></a></h4>
@@ -266,15 +295,25 @@ metrics.</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>data</strong> (<em>lightning.LightningDataModule</em>)</p></li>
-<li><p><strong>ckpt_path</strong> (<em>minerva.utils.typing.PathLike</em>)</p></li>
+<li><p><strong>ckpt_path</strong> (<em>Optional</em><em>[</em><em>minerva.utils.typing.PathLike</em><em>]</em>)</p></li>
 </ul>
 </dd>
 </dl>
 </dd></dl>
 
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.pipelines.lightning_pipeline.SimpleLightningPipeline._model">
+<span class="sig-name descname"><span class="pre">_model</span></span><a class="headerlink" href="#minerva.pipelines.lightning_pipeline.SimpleLightningPipeline._model" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.pipelines.lightning_pipeline.SimpleLightningPipeline._model_analysis">
+<span class="sig-name descname"><span class="pre">_model_analysis</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#minerva.pipelines.lightning_pipeline.SimpleLightningPipeline._model_analysis" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="minerva.pipelines.lightning_pipeline.SimpleLightningPipeline._predict">
-<span class="sig-name descname"><span class="pre">_predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ckpt_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#minerva.pipelines.lightning_pipeline.SimpleLightningPipeline._predict" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">_predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ckpt_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/pipelines/lightning_pipeline.html#SimpleLightningPipeline._predict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.pipelines.lightning_pipeline.SimpleLightningPipeline._predict" title="Link to this definition"></a></dt>
 <dd><p>Predict using the given data.</p>
 <section id="id5">
 <h4>Parameters<a class="headerlink" href="#id5" title="Link to this heading"></a></h4>
@@ -297,7 +336,7 @@ metrics.</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>data</strong> (<em>lightning.LightningDataModule</em>)</p></li>
-<li><p><strong>ckpt_path</strong> (<em>minerva.utils.typing.PathLike</em>)</p></li>
+<li><p><strong>ckpt_path</strong> (<em>Optional</em><em>[</em><em>minerva.utils.typing.PathLike</em><em>]</em>)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
@@ -306,9 +345,14 @@ metrics.</p>
 </dl>
 </dd></dl>
 
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.pipelines.lightning_pipeline.SimpleLightningPipeline._regression_metrics">
+<span class="sig-name descname"><span class="pre">_regression_metrics</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#minerva.pipelines.lightning_pipeline.SimpleLightningPipeline._regression_metrics" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="minerva.pipelines.lightning_pipeline.SimpleLightningPipeline._run">
-<span class="sig-name descname"><span class="pre">_run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">task</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ckpt_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#minerva.pipelines.lightning_pipeline.SimpleLightningPipeline._run" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">_run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">task</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ckpt_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/pipelines/lightning_pipeline.html#SimpleLightningPipeline._run"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.pipelines.lightning_pipeline.SimpleLightningPipeline._run" title="Link to this definition"></a></dt>
 <dd><p>Run the specified task on the given data.</p>
 <section id="id7">
 <h4>Parameters<a class="headerlink" href="#id7" title="Link to this heading"></a></h4>
@@ -342,7 +386,7 @@ performing inference. Defaults to None.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>data</strong> (<em>lightning.LightningDataModule</em>)</p></li>
 <li><p><strong>task</strong> (<em>Literal</em><em>[</em><em>'fit'</em><em>, </em><em>'test'</em><em>, </em><em>'predict'</em><em>, </em><em>'evaluate'</em><em>]</em>)</p></li>
-<li><p><strong>ckpt_path</strong> (<em>minerva.utils.typing.PathLike</em>)</p></li>
+<li><p><strong>ckpt_path</strong> (<em>Optional</em><em>[</em><em>minerva.utils.typing.PathLike</em><em>]</em>)</p></li>
 </ul>
 </dd>
 </dl>
@@ -350,7 +394,7 @@ performing inference. Defaults to None.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="minerva.pipelines.lightning_pipeline.SimpleLightningPipeline._test">
-<span class="sig-name descname"><span class="pre">_test</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ckpt_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#minerva.pipelines.lightning_pipeline.SimpleLightningPipeline._test" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">_test</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ckpt_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/pipelines/lightning_pipeline.html#SimpleLightningPipeline._test"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.pipelines.lightning_pipeline.SimpleLightningPipeline._test" title="Link to this definition"></a></dt>
 <dd><p>Test the model using the given data.</p>
 <section id="id9">
 <h4>Parameters<a class="headerlink" href="#id9" title="Link to this heading"></a></h4>
@@ -366,15 +410,20 @@ performing inference. Defaults to None.</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>data</strong> (<em>lightning.LightningDataModule</em>)</p></li>
-<li><p><strong>ckpt_path</strong> (<em>minerva.utils.typing.PathLike</em>)</p></li>
+<li><p><strong>ckpt_path</strong> (<em>Optional</em><em>[</em><em>minerva.utils.typing.PathLike</em><em>]</em>)</p></li>
 </ul>
 </dd>
 </dl>
 </dd></dl>
 
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.pipelines.lightning_pipeline.SimpleLightningPipeline._trainer">
+<span class="sig-name descname"><span class="pre">_trainer</span></span><a class="headerlink" href="#minerva.pipelines.lightning_pipeline.SimpleLightningPipeline._trainer" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
 <dl class="py property">
 <dt class="sig sig-object py" id="minerva.pipelines.lightning_pipeline.SimpleLightningPipeline.data">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">data</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">lightning.LightningDataModule</span></em><a class="headerlink" href="#minerva.pipelines.lightning_pipeline.SimpleLightningPipeline.data" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">data</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">lightning.LightningDataModule</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#minerva.pipelines.lightning_pipeline.SimpleLightningPipeline.data" title="Link to this definition"></a></dt>
 <dd><p>The LightningDataModule used in the last run of the pipeline.</p>
 <section id="id10">
 <h4>Returns<a class="headerlink" href="#id10" title="Link to this heading"></a></h4>
@@ -385,7 +434,7 @@ performing inference. Defaults to None.</p>
 </section>
 <dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>lightning.LightningDataModule</p>
+<dd class="field-odd"><p>Optional[lightning.LightningDataModule]</p>
 </dd>
 </dl>
 </dd></dl>
@@ -432,19 +481,26 @@ performing inference. Defaults to None.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>model</strong> (<em>lightning.LightningModule</em>)</p></li>
 <li><p><strong>trainer</strong> (<em>lightning.Trainer</em>)</p></li>
-<li><p><strong>log_dir</strong> (<em>minerva.utils.typing.PathLike</em>)</p></li>
+<li><p><strong>log_dir</strong> (<em>Optional</em><em>[</em><em>minerva.utils.typing.PathLike</em><em>]</em>)</p></li>
 <li><p><strong>save_run_status</strong> (<em>bool</em>)</p></li>
-<li><p><strong>classification_metrics</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>torchmetrics.Metric</em><em>]</em>)</p></li>
-<li><p><strong>regression_metrics</strong> (<em>Dict</em><em>[</em><em>str</em><em>, </em><em>torchmetrics.Metric</em><em>]</em>)</p></li>
+<li><p><strong>classification_metrics</strong> (<em>Optional</em><em>[</em><em>Dict</em><em>[</em><em>str</em><em>, </em><em>torchmetrics.Metric</em><em>]</em><em>]</em>)</p></li>
+<li><p><strong>regression_metrics</strong> (<em>Optional</em><em>[</em><em>Dict</em><em>[</em><em>str</em><em>, </em><em>torchmetrics.Metric</em><em>]</em><em>]</em>)</p></li>
+<li><p><strong>model_analysis</strong> (<em>Optional</em><em>[</em><em>Dict</em><em>[</em><em>str</em><em>, </em><a class="reference internal" href="../../analysis/model_analysis/index.html#minerva.analysis.model_analysis._ModelAnalysis" title="minerva.analysis.model_analysis._ModelAnalysis"><em>minerva.analysis.model_analysis._ModelAnalysis</em></a><em>]</em><em>]</em>)</p></li>
 <li><p><strong>apply_metrics_per_sample</strong> (<em>bool</em>)</p></li>
+<li><p><strong>seed</strong> (<em>Optional</em><em>[</em><em>int</em><em>]</em>)</p></li>
 </ul>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="minerva.pipelines.lightning_pipeline.main">
-<span class="sig-prename descclassname"><span class="pre">minerva.pipelines.lightning_pipeline.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#minerva.pipelines.lightning_pipeline.main" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="minerva.pipelines.lightning_pipeline.cli_main">
+<span class="sig-prename descclassname"><span class="pre">minerva.pipelines.lightning_pipeline.</span></span><span class="sig-name descname"><span class="pre">cli_main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/pipelines/lightning_pipeline.html#cli_main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.pipelines.lightning_pipeline.cli_main" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="minerva.pipelines.lightning_pipeline.predict_batch">
+<span class="sig-prename descclassname"><span class="pre">minerva.pipelines.lightning_pipeline.</span></span><span class="sig-name descname"><span class="pre">predict_batch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">classification_metrics</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regression_metrics</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/pipelines/lightning_pipeline.html#predict_batch"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.pipelines.lightning_pipeline.predict_batch" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 </section>
@@ -455,13 +511,13 @@ performing inference. Defaults to None.</p>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="../base/index.html" class="btn btn-neutral float-left" title="minerva.pipelines.base" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="../../transforms/index.html" class="btn btn-neutral float-right" title="minerva.transforms" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="../../samplers/index.html" class="btn btn-neutral float-right" title="minerva.samplers" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024, Unicamp.</p>
+    <p>&#169; Copyright 2025, Unicamp.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

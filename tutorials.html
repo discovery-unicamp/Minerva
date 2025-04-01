@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" data-content_root="./">
 <head>
@@ -5,28 +7,24 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tutorials &mdash; minerva  documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
-      <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=fd3f3429" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
 
   
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script src="_static/jquery.js?v=5d32c60e"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=5929fcd5"></script>
-        <script src="_static/doctools.js?v=9a2dae69"></script>
-        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
-        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
-        <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
-        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Datasets, Readers, and Related Data Structures" href="notebooks/1.datasets.html" />
-    <link rel="prev" title="Training a Seismic Facies Segmentation Model with PyTorch" href="notebooks/getting_started.html" /> 
+    <link rel="next" title="Getting Started with Minerva for Seismic Facies Classification" href="notebooks/seismic_facies_getting_started.html" />
+    <link rel="prev" title="Contributing to Minerva" href="contributing.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -48,15 +46,31 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="design.html">Minerva: A Modular Framework for Time-Series and Seismic ML</a></li>
+<li class="toctree-l1"><a class="reference internal" href="experiments.html">Managing Experiments with Minerva</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to Minerva</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Tutorials</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="notebooks/1.datasets.html">Datasets, Readers, and Related Data Structures</a></li>
-<li class="toctree-l2"><a class="reference internal" href="notebooks/2.models.html">Models</a></li>
-<li class="toctree-l2"><a class="reference internal" href="notebooks/3.pipelines.html">Pipelines</a></li>
-<li class="toctree-l2"><a class="reference internal" href="notebooks/4.minerva_setr_pup_pipeline.html">A Simple Example of training a model using Minerva</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#getting-started">Getting Started</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="notebooks/seismic_facies_getting_started.html">Getting Started with Minerva for Seismic Facies Classification</a></li>
+<li class="toctree-l3"><a class="reference internal" href="notebooks/har_getting_started.html">Getting Started with Minerva for Human Activity Recognition</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#seismic-facies-classification-models">Seismic Facies Classification Models</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="notebooks/seismic_facies_getting_started.html">Getting Started with Minerva for Seismic Facies Classification</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#human-activity-recognition-models">Human Activity Recognition Models</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="notebooks/har_getting_started.html">Getting Started with Minerva for Human Activity Recognition</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#experiments">Experiments</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="notebooks/experiment_api_example.html">Minerva Experimental API</a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">Programming Reference</a></li>
@@ -88,53 +102,61 @@
              
   <section id="tutorials">
 <span id="id1"></span><h1>Tutorials<a class="headerlink" href="#tutorials" title="Link to this heading"></a></h1>
+<p>Here are some tutorials to help you get started with Minerva and learn how to use it to train models for various tasks.
+The tutorials are written in Jupyter notebooks and can be run interactively.
+The tutorials are organized by topic.</p>
+<section id="getting-started">
+<h2>Getting Started<a class="headerlink" href="#getting-started" title="Link to this heading"></a></h2>
+<p>In particular, we demonstrate how to use Minerva to train models for two distinct tasks using supervised learning with state-of-the-art architectures from the literature:</p>
+<ul class="simple">
+<li><p><strong>Human Activity Recognition (HAR)</strong>: This task involves classifying a person’s activity based on time-series data collected from smartphone sensors, such as accelerometers and gyroscopes. It is formulated as a time-series classification problem.</p></li>
+<li><p><strong>Seismic Facies Classification</strong>: This task focuses on segmenting seismic images into different facies classes. It is approached as a semantic segmentation problem on 2D image data.</p></li>
+</ul>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="notebooks/1.datasets.html">Datasets, Readers, and Related Data Structures</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="notebooks/1.datasets.html#Examples-of-Data-Units,-Samples,-and-Datasets">Examples of Data Units, Samples, and Datasets</a></li>
-<li class="toctree-l2"><a class="reference internal" href="notebooks/1.datasets.html#How-a-Dataset-Class-Works">How a <code class="docutils literal notranslate"><span class="pre">Dataset</span></code> Class Works</a></li>
-<li class="toctree-l2"><a class="reference internal" href="notebooks/1.datasets.html#Our-Solution:-Readers">Our Solution: Readers</a></li>
-<li class="toctree-l2"><a class="reference internal" href="notebooks/1.datasets.html#Key-Definitions">Key Definitions</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="notebooks/2.models.html">Models</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="notebooks/2.models.html#The-SimpleSupervisedModel-class">The <code class="docutils literal notranslate"><span class="pre">SimpleSupervisedModel</span></code> class</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="notebooks/3.pipelines.html">Pipelines</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="notebooks/3.pipelines.html#1.-Reproducibility">1. Reproducibility</a></li>
-<li class="toctree-l2"><a class="reference internal" href="notebooks/3.pipelines.html#2.-Composition">2. Composition</a></li>
-<li class="toctree-l2"><a class="reference internal" href="notebooks/3.pipelines.html#3.-Integration-with-CLI">3. Integration with CLI</a></li>
-<li class="toctree-l2"><a class="reference internal" href="notebooks/3.pipelines.html#4.-Logging-and-Monitoring">4. Logging and Monitoring</a></li>
-<li class="toctree-l2"><a class="reference internal" href="notebooks/3.pipelines.html#5.-Clonability">5. Clonability</a></li>
-<li class="toctree-l2"><a class="reference internal" href="notebooks/3.pipelines.html#6.-Parallel-and-Distributed-Environments">6. Parallel and Distributed Environments</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="notebooks/4.minerva_setr_pup_pipeline.html">A Simple Example of training a model using Minerva</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="notebooks/4.minerva_setr_pup_pipeline.html#General-configs">General configs</a></li>
-<li class="toctree-l2"><a class="reference internal" href="notebooks/4.minerva_setr_pup_pipeline.html#Our-Data-Module">Our Data Module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="notebooks/4.minerva_setr_pup_pipeline.html#Our-Model">Our Model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="notebooks/4.minerva_setr_pup_pipeline.html#Our-Trainer">Our Trainer</a></li>
-<li class="toctree-l2"><a class="reference internal" href="notebooks/4.minerva_setr_pup_pipeline.html#Our-Pipeline-and-model's-training">Our Pipeline and model’s training</a></li>
-<li class="toctree-l2"><a class="reference internal" href="notebooks/4.minerva_setr_pup_pipeline.html#Testing">Testing</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/seismic_facies_getting_started.html">Getting Started with Minerva for Seismic Facies Classification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/har_getting_started.html">Getting Started with Minerva for Human Activity Recognition</a></li>
 </ul>
 </div>
+<section id="seismic-facies-classification-models">
+<h3>Seismic Facies Classification Models<a class="headerlink" href="#seismic-facies-classification-models" title="Link to this heading"></a></h3>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/seismic_facies_getting_started.html">Getting Started with Minerva for Seismic Facies Classification</a></li>
+</ul>
+</div>
+</section>
+<section id="human-activity-recognition-models">
+<h3>Human Activity Recognition Models<a class="headerlink" href="#human-activity-recognition-models" title="Link to this heading"></a></h3>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/har_getting_started.html">Getting Started with Minerva for Human Activity Recognition</a></li>
+</ul>
+</div>
+</section>
+<section id="experiments">
+<h3>Experiments<a class="headerlink" href="#experiments" title="Link to this heading"></a></h3>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/experiment_api_example.html">Minerva Experimental API</a></li>
+</ul>
+</div>
+</section>
+</section>
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="notebooks/getting_started.html" class="btn btn-neutral float-left" title="Training a Seismic Facies Segmentation Model with PyTorch" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="notebooks/1.datasets.html" class="btn btn-neutral float-right" title="Datasets, Readers, and Related Data Structures" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="contributing.html" class="btn btn-neutral float-left" title="Contributing to Minerva" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="notebooks/seismic_facies_getting_started.html" class="btn btn-neutral float-right" title="Getting Started with Minerva for Seismic Facies Classification" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024, Unicamp.</p>
+    <p>&#169; Copyright 2025, Unicamp.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

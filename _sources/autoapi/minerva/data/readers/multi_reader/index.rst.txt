@@ -1,0 +1,83 @@
+minerva.data.readers.multi_reader
+=================================
+
+.. py:module:: minerva.data.readers.multi_reader
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   minerva.data.readers.multi_reader.MultiReader
+
+
+Module Contents
+---------------
+
+.. py:class:: MultiReader(readers, preprocess = None, collate_fn = np.stack)
+
+   Bases: :py:obj:`minerva.data.readers._Reader`
+
+
+   Reader that composes items from other readers.
+
+   Its i-th item is the i-th item of each of the child-readers merged
+   together according to a collate_fn function.
+
+   Collects data from multiple readers and collates them
+
+   Parameters
+   ----------
+   readers: Sequence[_Reader]
+       The readers from which the data will be collected. At least one must be
+       provided. If the readers have different lengths, data will only be
+       collected up until the length of the smallest child-reader.
+   preprocess: Optional[Callable]
+       A function to be applied individually to each item read from the child-readers.
+       Defaults to an identity function (i.e. no changes to the data).
+   collate_fn: Optional[Callable]
+       A function that recieves a list of items read from the child-readers after
+       preprocessing and returns a single item for this reader.
+       Defaults to numpy.stack, which means it must be provided if the preprocessing
+       function does not always return same-shape numpy arrays.
+
+
+   .. py:method:: __getitem__(index)
+
+      Retrieves the items from each reader at the specified index and collates them
+      accordingly.
+
+      Parameters
+      ----------
+      index : int
+          Index of the item to retrieve.
+
+      Returns
+      -------
+      Any
+          An item from the reader.
+
+
+
+   .. py:method:: __len__()
+
+      Returns the length the reader, defined as the length of the smallest
+      child-reader
+
+      Returns
+      -------
+      int
+          The length of the reader.
+
+
+
+   .. py:attribute:: _readers
+
+
+   .. py:attribute:: collate_fn
+
+
+   .. py:attribute:: preprocess
+
+

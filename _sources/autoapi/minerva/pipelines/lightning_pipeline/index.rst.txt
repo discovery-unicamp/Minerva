@@ -17,13 +17,14 @@ Functions
 
 .. autoapisummary::
 
-   minerva.pipelines.lightning_pipeline.main
+   minerva.pipelines.lightning_pipeline.cli_main
+   minerva.pipelines.lightning_pipeline.predict_batch
 
 
 Module Contents
 ---------------
 
-.. py:class:: SimpleLightningPipeline(model, trainer, log_dir = None, save_run_status = True, classification_metrics = None, regression_metrics = None, apply_metrics_per_sample = False)
+.. py:class:: SimpleLightningPipeline(model, trainer, log_dir = None, save_run_status = True, classification_metrics = None, regression_metrics = None, model_analysis = None, apply_metrics_per_sample = False, seed = None)
 
    Bases: :py:obj:`minerva.pipelines.base.Pipeline`
 
@@ -52,7 +53,7 @@ Module Contents
    trainer : L.Trainer
        The Lightning Trainer to be used.
    log_dir : PathLike, optional
-       The default logging directory where all related pipeline files 
+       The default logging directory where all related pipeline files
        should be saved. By default None (uses current working directory)
    save_run_status : bool, optional
        If True, save the status of each run in a YAML file. This file will
@@ -74,12 +75,25 @@ Module Contents
        able to receive two tensors (y_true, y_pred) and return a tensor
        with the metric value. If None, no regression metrics will be
        calculated. By default None.
+   model_analysis: Dict[str, _ModelAnalysis], optional
+       The model analysis to be performed after the model is trained. This
+       dictionary should have the analysis name as key and the
+       `_ModelAnalysis`-like object as value. The analysis should be able
+       to receive the model and the data and return a result. If None, no
+       model analysis will be performed. By default None.
    apply_metrics_per_sample : bool, optional
        Apply the metrics per sample. If True, the metrics will be
        calculated for each sample and the results will be a list of
        metrics. If False, the metrics will be calculated for the whole
        dataset and the results will be a single metric (single-element
        list). By default False
+   seed : int, optional
+       The seed to be used in the pipeline. By default None.
+
+
+   .. py:attribute:: _apply_metrics_per_sample
+      :value: False
+
 
 
    .. py:method:: _calculate_metrics(metrics, y_hat, y)
@@ -105,6 +119,16 @@ Module Contents
 
 
 
+   .. py:attribute:: _classification_metrics
+      :value: None
+
+
+
+   .. py:attribute:: _data
+      :value: None
+
+
+
    .. py:method:: _evaluate(data, ckpt_path = None)
 
       Evaluate the model and calculate regression and/or classification
@@ -125,7 +149,7 @@ Module Contents
 
 
 
-   .. py:method:: _fit(data, ckpt_path)
+   .. py:method:: _fit(data, ckpt_path = None)
 
       Fit the model using the given data.
 
@@ -136,6 +160,14 @@ Module Contents
           `train_dataloader` method implemented.
       ckpt_path : PathLike
           The checkpoint path to be used. If None, no checkpoint will be used.
+
+
+
+   .. py:attribute:: _model
+
+
+   .. py:attribute:: _model_analysis
+      :value: None
 
 
 
@@ -155,6 +187,11 @@ Module Contents
       -------
       torch.Tensor
           The predictions tensor.
+
+
+
+   .. py:attribute:: _regression_metrics
+      :value: None
 
 
 
@@ -185,7 +222,7 @@ Module Contents
 
 
 
-   .. py:method:: _test(data, ckpt_path)
+   .. py:method:: _test(data, ckpt_path = None)
 
       Test the model using the given data.
 
@@ -199,8 +236,12 @@ Module Contents
 
 
 
+   .. py:attribute:: _trainer
+
+
    .. py:property:: data
-      :type: lightning.LightningDataModule
+      :type: Optional[lightning.LightningDataModule]
+
 
       The LightningDataModule used in the last run of the pipeline.
 
@@ -214,6 +255,7 @@ Module Contents
    .. py:property:: model
       :type: lightning.LightningModule
 
+
       The LightningModule used in the pipeline.
 
       Returns
@@ -226,6 +268,7 @@ Module Contents
    .. py:property:: trainer
       :type: lightning.Trainer
 
+
       The Lightning Trainer used in the pipeline.
 
       Returns
@@ -235,5 +278,7 @@ Module Contents
 
 
 
-.. py:function:: main()
+.. py:function:: cli_main()
+
+.. py:function:: predict_batch(classification_metrics, regression_metrics)
 

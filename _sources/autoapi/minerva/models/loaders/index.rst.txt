@@ -1,0 +1,246 @@
+minerva.models.loaders
+======================
+
+.. py:module:: minerva.models.loaders
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   minerva.models.loaders.ExtractedModel
+   minerva.models.loaders.FromModel
+   minerva.models.loaders.FromPretrained
+   minerva.models.loaders.IntermediateLayerGetter
+   minerva.models.loaders.LoadableModule
+   minerva.models.loaders.ModuleExtractor
+
+
+Module Contents
+---------------
+
+.. py:class:: ExtractedModel(modules = None)
+
+   Bases: :py:obj:`torch.nn.ModuleDict`
+
+
+   Class representing a submodel extracted from a larger model.
+   This class runs forward pass through all the modules in the model, in order
+   they were added (as OrderedDict).
+
+   Initialize internal Module state, shared by both nn.Module and ScriptModule.
+
+
+   .. py:method:: forward(x)
+
+      Runs forward pass through all the modules in the model, in order.
+
+      Parameters
+      ----------
+      x : Any
+          The input to forward pass through the model.
+
+      Returns
+      -------
+      Any
+          The output of the forward pass through the model, after passing
+          through all the modules.
+
+
+
+.. py:class:: FromModel(model_path, extractor = None)
+
+   Bases: :py:obj:`wrapt.ObjectProxy`, :py:obj:`LoadableModule`
+
+
+   This class loads a complete model (pickable) from a model file, extract
+   the desired submodel and wraps it in a FromModel object. The FromModel
+   object acts as a proxy to the submodel, allowing to call it as if it was the
+   original model. All the attributes and methods of the submodel are
+   accessible through the FromModel object directly.
+
+   This class perform the following steps:
+
+   1. Load the whole model from the model file (pickable).
+
+   2. Extract the desired submodel using the extractor function.
+
+   Parameters
+   ----------
+   model_path : PathLike
+       Path to the model file from which the model will be loaded.
+   extractor : Callable[[torch.nn.Module], torch.nn.Module], optional
+       The extractor function to be used to extract the desired submodel
+       from the loaded model. The default is None, that is, use the module
+       as it is loaded from the file.
+
+
+   .. py:method:: __call__(*args, **kwargs)
+
+
+   .. py:method:: __getattr__(name)
+
+
+   .. py:attribute:: __wrapped__
+
+
+.. py:class:: FromPretrained(model, ckpt_path = None, filter_keys = None, keys_to_rename = None, strict = False, ckpt_key = 'state_dict', extractor = None, error_on_missing_keys = True, ckpt_load_weights_only = True)
+
+   Bases: :py:obj:`wrapt.ObjectProxy`, :py:obj:`LoadableModule`
+
+
+   
+   Load a model from a checkpoint file and wrap it in a FromPretrained
+   object. The FromPretrained object acts as a proxy to the model, allowing
+   to call it as if it was the original model. All the attributes and
+   methods of the model are accessible through the FromPretrained object
+   directly.
+
+   Parameters
+   ----------
+   model : torch.nn.Module
+       The model to be loaded (initialized randomly).
+   ckpt_path : Optional[PathLike], optional
+       The path to the checkpoint file from which the model will be loaded.
+       If None, the model will be loaded without any state_dict, that is,
+       nothing will be done to the model, it will remain as it is. By
+       default None
+   filter_keys : Optional[List[str]], optional
+       List of regular expressions to filter keys from the state_dict.
+       Only keys that match any of the regular expressions will be kept.
+       If None, all keys will be kept. By default None.
+   keys_to_rename : Optional[Dict[str, str]], optional
+       A dictionary with keys being regular expressions and values being
+       prefixes to be added to the keys that match the regular expressions.
+       If prefix is an empty string, the matched part of the key will be
+       removed. The keys that do not match any regular expression will
+       remain the same. If a key matches multiple regular expressions, the
+       first one will be used. Finally, if a empty string is used as key,
+       all keys will have the prefix added (this have priority over other
+       keys). By default None
+   strict : bool, optional
+       If True, the state_dict must match the keys of the model exactly.
+       If False, the state_dict can have extra keys that will be ignored.
+       By default False
+   ckpt_key : Optional[str], optional
+       The key in the checkpoint file where the state_dict is stored. If
+       None, the whole checkpoint will be used as state_dict. Else, the
+       value of the key will be used as state_dict. By default "state_dict".
+   extractor : Optional[ModuleExtractor], optional
+       Once model is loaded, the extractor will be called with the model
+       as argument. The extractor should return the desired submodel (for
+       instance, without some final layers). By default None
+   error_on_missing_keys : bool, optional
+       If True, raise an error if some keys are missing in the state_dict
+       when loading the model. If False, ignore missing keys.
+       By default True
+   ckpt_load_weights_only : bool, optional
+       If True, load only the weights from the checkpoint. If False, load
+       the whole checkpoint. By default True
+
+
+   .. py:method:: __call__(*args, **kwargs)
+
+
+   .. py:method:: __getattr__(name)
+
+
+   .. py:method:: __reduce_ex__(proto)
+
+
+   .. py:method:: __repr__()
+
+
+   .. py:method:: __str__()
+
+
+   .. py:attribute:: __wrapped__
+
+
+.. py:class:: IntermediateLayerGetter(layers)
+
+   Bases: :py:obj:`ModuleExtractor`
+
+
+   This class extracts intermediate layers from a model and create a new
+   ExtractedModel with the extracted layers. The ExtractedModel allows
+   performing a foward pass though extracted layers. Note that, if the model
+   that will be extracted follows a complex structure forward  logic instead
+   of a simple sequential logic, this class may not work as expected.
+
+   Extracts intermediate layers from a model and create a new
+   ExtractedModel with the extracted layers, in order they were extracted.
+
+   Parameters
+   ----------
+   layers : Union[List[str], Dict[str, str], List[Tuple[str, str]]
+       This parameter can be:
+
+       - A list of strings corresponding to the names of the layers to be
+           extracted from the model. In this case, the names of the layers
+           in the ExtractedModel will be the same as the names of the
+           layers in the model.
+
+       - A list of tuples with two strings, the first being the name of
+           the layer in the model and the second being the name of the
+           layer in the ExtractedModel. In this case, the names of the
+           layers in the ExtractedModel will be the second element of the
+           tuples. This is the only option allowing repeating extracted
+           layers, which is particularly useful when we want to repeat
+           non-trainable layers, such as normalization, pooling, and
+           activation layers.
+
+       - A dictionary with the keys being the names of the layers in the
+           model and the values being the names of the layers in the
+           ExtractedModel. In this case, the names of the layers in the
+           ExtractedModel will be the values of the dictionary
+
+   Notes
+   -----
+       - The name of layers to be extracted can be a regular expression.
+
+       - The layers will be extracted in the order they are passed in the
+           layers parameter or in the dictionary keys.
+
+
+   Raises
+   ------
+   ValueError
+       - If the layers parameter is not a list of strings or a list of
+       tuples.
+
+       - If the layers parameter is an empty list.
+
+
+
+   .. py:method:: __call__(model)
+
+      Extracts intermediate layers from a model and create a new
+      ExtractedModel with the extracted layers, in order they were extracted,
+      that is, the order in which they are in the model.
+
+      Parameters
+      ----------
+      model : torch.nn.Module
+          The model from which the layers will be extracted.
+
+      Returns
+      -------
+      torch.nn.Module
+          _description_
+
+
+
+   .. py:attribute:: layers
+
+
+.. py:class:: LoadableModule
+
+.. py:class:: ModuleExtractor
+
+   .. py:method:: __call__(model)
+      :abstractmethod:
+
+
+

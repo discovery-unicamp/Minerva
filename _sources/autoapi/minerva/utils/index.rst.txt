@@ -10,7 +10,6 @@ Submodules
 .. toctree::
    :maxdepth: 1
 
-   /autoapi/minerva/utils/data/index
    /autoapi/minerva/utils/position_embedding/index
    /autoapi/minerva/utils/tensor/index
    /autoapi/minerva/utils/typing/index

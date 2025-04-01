@@ -1,0 +1,886 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Minerva Experimental API &mdash; minerva  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+      <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Programming Reference" href="../api.html" />
+    <link rel="prev" title="Getting Started with Minerva for Human Activity Recognition" href="har_getting_started.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            minerva
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../design.html">Minerva: A Modular Framework for Time-Series and Seismic ML</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../experiments.html">Managing Experiments with Minerva</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing.html">Contributing to Minerva</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../tutorials.html">Tutorials</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../tutorials.html#getting-started">Getting Started</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="seismic_facies_getting_started.html">Getting Started with Minerva for Seismic Facies Classification</a></li>
+<li class="toctree-l3"><a class="reference internal" href="har_getting_started.html">Getting Started with Minerva for Human Activity Recognition</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials.html#seismic-facies-classification-models">Seismic Facies Classification Models</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../tutorials.html#human-activity-recognition-models">Human Activity Recognition Models</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="../tutorials.html#experiments">Experiments</a><ul class="current">
+<li class="toctree-l4 current"><a class="current reference internal" href="#">Minerva Experimental API</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">Programming Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">minerva</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../tutorials.html">Tutorials</a></li>
+      <li class="breadcrumb-item active">Minerva Experimental API</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/notebooks/experiment_api_example.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="Minerva-Experimental-API">
+<h1>Minerva Experimental API<a class="headerlink" href="#Minerva-Experimental-API" title="Link to this heading"></a></h1>
+<p>This notebook is still in development and is not yet ready.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">minerva.pipelines.experiment</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">ModelInstantiator</span><span class="p">,</span>
+    <span class="n">ModelInformation</span><span class="p">,</span>
+    <span class="n">ModelConfig</span><span class="p">,</span>
+    <span class="n">Experiment</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">minerva.data.data_modules.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">MinervaDataModule</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Optional</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">minerva.data.datasets.supervised_dataset</span><span class="w"> </span><span class="kn">import</span> <span class="n">SimpleDataset</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">minerva.data.readers</span><span class="w"> </span><span class="kn">import</span> <span class="n">TiffReader</span><span class="p">,</span> <span class="n">PNGReader</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">minerva.transforms.transform</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">_Transform</span><span class="p">,</span>
+    <span class="n">TransformPipeline</span><span class="p">,</span>
+    <span class="n">Transpose</span><span class="p">,</span>
+    <span class="n">PadCrop</span><span class="p">,</span>
+    <span class="n">CastTo</span><span class="p">,</span>
+    <span class="n">Unsqueeze</span><span class="p">,</span>
+    <span class="n">Squeeze</span><span class="p">,</span>
+    <span class="n">Identity</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">minerva.utils.typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">PathLike</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">torchvision.transforms</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">T</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/usr/local/lib/python3.10/dist-packages/_distutils_hack/__init__.py:53: UserWarning: Reliance on distutils from stdlib is deprecated. Users must rely on setuptools to provide the distutils module. Avoid importing distutils or import setuptools first, and avoid setting SETUPTOOLS_USE_DISTUTILS=stdlib. Register concerns at https://github.com/pypa/setuptools/issues/new?template=distutils-deprecation.yml
+  warnings.warn(
+</pre></div></div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">NumberChannels</span><span class="p">(</span><span class="n">_Transform</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_channels</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_channels</span> <span class="o">=</span> <span class="n">num_channels</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_channels</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="s2">&quot;Number of channels must be 1 or 3&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Data must have 3 dimensions, but got </span><span class="si">{</span><span class="n">data</span><span class="o">.</span><span class="n">ndim</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Data must have 3 channels, but got </span><span class="si">{</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_channels</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">data</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;NumberChannels(num_channels=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">num_channels</span><span class="si">}</span><span class="s2">)&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">MinMaxNormalize</span><span class="p">(</span><span class="n">_Transform</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">data</span> <span class="o">-</span> <span class="n">data</span><span class="o">.</span><span class="n">min</span><span class="p">())</span> <span class="o">/</span> <span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">-</span> <span class="n">data</span><span class="o">.</span><span class="n">min</span><span class="p">())</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;MinMaxNormalize()&quot;</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">get_paihaka_data_module</span><span class="p">(</span>
+    <span class="n">root_data_dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
+    <span class="n">root_annotation_dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span>
+    <span class="n">img_size</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1006</span><span class="p">,</span> <span class="mi">590</span><span class="p">),</span>
+    <span class="n">label_size</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="n">seed</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">42</span><span class="p">,</span>
+    <span class="n">padding_mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;reflect&quot;</span><span class="p">,</span>
+    <span class="n">padding_input_constant</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="n">padding_label_constant</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="n">normalize</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">pad_test</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MinervaDataModule</span><span class="p">:</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;seam_ai_padding_</span><span class="si">{</span><span class="n">padding_mode</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="n">label_size</span> <span class="o">=</span> <span class="n">label_size</span> <span class="ow">or</span> <span class="n">img_size</span>
+
+    <span class="k">return</span> <span class="n">MinervaDataModule</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+        <span class="n">predict_split</span><span class="o">=</span><span class="s2">&quot;test&quot;</span><span class="p">,</span>
+        <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span>
+        <span class="n">drop_last</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">shuffle_train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">additional_test_dataloader_kwargs</span><span class="o">=</span><span class="p">{</span>
+            <span class="s2">&quot;drop_last&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="c1"># Train dataset is a SimpleDataset with two readers</span>
+        <span class="c1"># (TiffReader and PNGReader) with root path at &quot;/train&quot;</span>
+        <span class="n">train_dataset</span><span class="o">=</span><span class="n">SimpleDataset</span><span class="p">(</span>
+            <span class="n">readers</span><span class="o">=</span><span class="p">[</span>
+                <span class="n">TiffReader</span><span class="p">(</span>
+                    <span class="n">path</span><span class="o">=</span><span class="n">root_data_dir</span> <span class="o">/</span> <span class="s2">&quot;train&quot;</span><span class="p">,</span>
+                    <span class="n">sort_method</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;numeric&quot;</span><span class="p">],</span>
+                    <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;_&quot;</span><span class="p">,</span>
+                    <span class="n">key_index</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+                <span class="p">),</span>
+                <span class="n">PNGReader</span><span class="p">(</span>
+                    <span class="n">path</span><span class="o">=</span><span class="n">root_annotation_dir</span> <span class="o">/</span> <span class="s2">&quot;train&quot;</span><span class="p">,</span>
+                    <span class="n">sort_method</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;numeric&quot;</span><span class="p">],</span>
+                    <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;_&quot;</span><span class="p">,</span>
+                    <span class="n">key_index</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+                <span class="p">),</span>
+            <span class="p">],</span>
+            <span class="n">transforms</span><span class="o">=</span><span class="p">[</span>
+                <span class="n">TransformPipeline</span><span class="p">(</span>
+                    <span class="p">[</span>
+                        <span class="n">Transpose</span><span class="p">([</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span>
+                        <span class="n">MinMaxNormalize</span><span class="p">()</span> <span class="k">if</span> <span class="n">normalize</span> <span class="k">else</span> <span class="n">Identity</span><span class="p">(),</span>
+                        <span class="n">PadCrop</span><span class="p">(</span>
+                            <span class="n">target_h_size</span><span class="o">=</span><span class="n">img_size</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                            <span class="n">target_w_size</span><span class="o">=</span><span class="n">img_size</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+                            <span class="n">padding_mode</span><span class="o">=</span><span class="n">padding_mode</span><span class="p">,</span>
+                            <span class="n">constant_values</span><span class="o">=</span><span class="n">padding_input_constant</span><span class="p">,</span>
+                            <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span>
+                        <span class="p">),</span>
+                        <span class="n">NumberChannels</span><span class="p">(</span><span class="n">num_channels</span><span class="o">=</span><span class="n">img_size</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+                        <span class="n">CastTo</span><span class="p">(</span><span class="s2">&quot;float32&quot;</span><span class="p">),</span>
+                    <span class="p">]</span>
+                <span class="p">),</span>
+                <span class="n">TransformPipeline</span><span class="p">(</span>
+                    <span class="p">[</span>
+                        <span class="n">Unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span>
+                        <span class="n">PadCrop</span><span class="p">(</span>
+                            <span class="n">target_h_size</span><span class="o">=</span><span class="n">label_size</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                            <span class="n">target_w_size</span><span class="o">=</span><span class="n">label_size</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+                            <span class="n">padding_mode</span><span class="o">=</span><span class="n">padding_mode</span><span class="p">,</span>
+                            <span class="n">constant_values</span><span class="o">=</span><span class="n">padding_label_constant</span><span class="p">,</span>
+                            <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span>
+                        <span class="p">),</span>
+                        <span class="n">CastTo</span><span class="p">(</span><span class="s2">&quot;int32&quot;</span><span class="p">),</span>
+                    <span class="p">]</span>
+                <span class="p">),</span>
+            <span class="p">],</span>
+        <span class="p">),</span>
+        <span class="c1"># Validation dataset is a SimpleDataset with two readers</span>
+        <span class="c1"># (TiffReader and PNGReader) with root path at &quot;/val&quot;. Same transforms as</span>
+        <span class="c1"># train dataset</span>
+        <span class="n">val_dataset</span><span class="o">=</span><span class="n">SimpleDataset</span><span class="p">(</span>
+            <span class="n">readers</span><span class="o">=</span><span class="p">[</span>
+                <span class="n">TiffReader</span><span class="p">(</span>
+                    <span class="n">path</span><span class="o">=</span><span class="n">root_data_dir</span> <span class="o">/</span> <span class="s2">&quot;val&quot;</span><span class="p">,</span>
+                    <span class="n">sort_method</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;numeric&quot;</span><span class="p">],</span>
+                    <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;_&quot;</span><span class="p">,</span>
+                    <span class="n">key_index</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+                <span class="p">),</span>
+                <span class="n">PNGReader</span><span class="p">(</span>
+                    <span class="n">path</span><span class="o">=</span><span class="n">root_annotation_dir</span> <span class="o">/</span> <span class="s2">&quot;val&quot;</span><span class="p">,</span>
+                    <span class="n">sort_method</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;numeric&quot;</span><span class="p">],</span>
+                    <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;_&quot;</span><span class="p">,</span>
+                    <span class="n">key_index</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+                <span class="p">),</span>
+            <span class="p">],</span>
+            <span class="n">transforms</span><span class="o">=</span><span class="p">[</span>
+                <span class="n">TransformPipeline</span><span class="p">(</span>
+                    <span class="p">[</span>
+                        <span class="n">Transpose</span><span class="p">([</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span>
+                        <span class="n">MinMaxNormalize</span><span class="p">()</span> <span class="k">if</span> <span class="n">normalize</span> <span class="k">else</span> <span class="n">Identity</span><span class="p">(),</span>
+                        <span class="n">PadCrop</span><span class="p">(</span>
+                            <span class="n">target_h_size</span><span class="o">=</span><span class="n">img_size</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                            <span class="n">target_w_size</span><span class="o">=</span><span class="n">img_size</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+                            <span class="n">padding_mode</span><span class="o">=</span><span class="n">padding_mode</span><span class="p">,</span>
+                            <span class="n">constant_values</span><span class="o">=</span><span class="n">padding_input_constant</span><span class="p">,</span>
+                            <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span>
+                        <span class="p">),</span>
+                        <span class="n">NumberChannels</span><span class="p">(</span><span class="n">num_channels</span><span class="o">=</span><span class="n">img_size</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+                        <span class="n">CastTo</span><span class="p">(</span><span class="s2">&quot;float32&quot;</span><span class="p">),</span>
+                    <span class="p">]</span>
+                <span class="p">),</span>
+                <span class="n">TransformPipeline</span><span class="p">(</span>
+                    <span class="p">[</span>
+                        <span class="n">Unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span>
+                        <span class="n">PadCrop</span><span class="p">(</span>
+                            <span class="n">target_h_size</span><span class="o">=</span><span class="n">label_size</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                            <span class="n">target_w_size</span><span class="o">=</span><span class="n">label_size</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+                            <span class="n">padding_mode</span><span class="o">=</span><span class="n">padding_mode</span><span class="p">,</span>
+                            <span class="n">constant_values</span><span class="o">=</span><span class="n">padding_label_constant</span><span class="p">,</span>
+                            <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span>
+                        <span class="p">),</span>
+                        <span class="n">CastTo</span><span class="p">(</span><span class="s2">&quot;int32&quot;</span><span class="p">),</span>
+                    <span class="p">]</span>
+                <span class="p">),</span>
+            <span class="p">],</span>
+        <span class="p">),</span>
+        <span class="c1"># Test dataset is a SimpleDataset with two readers</span>
+        <span class="c1"># (TiffReader and PNGReader) with root path at &quot;/test&quot;. The transforms are</span>
+        <span class="c1"># the same as the train dataset, except for the label, which is squeezed</span>
+        <span class="c1"># instead of unsqueezed</span>
+        <span class="n">test_dataset</span><span class="o">=</span><span class="n">SimpleDataset</span><span class="p">(</span>
+            <span class="n">readers</span><span class="o">=</span><span class="p">[</span>
+                <span class="n">TiffReader</span><span class="p">(</span>
+                    <span class="n">path</span><span class="o">=</span><span class="n">root_data_dir</span> <span class="o">/</span> <span class="s2">&quot;test&quot;</span><span class="p">,</span>
+                    <span class="n">sort_method</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;numeric&quot;</span><span class="p">],</span>
+                    <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;_&quot;</span><span class="p">,</span>
+                    <span class="n">key_index</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+                <span class="p">),</span>
+                <span class="n">PNGReader</span><span class="p">(</span>
+                    <span class="n">path</span><span class="o">=</span><span class="n">root_annotation_dir</span> <span class="o">/</span> <span class="s2">&quot;test&quot;</span><span class="p">,</span>
+                    <span class="n">sort_method</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;numeric&quot;</span><span class="p">],</span>
+                    <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;_&quot;</span><span class="p">,</span>
+                    <span class="n">key_index</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+                <span class="p">),</span>
+            <span class="p">],</span>
+            <span class="n">transforms</span><span class="o">=</span><span class="p">[</span>
+                <span class="n">TransformPipeline</span><span class="p">(</span>
+                    <span class="p">[</span>  <span class="c1"># Transforms for image reader (TIFF)</span>
+                        <span class="n">Transpose</span><span class="p">([</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span>
+                        <span class="n">MinMaxNormalize</span><span class="p">()</span> <span class="k">if</span> <span class="n">normalize</span> <span class="k">else</span> <span class="n">Identity</span><span class="p">(),</span>
+                        <span class="n">PadCrop</span><span class="p">(</span>
+                            <span class="n">target_h_size</span><span class="o">=</span><span class="n">img_size</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                            <span class="n">target_w_size</span><span class="o">=</span><span class="n">img_size</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+                            <span class="n">padding_mode</span><span class="o">=</span><span class="n">padding_mode</span><span class="p">,</span>
+                            <span class="n">constant_values</span><span class="o">=</span><span class="n">padding_input_constant</span><span class="p">,</span>
+                            <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span>
+                        <span class="p">)</span> <span class="k">if</span> <span class="n">pad_test</span> <span class="k">else</span> <span class="n">Identity</span><span class="p">(),</span>
+                        <span class="n">NumberChannels</span><span class="p">(</span><span class="n">num_channels</span><span class="o">=</span><span class="n">img_size</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+                        <span class="n">CastTo</span><span class="p">(</span><span class="s2">&quot;float32&quot;</span><span class="p">),</span>
+                    <span class="p">]</span>
+                <span class="p">),</span>
+                <span class="n">TransformPipeline</span><span class="p">(</span>
+                    <span class="p">[</span>  <span class="c1"># Transforms for label reader (PNG)</span>
+                        <span class="n">Unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span>
+                        <span class="n">CastTo</span><span class="p">(</span><span class="s2">&quot;int32&quot;</span><span class="p">),</span>
+                        <span class="n">Squeeze</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span>
+                    <span class="p">]</span>
+                <span class="p">),</span>
+            <span class="p">],</span>
+        <span class="p">),</span>
+    <span class="p">)</span>
+<br/></pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">data_module</span> <span class="o">=</span> <span class="n">get_paihaka_data_module</span><span class="p">(</span>
+    <span class="n">root_data_dir</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;/workspaces/HIAAC-KR-Dev-Container/shared_data/seam_ai_datasets/seam_ai/images/&quot;</span><span class="p">),</span>
+    <span class="n">root_annotation_dir</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;/workspaces/HIAAC-KR-Dev-Container/shared_data/seam_ai_datasets/seam_ai/annotations/&quot;</span><span class="p">),</span>
+    <span class="n">img_size</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1006</span><span class="p">,</span> <span class="mi">590</span><span class="p">),</span>
+    <span class="n">batch_size</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+    <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span>
+    <span class="n">padding_mode</span><span class="o">=</span><span class="s2">&quot;reflect&quot;</span><span class="p">,</span>
+    <span class="n">pad_test</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">normalize</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">data_module</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+==================================================
+             🆔 seam_ai_padding_reflect
+==================================================
+├── Predict Split: test
+└── Dataloader class: &lt;class &#39;torch.utils.data.dataloader.DataLoader&#39;&gt;
+📂 Datasets:
+   ├── Train Dataset:
+   │      ==================================================
+   │                 📂 SimpleDataset Information
+   │      ==================================================
+   │      📌 Dataset Type: SimpleDataset
+   │         └── Reader 0: TiffReader at &#39;/workspaces/HIAAC-KR-Dev-Container/shared_data/seam_ai_datasets/seam_ai/images/train&#39; (1121 files)
+   │         │     └── Transform: TransformPipeline(transforms=[Transpose(axes=[2, 0, 1]), Identity(), PadCrop(target_h_size=1006, target_w_size=590, padding_mode=reflect, constant_values=0, seed=42), NumberChannels(num_channels=3), CastTo(dtype=float32)])
+   │         └── Reader 1: PNGReader at &#39;/workspaces/HIAAC-KR-Dev-Container/shared_data/seam_ai_datasets/seam_ai/annotations/train&#39; (1121 files)
+   │         │     └── Transform: TransformPipeline(transforms=[Unsqueeze(axis=0), PadCrop(target_h_size=1006, target_w_size=590, padding_mode=reflect, constant_values=0, seed=42), CastTo(dtype=int32)])
+   │         │
+   │         └── Total Readers: 2
+   │      ==================================================
+   ├── Val Dataset:
+   │      ==================================================
+   │                 📂 SimpleDataset Information
+   │      ==================================================
+   │      📌 Dataset Type: SimpleDataset
+   │         └── Reader 0: TiffReader at &#39;/workspaces/HIAAC-KR-Dev-Container/shared_data/seam_ai_datasets/seam_ai/images/val&#39; (51 files)
+   │         │     └── Transform: TransformPipeline(transforms=[Transpose(axes=[2, 0, 1]), Identity(), PadCrop(target_h_size=1006, target_w_size=590, padding_mode=reflect, constant_values=0, seed=42), NumberChannels(num_channels=3), CastTo(dtype=float32)])
+   │         └── Reader 1: PNGReader at &#39;/workspaces/HIAAC-KR-Dev-Container/shared_data/seam_ai_datasets/seam_ai/annotations/val&#39; (51 files)
+   │         │     └── Transform: TransformPipeline(transforms=[Unsqueeze(axis=0), PadCrop(target_h_size=1006, target_w_size=590, padding_mode=reflect, constant_values=0, seed=42), CastTo(dtype=int32)])
+   │         │
+   │         └── Total Readers: 2
+   │      ==================================================
+   └── Test Dataset:
+          ==================================================
+                     📂 SimpleDataset Information
+          ==================================================
+          📌 Dataset Type: SimpleDataset
+             └── Reader 0: TiffReader at &#39;/workspaces/HIAAC-KR-Dev-Container/shared_data/seam_ai_datasets/seam_ai/images/test&#39; (200 files)
+             │     └── Transform: TransformPipeline(transforms=[Transpose(axes=[2, 0, 1]), Identity(), Identity(), NumberChannels(num_channels=3), CastTo(dtype=float32)])
+             └── Reader 1: PNGReader at &#39;/workspaces/HIAAC-KR-Dev-Container/shared_data/seam_ai_datasets/seam_ai/annotations/test&#39; (200 files)
+             │     └── Transform: TransformPipeline(transforms=[Unsqueeze(axis=0), CastTo(dtype=int32), Squeeze(axis=0)])
+             │
+             └── Total Readers: 2
+          ==================================================
+
+🛠 **Dataloader Configurations:**
+   ├── Train Dataloader Kwargs:
+         ├── batch_size: 8
+         ├── num_workers: 0
+         ├── shuffle: true
+         ├── drop_last: true
+   ├── Val Dataloader Kwargs:
+         ├── batch_size: 8
+         ├── num_workers: 0
+         ├── shuffle: false
+         ├── drop_last: true
+   └── Test Dataloader Kwargs:
+         ├── batch_size: 8
+         ├── num_workers: 0
+         ├── shuffle: false
+         ├── drop_last: false
+==================================================
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">minerva.models.nets.image.deeplabv3</span><span class="w"> </span><span class="kn">import</span> <span class="n">DeepLabV3</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">lightning</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">L</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">minerva.models.loaders</span><span class="w"> </span><span class="kn">import</span> <span class="n">FromPretrained</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">minerva.losses.weighted_dice_loss</span><span class="w"> </span><span class="kn">import</span> <span class="n">WeightedDiceLoss</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">DeepLabV3Instantiator</span><span class="p">(</span><span class="n">ModelInstantiator</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">num_classes</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">6</span><span class="p">,</span>
+        <span class="n">epochs</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
+        <span class="n">loss</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;ce&quot;</span><span class="p">,</span>
+        <span class="n">optimizer</span><span class="o">=</span><span class="s2">&quot;adamw&quot;</span><span class="p">,</span>
+        <span class="n">learning_rate</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_classes</span> <span class="o">=</span> <span class="n">num_classes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">epochs</span> <span class="o">=</span> <span class="n">epochs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">loss</span> <span class="o">=</span> <span class="n">loss</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">optimizer</span> <span class="o">=</span> <span class="n">optimizer</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">learning_rate</span> <span class="o">=</span> <span class="n">learning_rate</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss</span> <span class="o">==</span> <span class="s2">&quot;ce&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">loss_fn</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">CrossEntropyLoss</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss</span> <span class="o">==</span> <span class="s2">&quot;wdice&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">loss_fn</span> <span class="o">=</span> <span class="n">WeightedDiceLoss</span><span class="p">(</span><span class="n">num_classes</span><span class="o">=</span><span class="n">num_classes</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loss </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">loss</span><span class="si">}</span><span class="s2"> not supported&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_model_randomly_initialized</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">L</span><span class="o">.</span><span class="n">LightningModule</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">DeepLabV3</span><span class="p">(</span>
+            <span class="n">num_classes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_classes</span><span class="p">,</span>
+            <span class="n">loss_fn</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">loss_fn</span><span class="p">,</span>
+            <span class="n">epochs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">epochs</span><span class="p">,</span>
+            <span class="n">optimizer</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">optimizer</span><span class="p">,</span>
+            <span class="n">learning_rate</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">learning_rate</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_model_and_load_backbone</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">backbone_checkpoint_path</span><span class="p">):</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_model_randomly_initialized</span><span class="p">()</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">FromPretrained</span><span class="p">(</span>
+            <span class="n">model</span><span class="p">,</span>
+            <span class="n">ckpt_path</span><span class="o">=</span><span class="n">backbone_checkpoint_path</span><span class="p">,</span>
+            <span class="n">strict</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">ckpt_key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">keys_to_rename</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;&quot;</span><span class="p">:</span> <span class="s2">&quot;backbone.RN50model.&quot;</span><span class="p">},</span>
+            <span class="n">error_on_missing_keys</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">model</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">load_model_from_checkpoint</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">checkpoint_path</span><span class="p">:</span> <span class="n">PathLike</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">L</span><span class="o">.</span><span class="n">LightningModule</span><span class="p">:</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_model_randomly_initialized</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">FromPretrained</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">ckpt_path</span><span class="o">=</span><span class="n">checkpoint_path</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+
+<span class="n">deeplabv3_config</span> <span class="o">=</span> <span class="n">ModelConfig</span><span class="p">(</span>
+    <span class="n">instantiator</span><span class="o">=</span><span class="n">DeepLabV3Instantiator</span><span class="p">(</span>
+        <span class="n">num_classes</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
+        <span class="n">optimizer</span><span class="o">=</span><span class="s2">&quot;adam+lr_scheduler&quot;</span><span class="p">,</span>
+        <span class="n">loss</span><span class="o">=</span><span class="s2">&quot;wdice&quot;</span><span class="p">,</span>
+        <span class="n">epochs</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+        <span class="n">learning_rate</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span>
+    <span class="p">),</span>
+    <span class="n">information</span><span class="o">=</span><span class="n">ModelInformation</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;DeepLabV3&quot;</span><span class="p">,</span>
+        <span class="n">input_shape</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1006</span><span class="p">,</span> <span class="mi">590</span><span class="p">),</span>
+        <span class="n">output_shape</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">1006</span><span class="p">,</span> <span class="mi">590</span><span class="p">),</span>
+        <span class="n">num_classes</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
+        <span class="n">return_logits</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">deeplabv3_config</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/usr/local/lib/python3.10/dist-packages/tqdm/auto.py:21: TqdmWarning: IProgress not found. Please update jupyter and ipywidgets. See https://ipywidgets.readthedocs.io/en/stable/user_install.html
+  from .autonotebook import tqdm as notebook_tqdm
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;minerva.pipelines.experiment.ModelConfig object at 0x6ffe8affe770&gt;
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">torchmetrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">JaccardIndex</span>
+
+<span class="n">experiment</span> <span class="o">=</span> <span class="n">Experiment</span><span class="p">(</span>
+    <span class="n">experiment_name</span><span class="o">=</span><span class="s2">&quot;test&quot;</span><span class="p">,</span>
+    <span class="n">model_config</span><span class="o">=</span><span class="n">deeplabv3_config</span><span class="p">,</span>
+    <span class="n">data_module</span><span class="o">=</span><span class="n">data_module</span><span class="p">,</span>
+
+    <span class="n">root_log_dir</span><span class="o">=</span><span class="s2">&quot;test_logs&quot;</span><span class="p">,</span>
+    <span class="n">max_epochs</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+    <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span>
+    <span class="n">checkpoint_metrics</span><span class="o">=</span><span class="p">[</span>
+        <span class="p">{</span><span class="s2">&quot;mode&quot;</span><span class="p">:</span> <span class="s2">&quot;min&quot;</span><span class="p">,</span> <span class="s2">&quot;monitor&quot;</span><span class="p">:</span> <span class="s2">&quot;train_loss&quot;</span><span class="p">,</span> <span class="s2">&quot;filename&quot;</span><span class="p">:</span> <span class="s2">&quot;min_train_loss&quot;</span><span class="p">},</span>
+        <span class="p">{</span><span class="s2">&quot;mode&quot;</span><span class="p">:</span> <span class="s2">&quot;min&quot;</span><span class="p">,</span> <span class="s2">&quot;monitor&quot;</span><span class="p">:</span> <span class="s2">&quot;val_loss&quot;</span><span class="p">,</span> <span class="s2">&quot;filename&quot;</span><span class="p">:</span> <span class="s2">&quot;min_val_loss&quot;</span><span class="p">},</span>
+    <span class="p">],</span>
+
+    <span class="n">limit_train_batches</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+    <span class="n">limit_val_batches</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+
+    <span class="n">evaluation_metrics</span><span class="o">=</span><span class="p">{</span>
+        <span class="s2">&quot;miou-macro&quot;</span><span class="p">:</span> <span class="n">JaccardIndex</span><span class="p">(</span><span class="n">task</span><span class="o">=</span><span class="s2">&quot;multiclass&quot;</span><span class="p">,</span> <span class="n">num_classes</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">average</span><span class="o">=</span><span class="s2">&quot;macro&quot;</span><span class="p">),</span>
+        <span class="s2">&quot;miou-micro&quot;</span><span class="p">:</span> <span class="n">JaccardIndex</span><span class="p">(</span><span class="n">task</span><span class="o">=</span><span class="s2">&quot;multiclass&quot;</span><span class="p">,</span> <span class="n">num_classes</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">average</span><span class="o">=</span><span class="s2">&quot;micro&quot;</span><span class="p">),</span>
+        <span class="s2">&quot;miou-weighted&quot;</span><span class="p">:</span> <span class="n">JaccardIndex</span><span class="p">(</span><span class="n">task</span><span class="o">=</span><span class="s2">&quot;multiclass&quot;</span><span class="p">,</span> <span class="n">num_classes</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">average</span><span class="o">=</span><span class="s2">&quot;weighted&quot;</span><span class="p">),</span>
+    <span class="p">},</span>
+    <span class="n">save_predictions</span><span class="o">=</span><span class="kc">False</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">experiment</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+================================================================================
+                              🚀 Experiment: test 🚀
+================================================================================
+
+🛠 **Execution Details:**
+   ├── Execution ID: 0
+   ├── Log Dir: test_logs/DeepLabV3/seam_ai_padding_reflect/test/0
+   ├── Seed: 42
+   ├── Accelerator: gpu
+   ├── Devices: 1
+   └── Max Epochs: 3
+
+🧠 **Model Information:**
+   ├── Model Name: DeepLabV3
+   ├── Input Shape: (3, 1006, 590)
+   ├── Output Shape: (6, 1006, 590)
+   └── Num Classes: 6
+
+📂 **Dataset Information:**
+      ==================================================
+                   🆔 seam_ai_padding_reflect
+      ==================================================
+      ├── Predict Split: test
+      └── Dataloader class: &lt;class &#39;torch.utils.data.dataloader.DataLoader&#39;&gt;
+      📂 Datasets:
+         ├── Train Dataset:
+         │      ==================================================
+         │                 📂 SimpleDataset Information
+         │      ==================================================
+         │      📌 Dataset Type: SimpleDataset
+         │         └── Reader 0: TiffReader at &#39;/workspaces/HIAAC-KR-Dev-Container/shared_data/seam_ai_datasets/seam_ai/images/train&#39; (1121 files)
+         │         │     └── Transform: TransformPipeline(transforms=[Transpose(axes=[2, 0, 1]), Identity(), PadCrop(target_h_size=1006, target_w_size=590, padding_mode=reflect, constant_values=0, seed=42), NumberChannels(num_channels=3), CastTo(dtype=float32)])
+         │         └── Reader 1: PNGReader at &#39;/workspaces/HIAAC-KR-Dev-Container/shared_data/seam_ai_datasets/seam_ai/annotations/train&#39; (1121 files)
+         │         │     └── Transform: TransformPipeline(transforms=[Unsqueeze(axis=0), PadCrop(target_h_size=1006, target_w_size=590, padding_mode=reflect, constant_values=0, seed=42), CastTo(dtype=int32)])
+         │         │
+         │         └── Total Readers: 2
+         │      ==================================================
+         ├── Val Dataset:
+         │      ==================================================
+         │                 📂 SimpleDataset Information
+         │      ==================================================
+         │      📌 Dataset Type: SimpleDataset
+         │         └── Reader 0: TiffReader at &#39;/workspaces/HIAAC-KR-Dev-Container/shared_data/seam_ai_datasets/seam_ai/images/val&#39; (51 files)
+         │         │     └── Transform: TransformPipeline(transforms=[Transpose(axes=[2, 0, 1]), Identity(), PadCrop(target_h_size=1006, target_w_size=590, padding_mode=reflect, constant_values=0, seed=42), NumberChannels(num_channels=3), CastTo(dtype=float32)])
+         │         └── Reader 1: PNGReader at &#39;/workspaces/HIAAC-KR-Dev-Container/shared_data/seam_ai_datasets/seam_ai/annotations/val&#39; (51 files)
+         │         │     └── Transform: TransformPipeline(transforms=[Unsqueeze(axis=0), PadCrop(target_h_size=1006, target_w_size=590, padding_mode=reflect, constant_values=0, seed=42), CastTo(dtype=int32)])
+         │         │
+         │         └── Total Readers: 2
+         │      ==================================================
+         └── Test Dataset:
+                ==================================================
+                           📂 SimpleDataset Information
+                ==================================================
+                📌 Dataset Type: SimpleDataset
+                   └── Reader 0: TiffReader at &#39;/workspaces/HIAAC-KR-Dev-Container/shared_data/seam_ai_datasets/seam_ai/images/test&#39; (200 files)
+                   │     └── Transform: TransformPipeline(transforms=[Transpose(axes=[2, 0, 1]), Identity(), Identity(), NumberChannels(num_channels=3), CastTo(dtype=float32)])
+                   └── Reader 1: PNGReader at &#39;/workspaces/HIAAC-KR-Dev-Container/shared_data/seam_ai_datasets/seam_ai/annotations/test&#39; (200 files)
+                   │     └── Transform: TransformPipeline(transforms=[Unsqueeze(axis=0), CastTo(dtype=int32), Squeeze(axis=0)])
+                   │
+                   └── Total Readers: 2
+                ==================================================
+
+      🛠 **Dataloader Configurations:**
+         ├── Train Dataloader Kwargs:
+               ├── batch_size: 8
+               ├── num_workers: 0
+               ├── shuffle: true
+               ├── drop_last: true
+         ├── Val Dataloader Kwargs:
+               ├── batch_size: 8
+               ├── num_workers: 0
+               ├── shuffle: false
+               ├── drop_last: true
+         └── Test Dataloader Kwargs:
+               ├── batch_size: 8
+               ├── num_workers: 0
+               ├── shuffle: false
+               ├── drop_last: false
+      ==================================================
+
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">experiment</span><span class="o">.</span><span class="n">cleanup</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Experiment at &#39;test_logs/DeepLabV3/seam_ai_padding_reflect/test/0&#39; cleaned up.
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">experiment</span><span class="o">.</span><span class="n">status</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+{&#39;experiment_name&#39;: &#39;test&#39;,
+ &#39;log_dir&#39;: PosixPath(&#39;test_logs/DeepLabV3/seam_ai_padding_reflect/test/0&#39;),
+ &#39;checkpoints&#39;: {},
+ &#39;training_metrics&#39;: None,
+ &#39;prediction_paths&#39;: {},
+ &#39;results_paths&#39;: {},
+ &#39;state&#39;: &#39;not executed&#39;}
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">result</span> <span class="o">=</span> <span class="n">experiment</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">task</span><span class="o">=</span><span class="s2">&quot;fit-evaluate&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+** Seed set to: 42 **
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+GPU available: True (cuda), used: True
+TPU available: False, using: 0 TPU cores
+HPU available: False, using: 0 HPUs
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+
+================================================================================
+                               Experiment: test
+================================================================================
+🧠 Model
+   ├── Name: DeepLabV3
+   ├── Finetune: No
+   ├── Resumed From: Beginning
+   ├── Expected Input Shape: (3, 1006, 590)
+   ├── Expected Output Shape: (6, 1006, 590)
+   ├── Total Params: 41,684,014
+   └── Trainable Params: 41,684,014 (100.00%)
+
+📊 Dataset
+   ├── Train Samples: 1121
+   |   ├── Input Shape: (3, 1006, 590)
+   |   └── Label Shape: (1, 1006, 590)
+   └── Val Samples: 51
+       ├── Input Shape: (3, 1006, 590)
+       └── Label Shape: (1, 1006, 590)
+
+💾 Logging &amp; Checkpoints
+   ├── Log Dir: test_logs/DeepLabV3/seam_ai_padding_reflect/test/0
+   ├── Metrics Path: test_logs/DeepLabV3/seam_ai_padding_reflect/test/0/metrics.csv
+   └── Checkpoints Dir: test_logs/DeepLabV3/seam_ai_padding_reflect/test/0/checkpoints
+       └── Files: min_train_loss.ckpt, min_val_loss.ckpt, last.ckpt
+
+⚙️ Trainer Config
+   ├── Max Epochs: 3
+   ├── Train Batches: 10
+   ├── Accelerator: gpu
+   ├── Strategy: auto
+   ├── Devices: 1
+   ├── Num Nodes: 1
+   └── Seed: 42
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+
+  | Name     | Type                    | Params | Mode
+-------------------------------------------------------------
+0 | backbone | DeepLabV3Backbone       | 25.6 M | train
+1 | fc       | DeepLabV3PredictionHead | 16.1 M | train
+2 | loss_fn  | WeightedDiceLoss        | 0      | train
+-------------------------------------------------------------
+41.7 M    Trainable params
+0         Non-trainable params
+41.7 M    Total params
+166.736   Total estimated model params size (MB)
+186       Modules in train mode
+0         Modules in eval mode
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Sanity Checking: |          | 0/? [00:00&lt;?, ?it/s]
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/usr/local/lib/python3.10/dist-packages/lightning/pytorch/trainer/connectors/data_connector.py:425: The &#39;val_dataloader&#39; does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=23` in the `DataLoader` to improve performance.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/usr/local/lib/python3.10/dist-packages/lightning/pytorch/trainer/connectors/data_connector.py:425: The &#39;train_dataloader&#39; does not have many workers which may be a bottleneck. Consider increasing the value of the `num_workers` argument` to `num_workers=23` in the `DataLoader` to improve performance.
+/usr/local/lib/python3.10/dist-packages/lightning/pytorch/loops/fit_loop.py:310: The number of training batches (10) is smaller than the logging interval Trainer(log_every_n_steps=50). Set a lower value for log_every_n_steps if you want to see logs for the training epoch.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Epoch 0: 100%|██████████| 10/10 [00:20&lt;00:00,  0.50it/s, v_num=0, val_loss=0.863, train_loss=0.842]
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+<span class="ansi-red-intense-fg ansi-bold">The Kernel crashed while executing code in the current cell or a previous cell.
+
+</span><span class="ansi-red-intense-fg ansi-bold">Please review the code in the cell(s) to identify a possible cause of the failure.
+
+</span><span class="ansi-red-intense-fg ansi-bold">Click &lt;a href=&#39;https://aka.ms/vscodeJupyterKernelCrash&#39;&gt;here&lt;/a&gt; for more info.
+
+</span><span class="ansi-red-intense-fg ansi-bold">View Jupyter &lt;a href=&#39;command:jupyter.viewOutput&#39;&gt;log&lt;/a&gt; for further details.</span>
+</pre></div></div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">experiment</span><span class="o">.</span><span class="n">status</span>
+</pre></div>
+</div>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="har_getting_started.html" class="btn btn-neutral float-left" title="Getting Started with Minerva for Human Activity Recognition" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../api.html" class="btn btn-neutral float-right" title="Programming Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Unicamp.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,260 @@
+minerva.models.ssl.tnc
+======================
+
+.. py:module:: minerva.models.ssl.tnc
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   minerva.models.ssl.tnc.TNC
+
+
+Module Contents
+---------------
+
+.. py:class:: TNC(backbone, projection_head, loss_fn = torch.nn.BCEWithLogitsLoss(), learning_rate = 1e-05, w = 0.05)
+
+   Bases: :py:obj:`lightning.LightningModule`
+
+
+   Base class for all neural network modules.
+
+   Your models should also subclass this class.
+
+   Modules can also contain other Modules, allowing them to be nested in
+   a tree structure. You can assign the submodules as regular attributes::
+
+       import torch.nn as nn
+       import torch.nn.functional as F
+
+       class Model(nn.Module):
+           def __init__(self) -> None:
+               super().__init__()
+               self.conv1 = nn.Conv2d(1, 20, 5)
+               self.conv2 = nn.Conv2d(20, 20, 5)
+
+           def forward(self, x):
+               x = F.relu(self.conv1(x))
+               return F.relu(self.conv2(x))
+
+   Submodules assigned in this way will be registered, and will also have their
+   parameters converted when you call :meth:`to`, etc.
+
+   .. note::
+       As per the example above, an ``__init__()`` call to the parent class
+       must be made before assignment on the child.
+
+   :ivar training: Boolean represents whether this module is in training or
+                   evaluation mode.
+   :vartype training: bool
+
+   This class defines a the TNC technique using a backbone neural network (backbone)
+   and a projection head neural network (projection_head) for training.
+
+   Parameters:
+   -----------
+   - backbone (torch.nn.Module):
+       The feature extraction backbone network, such as an encoder or a pre-trained model.
+   - projection_head (torch.nn.Module):
+       The projection head network that maps feature vectors into a latent space.
+   - loss_fn (torch.nn.Module, optional):
+       The loss function used for training (default: torch.nn.BCEWithLogitsLoss()).
+   - learning_rate (float, optional):
+       The learning rate for the optimizer (default: 0.00001).
+   - w (float, optional):
+       The weight for the negative loss term (default: 0.05).
+   Examples:
+   ----------
+   >>> backbone = RnnEncoder(hidden_size=100, in_channel=6, encoding_size=320, cell_type='GRU', num_layers=1)
+   >>> projection_head = Discriminator_TNC(input_size=320, max_pool=False)
+   >>> model = TNC(backbone=backbone, projection_head=projection_head, learning_rate=0.0001, w=0.1)
+
+   >>> backbone = TSEncoder(input_dims=6, output_dims=320, hidden_dims=64, depth=10)
+   >>> projection_head = Discriminator_TNC(input_size=320, max_pool=True)
+   >>> model = TNC(backbone=backbone, projection_head=projection_head, loss_fn=torch.nn.CrossEntropyLoss(), learning_rate=0.001, w=0.05)
+
+
+   .. py:attribute:: backbone
+
+
+   .. py:method:: configure_optimizers()
+
+      Choose what optimizers and learning-rate schedulers to use in your optimization. Normally you'd need one.
+      But in the case of GANs or similar you might have multiple. Optimization with multiple optimizers only works in
+      the manual optimization mode.
+
+      Return:
+          Any of these 6 options.
+
+          - **Single optimizer**.
+          - **List or Tuple** of optimizers.
+          - **Two lists** - The first list has multiple optimizers, and the second has multiple LR schedulers
+            (or multiple ``lr_scheduler_config``).
+          - **Dictionary**, with an ``"optimizer"`` key, and (optionally) a ``"lr_scheduler"``
+            key whose value is a single LR scheduler or ``lr_scheduler_config``.
+          - **None** - Fit will run without any optimizer.
+
+      The ``lr_scheduler_config`` is a dictionary which contains the scheduler and its associated configuration.
+      The default configuration is shown below.
+
+      .. code-block:: python
+
+          lr_scheduler_config = {
+              # REQUIRED: The scheduler instance
+              "scheduler": lr_scheduler,
+              # The unit of the scheduler's step size, could also be 'step'.
+              # 'epoch' updates the scheduler on epoch end whereas 'step'
+              # updates it after a optimizer update.
+              "interval": "epoch",
+              # How many epochs/steps should pass between calls to
+              # `scheduler.step()`. 1 corresponds to updating the learning
+              # rate after every epoch/step.
+              "frequency": 1,
+              # Metric to monitor for schedulers like `ReduceLROnPlateau`
+              "monitor": "val_loss",
+              # If set to `True`, will enforce that the value specified 'monitor'
+              # is available when the scheduler is updated, thus stopping
+              # training if not found. If set to `False`, it will only produce a warning
+              "strict": True,
+              # If using the `LearningRateMonitor` callback to monitor the
+              # learning rate progress, this keyword can be used to specify
+              # a custom logged name
+              "name": None,
+          }
+
+      When there are schedulers in which the ``.step()`` method is conditioned on a value, such as the
+      :class:`torch.optim.lr_scheduler.ReduceLROnPlateau` scheduler, Lightning requires that the
+      ``lr_scheduler_config`` contains the keyword ``"monitor"`` set to the metric name that the scheduler
+      should be conditioned on.
+
+      .. testcode::
+
+          # The ReduceLROnPlateau scheduler requires a monitor
+          def configure_optimizers(self):
+              optimizer = Adam(...)
+              return {
+                  "optimizer": optimizer,
+                  "lr_scheduler": {
+                      "scheduler": ReduceLROnPlateau(optimizer, ...),
+                      "monitor": "metric_to_track",
+                      "frequency": "indicates how often the metric is updated",
+                      # If "monitor" references validation metrics, then "frequency" should be set to a
+                      # multiple of "trainer.check_val_every_n_epoch".
+                  },
+              }
+
+
+          # In the case of two optimizers, only one using the ReduceLROnPlateau scheduler
+          def configure_optimizers(self):
+              optimizer1 = Adam(...)
+              optimizer2 = SGD(...)
+              scheduler1 = ReduceLROnPlateau(optimizer1, ...)
+              scheduler2 = LambdaLR(optimizer2, ...)
+              return (
+                  {
+                      "optimizer": optimizer1,
+                      "lr_scheduler": {
+                          "scheduler": scheduler1,
+                          "monitor": "metric_to_track",
+                      },
+                  },
+                  {"optimizer": optimizer2, "lr_scheduler": scheduler2},
+              )
+
+      Metrics can be made available to monitor by simply logging it using
+      ``self.log('metric_to_track', metric_val)`` in your :class:`~lightning.pytorch.core.LightningModule`.
+
+      Note:
+          Some things to know:
+
+          - Lightning calls ``.backward()`` and ``.step()`` automatically in case of automatic optimization.
+          - If a learning rate scheduler is specified in ``configure_optimizers()`` with key
+            ``"interval"`` (default "epoch") in the scheduler configuration, Lightning will call
+            the scheduler's ``.step()`` method automatically in case of automatic optimization.
+          - If you use 16-bit precision (``precision=16``), Lightning will automatically handle the optimizer.
+          - If you use :class:`torch.optim.LBFGS`, Lightning handles the closure function automatically for you.
+          - If you use multiple optimizers, you will have to switch to 'manual optimization' mode and step them
+            yourself.
+          - If you need to control how often the optimizer steps, override the :meth:`optimizer_step` hook.
+
+
+
+
+   .. py:method:: forward(x_t, X_close, X_distant)
+
+      Forward pass through the backbone and projection head networks.
+
+      Parameters:
+      -----------
+      x_t : torch.Tensor
+          Tensor of shape (batch_size, seq_length, feature_size) representing the primary input.
+      X_close : torch.Tensor
+          Tensor of shape (batch_size, seq_length, feature_size) representing close samples.
+      X_distant : torch.Tensor
+          Tensor of shape (batch_size, seq_length, feature_size) representing distant samples.
+
+      Returns:
+      --------
+      d_p : torch.Tensor
+          Projection head output for positive (x_t, X_close) pairs.
+      d_n : torch.Tensor
+          Projection head output for negative (x_t, X_distant) pairs.
+
+
+
+   .. py:attribute:: learning_rate
+      :value: 1e-05
+
+
+
+   .. py:attribute:: loss_fn
+
+
+   .. py:attribute:: mc_sample_size
+      :value: 5
+
+
+
+   .. py:attribute:: projection_head
+
+
+   .. py:method:: training_step(batch)
+
+      Single training step using contrastive loss.
+
+      Parameters:
+      -----------
+      - batch (tuple of torch.Tensor):
+          Batch of input data consisting of (x_t, X_close, X_distant).
+
+      Returns:
+      --------
+      - loss (torch.Tensor):
+          Calculated contrastive loss for the current batch.
+
+
+
+   .. py:method:: validation_step(batch, batch_idx)
+
+      Single validation step using contrastive loss.
+
+      Parameters:
+      -----------
+      - batch (tuple of torch.Tensor):
+          Batch of input data consisting of (x_t, X_close, X_distant).
+
+      Returns:
+      --------
+      - val_loss (torch.Tensor):
+          Calculated contrastive loss for the current batch.
+
+
+
+   .. py:attribute:: w
+      :value: 0.05
+
+
+

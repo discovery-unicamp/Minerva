@@ -1,0 +1,54 @@
+minerva.analysis.complexity_performance_analysis
+================================================
+
+.. py:module:: minerva.analysis.complexity_performance_analysis
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   minerva.analysis.complexity_performance_analysis.ComplexityPerformanceAnalysis
+
+
+Module Contents
+---------------
+
+.. py:class:: ComplexityPerformanceAnalysis(path = None, custom_input_size = None)
+
+   Bases: :py:obj:`minerva.analysis.model_analysis._ModelAnalysis`
+
+
+   Perform a complexity/performance analysis on a model using custom data.
+   The values computed are the KWh (kilowatts per hour) consumed, MACs (multiply-
+   accumulative operations) employed, and the number of parameters in the model.
+   The results are returned in a dictionary and, if provided, saved in the `path`
+   directory or returned in the compute function.
+   If necessary, random data can be employed.
+
+
+   .. py:attribute:: _custom_input_size
+      :value: None
+
+
+      Compute the complexity/performance analysis.
+
+      Parameters
+      ----------
+      path : Optional[PathLike], optional
+          Path to save the results of the analysis, by default None.
+      custom_input_size : Optional[Tuple], optional
+          Custom input size for the evaluation data, by default None.
+          If None, the evaluation data is obtained from the data module.
+
+
+
+   .. py:attribute:: _path
+      :value: None
+
+
+
+   .. py:method:: compute(model, data)
+
+

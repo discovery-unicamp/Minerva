@@ -1,0 +1,401 @@
+minerva.models.nets.classic_ml_pipeline
+=======================================
+
+.. py:module:: minerva.models.nets.classic_ml_pipeline
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   minerva.models.nets.classic_ml_pipeline.ClassicMLModel
+   minerva.models.nets.classic_ml_pipeline.SklearnPipeline
+
+
+Module Contents
+---------------
+
+.. py:class:: ClassicMLModel(head, backbone = None, use_only_train_data = False, test_metrics = None, sklearn_model_save_path = None, flatten = True, adapter = None, predict_proba = True)
+
+   Bases: :py:obj:`lightning.LightningModule`
+
+
+   A PyTorch Lightning module that wraps a classic ML model (e.g. a scikit-learn model)
+   and uses it as a head of a neural network. The backbone of the network is frozen and
+   the head is trained on the features extracted by the backbone. More complex models,
+   that do not follow this pipeline, should not inherit from this class.
+
+   Initialize the model with the backbone and head. The backbone is frozen
+   and the head is trained on the features extracted by the backbone. The
+   head should implement the `BaseEstimator` interface. The model can be
+   trained using only the training data or using both training and
+   validation data. The test metrics are used to evaluate the model during
+   testing. It will be logged using lightning logger at the end of each
+   epoch.
+   Parameters
+   ----------
+   head : BaseEstimator
+       The head model. Usually, a scikit-learn model, like a classifier or regressor that
+       implements the `predict` and `fit` methods.
+   backbone : torch.nn.Module
+       The backbone model. When trained only a classic ML model the backbone can be the Identity function imported from nn.Identity.
+   use_only_train_data : bool, optional
+       If `True`, the model will be trained using only the training data-
+       If `False`, the model will be trained using both training and
+       validation data, concatenated.
+   test_metrics : Dict[str, Metric], optional
+       The metrics to be used during testing, by default None
+   sklearn_model_save_path:   str, optional
+       The path to save the sklearn model weights, by default None
+   flatten : bool, optional
+       If `True` the input data will be flattened before passing through
+       the model, by default True
+   adapter : Callable[[torch.Tensor], torch.Tensor], optional
+       An adapter to be used from the backbone to the head, by default None.
+   predict_proba : bool, optional
+       If `True`, the head will use the `predict_proba` method in the head, otherwise it will use `predict`. By default True.
+
+
+   .. py:attribute:: adapter
+      :value: None
+
+
+
+   .. py:attribute:: backbone
+      :value: None
+
+
+
+   .. py:method:: configure_optimizers()
+
+      Choose what optimizers and learning-rate schedulers to use in your optimization. Normally you'd need one.
+      But in the case of GANs or similar you might have multiple. Optimization with multiple optimizers only works in
+      the manual optimization mode.
+
+      Return:
+          Any of these 6 options.
+
+          - **Single optimizer**.
+          - **List or Tuple** of optimizers.
+          - **Two lists** - The first list has multiple optimizers, and the second has multiple LR schedulers
+            (or multiple ``lr_scheduler_config``).
+          - **Dictionary**, with an ``"optimizer"`` key, and (optionally) a ``"lr_scheduler"``
+            key whose value is a single LR scheduler or ``lr_scheduler_config``.
+          - **None** - Fit will run without any optimizer.
+
+      The ``lr_scheduler_config`` is a dictionary which contains the scheduler and its associated configuration.
+      The default configuration is shown below.
+
+      .. code-block:: python
+
+          lr_scheduler_config = {
+              # REQUIRED: The scheduler instance
+              "scheduler": lr_scheduler,
+              # The unit of the scheduler's step size, could also be 'step'.
+              # 'epoch' updates the scheduler on epoch end whereas 'step'
+              # updates it after a optimizer update.
+              "interval": "epoch",
+              # How many epochs/steps should pass between calls to
+              # `scheduler.step()`. 1 corresponds to updating the learning
+              # rate after every epoch/step.
+              "frequency": 1,
+              # Metric to monitor for schedulers like `ReduceLROnPlateau`
+              "monitor": "val_loss",
+              # If set to `True`, will enforce that the value specified 'monitor'
+              # is available when the scheduler is updated, thus stopping
+              # training if not found. If set to `False`, it will only produce a warning
+              "strict": True,
+              # If using the `LearningRateMonitor` callback to monitor the
+              # learning rate progress, this keyword can be used to specify
+              # a custom logged name
+              "name": None,
+          }
+
+      When there are schedulers in which the ``.step()`` method is conditioned on a value, such as the
+      :class:`torch.optim.lr_scheduler.ReduceLROnPlateau` scheduler, Lightning requires that the
+      ``lr_scheduler_config`` contains the keyword ``"monitor"`` set to the metric name that the scheduler
+      should be conditioned on.
+
+      .. testcode::
+
+          # The ReduceLROnPlateau scheduler requires a monitor
+          def configure_optimizers(self):
+              optimizer = Adam(...)
+              return {
+                  "optimizer": optimizer,
+                  "lr_scheduler": {
+                      "scheduler": ReduceLROnPlateau(optimizer, ...),
+                      "monitor": "metric_to_track",
+                      "frequency": "indicates how often the metric is updated",
+                      # If "monitor" references validation metrics, then "frequency" should be set to a
+                      # multiple of "trainer.check_val_every_n_epoch".
+                  },
+              }
+
+
+          # In the case of two optimizers, only one using the ReduceLROnPlateau scheduler
+          def configure_optimizers(self):
+              optimizer1 = Adam(...)
+              optimizer2 = SGD(...)
+              scheduler1 = ReduceLROnPlateau(optimizer1, ...)
+              scheduler2 = LambdaLR(optimizer2, ...)
+              return (
+                  {
+                      "optimizer": optimizer1,
+                      "lr_scheduler": {
+                          "scheduler": scheduler1,
+                          "monitor": "metric_to_track",
+                      },
+                  },
+                  {"optimizer": optimizer2, "lr_scheduler": scheduler2},
+              )
+
+      Metrics can be made available to monitor by simply logging it using
+      ``self.log('metric_to_track', metric_val)`` in your :class:`~lightning.pytorch.core.LightningModule`.
+
+      Note:
+          Some things to know:
+
+          - Lightning calls ``.backward()`` and ``.step()`` automatically in case of automatic optimization.
+          - If a learning rate scheduler is specified in ``configure_optimizers()`` with key
+            ``"interval"`` (default "epoch") in the scheduler configuration, Lightning will call
+            the scheduler's ``.step()`` method automatically in case of automatic optimization.
+          - If you use 16-bit precision (``precision=16``), Lightning will automatically handle the optimizer.
+          - If you use :class:`torch.optim.LBFGS`, Lightning handles the closure function automatically for you.
+          - If you use multiple optimizers, you will have to switch to 'manual optimization' mode and step them
+            yourself.
+          - If you need to control how often the optimizer steps, override the :meth:`optimizer_step` hook.
+
+
+
+
+   .. py:attribute:: flatten
+      :value: True
+
+
+
+   .. py:method:: forward(x)
+
+      Forward pass of the model. Extracts features from the backbone and predicts
+      the target using the head.
+      Parameters
+      ----------
+      x : torch.Tensor
+          The input data.
+      Returns
+      -------
+      torch.Tensor
+          The predicted target.
+
+
+
+   .. py:attribute:: head
+
+
+   .. py:method:: on_train_epoch_end()
+
+      At the end of the first epoch, the model is trained on the
+      concatenated training and validation data. The training data is
+      flattened and the head is trained on it.
+
+
+
+   .. py:attribute:: predict_proba
+      :value: True
+
+
+
+   .. py:method:: predict_step(batch, batch_idx, dataloader_idx=None)
+
+      Predict step of the model.
+
+
+
+   .. py:attribute:: sklearn_model_save_path
+      :value: None
+
+
+
+   .. py:attribute:: tensor1
+
+
+   .. py:attribute:: test_metrics
+      :value: None
+
+
+
+   .. py:method:: test_step(batch, batch_idx)
+
+      Test step of the model.
+
+
+
+   .. py:attribute:: train_data
+      :value: []
+
+
+
+   .. py:attribute:: train_y
+      :value: []
+
+
+
+   .. py:method:: training_step(batch, batch_index)
+
+      Training step of the model. Collects all the training batchs into one
+      variable and logs a dummy loss to keep track of the training process.
+
+
+
+   .. py:attribute:: use_only_train_data
+      :value: False
+
+
+
+   .. py:attribute:: val_data
+      :value: []
+
+
+
+   .. py:attribute:: val_y
+      :value: []
+
+
+
+   .. py:method:: validation_step(batch, batch_index)
+
+      Validation step of the model. Collects all the validation batchs into
+      one variable and logs a dummy loss to keep track of the validation
+      process.
+
+
+
+.. py:class:: SklearnPipeline(steps, *, memory = None, verbose = False, **kwargs)
+
+   Bases: :py:obj:`sklearn.pipeline.Pipeline`
+
+
+   A sequence of data transformers with an optional final predictor.
+
+   `Pipeline` allows you to sequentially apply a list of transformers to
+   preprocess the data and, if desired, conclude the sequence with a final
+   :term:`predictor` for predictive modeling.
+
+   Intermediate steps of the pipeline must be transformers, that is, they
+   must implement `fit` and `transform` methods.
+   The final :term:`estimator` only needs to implement `fit`.
+   The transformers in the pipeline can be cached using ``memory`` argument.
+
+   The purpose of the pipeline is to assemble several steps that can be
+   cross-validated together while setting different parameters. For this, it
+   enables setting parameters of the various steps using their names and the
+   parameter name separated by a `'__'`, as in the example below. A step's
+   estimator may be replaced entirely by setting the parameter with its name
+   to another estimator, or a transformer removed by setting it to
+   `'passthrough'` or `None`.
+
+   For an example use case of `Pipeline` combined with
+   :class:`~sklearn.model_selection.GridSearchCV`, refer to
+   :ref:`sphx_glr_auto_examples_compose_plot_compare_reduction.py`. The
+   example :ref:`sphx_glr_auto_examples_compose_plot_digits_pipe.py` shows how
+   to grid search on a pipeline using `'__'` as a separator in the parameter names.
+
+   Read more in the :ref:`User Guide <pipeline>`.
+
+   .. versionadded:: 0.5
+
+   Parameters
+   ----------
+   steps : list of tuples
+       List of (name of step, estimator) tuples that are to be chained in
+       sequential order. To be compatible with the scikit-learn API, all steps
+       must define `fit`. All non-last steps must also define `transform`. See
+       :ref:`Combining Estimators <combining_estimators>` for more details.
+
+   transform_input : list of str, default=None
+       The names of the :term:`metadata` parameters that should be transformed by the
+       pipeline before passing it to the step consuming it.
+
+       This enables transforming some input arguments to ``fit`` (other than ``X``)
+       to be transformed by the steps of the pipeline up to the step which requires
+       them. Requirement is defined via :ref:`metadata routing <metadata_routing>`.
+       For instance, this can be used to pass a validation set through the pipeline.
+
+       You can only set this if metadata routing is enabled, which you
+       can enable using ``sklearn.set_config(enable_metadata_routing=True)``.
+
+       .. versionadded:: 1.6
+
+   memory : str or object with the joblib.Memory interface, default=None
+       Used to cache the fitted transformers of the pipeline. The last step
+       will never be cached, even if it is a transformer. By default, no
+       caching is performed. If a string is given, it is the path to the
+       caching directory. Enabling caching triggers a clone of the transformers
+       before fitting. Therefore, the transformer instance given to the
+       pipeline cannot be inspected directly. Use the attribute ``named_steps``
+       or ``steps`` to inspect estimators within the pipeline. Caching the
+       transformers is advantageous when fitting is time consuming. See
+       :ref:`sphx_glr_auto_examples_neighbors_plot_caching_nearest_neighbors.py`
+       for an example on how to enable caching.
+
+   verbose : bool, default=False
+       If True, the time elapsed while fitting each step will be printed as it
+       is completed.
+
+   Attributes
+   ----------
+   named_steps : :class:`~sklearn.utils.Bunch`
+       Dictionary-like object, with the following attributes.
+       Read-only attribute to access any step parameter by user given name.
+       Keys are step names and values are steps parameters.
+
+   classes_ : ndarray of shape (n_classes,)
+       The classes labels. Only exist if the last step of the pipeline is a
+       classifier.
+
+   n_features_in_ : int
+       Number of features seen during :term:`fit`. Only defined if the
+       underlying first estimator in `steps` exposes such an attribute
+       when fit.
+
+       .. versionadded:: 0.24
+
+   feature_names_in_ : ndarray of shape (`n_features_in_`,)
+       Names of features seen during :term:`fit`. Only defined if the
+       underlying estimator exposes such an attribute when fit.
+
+       .. versionadded:: 1.0
+
+   See Also
+   --------
+   make_pipeline : Convenience function for simplified pipeline construction.
+
+   Examples
+   --------
+   >>> from sklearn.svm import SVC
+   >>> from sklearn.preprocessing import StandardScaler
+   >>> from sklearn.datasets import make_classification
+   >>> from sklearn.model_selection import train_test_split
+   >>> from sklearn.pipeline import Pipeline
+   >>> X, y = make_classification(random_state=0)
+   >>> X_train, X_test, y_train, y_test = train_test_split(X, y,
+   ...                                                     random_state=0)
+   >>> pipe = Pipeline([('scaler', StandardScaler()), ('svc', SVC())])
+   >>> # The pipeline can be used as any other estimator
+   >>> # and avoids leaking the test set into the train set
+   >>> pipe.fit(X_train, y_train).score(X_test, y_test)
+   0.88
+   >>> # An estimator's parameter can be set using '__' syntax
+   >>> pipe.set_params(svc__C=10).fit(X_train, y_train).score(X_test, y_test)
+   0.76
+
+
+   .. py:method:: _load_class(step_config)
+      :staticmethod:
+
+
+      loads a class from a YAML configuration dictionary and returns an instance of it
+
+
+

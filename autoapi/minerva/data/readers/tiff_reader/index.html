@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" data-content_root="../../../../../">
 <head>
@@ -5,21 +7,17 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>minerva.data.readers.tiff_reader &mdash; minerva  documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=80d5e7a1" />
-      <link rel="stylesheet" type="text/css" href="../../../../../_static/css/theme.css?v=19f00094" />
-      <link rel="stylesheet" type="text/css" href="../../../../../_static/graphviz.css?v=fd3f3429" />
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/graphviz.css?v=4ae1632d" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../../../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script src="../../../../../_static/jquery.js?v=5d32c60e"></script>
-        <script src="../../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../../../../../_static/documentation_options.js?v=5929fcd5"></script>
-        <script src="../../../../../_static/doctools.js?v=9a2dae69"></script>
-        <script src="../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
-        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="../../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../../../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../../search.html" />
@@ -46,19 +44,24 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../../../../../installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../design.html">Minerva: A Modular Framework for Time-Series and Seismic ML</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../experiments.html">Managing Experiments with Minerva</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../contributing.html">Contributing to Minerva</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../tutorials.html">Tutorials</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../../../../../api.html">Programming Reference</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="../../../index.html">minerva</a><ul class="current">
-<li class="toctree-l3 current"><a class="reference internal" href="../../../index.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="../../../index.html#submodules">Submodules</a><ul class="current">
 <li class="toctree-l4"><a class="reference internal" href="../../../analysis/index.html">minerva.analysis</a></li>
 <li class="toctree-l4 current"><a class="reference internal" href="../../index.html">minerva.data</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../losses/index.html">minerva.losses</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../models/index.html">minerva.models</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../optimizers/index.html">minerva.optimizers</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../pipelines/index.html">minerva.pipelines</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../samplers/index.html">minerva.samplers</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../transforms/index.html">minerva.transforms</a></li>
 <li class="toctree-l4"><a class="reference internal" href="../../../utils/index.html">minerva.utils</a></li>
 </ul>
@@ -104,7 +107,7 @@
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#minerva.data.readers.tiff_reader.TiffReader" title="minerva.data.readers.tiff_reader.TiffReader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TiffReader</span></code></a></p></td>
-<td><p>This class loads a TIFF file from a directory. It assumes that the TIFF</p></td>
+<td><p>A base class for iterating over files in a directory in a custom sorted</p></td>
 </tr>
 </tbody>
 </table>
@@ -113,53 +116,46 @@
 <h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="minerva.data.readers.tiff_reader.TiffReader">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.data.readers.tiff_reader.</span></span><span class="sig-name descname"><span class="pre">TiffReader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#minerva.data.readers.tiff_reader.TiffReader" title="Link to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="../reader/index.html#minerva.data.readers.reader._Reader" title="minerva.data.readers.reader._Reader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">minerva.data.readers.reader._Reader</span></code></a></p>
-<p>This class loads a TIFF file from a directory. It assumes that the TIFF
-files are named with a number as the filename, starting from 0. This is
-shown below.</p>
-<p><code class="docutils literal notranslate"><span class="pre">`</span>
-<span class="pre">/path/</span>
-<span class="pre">├──</span> <span class="pre">0.tiff</span>
-<span class="pre">├──</span> <span class="pre">1.tiff</span>
-<span class="pre">├──</span> <span class="pre">2.tiff</span>
-<span class="pre">└──</span> <span class="pre">...</span>
-<span class="pre">`</span></code></p>
-<p>Thus, the element at index <cite>i</cite> will be the file <cite>i.tiff</cite>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>path</strong> (<em>str</em>)</p>
-</dd>
-</dl>
-<dl class="py method">
-<dt class="sig sig-object py" id="minerva.data.readers.tiff_reader.TiffReader.__getitem__">
-<span class="sig-name descname"><span class="pre">__getitem__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#minerva.data.readers.tiff_reader.TiffReader.__getitem__" title="Link to this definition"></a></dt>
-<dd><p>Retrieve the TIFF file at the specified index. The index will be
-used as the filename of the TIFF file.</p>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.data.readers.tiff_reader.</span></span><span class="sig-name descname"><span class="pre">TiffReader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sort_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delimiter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key_index</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reverse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/minerva/data/readers/tiff_reader.html#TiffReader"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.data.readers.tiff_reader.TiffReader" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="../base_file_iterator/index.html#minerva.data.readers.base_file_iterator.BaseFileIterator" title="minerva.data.readers.base_file_iterator.BaseFileIterator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">minerva.data.readers.base_file_iterator.BaseFileIterator</span></code></a></p>
+<p>A base class for iterating over files in a directory in a custom sorted
+order.</p>
+<p>Load image files from a directory.</p>
 <section id="parameters">
 <h3>Parameters<a class="headerlink" href="#parameters" title="Link to this heading"></a></h3>
 <dl class="simple">
-<dt>index<span class="classifier">int</span></dt><dd><p>Index of the TIFF file to retrieve.</p>
+<dt>path<span class="classifier">Union[Path, str]</span></dt><dd><p>The path to the directory containing the image files. Files will be
+searched recursively.</p>
 </dd>
-</dl>
-</section>
-<section id="returns">
-<h3>Returns<a class="headerlink" href="#returns" title="Link to this heading"></a></h3>
-<dl class="simple">
-<dt>np.ndarray</dt><dd><p>The TIFF file as a NumPy array.</p>
+<dt>sort_method<span class="classifier">Optional[List[str]], optional</span></dt><dd><p>A list specifying how to sort each part of the filename. Each
+element can  be either “text” (lexicographical) or “numeric”
+(numerically). By default, None, which will use “numeric” if
+numeric parts are detected.</p>
+</dd>
+<dt>delimiter<span class="classifier">Optional[str], optional</span></dt><dd><p>The delimiter to split filenames into components, by default None.</p>
+</dd>
+<dt>key_index<span class="classifier">Union[int, List[int]], optional</span></dt><dd><p>The index (or list of indices) of the part(s) of the filename to
+use  for sorting. If a list is provided, files will be sorted
+based on  multiple parts in sequence. Thus, first by the part at
+index 0, then by the part at index 1, and so on. By default 0.</p>
+</dd>
+<dt>reverse<span class="classifier">bool, optional</span></dt><dd><p>Whether to sort in reverse order, by default False.</p>
 </dd>
 </dl>
 </section>
 <section id="raises">
 <h3>Raises<a class="headerlink" href="#raises" title="Link to this heading"></a></h3>
 <dl class="simple">
-<dt>ValueError</dt><dd><p>If the specified file does not exist in the given path.</p>
+<dt>NotADirectoryError</dt><dd><p>If the path is not a directory.</p>
 </dd>
 </dl>
-</section>
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.data.readers.tiff_reader.TiffReader.__getitem__">
+<span class="sig-name descname"><span class="pre">__getitem__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/minerva/data/readers/tiff_reader.html#TiffReader.__getitem__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.data.readers.tiff_reader.TiffReader.__getitem__" title="Link to this definition"></a></dt>
+<dd><p>Retrieve the TIFF file at the specified index.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>index</strong> (<em>Union</em><em>[</em><em>int</em><em>, </em><em>slice</em><em>]</em>)</p>
+<dd class="field-odd"><p><strong>index</strong> (<em>int</em>)</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>numpy.ndarray</p>
@@ -168,23 +164,32 @@ used as the filename of the TIFF file.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="minerva.data.readers.tiff_reader.TiffReader.__len__">
-<span class="sig-name descname"><span class="pre">__len__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#minerva.data.readers.tiff_reader.TiffReader.__len__" title="Link to this definition"></a></dt>
-<dd><p>Return the number of TIFF files in the directory.</p>
-<section id="id1">
-<h3>Returns<a class="headerlink" href="#id1" title="Link to this heading"></a></h3>
-<dl class="simple">
-<dt>int</dt><dd><p>The number of TIFF files in the directory.</p>
-</dd>
-</dl>
-</section>
-<dl class="field-list simple">
+<dt class="sig sig-object py" id="minerva.data.readers.tiff_reader.TiffReader.__str__">
+<span class="sig-name descname"><span class="pre">__str__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/minerva/data/readers/tiff_reader.html#TiffReader.__str__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.data.readers.tiff_reader.TiffReader.__str__" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>int</p>
+<dd class="field-odd"><p>str</p>
 </dd>
 </dl>
 </dd></dl>
 
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.data.readers.tiff_reader.TiffReader.root_dir">
+<span class="sig-name descname"><span class="pre">root_dir</span></span><a class="headerlink" href="#minerva.data.readers.tiff_reader.TiffReader.root_dir" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> (<em>minerva.utils.typing.PathLike</em>)</p></li>
+<li><p><strong>sort_method</strong> (<em>Optional</em><em>[</em><em>List</em><em>[</em><em>str</em><em>]</em><em>]</em>)</p></li>
+<li><p><strong>delimiter</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>)</p></li>
+<li><p><strong>key_index</strong> (<em>Union</em><em>[</em><em>int</em><em>, </em><em>List</em><em>[</em><em>int</em><em>]</em><em>]</em>)</p></li>
+<li><p><strong>reverse</strong> (<em>bool</em>)</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </section>
@@ -201,7 +206,7 @@ used as the filename of the TIFF file.</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024, Unicamp.</p>
+    <p>&#169; Copyright 2025, Unicamp.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
