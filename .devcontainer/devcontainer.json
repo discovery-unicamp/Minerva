@@ -6,12 +6,12 @@
     "containerUser": "vscode",
 
     "runArgs": [
-        "--gpus",
+        "--gpus",       // Enable all GPUs
         "all",
-        "--shm-size",
+        "--shm-size",   // Set shared memory for process communication to 1G
         "1g",
-        "--ipc",
-        "host",
+        // "--ipc",     // Allows using same network interface as host
+        // "host",     
         "--ulimit",
         "memlock=-1",
         "--ulimit",
@@ -20,6 +20,7 @@
     "customizations": {
         "vscode": {
             "extensions": [
+                // Some common Python extensions
                 "ms-python.python",
                 "ms-python.black-formatter",
                 "ms-toolsai.jupyter",

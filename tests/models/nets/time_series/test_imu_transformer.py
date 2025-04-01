@@ -16,6 +16,14 @@ def test_imu_transformer_forward():
     assert y is not None
 
 
+def test_imu_transformer_creation(simple_torchmetrics):
+    input_shape = (6, 60)
+    # with metrics
+    model = IMUTransformerEncoder(
+        input_shape=input_shape, **simple_torchmetrics
+    )
+
+
 def test_imu_cnn_forward():
     input_shape = (6, 60)
     model = IMUCNN(input_shape=input_shape)
@@ -24,3 +32,9 @@ def test_imu_cnn_forward():
     x = torch.rand(1, *input_shape)
     y = model(x)
     assert y is not None
+
+
+def test_imu_cnn_creation(simple_torchmetrics):
+    input_shape = (6, 60)
+    # with metrics
+    model = IMUCNN(input_shape=input_shape, **simple_torchmetrics)
