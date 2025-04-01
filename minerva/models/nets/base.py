@@ -1,8 +1,9 @@
-from typing import Dict, Optional
+from typing import Dict, Optional, Union, Callable
 
 import lightning as L
 import torch
 from torchmetrics import Metric
+from minerva.models.loaders import LoadableModule
 
 
 class SimpleSupervisedModel(L.LightningModule):
@@ -26,14 +27,16 @@ class SimpleSupervisedModel(L.LightningModule):
 
     def __init__(
         self,
-        backbone: torch.nn.Module,
-        fc: torch.nn.Module,
+        backbone: Union[torch.nn.Module, LoadableModule],
+        fc: Union[torch.nn.Module, LoadableModule],
         loss_fn: torch.nn.Module,
+        adapter: Optional[Callable[[torch.Tensor], torch.Tensor]] = None,
         learning_rate: float = 1e-3,
         flatten: bool = True,
         train_metrics: Optional[Dict[str, Metric]] = None,
         val_metrics: Optional[Dict[str, Metric]] = None,
         test_metrics: Optional[Dict[str, Metric]] = None,
+        freeze_backbone: bool = False,
     ):
         """Initialize the model with the backbone, fc, loss function and
         metrics. Metrics are used to evaluate the model during training,
@@ -69,8 +72,10 @@ class SimpleSupervisedModel(L.LightningModule):
         self.backbone = backbone
         self.fc = fc
         self.loss_fn = loss_fn
+        self.adapter = adapter
         self.learning_rate = learning_rate
         self.flatten = flatten
+        self.freeze_backbone = freeze_backbone
 
         self.metrics = {
             "train": train_metrics,
@@ -111,7 +116,9 @@ class SimpleSupervisedModel(L.LightningModule):
         """
         x = self.backbone(x)
         if self.flatten:
-            x = x.view(x.size(0), -1)
+            x = x.reshape(x.size(0), -1)
+        if self.adapter is not None:
+            x = self.adapter(x)
         x = self.fc(x)
         return x
 
@@ -207,6 +214,9 @@ class SimpleSupervisedModel(L.LightningModule):
         return y_hat
 
     def configure_optimizers(self):
+        for param in self.backbone.parameters():
+            param.requires_grad = not self.freeze_backbone
+                
         optimizer = torch.optim.Adam(
             self.parameters(),
             lr=self.learning_rate,

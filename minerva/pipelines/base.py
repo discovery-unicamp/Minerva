@@ -1,22 +1,23 @@
-from abc import abstractmethod
 import copy
 import os
-from pathlib import Path
-from typing import Any, List, Dict
-from uuid import uuid4
-from time import time
-import traceback
+import platform
 import sys
-from lightning.pytorch.core.mixins import HyperparametersMixin
-import pkg_resources
-import yaml
+import traceback
+from abc import abstractmethod
 from datetime import datetime
+from functools import cached_property
+from pathlib import Path
+from time import time
+from typing import Any, Dict, List, Optional, Union
+from uuid import uuid4
 
 import git
-import sys
-import platform
-from functools import cached_property
+import lightning as L
+import pkg_resources
+import yaml
+from lightning.pytorch.core.mixins import HyperparametersMixin  # type: ignore
 from lightning.pytorch.utilities import rank_zero_only
+
 from minerva.utils.typing import PathLike
 
 
@@ -43,19 +44,20 @@ class Pipeline(HyperparametersMixin):
 
     def __init__(
         self,
-        log_dir: Path | str = None,
-        ignore: str | List[str] = None,
+        log_dir: Optional[PathLike] = None,
+        ignore: Optional[Union[str, List[str]]] = None,
         cache_result: bool = False,
         save_run_status: bool = False,
+        seed: Optional[int] = None,
     ):
         """Create a new Pipeline object.
 
         Parameters
         ----------
-        log_dir : Path | str, optional
-            The default logging directory where all related pipeline files 
+        log_dir : PathLike, optional
+            The default logging directory where all related pipeline files
             should be saved. By default None (uses current working directory)
-        ignore : str | List[str], optional
+        ignore : Union[str, List[str]], optional
             Pipeline __init__ attributes are saved into config attibute. This
             option allows to ignore some attributes from being saved. This is
             quite useful when the attributes are not serializable or very large.
@@ -69,22 +71,31 @@ class Pipeline(HyperparametersMixin):
             If True, save the status of each run in a YAML file. This file will
             be saved in the working directory with the name
             `run_{pipeline_id}.yaml`. By default False.
+        seed : Optional[int], optional
+            Seed to be used by the pipeline. If None, a random seed is generated
+            and used. By default None.
         """
         self._initialize_vars()
+        self.seed = seed or self._generate_seed()
         self._pipeline_id = datetime.now().strftime("%Y-%m-%d-%H-%M-%S") + str(
-            uuid4().hex
+            uuid4().hex[:8]
         )
         self._cache_result = cache_result
         self._save_run_status = save_run_status
         self._cached_run_status = []
         # Log dir (set as property)
         self.log_dir = log_dir or Path.cwd()
+        self.seed = seed
         # Hyperparameters
         ignore = ignore or []
         if isinstance(ignore, str):
             ignore = [ignore]
         ignore.append("ignore")
         self.save_hyperparameters(ignore=ignore)
+        
+    def _generate_seed(self) -> int:
+        seed = int(time() * 1000000)  # Using microseconds for higher precision
+        return seed
 
     def _initialize_vars(self):
         """Initialize the internal variables of the pipeline. This method is
@@ -132,9 +143,9 @@ class Pipeline(HyperparametersMixin):
             Path to the pipeline's log_dir
         """
         return self._log_dir
-    
+
     @log_dir.setter
-    def log_dir(self, value: Path | str):
+    def log_dir(self, value: PathLike):
         """Set the log_dir.
 
         Parameters
@@ -145,10 +156,10 @@ class Pipeline(HyperparametersMixin):
         if not isinstance(value, Path):
             value = Path(value)
         self._log_dir = value.absolute()
-        print(f"Log directory set to: {str(self.log_dir)}")
+        # print(f"Log directory set to: {str(self.log_dir)}")
 
     @property
-    def pipeline_info(self) -> Dict[str, str]:
+    def pipeline_info(self) -> Dict[str, Union[str, float, int]]:
         """Return default information about the pipeline. This information
         includes the class name, the creation time, the pipeline ID, the working
         directory, and the number of runs.
@@ -297,8 +308,13 @@ class Pipeline(HyperparametersMixin):
         path : PathLike
             The path to save the pipeline information.
         """
+        if not self._save_run_status:
+            return
+        
+        path = Path(path)
         d = self.full_info
         # Save yaml
+        path.parent.mkdir(parents=True, exist_ok=True)
         with open(path, "w") as f:
             yaml.dump(d, f)
 
@@ -320,13 +336,20 @@ class Pipeline(HyperparametersMixin):
         Exception
             Raises any exception that occurs during the run.
         """
+        seed = L.seed_everything(self.seed, workers=True, verbose=False)
+        print(f"** Seed set to: {seed} **")
+        
         self._run_count += 1
         self._run_start_time = time()
         self._run_status = "RUNNING"
         self._result = None
+        self._save_pipeline_info(self._log_dir / f"run_{self.pipeline_id}.yaml")
 
         try:
             result = self._run(*args, **kwargs)
+        except KeyboardInterrupt as e:
+            self._run_status = "INTERRUPTED"
+            raise e
         except Exception as e:
             self._run_status = "FAILED"
             exception = "".join(traceback.format_exception(*sys.exc_info()))
@@ -340,11 +363,10 @@ class Pipeline(HyperparametersMixin):
         if self._cache_result:
             self._result = result
 
-        if self._save_run_status:
-            self._cached_run_status.append(self.run_status)
-            self._save_pipeline_info(
-                self._log_dir / f"run_{self.pipeline_id}.yaml"
-            )
+        self._cached_run_status.append(self.run_status)
+        self._save_pipeline_info(
+            self._log_dir / f"run_{self.pipeline_id}.yaml"
+        )
 
         return result
 

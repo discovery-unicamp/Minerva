@@ -168,3 +168,28 @@ class SimpleDataset(Dataset):
             return data[0]
         else:
             return tuple(data)
+
+    def __str__(self) -> str:
+        readers = self.readers if isinstance(self.readers, list) else [self.readers]
+        transforms = self.transforms if isinstance(self.transforms, list) else [self.transforms]
+
+        readers_info = "\n".join(
+            [
+                f"   └── Reader {i}: {reader}\n   │     └── Transform: {transform}"
+                for i, (reader, transform) in enumerate(zip(readers, transforms))
+            ]
+        )
+
+        return (
+            f"{'=' * 50}\n"
+            f"{'📂 SimpleDataset Information':^50}\n"
+            f"{'=' * 50}\n"
+            f"📌 Dataset Type: {self.__class__.__name__}\n"
+            f"{readers_info}\n"
+            f"   │\n"
+            f"   └── Total Readers: {len(self.readers)}\n"
+            f"{'=' * 50}"
+        )
+
+    def __repr__(self) -> str:
+        return self.__str__()

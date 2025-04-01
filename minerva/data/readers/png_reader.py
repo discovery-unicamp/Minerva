@@ -1,68 +1,59 @@
 from pathlib import Path
-from typing import Union
-
 import numpy as np
+from minerva.data.readers.base_file_iterator import BaseFileIterator
+
 from PIL import Image
+import numpy as np
+from minerva.utils.typing import PathLike
+from typing import Optional, Union, List
 
-from minerva.data.readers.reader import _Reader
 
-
-class PNGReader(_Reader):
-    """This class loads a PNG file from a directory. It assumes that the PNG
-    files are named with a number as the filename, starting from 0. This is
-    shown below.
-
-    ```
-    /path/
-    ├── 0.png
-    ├── 1.png
-    ├── 2.png
-    └── ...
-    ```
-
-    Thus, the element at index `i` will be the file `i.png`.
-    """
-
-    def __init__(self, path: Union[Path, str]):
-        """This class loads a PNG file from a directory.
+class PNGReader(BaseFileIterator):
+    def __init__(
+        self,
+        path: PathLike,
+        sort_method: Optional[List[str]] = None,
+        delimiter: Optional[str] = None,
+        key_index: Union[int, List[int]] = 0,
+        reverse: bool = False,
+    ):
+        """Load image files from a directory.
 
         Parameters
         ----------
         path : Union[Path, str]
-            Path to the directory containing the PNG files.
-        """
-        self.path = Path(path)
-        if not self.path.is_dir():
-            raise ValueError(f"Path {path} is not a directory")
-        self.files = list(sorted(self.path.rglob("*.png")))
-
-    def __getitem__(self, index: int) -> np.ndarray:
-        """Retrieve the PNG file at the specified index. The index will be
-        used as the filename of the PNG file.
-
-        Parameters
-        ----------
-        index : int
-            Index of the PNG file to retrieve.
-
-        Returns
-        -------
-        np.ndarray
-            The PNG file as a NumPy array.
+            The path to the directory containing the image files. Files will be
+            searched recursively.
+        sort_method : Optional[List[str]], optional
+            A list specifying how to sort each part of the filename. Each
+            element can  be either "text" (lexicographical) or "numeric"
+            (numerically). By default, None, which will use "numeric" if
+            numeric parts are detected.
+        delimiter : Optional[str], optional
+            The delimiter to split filenames into components, by default None.
+        key_index : Union[int, List[int]], optional
+            The index (or list of indices) of the part(s) of the filename to
+            use  for sorting. If a list is provided, files will be sorted
+            based on  multiple parts in sequence. Thus, first by the part at
+            index 0, then by the part at index 1, and so on. By default 0.
+        reverse : bool, optional
+            Whether to sort in reverse order, by default False.
 
         Raises
         ------
-        ValueError
-            If the specified file does not exist in the given path.
+        NotADirectoryError
+            If the path is not a directory.
         """
+        self.root_dir = Path(path)
+        if not self.root_dir.is_dir():
+            raise NotADirectoryError(f"{path} is not a directory.")
+        
+        files = list(self.root_dir.rglob("*.png"))
+        super().__init__(files, sort_method, delimiter, key_index, reverse)
+
+    def __getitem__(self, index: int) -> np.ndarray:
+        """Retrieve the PNG file at the specified index."""
         return np.array(Image.open(self.files[index].as_posix()))
-
-    def __len__(self) -> int:
-        """Return the number of PNG files in the directory.
-
-        Returns
-        -------
-        int
-            The number of PNG files in the directory.
-        """
-        return len(self.files)
+    
+    def __str__(self) -> str:
+        return f"PNGReader at '{self.root_dir}' ({len(self.files)} files)"

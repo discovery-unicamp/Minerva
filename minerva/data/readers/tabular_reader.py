@@ -1,18 +1,20 @@
+import re
 from pathlib import Path
-from typing import Union
+from typing import List, Optional, Tuple, Union
 
 import numpy as np
-import re
 import pandas as pd
+
 from minerva.data.readers.reader import _Reader
+
 
 class TabularReader(_Reader):
     def __init__(
         self,
         df: pd.DataFrame,
-        columns_to_select: Union[str, list[str]],
-        cast_to: str = None,
-        data_shape: tuple[int, ...] = None,
+        columns_to_select: Union[str, List[str]],
+        cast_to: Optional[str] = None,
+        data_shape: Optional[Tuple[int, ...]] = None,
     ):
         """Reader to select columns from a DataFrame and return them as a NumPy
         array. The DataFrame is indexed by the row number. Each row of the
@@ -64,9 +66,7 @@ class TabularReader(_Reader):
         # Filter valid columns based on columns_to_select list
         valid_columns = []
         for pattern in self.columns_to_select:
-            valid_columns.extend(
-                [col for col in columns if re.match(pattern, col)]
-            )
+            valid_columns.extend([col for col in columns if re.match(pattern, col)])
 
         # Select the elements and return
         row = self.df.iloc[index][valid_columns]

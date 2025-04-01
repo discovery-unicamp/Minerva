@@ -1,10 +1,12 @@
 import numpy as np
 import pytest
 
+from minerva.data.readers.reader import _Reader
+from minerva.transforms.transform import _Transform
 from minerva.data.datasets import SimpleDataset
 
 
-class _SimpleReader:
+class _SimpleReader(_Reader):
     def __init__(self, data):
         self.data = data
 
@@ -15,7 +17,7 @@ class _SimpleReader:
         return len(self.data)
 
 
-class _SumTransform:
+class _SumTransform(_Transform):
     def __init__(self, constant):
         self.constant = constant
 

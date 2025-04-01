@@ -9,14 +9,16 @@ def to_tensor(x, dtype=None) -> torch.Tensor:
         if dtype is not None:
             x = x.type(dtype)
         return x
-    if isinstance(x, np.ndarray):
+    elif isinstance(x, np.ndarray):
         x = torch.from_numpy(x)
         if dtype is not None:
             x = x.type(dtype)
         return x
-    if isinstance(x, Iterable):
+    elif isinstance(x, Iterable):
         x = np.array(x)
         x = torch.from_numpy(x)
         if dtype is not None:
             x = x.type(dtype)
         return x
+    else:
+        raise TypeError(f"Unsupported type: {type(x)}")

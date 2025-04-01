@@ -13,3 +13,5 @@ perlin-noise
 torchmetrics
 torchvision
 timm
+opencv-python
+torchinfo
