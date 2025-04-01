@@ -38,7 +38,7 @@ Minerva is currently under development and not yet available as a PyPI package. 
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/discovery-unicamp/Minerva-Dev.git
+git clone https://github.com/discovery-unicamp/Minerva.git
 ```
 
 2. And then navigate to the project directory and install the dependencies:
