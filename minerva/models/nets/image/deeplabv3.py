@@ -1,5 +1,5 @@
 from typing import Dict, Optional, Sequence
-
+from collections import OrderedDict
 from torch import Tensor, nn, optim
 from torchmetrics import Metric
 from torchvision.models.resnet import resnet50
@@ -68,6 +68,8 @@ class DeepLabV3(SimpleSupervisedModel):
         x = x.float()
         input_shape = x.shape[-2:]
         h = self.backbone(x)
+        if isinstance(h, OrderedDict):
+            h = h['out']
         z = self.fc(h)
         # Upscaling
         return nn.functional.interpolate(
