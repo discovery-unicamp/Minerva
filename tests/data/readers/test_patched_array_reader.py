@@ -1,17 +1,28 @@
 import numpy as np
 
-from minerva.data.readers import PatchedArrayReader
+from minerva.data.readers import (
+    PatchedArrayReader,
+    LazyPaddedPatchedArrayReader,
+    NumpyArrayReader,
+)
+import pytest
 
 
-def test_patched_array_reader_no_stride_1():
+@pytest.mark.parametrize(
+    "reader_class", [PatchedArrayReader, LazyPaddedPatchedArrayReader]
+)
+def test_patched_array_reader_no_stride_1(reader_class):
     data = np.arange(100).reshape(10, 10)
-    reader = PatchedArrayReader(
+    reader = reader_class(
         data,
         data_shape=(5, 5),
     )
 
     assert len(reader) == 4, "The number of patches is incorrect"
-    assert reader[0].shape == (5, 5), "The shape of the first patch is incorrect"
+    assert reader[0].shape == (
+        5,
+        5,
+    ), "The shape of the first patch is incorrect"
     assert np.all(
         reader[0]
         == np.array(
@@ -39,9 +50,12 @@ def test_patched_array_reader_no_stride_1():
     ), "The content of the last patch is incorrect"
 
 
-def test_patched_array_reader_stride():
+@pytest.mark.parametrize(
+    "reader_class", [PatchedArrayReader, LazyPaddedPatchedArrayReader]
+)
+def test_patched_array_reader_stride(reader_class):
     data = np.arange(100).reshape(10, 10)
-    reader = PatchedArrayReader(data, data_shape=(5, 5), stride=(2, 5))
+    reader = reader_class(data, data_shape=(5, 5), stride=(2, 5))
 
     assert len(reader) == 6, "The number of patches is incorrect"
     assert np.all(
@@ -71,13 +85,16 @@ def test_patched_array_reader_stride():
     ), "The content of the third patch is incorrect"
 
 
-def test_patched_array_reader_stride_and_pad():
+@pytest.mark.parametrize(
+    "reader_class", [PatchedArrayReader, LazyPaddedPatchedArrayReader]
+)
+def test_patched_array_reader_stride_and_pad(reader_class):
     data = np.arange(100).reshape(10, 10)
-    reader = PatchedArrayReader(
+    reader = reader_class(
         data,
         data_shape=(5, 5),
         stride=(2, 5),
-        pad_width=2,
+        pad_width=((2, 2), (2, 2)),
         pad_mode="constant",
         pad_kwargs={"constant_values": -1},
     )
@@ -107,3 +124,56 @@ def test_patched_array_reader_stride_and_pad():
             ]
         )
     ), "The content of the last patch is incorrect"
+
+
+
+def test_loading_numpy_array_reader(tmp_path):
+    data = np.arange(100).reshape(10, 10)
+    
+    # ---------- numpy array file ---------
+    reader = NumpyArrayReader(data, data_shape=(1, 10))
+    assert len(reader) == 10, "The number of patches is incorrect"
+    assert reader[0].shape == (1, 10), "The shape of patch is incorrect"
+    
+    # --------- .npy file --------- 
+    
+    # Save the array to a .npy file
+    # and create a NumpyArrayReader instance
+    array_file = tmp_path / "test.npy"
+    np.save(array_file, data)
+    reader = NumpyArrayReader(array_file, data_shape=(1, 10))
+    assert len(reader) == 10, "The number of patches is incorrect"
+    assert reader[0].shape == (1, 10), "The shape of patch is incorrect"
+    
+    # ---------- .npz file ---------
+    array_file = tmp_path / "test.npz"
+    np.savez(array_file, data=data)
+    reader = NumpyArrayReader(array_file, data_shape=(1, 10), npz_key="data")
+    assert len(reader) == 10, "The number of patches is incorrect"
+    assert reader[0].shape == (1, 10), "The shape of patch is incorrect"
+    
+    with pytest.raises(KeyError):
+        reader = NumpyArrayReader(array_file, data_shape=(1, 10), npz_key="invalid_key")
+        
+
+def test_loading_numpy_array_reader_invalid_file(tmp_path):
+    # Create a temporary file with invalid content
+    invalid_file = tmp_path / "invalid.npy"
+    with pytest.raises(FileNotFoundError):
+        NumpyArrayReader(invalid_file, data_shape=(1, 10))
+        
+    # Write invalid content to the file
+    with open(invalid_file, "w") as f:
+        f.write("This is not a valid numpy array file.")
+    
+    # Attempt to load the invalid file
+    with pytest.raises(Exception):
+        NumpyArrayReader(invalid_file, data_shape=(1, 10))
+        
+    
+    invalid_file = tmp_path / "test.invalid"
+    # Write invalid content to the file
+    with open(invalid_file, "w") as f:
+        f.write("This is not a valid numpy array file.")
+    with pytest.raises(ValueError):
+        NumpyArrayReader(invalid_file, data_shape=(1, 10))

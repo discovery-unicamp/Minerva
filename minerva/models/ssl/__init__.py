@@ -1,6 +1,7 @@
-from .lfr import LearnFromRandomnessModel, RepeatedModuleList
+from .byol import BYOL
+from .simclr import SimCLR
 
 __all__ = [
-    "LearnFromRandomnessModel",
-    "RepeatedModuleList"
+    "SimCLR",
+    "BYOL",
 ]

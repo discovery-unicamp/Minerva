@@ -1,4 +1,0 @@
-Contributing
-------------
-
-Under construction...

@@ -16,8 +16,19 @@ First of all, make sure to follow our [Code of Conduct](https://github.com/disco
 
 * **Bug reports** should be as detailed as possible. Include the steps to reproduce the bug, the expected behavior and the actual behavior. If possible, include screenshots. There is a template available for bug reports. You should follow it as closely as possible.
 * **Feature requests** should be more concise. Include the problem you are facing, the solution you are thinking about and any other information that you think is relevant. There is also a template available for feature requests you should follow as close as possible.
+* **Fix requests** should be as detailed as possible. Fix requests should be used for small styling and cosmetic changes that don't require a new feature to be implemented. Include the problem you are facing, the solution you are thinking about and any other information that you think is relevant. There is also a template available for fix requests you should follow as close as possible.
 
-Any other discussion should be done in the [Discussions](https://github.com/discovery-unicamp/Minerva/discussions) tab.
+### Issue Pipeline
+
+* **New Issues** are issues that have not been assigned to anyone yet. They need to be reviewed before being assigned to someone.
+* **On Review** are issues that got a slot at the weekly meeting. It means that the issue creator should be present at the meeting to discuss the issue.
+* **Ready for Development** are issues that have been reviewed and are ready to be developed. They can be assigned to anyone.
+
+### Recommendations
+
+* Users are not allowed to assign other users to issues unless they are mentioned in the issue and have prior knowledge of the issue.
+
+Any other discussion should be done in the [Discussions](https://github.com/discovery-unicamp/Minerva-Dev/discussions) tab.
 
 ### Pull Requests
 
@@ -26,7 +37,7 @@ Any other discussion should be done in the [Discussions](https://github.com/disc
 
 ## Getting started
 
-For changes or fixes:
+For changes bigger than one or two line fix:
 
 1. Create a new fork for your changes
 2. Make the changes needed in this fork
@@ -35,6 +46,8 @@ For changes or fixes:
    2. All tests pass, new and old
    3. Your code is well documented
 4. Make your PR
+
+Small contributions such as fixing spelling errors, where the content is small enough don't need to be made from another fork.
 
 As a rule of thumb, changes are obvious fixes if they do not introduce any new functionality or creative thinking. As long as the change does not affect functionality, some likely examples include the following:
 
