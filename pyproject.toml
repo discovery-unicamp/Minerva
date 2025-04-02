@@ -32,14 +32,13 @@ license = { file = "LICENSE" }
 name = "minerva-ml"
 readme = "README.md"
 requires-python = ">=3.10"
-version = "0.3.0-beta"
+version = "0.3.1-beta"
 
 dependencies = [
     "gitpython>=3",
     "jsonargparse>=4.27",
     "lightning>=2.1.9",
     "matplotlib>=3.7",
-    "numba~=0.56.0",
     "numpy==1.23.5",
     "opencv-python>=4.10.0.84",
     "pandas>=2.2.2",
