@@ -39,7 +39,7 @@ dependencies = [
     "jsonargparse>=4.27",
     "lightning>=2.1.9",
     "matplotlib>=3.7",
-    "numpy==1.23.5",
+    "numpy>=1.23.5",
     "opencv-python>=4.10.0.84",
     "pandas>=2.2.2",
     "perlin-noise>=1.12",
