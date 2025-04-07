@@ -45,7 +45,7 @@ class _RandomSyncedTransform(_Transform):
             self.transformations_executed += 1
             return self.transform(data)
         else:
-            if self.transformations_executed == self.num_samples - 1:
+            if self.transformations_executed == self.num_samples:
                 self.transformations_executed = 0
             else:
                 self.transformations_executed += 1
