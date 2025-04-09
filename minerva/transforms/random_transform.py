@@ -42,7 +42,8 @@ class _RandomSyncedTransform(_Transform):
     def __call__(self, data):
         if self.transformations_executed == 0:
             self.transform = self.select_transform()
-            self.transformations_executed += 1
+            if self.num_samples > 1:
+                self.transformations_executed += 1
             return self.transform(data)
         else:
             if self.transformations_executed == self.num_samples - 1:
