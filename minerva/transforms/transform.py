@@ -50,9 +50,7 @@ class TransformPipeline(_Transform):
     def __add__(self, other: _Transform) -> "TransformPipeline":
         """Add a transform to the pipeline."""
         if isinstance(other, TransformPipeline):
-            return TransformPipeline(
-                list(self.transforms) + list(other.transforms)
-            )
+            return TransformPipeline(list(self.transforms) + list(other.transforms))
         return TransformPipeline(list(self.transforms) + [other])
 
     def __radd__(self, other: _Transform) -> "TransformPipeline":
@@ -60,7 +58,7 @@ class TransformPipeline(_Transform):
         return self.__add__(other)
 
     def __str__(self) -> str:
-        return f"TransformPipeline(transforms={self.transforms})"
+        return f"TransformPipeline(transforms=[{', '.join([str(t) for t in self.transforms])}])"
 
 
 class Flip(_Transform):
@@ -114,9 +112,7 @@ class PerlinMasker(_Transform):
             Optionally rescale the Perlin noise. Default is 1 (no rescaling)
         """
         if octaves <= 0:
-            raise ValueError(
-                f"Number of octaves must be positive, but got {octaves=}"
-            )
+            raise ValueError(f"Number of octaves must be positive, but got {octaves=}")
         if scale == 0:
             raise ValueError(f"Scale can't be 0")
         self.octaves = octaves
@@ -261,9 +257,7 @@ class Gradient(_Transform):
         Outputs a gradient from 0 to 1 in either x or y direction based on the direction parameter
         """
 
-        xx, yy = np.meshgrid(
-            np.linspace(0, 1, shape[1]), np.linspace(0, 1, shape[0])
-        )
+        xx, yy = np.meshgrid(np.linspace(0, 1, shape[1]), np.linspace(0, 1, shape[0]))
 
         if self.direction == 0:  # Gradient along the x-axis
             return xx
@@ -337,14 +331,15 @@ class ColorJitter(_Transform):
 
         # Contrast adjustment
         mean = image[..., 2].mean()
-        image[..., 2] = np.clip(
-            (image[..., 2] - mean) * self.contrast + mean, 0, 255
-        )
+        image[..., 2] = np.clip((image[..., 2] - mean) * self.contrast + mean, 0, 255)
 
         # Hue adjustment
         image[..., 0] = (image[..., 0] + self.hue) % 180
 
         return cv2.cvtColor(image.astype(np.uint8), cv2.COLOR_HSV2RGB)
+
+    def __str__(self) -> str:
+        return f"ColorJitter(brightness={self.brightness}, contrast={self.contrast}, saturation={self.saturation}, hue={self.hue})"
 
 
 class Crop(_Transform):
@@ -399,10 +394,13 @@ class Crop(_Transform):
         # Update dimensions after padding
         h, w = image.shape[:2]
 
-        x = (h - new_h) * X
-        y = (w - new_w) * Y
+        x = int((h - new_h) * X)
+        y = int((w - new_w) * Y)
 
         return image[x : x + new_h, y : y + new_w]
+
+    def __str__(self) -> str:
+        return f"Crop(output_size={self.output_size}, pad_mode={self.pad_mode}, coords={self.coords})"
 
 
 class GrayScale(_Transform):
@@ -423,9 +421,12 @@ class GrayScale(_Transform):
         self.gray = gray
 
     def __call__(self, image: np.ndarray) -> np.ndarray:
-        return np.stack(
-            [self.gray] * 3, axis=-1
-        )  # Convert grayscale to RGB format
+        h, w = image.shape[:2]
+        gray_rgb = np.full((h, w, 3), fill_value=self.gray, dtype=image.dtype)
+        return gray_rgb
+
+    def __str__(self) -> str:
+        return f"GrayScale(gray={self.gray})"
 
 
 class Solarize(_Transform):
@@ -454,11 +455,12 @@ class Solarize(_Transform):
             ]
             solarized_image = cv2.merge(solarized_channels)
         else:  # Grayscale image
-            solarized_image = np.where(
-                image < self.threshold, image, 255 - image
-            )
+            solarized_image = np.where(image < self.threshold, image, 255 - image)
 
         return solarized_image
+
+    def __str__(self):
+        return f"Solarize(threshold={self.threshold})"
 
 
 class Rotation(_Transform):
@@ -485,6 +487,9 @@ class Rotation(_Transform):
         return cv2.warpAffine(
             image, rotation_matrix, (w, h), borderMode=cv2.BORDER_REFLECT
         )
+
+    def __str__(self) -> str:
+        return f"Rotation(degrees={self.degrees})"
 
 
 class PadCrop(_Transform):

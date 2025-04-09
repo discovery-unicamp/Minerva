@@ -15,8 +15,13 @@ from minerva.transforms import (
     Identity,
     Indexer,
     Repeat,
-    Normalize,   
+    Normalize,
     ContrastiveTransform,
+    Crop,
+    ColorJitter,
+    GrayScale,
+    Solarize,
+    Rotation,
 )
 from minerva.transforms.random_transform import EmptyTransform
 
@@ -231,9 +236,7 @@ def test_contrastive_transform():
     assert len(contrastive_x) == 2
 
     # Check if the contrastive data has the same shape as the input
-    assert (
-        contrastive_x[0].shape == x.shape and contrastive_x[1].shape == x.shape
-    )
+    assert contrastive_x[0].shape == x.shape and contrastive_x[1].shape == x.shape
 
 
 def test_identity():
@@ -343,3 +346,57 @@ def test_cast_to_invalid_dtype():
     with pytest.raises(TypeError):
         casted_x = cast_to_transform(x)
 
+
+def test_color_jitter_output_shape_and_effect():
+    x = np.random.randint(0, 256, size=(100, 100, 3), dtype=np.uint8)
+    transform = ColorJitter(brightness=0.8, contrast=1.2, saturation=1.1, hue=10)
+    y = transform(x)
+
+    assert y.shape == x.shape
+    assert not np.array_equal(x, y)  # Check that the image has changed
+
+
+def test_crop_output_shape():
+    x = np.random.randint(0, 256, size=(50, 50, 3), dtype=np.uint8)
+    transform = Crop(output_size=(30, 30), coords=(0.5, 0.5))
+    y = transform(x)
+
+    assert y.shape == (30, 30, 3)
+
+
+def test_crop_with_padding():
+    x = np.random.randint(0, 256, size=(20, 20, 3), dtype=np.uint8)
+    transform = Crop(output_size=(40, 40), coords=(0.0, 0.0))
+    y = transform(x)
+
+    assert y.shape == (40, 40, 3)
+
+
+def test_grayscale_output():
+    x = np.random.randint(0, 256, size=(100, 100, 3), dtype=np.uint8)
+    transform = GrayScale(gray=128)
+    y = transform(x)
+
+    assert y.shape == x.shape
+    assert np.all(y[..., 0] == 128)
+    assert np.all(y[..., 1] == 128)
+    assert np.all(y[..., 2] == 128)
+
+
+def test_solarize_output_shape_and_effect():
+    x = np.random.randint(0, 256, size=(50, 50, 3), dtype=np.uint8)
+    transform = Solarize(threshold=128)
+    y = transform(x)
+
+    assert y.shape == x.shape
+    # Some values should be inverted
+    assert not np.array_equal(x, y)
+
+
+def test_rotation_output_shape_and_visual_change():
+    x = np.random.randint(0, 256, size=(60, 80, 3), dtype=np.uint8)
+    transform = Rotation(degrees=45)
+    y = transform(x)
+
+    assert y.shape == x.shape
+    assert not np.array_equal(x, y)
