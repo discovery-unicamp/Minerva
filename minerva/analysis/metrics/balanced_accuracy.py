@@ -4,53 +4,54 @@ from torchmetrics import Metric
 from torchmetrics.functional import confusion_matrix
 import warnings
 
+
 class BalancedAccuracy(Metric):
-    def __init__(
-            self,
-            num_classes: int,
-            task: str,
-            adjusted:
-            bool = False
-    ):
+    def __init__(self, num_classes: int, task: str, adjusted: bool = False):
         """
-    Compute the balanced accuracy.
+        Compute the balanced accuracy.
 
-    The balanced accuracy in binary, multiclass, and multilabel classification problems
-    deals with imbalanced datasets. It is defined as the average of recall obtained on each class.
+        The balanced accuracy in binary, multiclass, and multilabel classification problems
+        deals with imbalanced datasets. It is defined as the average of recall obtained on each class.
 
-    Parameters
-    ----------
-    num_classes : int
-        The number of classes in the target data.
-    
-    task : str
-        The type of classification task, should be one of 'binary' or 'multiclass'
-    
-    adjusted : bool, optional (default=False)
-        When true, the result is adjusted for chance, so that random performance would score 0,
-        while keeping perfect performance at a score of 1.
+        Parameters
+        ----------
+        num_classes : int
+            The number of classes in the target data.
 
-    Attributes
-    ----------
-    confmat : torch.Tensor
-        Confusion matrix to keep track of true positives, false positives, true negatives, and false negatives.
+        task : str
+            The type of classification task, should be one of 'binary' or 'multiclass'
 
-    Examples
-    --------
-    >>> y_true = torch.tensor([0, 1, 0, 0, 1, 0])
-    >>> y_pred = torch.tensor([0, 1, 0, 0, 0, 1])
-    >>> metric = BalancedAccuracy(num_classes=2, task='binary')
-    >>> metric(y_pred, y_true)
-    0.625
+        adjusted : bool, optional (default=False)
+            When true, the result is adjusted for chance, so that random performance would score 0,
+            while keeping perfect performance at a score of 1.
+
+        Attributes
+        ----------
+        confmat : torch.Tensor
+            Confusion matrix to keep track of true positives, false positives, true negatives, and false negatives.
+
+        Examples
+        --------
+        >>> y_true = torch.tensor([0, 1, 0, 0, 1, 0])
+        >>> y_pred = torch.tensor([0, 1, 0, 0, 0, 1])
+        >>> metric = BalancedAccuracy(num_classes=2, task='binary')
+        >>> metric(y_pred, y_true)
+        0.625
         """
         super().__init__()
         self.num_classes = num_classes
         self.adjusted = adjusted
         self.task = task
-        self.add_state("confmat", default=torch.zeros((num_classes, num_classes)), dist_reduce_fx="sum")
+        self.add_state(
+            "confmat",
+            default=torch.zeros((num_classes, num_classes)),
+            dist_reduce_fx="sum",
+        )
 
     def update(self, preds: torch.Tensor, target: torch.Tensor):
-        self.confmat += confusion_matrix(preds, target, num_classes=self.num_classes, task=self.task)
+        self.confmat += confusion_matrix(
+            preds, target, num_classes=self.num_classes, task=self.task
+        )
 
     def compute(self):
         with torch.no_grad():

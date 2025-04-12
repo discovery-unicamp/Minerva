@@ -1,5 +1,4 @@
-"""Functional API for losses.
-"""
+"""Functional API for losses."""
 
 import torch
 

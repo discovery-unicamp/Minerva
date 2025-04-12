@@ -14,9 +14,9 @@ class RnnEncoder(torch.nn.Module):
         hidden_size: int,
         in_channel: int,
         encoding_size: int,
-        cell_type: str = 'GRU',
+        cell_type: str = "GRU",
         num_layers: int = 1,
-        device: str = 'cpu',
+        device: str = "cpu",
         dropout: int = 0,
         bidirectional: bool = True,
         permute: bool = False,
@@ -55,8 +55,8 @@ class RnnEncoder(torch.nn.Module):
         Examples
         --------
         >>> device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        >>> encoder = RnnEncoder(hidden_size=100, in_channel=6, encoding_size=320, 
-                                 cell_type='GRU', num_layers=1, device=device, 
+        >>> encoder = RnnEncoder(hidden_size=100, in_channel=6, encoding_size=320,
+                                 cell_type='GRU', num_layers=1, device=device,
                                  dropout=0.0, bidirectional=True).to(device)
         >>> element1 = torch.randn(32, 50, 6)  # Batch size: 32, Time steps: 50, Input channels: 6
         >>> encoding = encoder(element1.to(device))
@@ -91,7 +91,7 @@ class RnnEncoder(torch.nn.Module):
             num_layers=num_layers,
             batch_first=False,
             dropout=dropout,
-            bidirectional=bidirectional
+            bidirectional=bidirectional,
         ).to(self.device)
 
     def forward(self, x):
@@ -109,13 +109,17 @@ class RnnEncoder(torch.nn.Module):
             Encoded tensor of shape (batch_size, encoding_size).
         """
         if self.permute:
-            x = x.permute(2,0,1)
+            x = x.permute(2, 0, 1)
         else:
             x = x.permute(1, 0, 2)
-        past = torch.zeros(self.num_layers * (int(self.bidirectional) + 1), x.shape[1], self.hidden_size).to(self.device)
+        past = torch.zeros(
+            self.num_layers * (int(self.bidirectional) + 1),
+            x.shape[1],
+            self.hidden_size,
+        ).to(self.device)
         # print(f"Input tensor shape before passing to RNN \n: {x.shape}")  # Print the shape of x
         out, _ = self.rnn(x.to(self.device), past)
-        # print(f"Input tensor shape after passing to RNN :\n {out.shape}") 
+        # print(f"Input tensor shape after passing to RNN :\n {out.shape}")
         if self.squeeze:
             encodings = self.nn(out[-1].squeeze(0))  # Process the output of the RNN
         else:

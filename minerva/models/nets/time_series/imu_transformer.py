@@ -92,7 +92,7 @@ class _IMUTransformerEncoder(nn.Module):
 
         """
         if self.permute:
-            x = x.permute(0,2,1)
+            x = x.permute(0, 2, 1)
         # Embed in a high dimensional space and reshape to Transformer's expected shape
         x = self.input_proj(x)
         # print(f"src.shape: {src.shape}")

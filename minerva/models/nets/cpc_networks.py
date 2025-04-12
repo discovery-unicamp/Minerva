@@ -5,14 +5,15 @@ from minerva.models.nets.time_series.resnet import _ResNet1D
 
 # CNN encoder for CPC for HAR
 
+
 class CNN(L.LightningModule):
 
     def __init__(self):
         """
-        Convolutional Neural Network (CNN) encoder for CPC (Contrastive Predictive Coding) 
+        Convolutional Neural Network (CNN) encoder for CPC (Contrastive Predictive Coding)
         for Human Activity Recognition (HAR).
 
-        This class serves as a wrapper for the Convolutional1DEncoder class, 
+        This class serves as a wrapper for the Convolutional1DEncoder class,
         providing an easy-to-use interface for the CPC model.
         """
         super(CNN, self).__init__()
@@ -28,7 +29,7 @@ class Convolutional1DEncoder(L.LightningModule):
         """
         1D Convolutional Encoder for CPC.
 
-        This encoder consists of a sequence of convolutional blocks that process the 
+        This encoder consists of a sequence of convolutional blocks that process the
         input time series data.
 
         Parameters
@@ -44,19 +45,34 @@ class Convolutional1DEncoder(L.LightningModule):
         """
         super(Convolutional1DEncoder, self).__init__()
         self.encoder = nn.Sequential(
-            ConvBlock(input_size, 32, kernel_size=kernel_size,
-                      stride=stride, padding=padding,
-                      padding_mode='reflect'),
-            ConvBlock(32, 64, kernel_size=kernel_size,
-                      stride=stride, padding=padding,
-                      padding_mode='reflect'),
-            ConvBlock(64, 128, kernel_size=kernel_size,
-                      stride=stride, padding=padding,
-                      padding_mode='reflect')
+            ConvBlock(
+                input_size,
+                32,
+                kernel_size=kernel_size,
+                stride=stride,
+                padding=padding,
+                padding_mode="reflect",
+            ),
+            ConvBlock(
+                32,
+                64,
+                kernel_size=kernel_size,
+                stride=stride,
+                padding=padding,
+                padding_mode="reflect",
+            ),
+            ConvBlock(
+                64,
+                128,
+                kernel_size=kernel_size,
+                stride=stride,
+                padding=padding,
+                padding_mode="reflect",
+            ),
         )
 
     def forward(self, x):
-        #print("x shape: ", x.shape)
+        # print("x shape: ", x.shape)
         encoder = self.encoder(x)
         encoder = encoder.permute(0, 2, 1)
         return encoder
@@ -69,16 +85,25 @@ class ResNetEncoder(_ResNet1D):
 
     def forward(self, x):
         x = super().forward(x)
-        
+
         if self.permute:
             x = x.permute(0, 2, 1).contiguous()
-        
+
         return x
+
 
 class ConvBlock(L.LightningModule):
 
-    def __init__(self, in_channels=6, out_channels=128, kernel_size=1, stride=1,
-                 padding=1, padding_mode='reflect', dropout_prob=0.2):        
+    def __init__(
+        self,
+        in_channels=6,
+        out_channels=128,
+        kernel_size=1,
+        stride=1,
+        padding=1,
+        padding_mode="reflect",
+        dropout_prob=0.2,
+    ):
         """
         Convolutional Block for the 1D Convolutional Encoder.
 
@@ -104,13 +129,15 @@ class ConvBlock(L.LightningModule):
         super(ConvBlock, self).__init__()
 
         # 1D convolutional layer
-        self.conv = nn.Conv1d(in_channels=in_channels,
-                              out_channels=out_channels,
-                              kernel_size=kernel_size,
-                              stride=stride,
-                              padding=padding,
-                              padding_mode=padding_mode,
-                              bias=False)
+        self.conv = nn.Conv1d(
+            in_channels=in_channels,
+            out_channels=out_channels,
+            kernel_size=kernel_size,
+            stride=stride,
+            padding=padding,
+            padding_mode=padding_mode,
+            bias=False,
+        )
 
         self.relu = nn.ReLU()
         self.dropout = nn.Dropout(p=dropout_prob)
@@ -121,11 +148,13 @@ class ConvBlock(L.LightningModule):
         dropout = self.dropout(relu)
 
         return dropout
-    
+
+
 # ProjectionHead for CPC for HAR
 
+
 class PredictionNetwork(L.LightningModule):
-    
+
     def __init__(self, in_channels=256, out_channels=128):
         """
         Projection head for CPC used in Human Activity Recognition (HAR).
@@ -147,11 +176,21 @@ class PredictionNetwork(L.LightningModule):
         prediction = self.Wk(x)
         return prediction
 
+
 # Autoregressive model for CPC for HAR
+
 
 class HARCPCAutoregressive(L.LightningModule):
 
-    def __init__(self, input_size=128, hidden_size=256, num_layers=2, bidirectional=False, batch_first=True, dropout=0.2):
+    def __init__(
+        self,
+        input_size=128,
+        hidden_size=256,
+        num_layers=2,
+        bidirectional=False,
+        batch_first=True,
+        dropout=0.2,
+    ):
         """
         Autoregressive model for CPC used in Human Activity Recognition (HAR).
 
@@ -173,17 +212,20 @@ class HARCPCAutoregressive(L.LightningModule):
             Dropout probability, by default 0.2.
         """
         super(HARCPCAutoregressive, self).__init__()
-        self.rnn = nn.GRU(input_size=input_size,
-                          hidden_size=hidden_size,
-                          num_layers=num_layers,
-                          bidirectional=bidirectional,
-                          batch_first=batch_first,
-                          dropout=dropout)
+        self.rnn = nn.GRU(
+            input_size=input_size,
+            hidden_size=hidden_size,
+            num_layers=num_layers,
+            bidirectional=bidirectional,
+            batch_first=batch_first,
+            dropout=dropout,
+        )
 
     def forward(self, x, hidden=None):
         output, hidden = self.rnn(x, hidden)
-        #print("output shape: ", output.shape)   
+        # print("output shape: ", output.shape)
         return output, hidden
+
 
 # Combination of the GENC and GAR networks, backbone of the CPC.
 class Genc_Gar(torch.nn.Module):
@@ -209,9 +251,11 @@ class Genc_Gar(torch.nn.Module):
         x, _ = self.g_ar(x, None)
         x = x[:, -1, :]
         return x
-    
+
+
 # Prediction Head
-    
+
+
 class HARPredictionHead(L.LightningModule):
 
     def __init__(self, num_classes: int = 9):
@@ -231,16 +275,17 @@ class HARPredictionHead(L.LightningModule):
             nn.Linear(256, 256),
             nn.BatchNorm1d(256),
             nn.ReLU(inplace=True),
-            nn.Dropout(p=0.2), 
+            nn.Dropout(p=0.2),
             nn.Linear(256, 128),
             nn.BatchNorm1d(128),
             nn.ReLU(inplace=True),
             nn.Dropout(p=0.2),
-            nn.Linear(128, num_classes)
+            nn.Linear(128, num_classes),
         )
 
     def forward(self, x):
         return self.model(x)
+
 
 # Linear Classifier
 class LinearClassifier(L.LightningModule):
@@ -343,9 +388,7 @@ class LinearClassifier(L.LightningModule):
         # Calculate loss
         loss = self.loss_fn(logits, y)
         # Log loss
-        self.log(
-            f"train_loss", loss, on_step=True, on_epoch=True, prog_bar=True
-        )
+        self.log(f"train_loss", loss, on_step=True, on_epoch=True, prog_bar=True)
 
         # return a dictionary of metrics (loss must be present)
         return {"loss": loss}

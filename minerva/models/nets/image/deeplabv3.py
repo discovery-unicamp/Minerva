@@ -69,7 +69,7 @@ class DeepLabV3(SimpleSupervisedModel):
         input_shape = x.shape[-2:]
         h = self.backbone(x)
         if isinstance(h, OrderedDict):
-            h = h['out']
+            h = h["out"]
         z = self.fc(h)
         # Upscaling
         return nn.functional.interpolate(

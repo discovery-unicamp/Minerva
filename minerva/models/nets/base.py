@@ -216,7 +216,7 @@ class SimpleSupervisedModel(L.LightningModule):
     def configure_optimizers(self):
         for param in self.backbone.parameters():
             param.requires_grad = not self.freeze_backbone
-                
+
         optimizer = torch.optim.Adam(
             self.parameters(),
             lr=self.learning_rate,

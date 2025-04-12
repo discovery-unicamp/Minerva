@@ -2,12 +2,13 @@ import torch
 import torch.nn as nn
 import math
 
+
 class LoRA(nn.Module):
     """
     LoRA (Low-Rank Adaptation) for Linear Layers.
 
-    This module applies low-rank adaptation to an existing linear layer. LoRA enables fine-tuning 
-    of pre-trained models efficiently by introducing learnable low-rank matrices that adapt 
+    This module applies low-rank adaptation to an existing linear layer. LoRA enables fine-tuning
+    of pre-trained models efficiently by introducing learnable low-rank matrices that adapt
     the weights of the original layer while keeping its parameters frozen.
 
     Parameters
@@ -62,7 +63,13 @@ class LoRA(nn.Module):
     torch.Size([16, 64])
     """
 
-    def __init__(self, original_module:torch.nn.Module, bias:bool=True, alpha:int=1, r:int=4):
+    def __init__(
+        self,
+        original_module: torch.nn.Module,
+        bias: bool = True,
+        alpha: int = 1,
+        r: int = 4,
+    ):
         super(LoRA, self).__init__()
 
         self.original_module = original_module
@@ -71,23 +78,23 @@ class LoRA(nn.Module):
         self.scaling = alpha / r
 
         self.init_weights()
-    
+
     def init_weights(self):
         """
         Initialize weights for the low-rank matrices.
 
-        Matrix `A` is initialized with Kaiming uniform initialization, which is suitable for 
-        layers with ReLU activations. Matrix `B` is initialized with zeros to ensure that 
+        Matrix `A` is initialized with Kaiming uniform initialization, which is suitable for
+        layers with ReLU activations. Matrix `B` is initialized with zeros to ensure that
         the original module's behavior is not perturbed at the start.
         """
         torch.nn.init.kaiming_uniform_(self.matrix_A.weight, a=math.sqrt(5))
         torch.nn.init.zeros_(self.matrix_B.weight)
-        
-    def forward(self, x:torch.Tensor):
+
+    def forward(self, x: torch.Tensor):
         """
         Forward pass of the LoRA module.
 
-        Computes the output as the sum of the original module's output and the low-rank 
+        Computes the output as the sum of the original module's output and the low-rank
         adaptation output, scaled by the specified `scaling` factor.
 
         Parameters

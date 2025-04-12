@@ -47,9 +47,7 @@ def data_module(train_dataset, val_dataset, test_dataset):
 
 
 # Test module creation and dataset assignment
-def test_data_module_creation(
-    data_module, train_dataset, val_dataset, test_dataset
-):
+def test_data_module_creation(data_module, train_dataset, val_dataset, test_dataset):
     """Test that the MinervaDataModule is initialized correctly."""
     assert data_module.dataset_name == "TestModule"
     assert data_module.train_dataset == train_dataset
@@ -170,7 +168,7 @@ def test_module_str_representation(data_module):
     assert "Test Dataset" in module_str
     assert "Dataloader Configurations" in module_str
     assert "No data." not in module_str
-    
+
     module_repr = repr(data_module)
     assert "TestModule" in module_repr
     assert "Train Dataset" in module_repr
@@ -178,7 +176,8 @@ def test_module_str_representation(data_module):
     assert "Test Dataset" in module_repr
     assert "Dataloader Configurations" in module_repr
     assert "No data." not in module_repr
-    
+
+
 def test_no_predict_split(train_dataset, val_dataset, test_dataset):
     """Ensure that predict dataloader is None when predict dataset is not provided."""
     data_module = MinervaDataModule(
@@ -193,7 +192,8 @@ def test_no_predict_split(train_dataset, val_dataset, test_dataset):
     assert data_module.predict_dataset is None
     assert data_module._predict_split is None
     assert data_module._predict_dataloader_kwargs == {}
-    
+
+
 def test_error_predict_split(train_dataset, val_dataset, test_dataset):
     """Ensure that an error is raised when predict_split is not one of 'train', 'val', 'test'."""
     with pytest.raises(ValueError):

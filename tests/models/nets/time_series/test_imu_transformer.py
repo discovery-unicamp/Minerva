@@ -19,9 +19,7 @@ def test_imu_transformer_forward():
 def test_imu_transformer_creation(simple_torchmetrics):
     input_shape = (6, 60)
     # with metrics
-    model = IMUTransformerEncoder(
-        input_shape=input_shape, **simple_torchmetrics
-    )
+    model = IMUTransformerEncoder(input_shape=input_shape, **simple_torchmetrics)
 
 
 def test_imu_cnn_forward():

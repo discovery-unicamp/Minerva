@@ -182,7 +182,7 @@ class PatchedArrayReader(_Reader):
             slice(i, i + s) for i, s in zip(left_upper_corner, self.data_shape)
         )
         return self.data[slice_obj]
-    
+
     def __str__(self) -> str:
         return f"{self.__class__.__name__}(samples={len(self.indices)}, shape={self.data_shape}, dtype={self.data.dtype})"
 
@@ -203,14 +203,14 @@ class NumpyArrayReader(PatchedArrayReader):
             data = Path(data)
             if not data.is_file():
                 raise FileNotFoundError(f"File not found: {data}")
-            
+
             if data.suffix == ".npy":
                 data = np.load(data, allow_pickle=allow_pickle)
             elif data.suffix == ".npz":
                 data = np.load(data, allow_pickle=allow_pickle)[npz_key]
             else:
                 raise ValueError(f"Unsupported file format: {data.suffix}")
-        
+
         super().__init__(
             data=data,
             data_shape=data_shape,
@@ -219,8 +219,7 @@ class NumpyArrayReader(PatchedArrayReader):
             pad_mode=pad_mode,
             pad_kwargs=pad_kwargs,
         )
-            
-        
+
 
 class LazyPaddedPatchedArrayReader(PatchedArrayReader):
     """Reads patches from a NumPy array.
@@ -317,8 +316,10 @@ class LazyPaddedPatchedArrayReader(PatchedArrayReader):
         if self.pad_width:
             data_pad_width = self.pad_width
         else:
-            warnings.warn("Padding is not being used! Non-LazyPadded class is recommended, e.g., PatchedArrayReader")
-            data_pad_width = [(0, 0)]*len(self.data_shape)
+            warnings.warn(
+                "Padding is not being used! Non-LazyPadded class is recommended, e.g., PatchedArrayReader"
+            )
+            data_pad_width = [(0, 0)] * len(self.data_shape)
 
         original_left_upper_corner = tuple(
             max(i - p[0], 0) for i, p in zip(padded_left_upper_corner, data_pad_width)
@@ -329,7 +330,7 @@ class LazyPaddedPatchedArrayReader(PatchedArrayReader):
         base_patch = self.data[slice_base]
 
         # no padding necessary
-        if not ("l" in pad_loc or "u" in pad_loc or "b" in pad_loc) :
+        if not ("l" in pad_loc or "u" in pad_loc or "b" in pad_loc):
             item = base_patch
 
         # padding cases

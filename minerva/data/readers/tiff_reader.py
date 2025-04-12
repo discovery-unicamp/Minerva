@@ -45,7 +45,7 @@ class TiffReader(BaseFileIterator):
         self.root_dir = Path(path)
         if not self.root_dir.is_dir():
             raise NotADirectoryError(f"{path} is not a directory.")
-        
+
         files = list(self.root_dir.rglob("*.tif*"))
         super().__init__(files, sort_method, delimiter, key_index, reverse)
 

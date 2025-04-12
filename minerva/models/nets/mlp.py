@@ -28,7 +28,7 @@ class MLP(nn.Sequential):
         layer_sizes: Sequence[int],
         activation_cls: type = nn.ReLU,
         *args,
-        **kwargs
+        **kwargs,
     ):
         """
         Initializes the MLP with specified layer sizes.

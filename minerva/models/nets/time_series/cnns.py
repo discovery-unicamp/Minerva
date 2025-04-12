@@ -134,9 +134,7 @@ class CNN_HaEtAl_1D(SimpleSupervisedModel):
         # number of features
         return out.view(out.size(0), -1).size(1)
 
-    def _create_fc(
-        self, input_features: int, num_classes: int
-    ) -> torch.nn.Module:
+    def _create_fc(self, input_features: int, num_classes: int) -> torch.nn.Module:
         return torch.nn.Sequential(
             torch.nn.Linear(in_features=input_features, out_features=128),
             torch.nn.ReLU(),
@@ -218,9 +216,7 @@ class CNN_HaEtAl_2D(SimpleSupervisedModel):
         self.input_shape = input_shape
         self.num_classes = num_classes
 
-        backbone = CNN_HaEtAl_2D_Backbone(
-            input_shape=input_shape, pad_at=self.pad_at
-        )
+        backbone = CNN_HaEtAl_2D_Backbone(input_shape=input_shape, pad_at=self.pad_at)
         self.fc_input_channels = self._calculate_fc_input_features(
             backbone, input_shape
         )
@@ -258,9 +254,7 @@ class CNN_HaEtAl_2D(SimpleSupervisedModel):
             out = backbone(random_input)
         return out.view(out.size(0), -1).size(1)
 
-    def _create_fc(
-        self, input_features: int, num_classes: int
-    ) -> torch.nn.Module:
+    def _create_fc(self, input_features: int, num_classes: int) -> torch.nn.Module:
         return torch.nn.Sequential(
             torch.nn.Linear(in_features=input_features, out_features=128),
             torch.nn.ReLU(),
@@ -362,7 +356,7 @@ class CNN_PF_Backbone(torch.nn.Module):
     def forward(self, x):
         if self.permute:
             x = x.permute(0, 2, 1)
-        
+
         unsqueezed = False
         if len(x.shape) == 3:
             # Add a channel dimension: (batch_size, 1, sensors, time_steps)
@@ -426,7 +420,6 @@ class CNN_PF_Backbone(torch.nn.Module):
         return result_x
 
 
-
 class CNN_PF_2D(SimpleSupervisedModel):
     def __init__(
         self,
@@ -488,9 +481,7 @@ class CNN_PF_2D(SimpleSupervisedModel):
             out = backbone(random_input)
         return out.view(out.size(0), -1).size(1)
 
-    def _create_fc(
-        self, input_features: int, num_classes: int
-    ) -> torch.nn.Module:
+    def _create_fc(self, input_features: int, num_classes: int) -> torch.nn.Module:
         return torch.nn.Sequential(
             torch.nn.Linear(in_features=input_features, out_features=512),
             torch.nn.ReLU(),

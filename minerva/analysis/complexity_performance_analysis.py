@@ -17,7 +17,9 @@ class ComplexityPerformanceAnalysis(_ModelAnalysis):
     If necessary, random data can be employed.
     """
 
-    def __init__(self, path: Optional[PathLike] = None, custom_input_size: Optional[Tuple] = None):
+    def __init__(
+        self, path: Optional[PathLike] = None, custom_input_size: Optional[Tuple] = None
+    ):
         super().__init__()
         self._path = path
         self._custom_input_size = custom_input_size
@@ -41,7 +43,9 @@ class ComplexityPerformanceAnalysis(_ModelAnalysis):
             evaluation_data = torch.tensor(evaluation_data, dtype=torch.float32)
         # Computing MACs, parameters, and energy consumption
         macs, params = profile(model, inputs=(evaluation_data,))
-        carbonTracker = EmissionsTracker(project_name="basic_measurement", measure_power_secs=10, save_to_file=False)
+        carbonTracker = EmissionsTracker(
+            project_name="basic_measurement", measure_power_secs=10, save_to_file=False
+        )
         try:
             carbonTracker.start_task("measure_inference")
             _ = model(evaluation_data)

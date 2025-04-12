@@ -16,9 +16,9 @@ class PatchInferencer(L.LightningModule):
     tensor into patches, perform inference in each patch, and combine them into
     a single output of the desired size. The combination of patches can be
     parametrized by a `weight_function` allowing a customizable combination of
-    patches (e.g, combining using weighted average). It is important to note 
-    that only model's forward are wrapped, and, thus, any method that requires 
-    the forward method (e.g., training_step, predict_step) will be performed in 
+    patches (e.g, combining using weighted average). It is important to note
+    that only model's forward are wrapped, and, thus, any method that requires
+    the forward method (e.g., training_step, predict_step) will be performed in
     patches, transparently to the user.
     """
 
@@ -27,9 +27,7 @@ class PatchInferencer(L.LightningModule):
         model: SimpleSupervisedModel,
         input_shape: Tuple[int, ...],
         output_shape: Optional[Tuple[int, ...]] = None,
-        weight_function: Optional[
-            Callable[[Tuple[int, ...]], torch.Tensor]
-        ] = None,
+        weight_function: Optional[Callable[[Tuple[int, ...]], torch.Tensor]] = None,
         offsets: Optional[List[Tuple[int, ...]]] = None,
         padding: Optional[Dict[str, Any]] = None,
         return_tuple: Optional[int] = None,
@@ -260,9 +258,7 @@ class PatchInferencerEngine(_Engine):
             else torch.ones(self.output_simplified_shape, device=patches.device)
         )
 
-        reconstruct = torch.zeros(
-            tuple(reconstruct_shape), device=patches.device
-        )
+        reconstruct = torch.zeros(tuple(reconstruct_shape), device=patches.device)
         for patch_index, patch in zip(np.ndindex(index), patches):
             sl = [
                 slice(idx * patch_len, (idx + 1) * patch_len, None)
@@ -329,9 +325,7 @@ class PatchInferencerEngine(_Engine):
             weights.append(weight)
         reconstructed = torch.stack(reconstructed, dim=0)
         weights = torch.stack(weights, dim=0)
-        return torch.sum(reconstructed * weights, dim=0) / torch.sum(
-            weights, dim=0
-        )
+        return torch.sum(reconstructed * weights, dim=0) / torch.sum(weights, dim=0)
 
     def _extract_patches(
         self, data: torch.Tensor, patch_shape: Tuple[int]
@@ -406,9 +400,7 @@ class PatchInferencerEngine(_Engine):
         slices = [
             tuple(
                 [
-                    slice(
-                        i, None
-                    )  # TODO: if ((i + base >= 0) and (i < in_dim))
+                    slice(i, None)  # TODO: if ((i + base >= 0) and (i < in_dim))
                     for i, in_dim in zip([0, *offset], x.shape)
                 ]
             )
@@ -425,15 +417,11 @@ class PatchInferencerEngine(_Engine):
             value=self.padding.get("value", 0),
         )
         results = (
-            tuple([] for _ in range(self.return_tuple))
-            if self.return_tuple
-            else []
+            tuple([] for _ in range(self.return_tuple)) if self.return_tuple else []
         )
         indexes = []
         for sl in slices:
-            patch_set, patch_idx = self._extract_patches(
-                x_padded[sl], self.input_shape
-            )
+            patch_set, patch_idx = self._extract_patches(x_padded[sl], self.input_shape)
             patch_set = patch_set.squeeze(1)
             inference = model(patch_set)
             if self.return_tuple:

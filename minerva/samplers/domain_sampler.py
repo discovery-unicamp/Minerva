@@ -31,13 +31,13 @@ class RandomDomainSampler(Sampler):
         n_domains_per_sample : int, optional
             The number of domains to sample from in each batch, by default 2.
             Note that, the domain labels must have at least n_domains_per_sample
-            distinct domains. 
+            distinct domains.
         shuffle : bool, optional
             Shuffle the samples in each domain before sampling, by default True
         consistent_iterating : bool, optional
-            As each domain may have different number of samples, in different 
-            iterations, the same samples may not be used. If True, the same 
-            samples will be used in every iteration, by default False. 
+            As each domain may have different number of samples, in different
+            iterations, the same samples may not be used. If True, the same
+            samples will be used in every iteration, by default False.
         """
         self.dataset = dataset
         self.domain_labels = domain_labels
@@ -57,9 +57,7 @@ class RandomDomainSampler(Sampler):
         self.rng = random.Random(self.seed)
 
     def __len__(self):
-        return (
-            self.min_batches * len(self.domains)
-        ) // self.n_domains_per_sample
+        return (self.min_batches * len(self.domains)) // self.n_domains_per_sample
 
     def _select_samples(self):
         indices = {}
