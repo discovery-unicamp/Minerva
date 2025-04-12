@@ -34,6 +34,7 @@ class _RandomSyncedTransform(_Transform):
         seed : Optional[int], optional
             The seed that will be used to generate the random state, by default None.
         """
+        assert num_samples > 0, "num_samples must be greater than 0"
         self.num_samples = num_samples
         self.transformations_executed = 0
         self.rng = np.random.default_rng(seed)
@@ -42,15 +43,12 @@ class _RandomSyncedTransform(_Transform):
     def __call__(self, data):
         if self.transformations_executed == 0:
             self.transform = self.select_transform()
-            if self.num_samples > 1:
-                self.transformations_executed += 1
-            return self.transform(data)
-        else:
-            if self.transformations_executed == self.num_samples - 1:
-                self.transformations_executed = 0
-            else:
-                self.transformations_executed += 1
-            return self.transform(data)
+
+        self.transformations_executed = (
+            self.transformations_executed + 1
+        ) % self.num_samples
+
+        return self.transform(data)
 
     def select_transform(self):
         raise NotImplementedError(
@@ -126,17 +124,17 @@ class RandomGrayScale(_RandomSyncedTransform):
         num_samples: int = 1,
         seed: Optional[int] = None,
         prob: float = 0.1,
-        gray: float = 1.0,
+        method: str = "luminosity",
     ):
 
         super().__init__(num_samples, seed)
-        self.gray = gray
+        self.method = method
         self.prob = prob
 
     def select_transform(self):
 
         if self.rng.random() < self.prob:
-            return GrayScale(gray=self.gray)
+            return GrayScale(method=self.method)
 
         else:
             return EmptyTransform()

@@ -374,13 +374,11 @@ def test_crop_with_padding():
 
 def test_grayscale_output():
     x = np.random.randint(0, 256, size=(100, 100, 3), dtype=np.uint8)
-    transform = GrayScale(gray=128)
+    transform = GrayScale(method="average")
     y = transform(x)
 
     assert y.shape == x.shape
-    assert np.all(y[..., 0] == 128)
-    assert np.all(y[..., 1] == 128)
-    assert np.all(y[..., 2] == 128)
+    assert np.all(y[..., 0] == y[..., 1]) and np.all(y[..., 1] == y[..., 2])
 
 
 def test_solarize_output_shape_and_effect():

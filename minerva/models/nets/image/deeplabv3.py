@@ -1,10 +1,10 @@
-from typing import Dict, Optional, Sequence
+from typing import Any, Dict, Optional, Sequence, Tuple
 from collections import OrderedDict
 from torch import Tensor, nn, optim
 from torchmetrics import Metric
 from torchvision.models.resnet import resnet50
 from torchvision.models.segmentation.deeplabv3 import ASPP
-
+import torch
 from minerva.models.nets.base import SimpleSupervisedModel
 
 
@@ -27,6 +27,11 @@ class DeepLabV3(SimpleSupervisedModel):
         train_metrics: Optional[Dict[str, Metric]] = None,
         val_metrics: Optional[Dict[str, Metric]] = None,
         test_metrics: Optional[Dict[str, Metric]] = None,
+        optimizer: type = torch.optim.Adam,
+        optimizer_kwargs: Optional[Dict[str, Any]] = None,
+        lr_scheduler: Optional[type] = None,
+        lr_scheduler_kwargs: Optional[Dict[str, Any]] = None,
+        output_shape: Optional[Tuple[int, ...]] = None,
     ):
         """
         Initializes a DeepLabV3 model.
@@ -34,11 +39,14 @@ class DeepLabV3(SimpleSupervisedModel):
         Parameters
         ----------
         backbone: Optional[nn.Module]
-            The backbone network. Defaults to None.
+            The backbone network. Defaults to None, which will use a ResNet50
+            backbone.
         pred_head: Optional[nn.Module]
-            The prediction head network. Defaults to None.
+            The prediction head network. Defaults to None, which will use a
+            DeepLabV3PredictionHead with specified number of classes.
         loss_fn: Optional[nn.Module]
-            The loss function. Defaults to None.
+            The loss function. Defaults to None, which will use a
+            CrossEntropyLoss.
         learning_rate: float
             The learning rate for the optimizer. Defaults to 0.001.
         num_classes: int
@@ -49,10 +57,29 @@ class DeepLabV3(SimpleSupervisedModel):
             The metrics to be computed during validation. Defaults to None.
         test_metrics: Optional[Dict[str, Metric]]
             The metrics to be computed during testing. Defaults to None.
+        optimizer: type
+            Optimizer class to be instantiated. By default, it is set to
+            `torch.optim.Adam`. Should be a subclass of
+            `torch.optim.Optimizer` (e.g., `torch.optim.SGD`).
+        optimizer_kwargs : dict, optional
+            Additional kwargs passed to the optimizer constructor.
+        lr_scheduler : type, optional
+            Learning rate scheduler class to be instantiated. By default, it is
+            set to None, which means no scheduler will be used. Should be a
+            subclass of `torch.optim.lr_scheduler.LRScheduler` (e.g.,
+            `torch.optim.lr_scheduler.StepLR`).
+        lr_scheduler_kwargs : dict, optional
+            Additional kwargs passed to the scheduler constructor.
+        output_shape: Optional[Tuple[int, ...]]
+            The output shape of the model. If None, the output shape will be
+            the same as the input shape. Defaults to None. This is useful for
+            models that require a specific output shape, that is different from
+            the input shape.
         """
         backbone = backbone or DeepLabV3Backbone()
         pred_head = pred_head or DeepLabV3PredictionHead(num_classes=num_classes)
         loss_fn = loss_fn or nn.CrossEntropyLoss()
+        self.output_shape = output_shape
 
         super().__init__(
             backbone=backbone,
@@ -62,11 +89,15 @@ class DeepLabV3(SimpleSupervisedModel):
             train_metrics=train_metrics,
             val_metrics=val_metrics,
             test_metrics=test_metrics,
+            optimizer=optimizer,
+            optimizer_kwargs=optimizer_kwargs,
+            lr_scheduler=lr_scheduler,
+            lr_scheduler_kwargs=lr_scheduler_kwargs,
         )
 
     def forward(self, x: Tensor) -> Tensor:
         x = x.float()
-        input_shape = x.shape[-2:]
+        input_shape = self.output_shape or x.shape[-2:]
         h = self.backbone(x)
         if isinstance(h, OrderedDict):
             h = h["out"]
@@ -78,9 +109,6 @@ class DeepLabV3(SimpleSupervisedModel):
 
     def _loss_func(self, y_hat: Tensor, y: Tensor) -> Tensor:
         return self.loss_fn(y_hat, y.squeeze(1).long())
-
-    def configure_optimizers(self):
-        return optim.Adam(params=self.parameters(), lr=self.learning_rate)
 
 
 class DeepLabV3Backbone(nn.Module):
@@ -150,3 +178,7 @@ class DeepLabV3PredictionHead(nn.Sequential):
             nn.ReLU(),
             nn.Conv2d(256, num_classes, 1),
         )
+
+    def forward(self, input) -> Tensor:
+        assert input.shape[0] > 1, "Batch size must be greater than 1 due to BatchNorm"
+        return super().forward(input)
