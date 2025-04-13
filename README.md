@@ -2,6 +2,8 @@
 
 [![Continuous Test](https://github.com/discovery-unicamp/Minerva-Dev/actions/workflows/continuous-testing.yml/badge.svg)](https://github.com/discovery-unicamp/Minerva/actions/workflows/python-app.yml)
 
+[![Release to PyPI](https://github.com/discovery-unicamp/Minerva/actions/workflows/release_to_pypi.yml/badge.svg)](https://github.com/discovery-unicamp/Minerva/actions/workflows/release_to_pypi.yml)
+
 Minerva is a Pytorch-Lightning-based framework for training machine learning models for researchers.
 
 ## Description
