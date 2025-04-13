@@ -42,18 +42,10 @@ def test_intermediate_layer_getter_using_list():
     # Create a new model with the same architecture
     new_named_modules = dict(new_model.named_modules(remove_duplicate=False))
     new_named_modules.pop("")
-    assert (
-        len(new_named_modules) == 2
-    ), f"Expected 2, got {len(new_named_modules)}"
-    assert (
-        "fc1" in new_named_modules
-    ), f"Expected fc1, got {new_named_modules.keys()}"
-    assert (
-        "relu" in new_named_modules
-    ), f"Expected relu, got {new_named_modules.keys()}"
-    assert torch.allclose(
-        named_modules["fc1"].weight, new_named_modules["fc1"].weight
-    )
+    assert len(new_named_modules) == 2, f"Expected 2, got {len(new_named_modules)}"
+    assert "fc1" in new_named_modules, f"Expected fc1, got {new_named_modules.keys()}"
+    assert "relu" in new_named_modules, f"Expected relu, got {new_named_modules.keys()}"
+    assert torch.allclose(named_modules["fc1"].weight, new_named_modules["fc1"].weight)
 
     # Check if order is correct
     assert list(new_named_modules.keys()) == [
@@ -62,9 +54,7 @@ def test_intermediate_layer_getter_using_list():
     ], f"Expected ['fc1', 'relu'], in order"
 
     # Test with repeated layers
-    getter = IntermediateLayerGetter(
-        layers=["fc1", "fc1", "relu", "relu", "fc1"]
-    )
+    getter = IntermediateLayerGetter(layers=["fc1", "fc1", "relu", "relu", "fc1"])
     new_model = getter(model)
     new_model.eval()
     new_named_modules = dict(new_model.named_modules(remove_duplicate=False))
@@ -109,18 +99,14 @@ def test_intermediate_layer_getter_using_dict():
     assert "fc2" in named_modules
     assert "fc3" in named_modules
 
-    getter = IntermediateLayerGetter(
-        layers={"fc1": "new_fc1", "relu": "new_relu"}
-    )
+    getter = IntermediateLayerGetter(layers={"fc1": "new_fc1", "relu": "new_relu"})
     new_model = getter(model)
     new_model.eval()
 
     # Create a new model with the same architecture
     new_named_modules = dict(new_model.named_modules(remove_duplicate=False))
     new_named_modules.pop("")
-    assert (
-        len(new_named_modules) == 2
-    ), f"Expected 2, got {len(new_named_modules)}"
+    assert len(new_named_modules) == 2, f"Expected 2, got {len(new_named_modules)}"
     assert (
         "new_fc1" in new_named_modules
     ), f"Expected new_fc1, got {new_named_modules.keys()}"
@@ -140,9 +126,7 @@ def test_intermediate_layer_getter_using_dict():
     # Create a new model with the same architecture
     new_named_modules = dict(new_model.named_modules(remove_duplicate=False))
     new_named_modules.pop("")
-    assert (
-        len(new_named_modules) == 2
-    ), f"Expected 2, got {len(new_named_modules)}"
+    assert len(new_named_modules) == 2, f"Expected 2, got {len(new_named_modules)}"
     assert (
         "new_fc2" in new_named_modules
     ), f"Expected new_fc2, got {new_named_modules.keys()}"
@@ -162,9 +146,7 @@ def test_intermediate_layer_getter_using_dict():
     # Create a new model with the same architecture
     new_named_modules = dict(new_model.named_modules(remove_duplicate=False))
     new_named_modules.pop("")
-    assert (
-        len(new_named_modules) == 2
-    ), f"Expected 2, got {len(new_named_modules)}"
+    assert len(new_named_modules) == 2, f"Expected 2, got {len(new_named_modules)}"
     assert (
         "new_fc1" in new_named_modules
     ), f"Expected new_fc1, got {new_named_modules.keys()}"
@@ -195,18 +177,14 @@ def test_intermediate_layer_getter_using_list_of_tuples():
     assert "fc2" in named_modules
     assert "fc3" in named_modules
 
-    getter = IntermediateLayerGetter(
-        layers=[("fc1", "new_fc1"), ("relu", "new_relu")]
-    )
+    getter = IntermediateLayerGetter(layers=[("fc1", "new_fc1"), ("relu", "new_relu")])
     new_model = getter(model)
     new_model.eval()
 
     # Create a new model with the same architecture
     new_named_modules = dict(new_model.named_modules(remove_duplicate=False))
     new_named_modules.pop("")
-    assert (
-        len(new_named_modules) == 2
-    ), f"Expected 2, got {len(new_named_modules)}"
+    assert len(new_named_modules) == 2, f"Expected 2, got {len(new_named_modules)}"
     assert (
         "new_fc1" in new_named_modules
     ), f"Expected new_fc1, got {new_named_modules.keys()}"
@@ -268,4 +246,3 @@ def test_intermediate_layer_getter_corner_cases():
     with pytest.raises(ValueError):
         getter = IntermediateLayerGetter(layers=[1, 2])
         new_model = getter(model)
-

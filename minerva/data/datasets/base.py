@@ -171,7 +171,9 @@ class SimpleDataset(Dataset):
 
     def __str__(self) -> str:
         readers = self.readers if isinstance(self.readers, list) else [self.readers]
-        transforms = self.transforms if isinstance(self.transforms, list) else [self.transforms]
+        transforms = (
+            self.transforms if isinstance(self.transforms, list) else [self.transforms]
+        )
 
         readers_info = "\n".join(
             [

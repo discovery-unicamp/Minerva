@@ -21,9 +21,7 @@ def test_base_file_iterator_sorting_numeric_with_underscore():
 
 def test_base_file_iterator_sorting_text_with_underscore():
     files = ["file_B.txt", "file_A.txt", "file_C.txt"]
-    iterator = BaseFileIterator(
-        files, sort_method=["text"], delimiter="_", key_index=1
-    )
+    iterator = BaseFileIterator(files, sort_method=["text"], delimiter="_", key_index=1)
     sorted_files = [f.name for f in iterator.files]
     assert sorted_files == ["file_A.txt", "file_B.txt", "file_C.txt"]
 

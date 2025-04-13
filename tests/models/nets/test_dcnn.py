@@ -13,7 +13,7 @@ def test_dcnn_model():
     expected_output_size = torch.Size([32, 6])
     x = torch.rand(*input_shape)
     output = model(x)
-    
+
     assert (
         output.shape == expected_output_size
     ), f"Expected output shape {input_shape}, but got {output.shape}"

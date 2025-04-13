@@ -24,9 +24,7 @@ class TS2VecClassifier(SimpleSupervisedModel):
             permute=True,
             encoder_cls=DilatedConvEncoder,
         )
-        self.fc_input_features = self._calculate_fc_input_features(
-            encoder, input_shape
-        )
+        self.fc_input_features = self._calculate_fc_input_features(encoder, input_shape)
 
         super().__init__(
             backbone=encoder,

@@ -1,4 +1,4 @@
-from typing import Dict, Optional, Union, Callable
+from typing import Any, Dict, Optional, Union, Callable
 
 import lightning as L
 import torch
@@ -7,22 +7,62 @@ from minerva.models.loaders import LoadableModule
 
 
 class SimpleSupervisedModel(L.LightningModule):
-    """Simple pipeline for supervised models.
+    """A modular Lightning model wrapper for supervised learning tasks.
 
-    This class implements a very common deep learning pipeline, which is
-    composed by the following steps:
+    This class enables the construction of supervised models by combining a
+    backbone (feature extractor), an optional adapter, and a fully connected
+    (FC) head. It provides a clean interface for setting up custom training,
+    validation, and testing pipelines with pluggable loss functions, metrics,
+    optimizers, and learning rate schedulers.
 
-    1. Make a forward pass with the input data on the backbone model;
-    2. Make a forward pass with the input data on the fc model;
-    3. Compute the loss between the output and the label data;
-    4. Optimize the model (backbone and FC) parameters with respect to the loss.
+    The architecture is structured as follows:
 
-    This reduces the code duplication for autoencoder models, and makes it
-    easier to implement new models by only changing the backbone model. More
-    complex models, that does not follow this pipeline, should not inherit from
-    this class.
-    Note that, for this class the input data is a tuple of tensors, where the
-    first tensor is the input data and the second tensor is the mask or label.
+        +------------------+
+        |  Backbone Model  |
+        +------------------+
+                |
+                v
+        +------------------------+
+        |  Adapter (Optional)    |
+        +------------------------+
+                |
+         (Flatten if needed)
+                v
+        +------------------------+
+        |  Fully Connected Head  |
+        +------------------------+
+                |
+                v
+        +------------------+
+        |  Loss Function   |
+        +------------------+
+
+    Training and validation steps comprise the following steps:
+
+    1. Forward pass input through the backbone.
+    2. Pass through adapter (if provided).
+    3. Flatten the output (if `flatten` is True) before the FC head.
+    4. Forward through the FC head.
+    5. Compute loss with respect to targets.
+    6. Backpropagate and update parameters.
+    7. Compute metrics and log them.
+    8. Return loss. `train_loss`, `val_loss`, and `test_loss` are always
+       logged, along with any additional metrics specified in the
+       `train_metrics`, `val_metrics`, and `test_metrics` dictionaries.
+
+    This wrapper is especially useful to quickly set up supervised models for
+    various tasks, such as image classification, object detection, and
+    segmentation. It is designed to be flexible and extensible, allowing users
+    to easily swap out components like the backbone, adapter, and FC head as
+    needed. The model is built with a focus on simplicity and modularity, making
+    it easy to adapt to different use cases and requirements.
+    The model is designed to be used with PyTorch Lightning and is compatible
+    with its training loop.
+
+    **Note**: For more complex architectures that does not follow the above
+    structure should not inherit from this class.
+
+    **Note**: Input batches must be tuples (input_tensor, target_tensor).
     """
 
     def __init__(
@@ -37,37 +77,51 @@ class SimpleSupervisedModel(L.LightningModule):
         val_metrics: Optional[Dict[str, Metric]] = None,
         test_metrics: Optional[Dict[str, Metric]] = None,
         freeze_backbone: bool = False,
+        optimizer: type = torch.optim.Adam,
+        optimizer_kwargs: Optional[Dict[str, Any]] = None,
+        lr_scheduler: Optional[type] = None,
+        lr_scheduler_kwargs: Optional[Dict[str, Any]] = None,
     ):
-        """Initialize the model with the backbone, fc, loss function and
-        metrics. Metrics are used to evaluate the model during training,
-        validation, testing or prediction. It will be logged using
-        lightning logger at the end of each epoch. Metrics should implement
-        the `torchmetrics.Metric` interface.
+        """
+        Initializes the supervised model with training components and configs.
 
         Parameters
         ----------
-        backbone : torch.nn.Module
-            The backbone model. Usually the encoder/decoder part of the model.
-        fc : torch.nn.Module
-            The fully connected model, usually used to classification tasks.
-            Use `torch.nn.Identity()` if no FC model is needed.
+        backbone : torch.nn.Module or LoadableModule
+            The backbone (feature extractor) model.
+        fc : torch.nn.Module or LoadableModule
+            The fully connected head. Use nn.Identity() if not required.
         loss_fn : torch.nn.Module
-            The function used to compute the loss.
-        learning_rate : float, optional
-            The learning rate to Adam optimizer, by default 1e-3
-        flatten : bool, optional
-            If `True` the input data will be flattened before passing through
-            the fc model, by default True
-
-        train_metrics : Dict[str, Metric], optional
-            The metrics to be used during training, by default None
-        val_metrics : Dict[str, Metric], optional
-            The metrics to be used during validation, by default None
-        test_metrics : Dict[str, Metric], optional
-            The metrics to be used during testing, by default None
-        predict_metrics : Dict[str, Metric], optional
-            The metrics to be used during prediction, by default None
+            Loss function to optimize during training.
+        adapter : Callable, optional
+            Function to transform backbone outputs before feeding into `fc`.
+        learning_rate : float, default=1e-3
+            Learning rate used for optimization.
+        flatten : bool, default=True
+            If True, flattens backbone outputs before `fc`.
+        train_metrics : dict, optional
+            TorchMetrics dictionary for training evaluation.
+        val_metrics : dict, optional
+            TorchMetrics dictionary for validation evaluation.
+        test_metrics : dict, optional
+            TorchMetrics dictionary for test evaluation.
+        freeze_backbone : bool, default=False
+            If True, backbone parameters are frozen during training.
+        optimizer: type
+            Optimizer class to be instantiated. By default, it is set to
+            `torch.optim.Adam`. Should be a subclass of
+            `torch.optim.Optimizer` (e.g., `torch.optim.SGD`).
+        optimizer_kwargs : dict, optional
+            Additional kwargs passed to the optimizer constructor.
+        lr_scheduler : type, optional
+            Learning rate scheduler class to be instantiated. By default, it is
+            set to None, which means no scheduler will be used. Should be a
+            subclass of `torch.optim.lr_scheduler.LRScheduler` (e.g.,
+            `torch.optim.lr_scheduler.StepLR`).
+        lr_scheduler_kwargs : dict, optional
+            Additional kwargs passed to the scheduler constructor.
         """
+
         super().__init__()
         self.backbone = backbone
         self.fc = fc
@@ -76,12 +130,15 @@ class SimpleSupervisedModel(L.LightningModule):
         self.learning_rate = learning_rate
         self.flatten = flatten
         self.freeze_backbone = freeze_backbone
-
         self.metrics = {
             "train": train_metrics,
             "val": val_metrics,
             "test": test_metrics,
         }
+        self.optimizer = optimizer
+        self.optimizer_kwargs = optimizer_kwargs or {}
+        self.lr_scheduler = lr_scheduler
+        self.lr_scheduler_kwargs = lr_scheduler_kwargs or {}
 
     def _loss_func(self, y_hat: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
         """Calculate the loss between the output and the input data.
@@ -214,11 +271,19 @@ class SimpleSupervisedModel(L.LightningModule):
         return y_hat
 
     def configure_optimizers(self):
+        # Freeze or not the backbone model
         for param in self.backbone.parameters():
             param.requires_grad = not self.freeze_backbone
-                
-        optimizer = torch.optim.Adam(
-            self.parameters(),
-            lr=self.learning_rate,
+        # Unfreeze the fc model
+        for param in self.fc.parameters():
+            param.requires_grad = True
+
+        optimizer = self.optimizer(
+            self.parameters(), lr=self.learning_rate, **self.optimizer_kwargs
         )
-        return optimizer
+        if self.lr_scheduler is None:
+            return optimizer
+
+        scheduler = self.lr_scheduler(optimizer, **self.lr_scheduler_kwargs)
+
+        return [optimizer], [scheduler]

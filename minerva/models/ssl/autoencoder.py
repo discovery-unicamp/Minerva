@@ -5,13 +5,15 @@ import torch
 from torch import nn
 from typing import Optional, Callable
 
+
 class Autoencoder(L.LightningModule):
     def __init__(
-            self,
-            encoder: nn.Module,
-            decoder: nn.Module,
-            loss: Optional[Callable]=None,
-            learning_rate: float=1e-3):
+        self,
+        encoder: nn.Module,
+        decoder: nn.Module,
+        loss: Optional[Callable] = None,
+        learning_rate: float = 1e-3,
+    ):
         """
         Autoencoder model.
 
@@ -43,14 +45,14 @@ class Autoencoder(L.LightningModule):
         x, _ = batch
         x_hat = self(x)
         loss = self.reconstruction_loss(x, x_hat)
-        self.log('train_loss', loss)
+        self.log("train_loss", loss)
         return loss
-    
+
     def validation_step(self, batch, batch_idx):
         x, _ = batch
         x_hat = self(x)
         loss = self.reconstruction_loss(x, x_hat)
-        self.log('val_loss', loss)
+        self.log("val_loss", loss)
         return loss
 
     def configure_optimizers(self):

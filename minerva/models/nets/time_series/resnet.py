@@ -10,9 +10,7 @@ class ConvolutionalBlock(torch.nn.Module):
         self.activation_cls = activation_cls
 
         self.block = torch.nn.Sequential(
-            torch.nn.Conv1d(
-                in_channels, out_channels=64, kernel_size=5, stride=1
-            ),
+            torch.nn.Conv1d(in_channels, out_channels=64, kernel_size=5, stride=1),
             torch.nn.BatchNorm1d(64),
             activation_cls(),
             torch.nn.MaxPool1d(2),

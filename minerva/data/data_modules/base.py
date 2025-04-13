@@ -66,7 +66,7 @@ class MinervaDataModule(LightningDataModule):
             Name of the data module, by default ""
         """
         super().__init__()
-        
+
         self._name = name
         self._train_dataset = train_dataset
         self._val_dataset = val_dataset
@@ -124,11 +124,11 @@ class MinervaDataModule(LightningDataModule):
         # Monkey patch the dataloaders if the datasets are not provided
         # It is applyed at instance level to avoid breaking the class signature
         if not self._train_dataset:
-            self.train_dataloader = None    # type: ignore
+            self.train_dataloader = None  # type: ignore
         if not self._val_dataset:
-            self.val_dataloader = None      # type: ignore
+            self.val_dataloader = None  # type: ignore
         if not self._test_dataset:
-            self.test_dataloader = None     # type: ignore
+            self.test_dataloader = None  # type: ignore
         if not self._predict_dataset:
             self.predict_dataloader = None  # type: ignore
 
@@ -168,19 +168,13 @@ class MinervaDataModule(LightningDataModule):
         return self._predict_dataset
 
     def train_dataloader(self):
-        return self._dataloader_cls(
-            self.train_dataset, **self._train_dataloader_kwargs
-        )
+        return self._dataloader_cls(self.train_dataset, **self._train_dataloader_kwargs)
 
     def val_dataloader(self):
-        return self._dataloader_cls(
-            self.val_dataset, **self._val_dataloader_kwargs
-        )
+        return self._dataloader_cls(self.val_dataset, **self._val_dataloader_kwargs)
 
     def test_dataloader(self):
-        return self._dataloader_cls(
-            self.test_dataset, **self._test_dataloader_kwargs
-        )
+        return self._dataloader_cls(self.test_dataset, **self._test_dataloader_kwargs)
 
     def predict_dataloader(self):
         return self._dataloader_cls(
@@ -194,7 +188,12 @@ class MinervaDataModule(LightningDataModule):
                 return "No data."
 
             return "\n".join(
-                (" " * int(spaces//2) + "│" if add_line_breaks else " " * int(spaces//2) + " ") + (" " * spaces + line if line.strip() else line)
+                (
+                    " " * int(spaces // 2) + "│"
+                    if add_line_breaks
+                    else " " * int(spaces // 2) + " "
+                )
+                + (" " * spaces + line if line.strip() else line)
                 for line in text.split("\n")
             )
 

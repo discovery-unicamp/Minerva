@@ -37,7 +37,5 @@ def test_sklearn_pipeline():
             ]
         ),
     )
-    trainer = L.Trainer(
-        fast_dev_run=True, devices=1, accelerator="cpu", max_epochs=1
-    )
+    trainer = L.Trainer(fast_dev_run=True, devices=1, accelerator="cpu", max_epochs=1)
     trainer.fit(pipeline, train_dataloader)

@@ -63,7 +63,6 @@ class RandomDataModule(L.LightningDataModule):
         else:
             delattr(self, "test_dataloader")
 
-
     def _generate_data(self, num_samples, data_shape, label_shape, num_classes):
         data = torch.rand((num_samples, *data_shape), dtype=self.data_dtype)
         label = None
@@ -73,9 +72,9 @@ class RandomDataModule(L.LightningDataModule):
             label = torch.rand((num_samples, *label_shape))
         elif num_classes is not None:
             label = torch.randint(0, num_classes, (num_samples,))
-            
+
         label = label.to(dtype=self.label_dtype)
-        
+
         return data, label
 
     def setup(self, stage):

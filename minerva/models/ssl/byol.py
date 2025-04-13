@@ -16,6 +16,7 @@ from minerva.losses.negative_cossine_similatiry import NegativeCosineSimilarity
 
 # Borrowed from https://github.com/lightly-ai/lightly/blob/master/lightly/models/modules/heads.py#L15
 
+
 class ProjectionHead(nn.Module):
     """Base class for all projection and prediction heads."""
 
@@ -23,7 +24,7 @@ class ProjectionHead(nn.Module):
         self,
         blocks: Sequence[
             Union[
-               Tuple[int, int, Optional[nn.Module], Optional[nn.Module]],
+                Tuple[int, int, Optional[nn.Module], Optional[nn.Module]],
                 Tuple[int, int, Optional[nn.Module], Optional[nn.Module], bool],
             ],
         ],
@@ -106,10 +107,10 @@ class BYOL(L.LightningModule):
     """
 
     def __init__(
-        self, 
-        backbone: Optional[nn.Module] = None, 
-        learning_rate: float = 0.025, 
-        schedule: int = 90000
+        self,
+        backbone: Optional[nn.Module] = None,
+        learning_rate: float = 0.025,
+        schedule: int = 90000,
     ):
         """
         Initializes the BYOL model.
@@ -124,7 +125,9 @@ class BYOL(L.LightningModule):
             The total number of steps for cosine decay scheduling. Defaults to 90000.
         """
         super().__init__()
-        self.backbone = backbone or nn.Sequential(*list(torchvision.models.resnet18().children())[:-1])
+        self.backbone = backbone or nn.Sequential(
+            *list(torchvision.models.resnet18().children())[:-1]
+        )
         self.learning_rate = learning_rate
         self.projection_head = BYOLProjectionHead(2048, 4096, 256)
         self.prediction_head = BYOLPredictionHead(256, 4096, 256)
@@ -192,16 +195,28 @@ class BYOL(L.LightningModule):
         Tensor
             The computed loss for the current batch.
         """
-        momentum = self.cosine_schedule(self.current_epoch, self.schedule_length, 0.996, 1)
+        momentum = self.cosine_schedule(
+            self.current_epoch, self.schedule_length, 0.996, 1
+        )
         self.update_momentum(self.backbone, self.backbone_momentum, m=momentum)
-        self.update_momentum(self.projection_head, self.projection_head_momentum, m=momentum)
+        self.update_momentum(
+            self.projection_head, self.projection_head_momentum, m=momentum
+        )
         (x0, x1) = batch
         p0 = self.forward(x0)
         z0 = self.forward_momentum(x0)
         p1 = self.forward(x1)
         z1 = self.forward_momentum(x1)
         loss = 0.5 * (self.criterion(p0, z1) + self.criterion(p1, z0))
-        self.log("train_loss", loss, on_step=False, on_epoch=True, prog_bar=True, logger=True, sync_dist=True)
+        self.log(
+            "train_loss",
+            loss,
+            on_step=False,
+            on_epoch=True,
+            prog_bar=True,
+            logger=True,
+            sync_dist=True,
+        )
         return loss
 
     def configure_optimizers(self):
@@ -229,8 +244,12 @@ class BYOL(L.LightningModule):
         m : float
             Momentum factor.
         """
-        for model_ema_param, model_param in zip(model_ema.parameters(), model.parameters()):
-            model_ema_param.data = model_ema_param.data * m + model_param.data * (1.0 - m)
+        for model_ema_param, model_param in zip(
+            model_ema.parameters(), model.parameters()
+        ):
+            model_ema_param.data = model_ema_param.data * m + model_param.data * (
+                1.0 - m
+            )
 
     @torch.no_grad()
     def deactivate_requires_grad(self, model: nn.Module):
@@ -243,7 +262,7 @@ class BYOL(L.LightningModule):
             Model to freeze.
         """
         for param in model.parameters():
-            param.requires_grad = False 
+            param.requires_grad = False
 
     def cosine_schedule(
         self,
@@ -280,6 +299,10 @@ class BYOL(L.LightningModule):
             raise ValueError(f"Total step number {max_steps} must be >= 1")
         if period is not None and period <= 0:
             raise ValueError(f"Period {period} must be >= 1")
-        decay = end_value - (end_value - start_value) * (np.cos(np.pi * step / (max_steps - 1)) + 1) / 2
+        decay = (
+            end_value
+            - (end_value - start_value)
+            * (np.cos(np.pi * step / (max_steps - 1)) + 1)
+            / 2
+        )
         return decay
- 

@@ -126,3 +126,17 @@ def test_random_flip_equal_transforms():
 
     # Check if the flipped data is equal to each other
     assert np.array_equal(flipped_x1, flipped_x2)
+
+
+def test_num_samples_invalid():
+    # Create a dummy input
+    x = np.random.rand(10, 20, 30)
+
+    # Test with invalid num_samples
+    with pytest.raises(AssertionError):
+        flip_transform = RandomFlip(possible_axis=[0, 1], num_samples=0, seed=1)
+        flip_transform(x)
+
+    with pytest.raises(AssertionError):
+        flip_transform = RandomFlip(possible_axis=[0, 1], num_samples=-1, seed=1)
+        flip_transform(x)

@@ -5,15 +5,17 @@ from minerva.losses.topological_loss import TopologicalLoss
 from typing import Callable, List, Optional
 import torch.nn as nn
 
+
 class TopologicalAutoencoder(L.LightningModule):
     def __init__(
-            self,
-            encoder: nn.Module,
-            decoder: nn.Module,
-            topological_loss: Optional[Callable]=None,
-            reconstruction_loss: Optional[Callable]=None,
-            lambda_param: float=1e-3,
-            learning_rate: float=1e-3):
+        self,
+        encoder: nn.Module,
+        decoder: nn.Module,
+        topological_loss: Optional[Callable] = None,
+        reconstruction_loss: Optional[Callable] = None,
+        lambda_param: float = 1e-3,
+        learning_rate: float = 1e-3,
+    ):
         """
         Topological autoencoder model.
 
@@ -40,28 +42,36 @@ class TopologicalAutoencoder(L.LightningModule):
         self.encoder = encoder
         self.decoder = decoder
         # Defining topological loss
-        self.topological_loss = topological_loss if topological_loss is not None else TopologicalLoss()
+        self.topological_loss = (
+            topological_loss if topological_loss is not None else TopologicalLoss()
+        )
         # Defining reconstruction loss
-        self.reconstruction_loss = reconstruction_loss if reconstruction_loss is not None else MSELoss()
+        self.reconstruction_loss = (
+            reconstruction_loss if reconstruction_loss is not None else MSELoss()
+        )
 
     def forward(self, x):
         z = self.encoder(x)
         return self.decoder(z)
-    
+
     def training_step(self, batch, batch_idx):
         x, _ = batch
         x_encoded = self.encoder(x)
         x_hat = self.decoder(x_encoded)
-        loss = self.reconstruction_loss(x, x_encoded) + self.lambda_param*self.topological_loss(x, x_hat)
-        self.log('train_loss', loss)
+        loss = self.reconstruction_loss(
+            x, x_encoded
+        ) + self.lambda_param * self.topological_loss(x, x_hat)
+        self.log("train_loss", loss)
         return loss
-    
+
     def validation_step(self, batch, batch_idx):
         x, _ = batch
         x_encoded = self.encoder(x)
         x_hat = self.decoder(x_encoded)
-        loss = self.reconstruction_loss(x, x_encoded) + self.lambda_param*self.topological_loss(x, x_hat)
-        self.log('val_loss', loss)
+        loss = self.reconstruction_loss(
+            x, x_encoded
+        ) + self.lambda_param * self.topological_loss(x, x_hat)
+        self.log("val_loss", loss)
         return loss
 
     def configure_optimizers(self):

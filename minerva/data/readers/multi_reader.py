@@ -6,7 +6,7 @@ from minerva.data.readers import _Reader
 
 class MultiReader(_Reader):
     """Reader that composes items from other readers.
-    
+
     Its i-th item is the i-th item of each of the child-readers merged
     together according to a collate_fn function."""
 
@@ -14,10 +14,10 @@ class MultiReader(_Reader):
         self,
         readers: Sequence[_Reader],
         preprocess: Optional[Callable] = None,
-        collate_fn: Optional[Callable] = np.stack
+        collate_fn: Optional[Callable] = np.stack,
     ):
         """Collects data from multiple readers and collates them
-        
+
         Parameters
         ----------
         readers: Sequence[_Reader]
@@ -34,21 +34,21 @@ class MultiReader(_Reader):
             function does not always return same-shape numpy arrays.
         """
         assert len(readers) > 0, "MultiReader expects at least one reader as argument."
-        
+
         self._readers = readers
         self.preprocess = preprocess or (lambda x: x)
         self.collate_fn = collate_fn
-    
+
     def __len__(self) -> int:
         """Returns the length the reader, defined as the length of the smallest
         child-reader
-        
+
         Returns
         -------
         int
             The length of the reader."""
-        return  min(len(reader) for reader in self._readers)
-    
+        return min(len(reader) for reader in self._readers)
+
     def __getitem__(self, index: int) -> Any:
         """Retrieves the items from each reader at the specified index and collates them
         accordingly.
@@ -64,6 +64,6 @@ class MultiReader(_Reader):
             An item from the reader.
         """
 
-        return self.collate_fn([self.preprocess(reader[index]) for reader in self._readers])
-
-
+        return self.collate_fn(
+            [self.preprocess(reader[index]) for reader in self._readers]
+        )

@@ -96,7 +96,7 @@ class LazyPaddedPatchedMDIOReader(LazyPaddedPatchedZarrReader):
             stored on disk, it is recommended to use the `LazyPaddedPatchedArrayReader`
             class instead.
 
-        2.  Padding is computed when necessary during `__getitem__` calls. 
+        2.  Padding is computed when necessary during `__getitem__` calls.
 
         Examples
         ---------

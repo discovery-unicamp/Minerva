@@ -1,5 +1,5 @@
 from itertools import product
-from typing import Any, List, Optional, Sequence, Tuple, Union
+from typing import Any, List, Optional, Sequence, Tuple, Union, Literal
 
 import cv2
 import numpy as np
@@ -136,6 +136,9 @@ class PerlinMasker(_Transform):
 
         return x * mask
 
+    def __str__(self) -> str:
+        return f"PerlinMasker(octaves={self.octaves}, scale={self.scale})"
+
 
 class Squeeze(_Transform):
     """Remove single-dimensional entries from the shape of an array."""
@@ -239,8 +242,13 @@ class Padding(_Transform):
         padded = np.transpose(padded, (2, 0, 1))
         return padded
 
+    def __str__(self) -> str:
+        return f"Padding(target_h_size={self.target_h_size}, target_w_size={self.target_w_size})"
+
 
 class Gradient(_Transform):
+    directions = {0: "x (width)", 1: "y (height)"}
+
     def __init__(self, direction: int):
         """
         direction:
@@ -285,6 +293,11 @@ class Gradient(_Transform):
         ), f"Output shape {output.shape} does not match expected shape {(shape[0], shape[1], x_expanded.shape[0] + 1)}"
 
         return output
+
+    def __str__(self) -> str:
+        return (
+            f"Gradient(direction={self.direction} - {self.directions[self.direction]})"
+        )
 
 
 class ColorJitter(_Transform):
@@ -404,29 +417,50 @@ class Crop(_Transform):
 
 
 class GrayScale(_Transform):
-    def __init__(self, gray: float = 0.0):
+    def __init__(self, method: Literal["average", "luminosity"] = "luminosity"):
         """
-        Converts an image to grayscale with a specified gray value.
+        Converts an image to grayscale using the specified method.
 
         Parameters
         ----------
-        gray : float, optional
-            Gray value to use when converting the image. Defaults to 0.0.
+        method : {'average', 'luminosity'}, optional
+            The method to compute grayscale:
+            - 'average': (R + G + B) / 3
+            - 'luminosity': 0.299R + 0.587G + 0.114B
+            Defaults to 'luminosity'.
+        """
+        if method not in {"average", "luminosity"}:
+            raise ValueError("method must be 'average' or 'luminosity'")
+        self.method = method
+
+    def __call__(self, image: np.ndarray) -> np.ndarray:
+        """
+        Applies grayscale conversion to the input RGB image.
+
+        Parameters
+        ----------
+        image : np.ndarray
+            Input image in RGB format with shape (H, W, 3).
 
         Returns
         -------
         np.ndarray
-            Grayscale image in RGB format with all channels set to `gray`.
+            Grayscale image with shape (H, W, 3) where all channels are equal.
         """
-        self.gray = gray
+        assert (
+            image.ndim == 3 and image.shape[2] == 3
+        ), "Input must have shape (H, W, 3)"
 
-    def __call__(self, image: np.ndarray) -> np.ndarray:
-        h, w = image.shape[:2]
-        gray_rgb = np.full((h, w, 3), fill_value=self.gray, dtype=image.dtype)
-        return gray_rgb
+        if self.method == "average":
+            gray = image.mean(axis=2)
+        else:  # luminosity
+            weights = np.array([0.299, 0.587, 0.114])
+            gray = np.dot(image[..., :3], weights)
+
+        return np.stack([gray, gray, gray], axis=-1).astype(image.dtype)
 
     def __str__(self) -> str:
-        return f"GrayScale(gray={self.gray})"
+        return f"GrayScale(method='{self.method}')"
 
 
 class Solarize(_Transform):

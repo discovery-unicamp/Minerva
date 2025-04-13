@@ -107,9 +107,7 @@ class TFC_Model(pl.LightningModule):
                 num_classes
             ):  # If num_classes is not provided, the model is trained in a self-supervised learning approach, so there is no test metrics
                 test_metrics = {
-                    "f1": F1Score(
-                        task="multiclass", num_classes=self.num_classes
-                    ),
+                    "f1": F1Score(task="multiclass", num_classes=self.num_classes),
                     "accuracy": Accuracy(
                         task="multiclass", num_classes=self.num_classes
                     ),
@@ -200,9 +198,7 @@ class TFC_Model(pl.LightningModule):
 
     def forward(
         self, x: torch.Tensor, all: bool = False
-    ) -> (
-        torch.Tensor
-    ):  # "all" is useful for validation of acurracy and latent space
+    ) -> torch.Tensor:  # "all" is useful for validation of acurracy and latent space
         """
         The forward method of the model. It receives the input data in the time domain and frequency domain and returns the prediction of the model.
 
@@ -241,9 +237,7 @@ class TFC_Model(pl.LightningModule):
         else:
             return h_t, z_t, h_f, z_f
 
-    def training_step(
-        self, batch: Tuple[torch.Tensor, torch.Tensor], batch_index: int
-    ):
+    def training_step(self, batch: Tuple[torch.Tensor, torch.Tensor], batch_index: int):
         """
         The training step of the model. It receives a batch of data and returns the loss of the model.
 

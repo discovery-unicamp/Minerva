@@ -56,9 +56,7 @@ class IntermediateLayerGetter(ModuleExtractor):
     of a simple sequential logic, this class may not work as expected.
     """
 
-    def __init__(
-        self, layers: Union[List[str], Dict[str, str], List[Tuple[str, str]]]
-    ):
+    def __init__(self, layers: Union[List[str], Dict[str, str], List[Tuple[str, str]]]):
         """Extracts intermediate layers from a model and create a new
         ExtractedModel with the extracted layers, in order they were extracted.
 
@@ -108,9 +106,7 @@ class IntermediateLayerGetter(ModuleExtractor):
 
         self.layers = layers
         if isinstance(layers, dict):
-            self.layers = [
-                (name, new_name) for name, new_name in layers.items()
-            ]
+            self.layers = [(name, new_name) for name, new_name in layers.items()]
         elif isinstance(layers, list):
             if isinstance(layers[0], str):
                 self.layers = [(name, name) for name in layers]
@@ -281,9 +277,7 @@ class FromPretrained(wrapt.ObjectProxy, LoadableModule):
                                     break
                             else:
                                 continue
-                    print(
-                        f"\tRenaming key: {k} -> {new_k} (changed: {k != new_k})"
-                    )
+                    print(f"\tRenaming key: {k} -> {new_k} (changed: {k != new_k})")
                     new_state_dict[new_k] = v
 
                 state_dict = new_state_dict

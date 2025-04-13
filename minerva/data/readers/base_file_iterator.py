@@ -4,10 +4,12 @@ import numpy as np
 from minerva.utils.typing import PathLike
 from minerva.data.readers.reader import _Reader
 
+
 class BaseFileIterator(_Reader):
-    """A base class for iterating over files in a directory in a custom sorted 
+    """A base class for iterating over files in a directory in a custom sorted
     order.
     """
+
     def __init__(
         self,
         files: List[PathLike],
@@ -16,7 +18,7 @@ class BaseFileIterator(_Reader):
         key_index: Union[int, List[int]] = 0,
         reverse: bool = False,
     ):
-        """Base class for iterating over files in a directory in a custom 
+        """Base class for iterating over files in a directory in a custom
         sorted order.
 
         Parameters
@@ -24,15 +26,15 @@ class BaseFileIterator(_Reader):
         files : PathLike
             A list of file paths to iterate over.
         sort_method : Optional[List[str]], optional
-            A list specifying how to sort each part of the filename. Each 
-            element can  be either "text" (lexicographical) or "numeric" 
-            (numerically). By default, None, which will use "numeric" if 
+            A list specifying how to sort each part of the filename. Each
+            element can  be either "text" (lexicographical) or "numeric"
+            (numerically). By default, None, which will use "numeric" if
             numeric parts are detected.
         delimiter : Optional[str], optional
             The delimiter to split filenames into components, by default None.
         key_index : Union[int, List[int]], optional
-            The index (or list of indices) of the part(s) of the filename to 
-            use  for sorting. If a list is provided, files will be sorted 
+            The index (or list of indices) of the part(s) of the filename to
+            use  for sorting. If a list is provided, files will be sorted
             based on  multiple parts in sequence. Thus, first by the part at
             index 0, then by the part at index 1, and so on. By default 0.
         reverse : bool, optional
@@ -41,12 +43,12 @@ class BaseFileIterator(_Reader):
         self.files = files
         if isinstance(self.files[0], str):
             self.files = [Path(f) for f in self.files]
-                        
+
         # Handle key_index to be a list if it's a single integer
         self.key_index = key_index if isinstance(key_index, list) else [key_index]
 
         # Default sort_method to 'numeric' if not provided
-        self.sort_method = sort_method or ['text'] * len(self.key_index)
+        self.sort_method = sort_method or ["text"] * len(self.key_index)
 
         # Ensure that sort_method and key_index are of the same length
         if len(self.sort_method) != len(self.key_index):
@@ -63,6 +65,7 @@ class BaseFileIterator(_Reader):
 
     def _sort_files(self):
         """Sort files based on the provided sorting options."""
+
         def sort_key(f: Path):
             # If no delimiter, sort lexicographically by the full filename (stem)
             if not self.delimiter:
@@ -72,20 +75,22 @@ class BaseFileIterator(_Reader):
             parts = f.stem.split(self.delimiter)
 
             # Generate sorting keys for each index
-            return tuple(self._get_sort_values(parts[i], self.sort_method[j]) 
-                         for j, i in enumerate(self.key_index))
+            return tuple(
+                self._get_sort_values(parts[i], self.sort_method[j])
+                for j, i in enumerate(self.key_index)
+            )
 
         # Sort the files using the custom sort key
-        self.files.sort(key=sort_key, reverse=self.reverse) # type: ignore
+        self.files.sort(key=sort_key, reverse=self.reverse)  # type: ignore
 
     def _get_sort_values(self, value: str, method: str):
         """Get the appropriate sorting value based on the method: 'text' or 'numeric'."""
         if method == "numeric":
             try:
-                return int(value) if value.isdigit() else float('inf')
+                return int(value) if value.isdigit() else float("inf")
             except ValueError:
                 print(f"Warning: Could not convert {value} to a number")
-                return float('inf')  # If not a number, treat it as a large value
+                return float("inf")  # If not a number, treat it as a large value
         elif method == "text":
             return value  # Return the value itself if sorting lexicographically
         else:
@@ -118,6 +123,6 @@ class BaseFileIterator(_Reader):
 
     def __str__(self) -> str:
         return f"{self.__class__.__name__}. Number of files: {len(self.files)}"
-    
+
     def __repr__(self) -> str:
         return str(self)

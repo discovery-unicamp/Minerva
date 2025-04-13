@@ -17,10 +17,10 @@ def predict_batch(classification_metrics, regression_metrics):
     def predict_batch_fn(self, batch, batch_idx, dataloader_idx):
         X, y = batch
         y_hat = self.forward(X)
-        
+
         if classification_metrics is not None:
-            y_hat = torch.argmax(y_hat, dim=1)       
-        
+            y_hat = torch.argmax(y_hat, dim=1)
+
         return y_hat, y
 
     return predict_batch_fn
@@ -248,7 +248,7 @@ class SimpleLightningPipeline(Pipeline):
         """
         return self._trainer.predict(
             model=self._model, datamodule=data, ckpt_path=ckpt_path
-        ) # type: ignore
+        )  # type: ignore
 
     def _evaluate(
         self,
@@ -277,17 +277,18 @@ class SimpleLightningPipeline(Pipeline):
         _, y = get_full_data_split(data, "predict")
         y = torch.tensor(y, device="cpu")
         y_hat = self.trainer.predict(self._model, datamodule=data, ckpt_path=ckpt_path)
-        y_hat = torch.cat(y_hat).detach().cpu() # type: ignore
-        
+        y_hat = torch.cat(y_hat).detach().cpu()  # type: ignore
+
         # Check if the shapes are the same
         if len(y_hat) != len(y):
-            raise ValueError(f"Shapes are different: y_hat shape: {y_hat.shape}; y shape: {y.shape}. Is `limit_predict_batches` set?")
-
+            raise ValueError(
+                f"Shapes are different: y_hat shape: {y_hat.shape}; y shape: {y.shape}. Is `limit_predict_batches` set?"
+            )
 
         # Argmax and calculate metrics
         if self._classification_metrics is not None:
             print(f"Running classification metrics...")
-            y_hat = torch.argmax(y_hat, dim=1)           
+            y_hat = torch.argmax(y_hat, dim=1)
             metrics["classification"] = self._calculate_metrics(
                 self._classification_metrics, y_hat, y
             )
@@ -298,7 +299,7 @@ class SimpleLightningPipeline(Pipeline):
             metrics["regression"] = self._calculate_metrics(
                 self._regression_metrics, y_hat, y
             )
-            
+
         else:
             pass
 
@@ -319,9 +320,9 @@ class SimpleLightningPipeline(Pipeline):
             with open(yaml_path, "w") as f:
                 yaml.dump(metrics, f)
                 print(f"Metrics saved to {yaml_path}")
-        
+
         return metrics
-    
+
     # Default run method (entry point)
     def _run(
         self,
@@ -370,7 +371,7 @@ class SimpleLightningPipeline(Pipeline):
 def cli_main():
     from jsonargparse import CLI
 
-    CLI(SimpleLightningPipeline, as_positional=False) #, parser_mode="omegaconf")
+    CLI(SimpleLightningPipeline, as_positional=False)  # , parser_mode="omegaconf")
     print("✨ 🍰 ✨")
 
 

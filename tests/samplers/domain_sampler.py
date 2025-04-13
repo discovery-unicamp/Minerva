@@ -32,8 +32,8 @@ def test_random_domain_sampler_length(dummy_dataset, domain_labels):
         dummy_dataset, domain_labels, batch_size=2, n_domains_per_sample=2
     )
     assert len(sampler) == 25
-    
-    
+
+
 def test_random_domain_sampler_length_2(dummy_dataset, domain_labels):
     sampler = RandomDomainSampler(
         dummy_dataset, domain_labels, batch_size=2, n_domains_per_sample=4
@@ -51,9 +51,7 @@ def test_random_domain_sampler_iteration(dummy_dataset, domain_labels):
         assert len(batch) == 4
 
 
-def test_random_domain_sampler_consistent_iterating(
-    dummy_dataset, domain_labels
-):
+def test_random_domain_sampler_consistent_iterating(dummy_dataset, domain_labels):
     sampler = RandomDomainSampler(
         dummy_dataset,
         domain_labels,

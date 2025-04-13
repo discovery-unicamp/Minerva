@@ -81,9 +81,9 @@ class CPC(L.LightningModule):
 
     def compute_nce_loss(self, z, y_pred, start):
         batch_size = z.size(0)
-        y_truth = z[
-            :, start + 1 : start + 1 + self.num_steps_prediction, :
-        ].permute(1, 0, 2)
+        y_truth = z[:, start + 1 : start + 1 + self.num_steps_prediction, :].permute(
+            1, 0, 2
+        )
         y_pred = y_pred.permute(1, 0, 2)
 
         nce = 0
@@ -91,9 +91,7 @@ class CPC(L.LightningModule):
 
         for k in range(self.num_steps_prediction):
             log_density_ratio = torch.mm(y_truth[k], y_pred[k].transpose(0, 1))
-            positive_batch_pred = torch.argmax(
-                self.softmax(log_density_ratio), dim=0
-            )
+            positive_batch_pred = torch.argmax(self.softmax(log_density_ratio), dim=0)
             positive_batch_actual = torch.arange(0, batch_size).to(self.device)
             correct += torch.sum(
                 torch.eq(positive_batch_pred, positive_batch_actual)

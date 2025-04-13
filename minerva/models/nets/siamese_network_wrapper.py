@@ -10,6 +10,7 @@ class SiameseNetworkWrapper(nn.Module):
     inputs (namely x1 and x2) through the same backbone, and concatenates the representations
     obtained.
     """
+
     def __init__(self, backbone: nn.Module) -> None:
         """
         Initializes the wrapper.
@@ -21,7 +22,7 @@ class SiameseNetworkWrapper(nn.Module):
         """
         super(SiameseNetworkWrapper, self).__init__()
         self.backbone = backbone
-        
+
     def forward_once(self, x):
         """
         Passes the input through the backbone and flattens the output.
@@ -50,7 +51,7 @@ class SiameseNetworkWrapper(nn.Module):
         ----------
         x : Union[list, tuple]
             A list or a tuple containing the two inputs.
-        
+
         Returns
         -------
         torch.Tensor

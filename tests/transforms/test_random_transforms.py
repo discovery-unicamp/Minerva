@@ -22,16 +22,16 @@ def test_random_crop_shape():
 
 def test_random_grayscale_prob_1():
     x = np.random.randint(0, 256, size=(64, 64, 3), dtype=np.uint8)
-    transform = RandomGrayScale(prob=1.0, gray=77, seed=123)
+    transform = RandomGrayScale(prob=1.0, method="average", seed=123)
     selected = transform.select_transform()
 
     assert isinstance(selected, GrayScale)
     y = selected(x)
-    assert np.all(y[..., 0] == 77)
+    assert np.all(y[..., 0] == y[..., 1]) and np.all(y[..., 1] == y[..., 2])
 
 
 def test_random_grayscale_prob_0():
-    transform = RandomGrayScale(prob=0.0, gray=77, seed=123)
+    transform = RandomGrayScale(prob=0.0, method="luminosity", seed=123)
     selected = transform.select_transform()
 
     assert isinstance(selected, EmptyTransform)

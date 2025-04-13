@@ -11,6 +11,7 @@ from minerva.engines.engine import _Engine
 from minerva.models.nets.image.vit import _VisionTransformerBackbone
 from minerva.utils.upsample import Upsample
 
+
 class _SETRUPHead(nn.Module):
     """Naive upsampling head and Progressive upsampling head of SETR
     (as in https://arxiv.org/pdf/2012.15840.pdf).
@@ -116,10 +117,11 @@ class _SETRUPHead(nn.Module):
 
         return out
 
+
 class _SETRMLAHead(nn.Module):
-    """Multi level feature aggretation head of SETR (as in 
+    """Multi level feature aggretation head of SETR (as in
     https://arxiv.org/pdf/2012.15840.pdf)
-    
+
     Note: This has not been tested yet!
     """
 
@@ -161,17 +163,13 @@ class _SETRMLAHead(nn.Module):
 
         if out_channels == 1 and threshold is None:
             threshold = 0.3
-            warnings.warn(
-                "threshold is not defined for binary, and defaults to 0.3"
-            )
+            warnings.warn("threshold is not defined for binary, and defaults to 0.3")
 
         self.num_classes = num_classes
         self.out_channels = out_channels
         self.threshold = threshold
         conv_norm = (
-            conv_norm
-            if conv_norm is not None
-            else nn.SyncBatchNorm(mla_channels)
+            conv_norm if conv_norm is not None else nn.SyncBatchNorm(mla_channels)
         )
         conv_act = conv_act if conv_act is not None else nn.ReLU()
         self.dropout = nn.Dropout2d(dropout) if dropout > 0 != None else None
@@ -218,6 +216,7 @@ class _SETRMLAHead(nn.Module):
             out = self.dropout(out)
         out = self.cls_seg(out)
         return out
+
 
 class _SetR_PUP(nn.Module):
     def __init__(
@@ -279,10 +278,10 @@ class _SetR_PUP(nn.Module):
         interpolate_mode : str
             The mode for interpolation during upsampling.
         conv_norm : nn.Module
-            The normalization layer to be used in the decoder convolutional 
+            The normalization layer to be used in the decoder convolutional
             layers.
         conv_act : nn.Module
-            The activation function to be used in the decoder convolutional 
+            The activation function to be used in the decoder convolutional
             layers.
         align_corners : bool
             Whether to align corners during upsampling.
@@ -292,15 +291,13 @@ class _SetR_PUP(nn.Module):
         aux_output_layers: List[int], optional
             The layers to use for auxiliary outputs. Must have exacly 3 values.
         original_resolution: Tuple[int, int], optional
-            The original resolution of the input image in the pre-training 
+            The original resolution of the input image in the pre-training
             weights. When None, positional embeddings will not be interpolated.
 
         """
         super().__init__()
         if aux_output:
-            assert (
-                aux_output_layers is not None
-            ), "aux_output_layers must be provided."
+            assert aux_output_layers is not None, "aux_output_layers must be provided."
             assert (
                 len(aux_output_layers) == 3
             ), "aux_output_layers must have 3 values. Only 3 aux heads are supported."
@@ -405,7 +402,7 @@ class _SetR_PUP(nn.Module):
 
 class SETR_PUP(L.LightningModule):
     """SET-R model with PUP head for image segmentation.
-    
+
     Methods
     -------
     forward(x: torch.Tensor) -> torch.Tensor
@@ -476,7 +473,7 @@ class SETR_PUP(L.LightningModule):
         image_size : Union[int, Tuple[int, int]], optional
             Size of the input image, by default 512.
         patch_size : int, optional
-            Size of the patches to be extracted from the input image, by 
+            Size of the patches to be extracted from the input image, by
             default 16.
         num_layers : int, optional
             Number of transformer layers, by default 24.
@@ -511,7 +508,7 @@ class SETR_PUP(L.LightningModule):
         interpolate_mode : str, optional
             Interpolation mode, by default "bilinear".
         loss_fn : Optional[nn.Module], optional
-            Loss function, when None defaults to nn.CrossEntropyLoss, by 
+            Loss function, when None defaults to nn.CrossEntropyLoss, by
             default None.
         optimizer_type : Optional[type], optional
             Type of optimizer, by default None.
@@ -538,14 +535,14 @@ class SETR_PUP(L.LightningModule):
         loss_weights : Optional[list[float]], optional
             Weights for the loss function, by default None.
         original_resolution : Optional[Tuple[int, int]], optional
-            The original resolution of the input image in the pre-training 
-            weights. When None, positional embeddings will not be interpolated. 
+            The original resolution of the input image in the pre-training
+            weights. When None, positional embeddings will not be interpolated.
             Defaults to None.
         head_lr_factor : float, optional
-            Learning rate factor for the head. used if you need different 
+            Learning rate factor for the head. used if you need different
             learning rates for backbone and prediction head, by default 1.0.
         test_engine : Optional[_Engine], optional
-            Engine used for test and validation steps. When None, behavior of 
+            Engine used for test and validation steps. When None, behavior of
             all steps, training, testing and validation is the same, by default None.
         """
         super().__init__()
@@ -562,19 +559,13 @@ class SETR_PUP(L.LightningModule):
             if loss_fn is not None
             else nn.CrossEntropyLoss(
                 weight=(
-                    torch.tensor(loss_weights)
-                    if loss_weights is not None
-                    else None
+                    torch.tensor(loss_weights) if loss_weights is not None else None
                 )
             )
         )
-        norm_layer = (
-            norm_layer if norm_layer is not None else nn.LayerNorm(hidden_dim)
-        )
+        norm_layer = norm_layer if norm_layer is not None else nn.LayerNorm(hidden_dim)
         conv_norm = (
-            conv_norm
-            if conv_norm is not None
-            else nn.SyncBatchNorm(decoder_channels)
+            conv_norm if conv_norm is not None else nn.SyncBatchNorm(decoder_channels)
         )
         conv_act = conv_act if conv_act is not None else nn.ReLU()
 
@@ -595,9 +586,7 @@ class SETR_PUP(L.LightningModule):
 
         self.optimizer_type = optimizer_type
         if optimizer_type is not None:
-            assert (
-                optimizer_params is not None
-            ), "optimizer_params must be provided."
+            assert optimizer_params is not None, "optimizer_params must be provided."
             self.optimizer_params = optimizer_params
 
         self.num_classes = num_classes
@@ -634,9 +623,7 @@ class SETR_PUP(L.LightningModule):
             original_resolution=original_resolution,
         )
         if load_backbone_path is not None:
-            self.model.load_backbone(
-                load_backbone_path, freeze_backbone_on_load
-            )
+            self.model.load_backbone(load_backbone_path, freeze_backbone_on_load)
 
         self.learning_rate = learning_rate
         self.test_engine = test_engine
@@ -644,9 +631,7 @@ class SETR_PUP(L.LightningModule):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.model(x)
 
-    def _compute_metrics(
-        self, y_hat: torch.Tensor, y: torch.Tensor, step_name: str
-    ):
+    def _compute_metrics(self, y_hat: torch.Tensor, y: torch.Tensor, step_name: str):
         if self.metrics[step_name] is None:
             return {}
 
@@ -798,12 +783,8 @@ class SETR_PUP(L.LightningModule):
                 ]
                 if self.optimizer_type is not None
                 else [
-                    Adam(
-                        self.model.encoder.parameters(), lr=self.learning_rate
-                    ),
-                    Adam(
-                        self.model.decoder.parameters(), lr=self.learning_rate
-                    ),
+                    Adam(self.model.encoder.parameters(), lr=self.learning_rate),
+                    Adam(self.model.decoder.parameters(), lr=self.learning_rate),
                 ]
             )
         else:

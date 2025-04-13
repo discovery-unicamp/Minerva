@@ -2,12 +2,10 @@ from typing import List, Tuple
 import torch
 import torch.nn.functional as F
 
+
 class MaxPoolingTransposingSqueezingAdapter:
-    def __init__(
-        self,
-        kernel_size: int = 128
-    ):
-        """       
+    def __init__(self, kernel_size: int = 128):
+        """
         This class takes a 3D tensor and performs max pooling along the time dimension.
         The tensor is first transposed, then max pooling is applied, and finally,
         the tensor is transposed back and squeezed to remove the singleton dimension.
@@ -21,7 +19,7 @@ class MaxPoolingTransposingSqueezingAdapter:
         ----------
         kernel_size : int, optional (default=128)
             The size of the window over which the max pooling operation is applied.
-        
+
         Examples
         --------
         >>> import torch
@@ -42,7 +40,7 @@ class MaxPoolingTransposingSqueezingAdapter:
 
     def __call__(self, tensor: torch.Tensor) -> torch.Tensor:
         return self.max_pooling_adapter(tensor)
-    
+
     def max_pooling_adapter(self, tensor: torch.Tensor) -> torch.Tensor:
         """
         Applies transposing, max polling and squeezing to the input tensor.
@@ -51,20 +49,24 @@ class MaxPoolingTransposingSqueezingAdapter:
         ----------
         tensor : torch.Tensor
             The input tensor to be processed. The expected shape of the tensor is (batch_size, time_steps, features).
-        
+
         Returns
         -------
         torch.Tensor
             The processed tensor after applying max pooling. The shape of the tensor will be (batch_size, features).
         """
-        return F.max_pool1d(tensor.transpose(1, 2), kernel_size=self.kernel_size).transpose(1, 2).squeeze(1)
+        return (
+            F.max_pool1d(tensor.transpose(1, 2), kernel_size=self.kernel_size)
+            .transpose(1, 2)
+            .squeeze(1)
+        )
 
 
 class PermuteAdapter:
     def __init__(self, permutation: List[int], contiguous: bool = True):
         self.permutation = permutation
         self.contiguous = contiguous
-        
+
     def __call__(self, tensor: torch.Tensor) -> torch.Tensor:
         tensor = tensor.permute(*self.permutation)
         if self.contiguous:

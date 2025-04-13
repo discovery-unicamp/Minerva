@@ -46,9 +46,7 @@ def test_sfm_pretrain_forward(model_cls, img_size):
 
 
 def test_sfm_vit_patch16_downstream():
-    model = SFM_BasePatch16_Downstream(
-        img_size=(512, 512), num_classes=6, in_chans=1
-    )
+    model = SFM_BasePatch16_Downstream(img_size=(512, 512), num_classes=6, in_chans=1)
 
     data_module = RandomDataModule(
         data_shape=(1, 512, 512),
@@ -58,7 +56,5 @@ def test_sfm_vit_patch16_downstream():
         batch_size=2,
     )
 
-    trainer = L.Trainer(
-        accelerator="cpu", max_epochs=1, devices=1, fast_dev_run=True
-    )
+    trainer = L.Trainer(accelerator="cpu", max_epochs=1, devices=1, fast_dev_run=True)
     trainer.fit(model, data_module)

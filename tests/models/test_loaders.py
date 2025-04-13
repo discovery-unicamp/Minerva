@@ -58,9 +58,7 @@ class ComposableModel(L.LightningModule):
 class LSTMBackbone(torch.nn.Module):
     def __init__(self):
         super().__init__()
-        self.lstm = torch.nn.LSTM(
-            input_size=128, hidden_size=256, batch_first=True
-        )
+        self.lstm = torch.nn.LSTM(input_size=128, hidden_size=256, batch_first=True)
 
     def forward(self, x):
         _, (h_n, _) = self.lstm(x)
@@ -178,9 +176,7 @@ def test_load_from_pretrained_backbone_with_extractor(tmp_path):
     new_model.eval()
 
     # Check if backbone weights are the same
-    for p1, p2 in zip(
-        model.backbone.parameters(), new_model.backbone.parameters()
-    ):
+    for p1, p2 in zip(model.backbone.parameters(), new_model.backbone.parameters()):
         assert torch.allclose(p1, p2), "Weights are different!"
 
     # Check if backbone's forward method has same output
@@ -202,11 +198,10 @@ def test_load_from_pretrained_backbone_with_extractor(tmp_path):
         y2.shape == expected_new_model_shape
     ), f"Expected {expected_new_model_shape}, got {y2.shape}"
 
-
     # Save and load the new model
     torch.save(new_model.state_dict(), checkpoint_file)
-    
-    # Load 
+
+    # Load
     newest_model = new_model
     newest_model = FromPretrained(
         newest_model,
@@ -214,19 +209,17 @@ def test_load_from_pretrained_backbone_with_extractor(tmp_path):
         extractor=IntermediateLayerGetter(layers=["backbone"]),
         strict=False,
     )
-    
+
     # Check if backbone weights are the same
-    for p1, p2 in zip(
-        model.backbone.parameters(), newest_model.backbone.parameters()
-    ):
+    for p1, p2 in zip(model.backbone.parameters(), newest_model.backbone.parameters()):
         assert torch.allclose(p1, p2), "Weights are different!"
-        
+
     # Check if backbone's forward method has same output
     x = torch.rand(1, 128)
     y1 = model.backbone(x)
     y2 = newest_model.backbone(x)
     assert torch.allclose(y1, y2), "Output is different!"
-    
+
 
 def test_load_from_pretrained_backbone_without_extractor(tmp_path):
     # Create a simple model
@@ -246,15 +239,12 @@ def test_load_from_pretrained_backbone_without_extractor(tmp_path):
         filter_keys=["backbone."],
         keys_to_rename={"backbone.": ""},
         strict=True,
-        error_on_missing_keys=True
+        error_on_missing_keys=True,
     )
     head = Head(input_dim=64, output_dim=6)
     new_model = ComposableModel(backbone, head, flatten=True)
     new_model.eval()
 
     # Check if backbone weights are the same
-    for p1, p2 in zip(
-        model.backbone.parameters(), new_model.backbone.parameters()
-    ):
+    for p1, p2 in zip(model.backbone.parameters(), new_model.backbone.parameters()):
         assert torch.allclose(p1, p2), "Weights are different!"
-

@@ -92,7 +92,7 @@ class Pipeline(HyperparametersMixin):
             ignore = [ignore]
         ignore.append("ignore")
         self.save_hyperparameters(ignore=ignore)
-        
+
     def _generate_seed(self) -> int:
         seed = int(time() * 1000000)  # Using microseconds for higher precision
         return seed
@@ -227,8 +227,7 @@ class Pipeline(HyperparametersMixin):
 
         # ---------- Add python information ----------
         packages = [
-            f"{pkg.project_name}=={pkg.version}"
-            for pkg in pkg_resources.working_set
+            f"{pkg.project_name}=={pkg.version}" for pkg in pkg_resources.working_set
         ]
         d["python"] = {
             "pip_packages": packages,
@@ -310,7 +309,7 @@ class Pipeline(HyperparametersMixin):
         """
         if not self._save_run_status:
             return
-        
+
         path = Path(path)
         d = self.full_info
         # Save yaml
@@ -338,7 +337,7 @@ class Pipeline(HyperparametersMixin):
         """
         seed = L.seed_everything(self.seed, workers=True, verbose=False)
         print(f"** Seed set to: {seed} **")
-        
+
         self._run_count += 1
         self._run_start_time = time()
         self._run_status = "RUNNING"
@@ -364,9 +363,7 @@ class Pipeline(HyperparametersMixin):
             self._result = result
 
         self._cached_run_status.append(self.run_status)
-        self._save_pipeline_info(
-            self._log_dir / f"run_{self.pipeline_id}.yaml"
-        )
+        self._save_pipeline_info(self._log_dir / f"run_{self.pipeline_id}.yaml")
 
         return result
 
