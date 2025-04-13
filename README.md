@@ -33,6 +33,11 @@ Minerva is currently under development and not yet available as a PyPI package. 
 - Locally, as any other Python package.
 - Using a Docker container, if you want to use the development environment.
 
+### Install With pip
+```bash
+pip install minerva-ml
+```
+
 ### Install Locally
 
 1. Clone the repository:
@@ -44,9 +49,10 @@ git clone https://github.com/discovery-unicamp/Minerva.git
 2. And then navigate to the project directory and install the dependencies:
 
 ```bash
-cd Minerva-Dev
+cd Minerva
 pip install .
 ```
+
 
 ### VSCode Development Environment using DevContainer
 
