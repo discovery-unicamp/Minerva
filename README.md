@@ -115,7 +115,7 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 ## Contact
 
-For any questions or concerns, please open an issue on our [GitHub issue tracker](https://github.com/discovery-unicamp/Minerva-Dev/issues).
+For any questions or concerns, please open an issue on our [GitHub issue tracker](https://github.com/discovery-unicamp/Minerva/issues).
 
 ## Contribute
 
