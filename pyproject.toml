@@ -87,5 +87,5 @@ docs = [
 analysis = ["codecarbon>=2.8.3", "ultralytics-thop>=2.0.14"]
 
 [project.urls]
-"Bug Tracker" = "https://github.com/discovery-unicamp/Minerva-Dev/issues"
-"Homepage" = "https://github.com/discovery-unicamp/Minerva-Dev"
+"Bug Tracker" = "https://github.com/discovery-unicamp/Minerva/issues"
+"Homepage" = "https://github.com/discovery-unicamp/Minerva"
