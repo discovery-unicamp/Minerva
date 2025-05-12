@@ -170,15 +170,28 @@ class RandomRotation(_RandomSyncedTransform):
         num_samples: int = 1,
         seed: Optional[int] = None,
     ):
+        """
+        Randomly applies a rotation to the image with a specified probability.
 
-        super().__init__(num_samples, seed)
-        self.prob = prob
+        Parameters
+        ----------
+        degrees : float
+            Maximum absolute value of the rotation angle in degrees. The angle is sampled
+            uniformly from [-degrees, +degrees].
+        prob : float
+            Probability that the rotation will be applied.
+        num_samples : int, optional
+            Number of samples to generate per call (for contrastive learning), default is 1.
+        seed : int, optional
+            Seed for the random number generator, useful for reproducibility.
+        """
+        super().__init__(num_samples=num_samples, seed=seed)
         self.degrees = degrees
+        self.prob = prob
 
     def select_transform(self):
-
         if self.rng.random() < self.prob:
-            degrees = self.rng.uniform(-self.degrees, self.degrees)
-            return Rotation(degrees=degrees)
+            angle = self.rng.uniform(-self.degrees, self.degrees)
+            return Rotation(degrees=angle)
         else:
             return EmptyTransform()

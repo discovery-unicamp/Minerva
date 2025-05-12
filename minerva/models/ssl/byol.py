@@ -8,135 +8,81 @@ import warnings
 from torch import nn
 from torch import Tensor
 from collections import OrderedDict
-from typing import List, Optional, Sequence, Tuple, Union
+from typing import Optional, Sequence
 
 from minerva.losses.negative_cossine_similatiry import NegativeCosineSimilarity
-
-# --- Model Parts ---------------------------------------------------------
-
-# Borrowed from https://github.com/lightly-ai/lightly/blob/master/lightly/models/modules/heads.py#L15
-
-
-class ProjectionHead(nn.Module):
-    """Base class for all projection and prediction heads."""
-
-    def __init__(
-        self,
-        blocks: Sequence[
-            Union[
-                Tuple[int, int, Optional[nn.Module], Optional[nn.Module]],
-                Tuple[int, int, Optional[nn.Module], Optional[nn.Module], bool],
-            ],
-        ],
-    ) -> None:
-        super().__init__()
-
-        layers: List[nn.Module] = []
-        for block in blocks:
-            input_dim, output_dim, batch_norm, non_linearity, *bias = block
-            use_bias = bias[0] if bias else not bool(batch_norm)
-            layers.append(nn.Linear(input_dim, output_dim, bias=use_bias))
-            if batch_norm:
-                layers.append(batch_norm)
-            if non_linearity:
-                layers.append(non_linearity)
-        self.layers = nn.Sequential(*layers)
-
-    def preprocess_step(self, x: Tensor) -> Tensor:
-        return x
-
-    def forward(self, x: Tensor) -> Tensor:
-        x = self.preprocess_step(x)
-        projection: Tensor = self.layers(x)
-        return projection
-
-
-class BYOLProjectionHead(ProjectionHead):
-    """Projection head used for BYOL.
-    "This MLP consists in a linear layer with output size 4096 followed by
-    batch normalization, rectified linear units (ReLU), and a final
-    linear layer with output dimension 256." [0]
-    [0]: BYOL, 2020, https://arxiv.org/abs/2006.07733
-    """
-
-    def __init__(
-        self, input_dim: int = 2048, hidden_dim: int = 4096, output_dim: int = 256
-    ):
-        super(BYOLProjectionHead, self).__init__(
-            [
-                (input_dim, hidden_dim, nn.BatchNorm1d(hidden_dim), nn.ReLU()),
-                (hidden_dim, output_dim, None, None),
-            ]
-        )
-
-        self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
-
-    def preprocess_step(self, x: Tensor) -> Tensor:
-        return self.avgpool(x).flatten(start_dim=1)
-
-
-class BYOLPredictionHead(ProjectionHead):
-    """Prediction head used for BYOL.
-    "This MLP consists in a linear layer with output size 4096 followed by
-    batch normalization, rectified linear units (ReLU), and a final
-    linear layer with output dimension 256." [0]
-    [0]: BYOL, 2020, https://arxiv.org/abs/2006.07733
-    """
-
-    def __init__(
-        self, input_dim: int = 256, hidden_dim: int = 4096, output_dim: int = 256
-    ):
-        super(BYOLPredictionHead, self).__init__(
-            [
-                (input_dim, hidden_dim, nn.BatchNorm1d(hidden_dim), nn.ReLU()),
-                (hidden_dim, output_dim, None, None),
-            ]
-        )
-
-
-# --- Class implementation ----------------------------------------------------------
+from minerva.models.nets.mlp import MLP
+from torch.optim import Optimizer
+from minerva.models.nets.image.deeplabv3 import DeepLabV3Backbone
 
 
 class BYOL(L.LightningModule):
-    """A Bootstrap Your Own Latent (BYOL) model for self-supervised learning.
+    """Bootstrap Your Own Latent (BYOL) model for self-supervised learning.
 
     References
     ----------
     Grill, J., Strub, F., Altché, F., Tallec, C., Richemond, P. H., Buchatskaya, E., ... & Valko, M. (2020).
-    "Bootstrap your own latent-a new approach to self-supervised learning." Advances in neural information processing systems, 33, 21271-21284.
+    "Bootstrap your own latent - a new approach to self-supervised learning." Advances in Neural Information Processing Systems, 33, 21271-21284.
     """
 
     def __init__(
         self,
         backbone: Optional[nn.Module] = None,
-        learning_rate: float = 0.025,
-        schedule: int = 90000,
+        projection_head: Optional[nn.Module] = None,
+        prediction_head: Optional[nn.Module] = None,
+        learning_rate: Optional[float] = 1e-3,
+        schedule: Optional[int] = 90000,
+        criterion: Optional[Optimizer] = None,
     ):
         """
         Initializes the BYOL model.
 
         Parameters
         ----------
-        backbone: Optional[nn.Module]
-            The backbone network for feature extraction. Defaults to ResNet18.
-        learning_rate: float
-            The learning rate for the optimizer. Defaults to 0.025.
-        schedule: int
+        backbone : Optional[nn.Module]
+            The backbone network for feature extraction. Defaults to DeepLabV3Backbone.
+        projection_head : Optional[nn.Module]
+            Optional custom projection head module. If None, a default MLP-based projection head is used.
+        prediction_head : Optional[nn.Module]
+            Optional custom prediction head module. If None, a default MLP-based prediction head is used.
+        learning_rate : float
+            The learning rate for the optimizer. Defaults to 1e-3.
+        schedule : int
             The total number of steps for cosine decay scheduling. Defaults to 90000.
+        criterion : Optional[Optimizer]
+            Loss function to use. Defaults to NegativeCosineSimilarity.
         """
         super().__init__()
-        self.backbone = backbone or nn.Sequential(
-            *list(torchvision.models.resnet18().children())[:-1]
-        )
+        self.backbone = backbone or DeepLabV3Backbone()
         self.learning_rate = learning_rate
-        self.projection_head = BYOLProjectionHead(2048, 4096, 256)
-        self.prediction_head = BYOLPredictionHead(256, 4096, 256)
+        self.projection_head = projection_head or self._default_projection_head()
+        self.prediction_head = prediction_head or self._default_prediction_head()
         self.backbone_momentum = copy.deepcopy(self.backbone)
         self.projection_head_momentum = copy.deepcopy(self.projection_head)
         self.deactivate_requires_grad(self.backbone_momentum)
         self.deactivate_requires_grad(self.projection_head_momentum)
-        self.criterion = NegativeCosineSimilarity()
+        self.criterion = criterion or NegativeCosineSimilarity()
         self.schedule_length = schedule
+
+    def _default_projection_head(self) -> nn.Module:
+        """Creates the default projection head used in BYOL."""
+        return nn.Sequential(
+            nn.AdaptiveAvgPool2d((1, 1)),
+            nn.Flatten(start_dim=1),
+            MLP(
+                layer_sizes=[2048, 4096, 256],
+                activation_cls=nn.ReLU,
+                intermediate_ops=[nn.BatchNorm1d(4096), None],
+            ),
+        )
+
+    def _default_prediction_head(self) -> nn.Module:
+        """Creates the default prediction head used in BYOL."""
+        return MLP(
+            layer_sizes=[256, 4096, 256],
+            activation_cls=nn.ReLU,
+            intermediate_ops=[nn.BatchNorm1d(4096), None],
+        )
 
     def forward(self, x: Tensor) -> Tensor:
         """

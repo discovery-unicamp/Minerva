@@ -500,27 +500,45 @@ class Solarize(_Transform):
 class Rotation(_Transform):
     def __init__(self, degrees: float):
         """
-        Rotates the image by a specified angle.
+        Rotates an image by a specified angle using reflection padding.
 
         Parameters
         ----------
         degrees : float
-            Angle in degrees to rotate the image.
+            Angle in degrees to rotate the image counterclockwise.
 
-        Returns
-        -------
-        np.ndarray
-            Rotated image with reflection padding.
+        Notes
+        -----
+        - Accepts input with shape (H, W) or (H, W, C), where C can be any number of channels.
+        - For multi-channel images, the same transformation is applied to all channels.
+        - Uses OpenCV's warpAffine with reflection padding.
         """
         self.degrees = degrees
 
     def __call__(self, image: np.ndarray) -> np.ndarray:
+        if image.ndim not in (2, 3):
+            raise ValueError(
+                f"Unsupported image shape: {image.shape}. Expected 2D or 3D with channels last."
+            )
+
         h, w = image.shape[:2]
         center = (w // 2, h // 2)
         rotation_matrix = cv2.getRotationMatrix2D(center, self.degrees, 1.0)
-        return cv2.warpAffine(
-            image, rotation_matrix, (w, h), borderMode=cv2.BORDER_REFLECT
-        )
+
+        if image.ndim == 2:
+            # Single-channel 2D image
+            return cv2.warpAffine(
+                image, rotation_matrix, (w, h), borderMode=cv2.BORDER_REFLECT
+            )
+
+        # Multi-channel image (H, W, C)
+        channels = [
+            cv2.warpAffine(
+                image[:, :, c], rotation_matrix, (w, h), borderMode=cv2.BORDER_REFLECT
+            )
+            for c in range(image.shape[2])
+        ]
+        return np.stack(channels, axis=-1)
 
     def __str__(self) -> str:
         return f"Rotation(degrees={self.degrees})"
