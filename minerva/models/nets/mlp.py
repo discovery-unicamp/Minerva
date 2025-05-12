@@ -1,25 +1,54 @@
-from torch import nn
-from typing import Sequence
+import torch.nn as nn
+from typing import Sequence, Optional, List
 
 
 class MLP(nn.Sequential):
     """
-    A multilayer perceptron (MLP) implemented as a subclass of nn.Sequential.
+    A flexible multilayer perceptron (MLP) implemented as a subclass of nn.Sequential.
 
-    This MLP is composed of a sequence of linear layers interleaved with ReLU activation
-    functions, except for the final layer which remains purely linear.
+    This class allows you to quickly build an MLP with:
+    - Custom layer sizes
+    - Configurable activation functions
+    - Optional intermediate operations (e.g., BatchNorm, Dropout) after each linear layer
+    - An optional final operation (e.g., normalization, final activation)
+
+    Parameters
+    ----------
+    layer_sizes : Sequence[int]
+        A list of integers specifying the sizes of each layer. Must contain at least two values:
+        the input and output dimensions.
+    activation_cls : type, optional
+        The activation function class (must inherit from nn.Module) to use between layers.
+        Defaults to nn.ReLU.
+    intermediate_ops : Optional[List[Optional[nn.Module]]], optional
+        A list of modules (e.g., nn.BatchNorm1d, nn.Dropout) to apply after each linear layer
+        and before the activation. Each item corresponds to one linear layer. Use `None` to skip
+        an operation for that layer. Must be the same length as the number of linear layers.
+    final_op : Optional[nn.Module], optional
+        A module to apply after the last layer (e.g., a final activation or normalization).
+
+    *args, **kwargs :
+        Additional arguments passed to the activation function constructor.
 
     Example
     -------
-
-    >>> mlp = MLP(10, 20, 30, 40)
+    >>> from torch import nn
+    >>> mlp = MLP(
+    ...     [128, 256, 64, 10],
+    ...     activation_cls=nn.ReLU,
+    ...     intermediate_ops=[nn.BatchNorm1d(256), nn.BatchNorm1d(64), None],
+    ...     final_op=nn.Sigmoid()
+    ... )
     >>> print(mlp)
     MLP(
-        (0): Linear(in_features=10, out_features=20, bias=True)
-        (1): ReLU()
-        (2): Linear(in_features=20, out_features=30, bias=True)
-        (3): ReLU()
-        (4): Linear(in_features=30, out_features=40, bias=True)
+        (0): Linear(in_features=128, out_features=256, bias=True)
+        (1): BatchNorm1d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (2): ReLU()
+        (3): Linear(in_features=256, out_features=64, bias=True)
+        (4): BatchNorm1d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (5): ReLU()
+        (6): Linear(in_features=64, out_features=10, bias=True)
+        (7): Sigmoid()
     )
     """
 
@@ -27,47 +56,42 @@ class MLP(nn.Sequential):
         self,
         layer_sizes: Sequence[int],
         activation_cls: type = nn.ReLU,
+        intermediate_ops: Optional[List[Optional[nn.Module]]] = None,
+        final_op: Optional[nn.Module] = None,
         *args,
         **kwargs,
     ):
-        """
-        Initializes the MLP with specified layer sizes.
-
-        Parameters
-        ----------
-        layer_sizes : Sequence[int]
-            A sequence of positive integers indicating the size of each layer.
-            At least two integers are required, representing the input and output layers.
-        activation_cls : type
-            The class of the activation function to use between layers. Default is nn.ReLU.
-        *args
-            Additional arguments passed to the activation function.
-        **kwargs
-            Additional keyword arguments passed to the activation function.
-
-        Raises
-        ------
-        AssertionError
-            If fewer than two layer sizes are provided or if any layer size is not a positive integer.
-        AssertionError
-            If activation_cls does not inherit from torch.nn.Module.
-        """
 
         assert (
             len(layer_sizes) >= 2
         ), "Multilayer perceptron must have at least 2 layers"
         assert all(
-            ls > 0 and isinstance(ls, int) for ls in layer_sizes
+            isinstance(ls, int) and ls > 0 for ls in layer_sizes
         ), "All layer sizes must be positive integers"
-
         assert issubclass(
             activation_cls, nn.Module
         ), "activation_cls must inherit from torch.nn.Module"
 
+        num_layers = len(layer_sizes) - 1
+
+        if intermediate_ops is not None:
+            if len(intermediate_ops) != num_layers:
+                raise ValueError(
+                    f"Length of intermediate_ops ({len(intermediate_ops)}) must match number of layers ({num_layers})"
+                )
+
         layers = []
-        for i in range(len(layer_sizes) - 2):
-            layers.append(nn.Linear(layer_sizes[i], layer_sizes[i + 1]))
-            layers.append(activation_cls(*args, **kwargs))
-        layers.append(nn.Linear(layer_sizes[-2], layer_sizes[-1]))
+        for i in range(num_layers):
+            in_dim, out_dim = layer_sizes[i], layer_sizes[i + 1]
+            layers.append(nn.Linear(in_dim, out_dim))
+
+            if intermediate_ops is not None and intermediate_ops[i] is not None:
+                layers.append(intermediate_ops[i])
+
+            if activation_cls is not None:
+                layers.append(activation_cls(*args, **kwargs))
+
+        if final_op is not None:
+            layers.append(final_op)
 
         super().__init__(*layers)
