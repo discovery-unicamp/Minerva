@@ -23,6 +23,7 @@ from .transform import (
     Padding,
     PerlinMasker,
     Repeat,
+    Reshape,
     Rotation,
     Solarize,
     Squeeze,
