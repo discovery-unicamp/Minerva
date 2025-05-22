@@ -41,6 +41,14 @@ Minerva offers a wide range of features to support your machine learning project
 
 
 
+Minerva is a framework for training machine learning models for researchers.
+We provide a set models, datasets, and tools to help you get started with your
+research. 
+Also, we provide a set of tools to help you configurate experiments, train 
+models, and analyze results in a reproducible way, logging all the information 
+you need to reproduce your experiments.
+
+
 .. toctree::
    :maxdepth: 1
    :caption: Contents
@@ -48,9 +56,8 @@ Minerva offers a wide range of features to support your machine learning project
    installation
    getting_started
    design
-   experiments
-   contributing
    tutorials
+   contributing
    api
 
 
