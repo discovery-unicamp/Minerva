@@ -42,12 +42,21 @@ jobs:
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -e .[dev]  # Install dependencies from pyproject.toml (dev section)
+          pip install -e ".[dev]"  # Install dependencies from pyproject.toml (dev section)
 
-      - name: Lint with flake8
+      # ------- Black format check (minerva and tests directories) -------
+      - name: Install dependencies for black formatting check
         run: |
-          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+          pip install black nbqa
 
+      - name: Check Python file formatting
+        run: |
+          echo "🔍 Checking Python files..."
+          black --check --diff minerva tests || (
+            echo "❌ Black found formatting issues in Python files. Please reformat your files" && exit 1
+          )
+
+      # ------- Run tests with coverage -------
       - name: Run Tests with Coverage
         run: |
           pytest --cov=minerva --cov=tests --cov-report=term --cov-report=html
@@ -58,10 +67,10 @@ jobs:
           name: html-coverage-report
           path: htmlcov/  # Upload the generated HTML report directory
       
+      # ------- Run interrogate for docstring coverage (ignored on errors) -------
       - name: Creating interrogate folder
         run: |
           mkdir interrogate
-
 
       - name: Docstring Coverage
         run: interrogate minerva -vv --fail-under=80 --generate-badge interrogate/interrogate_badge.svg --badge-format svg -o interrogate/simple-report.md

@@ -766,3 +766,21 @@ class ContrastiveTransform(_Transform):
 
     def __str__(self) -> str:
         return f"ContrastiveTransform(transform={self.transform})"
+
+
+class Reshape(_Transform):
+    def __init__(self, shape: Tuple[int, ...]):
+        """Reshape the input data to the specified shape.
+
+        Parameters
+        ----------
+        shape : Tuple[int, ...]
+            The target shape for the input data.
+        """
+        self.shape = shape
+
+    def __call__(self, x: np.ndarray) -> np.ndarray:
+        return x.reshape(self.shape)
+
+    def __str__(self) -> str:
+        return f"Reshape(shape={self.shape})"
