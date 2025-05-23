@@ -1,0 +1,284 @@
+minerva.pipelines.lightning_pipeline
+====================================
+
+.. py:module:: minerva.pipelines.lightning_pipeline
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   minerva.pipelines.lightning_pipeline.SimpleLightningPipeline
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   minerva.pipelines.lightning_pipeline.cli_main
+   minerva.pipelines.lightning_pipeline.predict_batch
+
+
+Module Contents
+---------------
+
+.. py:class:: SimpleLightningPipeline(model, trainer, log_dir = None, save_run_status = True, classification_metrics = None, regression_metrics = None, model_analysis = None, apply_metrics_per_sample = False, seed = None)
+
+   Bases: :py:obj:`minerva.pipelines.base.Pipeline`
+
+
+   Simple pipeline to train, test, predict and evaluate models using Pytorch
+   Lightning. This class is intended to be seamlessly integrated with
+   jsonargparse CLI.
+
+   Train/test/predict/evaluate a Pytorch Lightning model.
+
+   It provides 4 tasks: fit, test, predict and evaluate. The fit task
+   trains the model, the test task evaluates the model on the test set, the
+   predict task generates predictions for the predict set and the evaluate
+   task evaluates the model on the predict set and returns the metrics.
+
+   The evaluate task can calculate classification and regression metrics,
+   which is passed as arguments. The metrics are calculated per sample if
+   `apply_metrics_per_sample` is True (that generate a metric for each),
+   otherwise the metrics are calculated for the whole dataset (single
+   metric). The last option is the default.
+
+   Parameters
+   ----------
+   model : L.LightningModule
+       The LightningModule to be used.
+   trainer : L.Trainer
+       The Lightning Trainer to be used.
+   log_dir : PathLike, optional
+       The default logging directory where all related pipeline files
+       should be saved. By default None (uses current working directory)
+   save_run_status : bool, optional
+       If True, save the status of each run in a YAML file. This file will
+       be saved in the working directory with the name
+       `run_{pipeline_id}.yaml`. By default True.
+   classification_metrics : Dict[str, Metric], optional
+       The classification metrics to be used in the evaluate task. This
+       dictionary should have the metric name as key and the
+       `torchmetrics.Metric`-like object as value. The metric should be
+       able to receive two tensors (y_true, y_pred) and return a tensor
+       with the metric value. If None, no classification metrics will be
+       calculated. Different from regression, the torch.argmax will be
+       applied to the predictions before calculating the metrics.
+       By default None.
+   regression_metrics : Dict[str, Metric], optional
+       The regression metrics to be used in the evaluate task. This
+       dictionary should have the metric name as key and the
+       `torchmetrics.Metric`-like object as value. The metric should be
+       able to receive two tensors (y_true, y_pred) and return a tensor
+       with the metric value. If None, no regression metrics will be
+       calculated. By default None.
+   model_analysis: Dict[str, _ModelAnalysis], optional
+       The model analysis to be performed after the model is trained. This
+       dictionary should have the analysis name as key and the
+       `_ModelAnalysis`-like object as value. The analysis should be able
+       to receive the model and the data and return a result. If None, no
+       model analysis will be performed. By default None.
+   apply_metrics_per_sample : bool, optional
+       Apply the metrics per sample. If True, the metrics will be
+       calculated for each sample and the results will be a list of
+       metrics. If False, the metrics will be calculated for the whole
+       dataset and the results will be a single metric (single-element
+       list). By default False
+   seed : int, optional
+       The seed to be used in the pipeline. By default None.
+
+
+   .. py:attribute:: _apply_metrics_per_sample
+      :value: False
+
+
+
+   .. py:method:: _calculate_metrics(metrics, y_hat, y)
+
+      Calculate the metrics for the given predictions and targets.
+
+      Parameters
+      ----------
+      metrics : Dict[str, Metric]
+          The metrics to be calculated. The dictionary should have the metric
+          name as key and the `torchmetrics.Metric`-like object as value.
+      y_hat : torch.Tensor
+          The predictions tensor.
+      y : torch.Tensor
+          The targets tensor.
+
+      Returns
+      -------
+      Dict[str, Any]
+          A dictionary with the metric name as key and the list of metric
+          values as value. The list will have a single element if
+          `apply_metrics_per_sample` is False, otherwise it will have a value.
+
+
+
+   .. py:attribute:: _classification_metrics
+      :value: None
+
+
+
+   .. py:attribute:: _data
+      :value: None
+
+
+
+   .. py:method:: _evaluate(data, ckpt_path = None)
+
+      Evaluate the model and calculate regression and/or classification
+      metrics.
+
+      Parameters
+      ----------
+      data : L.LightningDataModule
+          The data module to be used. The data module should have the
+          `predict_dataloader` method implemented.
+      ckpt_path : PathLike
+          The checkpoint path to be used. If None, no checkpoint will be used.
+
+      Returns
+      -------
+      Dict[str, Dict[str, Any]
+          A dictionary with metrics.
+
+
+
+   .. py:method:: _fit(data, ckpt_path = None)
+
+      Fit the model using the given data.
+
+      Parameters
+      ----------
+      data : L.LightningDataModule
+          The data module to be used. The data module should have the
+          `train_dataloader` method implemented.
+      ckpt_path : PathLike
+          The checkpoint path to be used. If None, no checkpoint will be used.
+
+
+
+   .. py:attribute:: _model
+
+
+   .. py:attribute:: _model_analysis
+      :value: None
+
+
+
+   .. py:method:: _predict(data, ckpt_path = None)
+
+      Predict using the given data.
+
+      Parameters
+      ----------
+      data : L.LightningDataModule
+          The data module to be used. The data module should have the
+          `predict_dataloader` method implemented.
+      ckpt_path : PathLike
+          The checkpoint path to be used. If None, no checkpoint will be used.
+
+      Returns
+      -------
+      torch.Tensor
+          The predictions tensor.
+
+
+
+   .. py:attribute:: _regression_metrics
+      :value: None
+
+
+
+   .. py:method:: _run(data, task, ckpt_path = None)
+
+      Run the specified task on the given data.
+
+      Parameters
+      ----------
+      data : L.LightningDataModule
+          The LightningDataModule object containing the data for the task.
+      task : Literal["fit", "test", "predict", "evaluate"], optional
+          The task to be performed. Valid options are "fit", "test",
+          "predict", and "evaluate".
+      ckpt_path : PathLike, optional
+          The path to the checkpoint file to be used for resuming training or
+          performing inference. Defaults to None.
+
+      Returns
+      -------
+      Any
+          The result of the specified task.
+
+      Raises
+      ------
+      ValueError
+          If an unknown task is provided.
+
+
+
+   .. py:method:: _test(data, ckpt_path = None)
+
+      Test the model using the given data.
+
+      Parameters
+      ----------
+      data : L.LightningDataModule
+          The data module to be used. The data module should have the
+          `test_dataloader` method implemented.
+      ckpt_path : PathLike
+          The checkpoint path to be used. If None, no checkpoint will be used.
+
+
+
+   .. py:attribute:: _trainer
+
+
+   .. py:property:: data
+      :type: Optional[lightning.LightningDataModule]
+
+
+      The LightningDataModule used in the last run of the pipeline.
+
+      Returns
+      -------
+      L.LightningDataModule
+          The data used in the last run of the pipeline.
+
+
+
+   .. py:property:: model
+      :type: lightning.LightningModule
+
+
+      The LightningModule used in the pipeline.
+
+      Returns
+      -------
+      L.LightningModule
+          The model used in the pipeline.
+
+
+
+   .. py:property:: trainer
+      :type: lightning.Trainer
+
+
+      The Lightning Trainer used in the pipeline.
+
+      Returns
+      -------
+      L.Trainer
+          The trainer used in the pipeline.
+
+
+
+.. py:function:: cli_main()
+
+.. py:function:: predict_batch(classification_metrics, regression_metrics)
+

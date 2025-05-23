@@ -1,0 +1,821 @@
+minerva.models.nets.time_series.resnet
+======================================
+
+.. py:module:: minerva.models.nets.time_series.resnet
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   minerva.models.nets.time_series.resnet.ConvolutionalBlock
+   minerva.models.nets.time_series.resnet.ResNet1DBase
+   minerva.models.nets.time_series.resnet.ResNet1D_5
+   minerva.models.nets.time_series.resnet.ResNet1D_8
+   minerva.models.nets.time_series.resnet.ResNetBlock
+   minerva.models.nets.time_series.resnet.ResNetSE1D_5
+   minerva.models.nets.time_series.resnet.ResNetSE1D_8
+   minerva.models.nets.time_series.resnet.ResNetSEBlock
+   minerva.models.nets.time_series.resnet.SqueezeAndExcitation1D
+   minerva.models.nets.time_series.resnet._ResNet1D
+
+
+Module Contents
+---------------
+
+.. py:class:: ConvolutionalBlock(in_channels, activation_cls)
+
+   Bases: :py:obj:`torch.nn.Module`
+
+
+   Base class for all neural network modules.
+
+   Your models should also subclass this class.
+
+   Modules can also contain other Modules, allowing them to be nested in
+   a tree structure. You can assign the submodules as regular attributes::
+
+       import torch.nn as nn
+       import torch.nn.functional as F
+
+       class Model(nn.Module):
+           def __init__(self) -> None:
+               super().__init__()
+               self.conv1 = nn.Conv2d(1, 20, 5)
+               self.conv2 = nn.Conv2d(20, 20, 5)
+
+           def forward(self, x):
+               x = F.relu(self.conv1(x))
+               return F.relu(self.conv2(x))
+
+   Submodules assigned in this way will be registered, and will also have their
+   parameters converted when you call :meth:`to`, etc.
+
+   .. note::
+       As per the example above, an ``__init__()`` call to the parent class
+       must be made before assignment on the child.
+
+   :ivar training: Boolean represents whether this module is in training or
+                   evaluation mode.
+   :vartype training: bool
+
+   Initialize internal Module state, shared by both nn.Module and ScriptModule.
+
+
+   .. py:attribute:: activation_cls
+
+
+   .. py:attribute:: block
+
+
+   .. py:method:: forward(x)
+
+
+   .. py:attribute:: in_channels
+
+
+.. py:class:: ResNet1DBase(resnet_block_cls = ResNetBlock, activation_cls = torch.nn.ReLU, input_shape = (6, 60), num_classes = 6, num_residual_blocks = 5, reduction_ratio=2, learning_rate = 0.001, residual_block_cls_kwargs = None, *args, **kwargs)
+
+   Bases: :py:obj:`minerva.models.nets.base.SimpleSupervisedModel`
+
+
+   A modular Lightning model wrapper for supervised learning tasks.
+
+   This class enables the construction of supervised models by combining a
+   backbone (feature extractor), an optional adapter, and a fully connected
+   (FC) head. It provides a clean interface for setting up custom training,
+   validation, and testing pipelines with pluggable loss functions, metrics,
+   optimizers, and learning rate schedulers.
+
+   The architecture is structured as follows:
+
+       +------------------+
+       |  Backbone Model  |
+       +------------------+
+               |
+               v
+       +------------------------+
+       |  Adapter (Optional)    |
+       +------------------------+
+               |
+        (Flatten if needed)
+               v
+       +------------------------+
+       |  Fully Connected Head  |
+       +------------------------+
+               |
+               v
+       +------------------+
+       |  Loss Function   |
+       +------------------+
+
+   Training and validation steps comprise the following steps:
+
+   1. Forward pass input through the backbone.
+   2. Pass through adapter (if provided).
+   3. Flatten the output (if `flatten` is True) before the FC head.
+   4. Forward through the FC head.
+   5. Compute loss with respect to targets.
+   6. Backpropagate and update parameters.
+   7. Compute metrics and log them.
+   8. Return loss. `train_loss`, `val_loss`, and `test_loss` are always
+      logged, along with any additional metrics specified in the
+      `train_metrics`, `val_metrics`, and `test_metrics` dictionaries.
+
+   This wrapper is especially useful to quickly set up supervised models for
+   various tasks, such as image classification, object detection, and
+   segmentation. It is designed to be flexible and extensible, allowing users
+   to easily swap out components like the backbone, adapter, and FC head as
+   needed. The model is built with a focus on simplicity and modularity, making
+   it easy to adapt to different use cases and requirements.
+   The model is designed to be used with PyTorch Lightning and is compatible
+   with its training loop.
+
+   **Note**: For more complex architectures that does not follow the above
+   structure should not inherit from this class.
+
+   **Note**: Input batches must be tuples (input_tensor, target_tensor).
+
+   Initializes the supervised model with training components and configs.
+
+   Parameters
+   ----------
+   backbone : torch.nn.Module or LoadableModule
+       The backbone (feature extractor) model.
+   fc : torch.nn.Module or LoadableModule
+       The fully connected head. Use nn.Identity() if not required.
+   loss_fn : torch.nn.Module
+       Loss function to optimize during training.
+   adapter : Callable, optional
+       Function to transform backbone outputs before feeding into `fc`.
+   learning_rate : float, default=1e-3
+       Learning rate used for optimization.
+   flatten : bool, default=True
+       If True, flattens backbone outputs before `fc`.
+   train_metrics : dict, optional
+       TorchMetrics dictionary for training evaluation.
+   val_metrics : dict, optional
+       TorchMetrics dictionary for validation evaluation.
+   test_metrics : dict, optional
+       TorchMetrics dictionary for test evaluation.
+   freeze_backbone : bool, default=False
+       If True, backbone parameters are frozen during training.
+   optimizer: type
+       Optimizer class to be instantiated. By default, it is set to
+       `torch.optim.Adam`. Should be a subclass of
+       `torch.optim.Optimizer` (e.g., `torch.optim.SGD`).
+   optimizer_kwargs : dict, optional
+       Additional kwargs passed to the optimizer constructor.
+   lr_scheduler : type, optional
+       Learning rate scheduler class to be instantiated. By default, it is
+       set to None, which means no scheduler will be used. Should be a
+       subclass of `torch.optim.lr_scheduler.LRScheduler` (e.g.,
+       `torch.optim.lr_scheduler.StepLR`).
+   lr_scheduler_kwargs : dict, optional
+       Additional kwargs passed to the scheduler constructor.
+
+
+   .. py:method:: _calculate_fc_input_features(backbone, input_shape)
+
+      Run a single forward pass with a random input to get the number of
+      features after the convolutional layers.
+
+      Parameters
+      ----------
+      backbone : torch.nn.Module
+          The backbone of the network
+      input_shape : Tuple[int, int, int]
+          The input shape of the network.
+
+      Returns
+      -------
+      int
+          The number of features after the convolutional layers.
+
+
+
+   .. py:attribute:: fc_input_features
+
+
+.. py:class:: ResNet1D_5(*args, **kwargs)
+
+   Bases: :py:obj:`ResNet1DBase`
+
+
+   A modular Lightning model wrapper for supervised learning tasks.
+
+   This class enables the construction of supervised models by combining a
+   backbone (feature extractor), an optional adapter, and a fully connected
+   (FC) head. It provides a clean interface for setting up custom training,
+   validation, and testing pipelines with pluggable loss functions, metrics,
+   optimizers, and learning rate schedulers.
+
+   The architecture is structured as follows:
+
+       +------------------+
+       |  Backbone Model  |
+       +------------------+
+               |
+               v
+       +------------------------+
+       |  Adapter (Optional)    |
+       +------------------------+
+               |
+        (Flatten if needed)
+               v
+       +------------------------+
+       |  Fully Connected Head  |
+       +------------------------+
+               |
+               v
+       +------------------+
+       |  Loss Function   |
+       +------------------+
+
+   Training and validation steps comprise the following steps:
+
+   1. Forward pass input through the backbone.
+   2. Pass through adapter (if provided).
+   3. Flatten the output (if `flatten` is True) before the FC head.
+   4. Forward through the FC head.
+   5. Compute loss with respect to targets.
+   6. Backpropagate and update parameters.
+   7. Compute metrics and log them.
+   8. Return loss. `train_loss`, `val_loss`, and `test_loss` are always
+      logged, along with any additional metrics specified in the
+      `train_metrics`, `val_metrics`, and `test_metrics` dictionaries.
+
+   This wrapper is especially useful to quickly set up supervised models for
+   various tasks, such as image classification, object detection, and
+   segmentation. It is designed to be flexible and extensible, allowing users
+   to easily swap out components like the backbone, adapter, and FC head as
+   needed. The model is built with a focus on simplicity and modularity, making
+   it easy to adapt to different use cases and requirements.
+   The model is designed to be used with PyTorch Lightning and is compatible
+   with its training loop.
+
+   **Note**: For more complex architectures that does not follow the above
+   structure should not inherit from this class.
+
+   **Note**: Input batches must be tuples (input_tensor, target_tensor).
+
+   Initializes the supervised model with training components and configs.
+
+   Parameters
+   ----------
+   backbone : torch.nn.Module or LoadableModule
+       The backbone (feature extractor) model.
+   fc : torch.nn.Module or LoadableModule
+       The fully connected head. Use nn.Identity() if not required.
+   loss_fn : torch.nn.Module
+       Loss function to optimize during training.
+   adapter : Callable, optional
+       Function to transform backbone outputs before feeding into `fc`.
+   learning_rate : float, default=1e-3
+       Learning rate used for optimization.
+   flatten : bool, default=True
+       If True, flattens backbone outputs before `fc`.
+   train_metrics : dict, optional
+       TorchMetrics dictionary for training evaluation.
+   val_metrics : dict, optional
+       TorchMetrics dictionary for validation evaluation.
+   test_metrics : dict, optional
+       TorchMetrics dictionary for test evaluation.
+   freeze_backbone : bool, default=False
+       If True, backbone parameters are frozen during training.
+   optimizer: type
+       Optimizer class to be instantiated. By default, it is set to
+       `torch.optim.Adam`. Should be a subclass of
+       `torch.optim.Optimizer` (e.g., `torch.optim.SGD`).
+   optimizer_kwargs : dict, optional
+       Additional kwargs passed to the optimizer constructor.
+   lr_scheduler : type, optional
+       Learning rate scheduler class to be instantiated. By default, it is
+       set to None, which means no scheduler will be used. Should be a
+       subclass of `torch.optim.lr_scheduler.LRScheduler` (e.g.,
+       `torch.optim.lr_scheduler.StepLR`).
+   lr_scheduler_kwargs : dict, optional
+       Additional kwargs passed to the scheduler constructor.
+
+
+.. py:class:: ResNet1D_8(*args, **kwargs)
+
+   Bases: :py:obj:`ResNet1DBase`
+
+
+   A modular Lightning model wrapper for supervised learning tasks.
+
+   This class enables the construction of supervised models by combining a
+   backbone (feature extractor), an optional adapter, and a fully connected
+   (FC) head. It provides a clean interface for setting up custom training,
+   validation, and testing pipelines with pluggable loss functions, metrics,
+   optimizers, and learning rate schedulers.
+
+   The architecture is structured as follows:
+
+       +------------------+
+       |  Backbone Model  |
+       +------------------+
+               |
+               v
+       +------------------------+
+       |  Adapter (Optional)    |
+       +------------------------+
+               |
+        (Flatten if needed)
+               v
+       +------------------------+
+       |  Fully Connected Head  |
+       +------------------------+
+               |
+               v
+       +------------------+
+       |  Loss Function   |
+       +------------------+
+
+   Training and validation steps comprise the following steps:
+
+   1. Forward pass input through the backbone.
+   2. Pass through adapter (if provided).
+   3. Flatten the output (if `flatten` is True) before the FC head.
+   4. Forward through the FC head.
+   5. Compute loss with respect to targets.
+   6. Backpropagate and update parameters.
+   7. Compute metrics and log them.
+   8. Return loss. `train_loss`, `val_loss`, and `test_loss` are always
+      logged, along with any additional metrics specified in the
+      `train_metrics`, `val_metrics`, and `test_metrics` dictionaries.
+
+   This wrapper is especially useful to quickly set up supervised models for
+   various tasks, such as image classification, object detection, and
+   segmentation. It is designed to be flexible and extensible, allowing users
+   to easily swap out components like the backbone, adapter, and FC head as
+   needed. The model is built with a focus on simplicity and modularity, making
+   it easy to adapt to different use cases and requirements.
+   The model is designed to be used with PyTorch Lightning and is compatible
+   with its training loop.
+
+   **Note**: For more complex architectures that does not follow the above
+   structure should not inherit from this class.
+
+   **Note**: Input batches must be tuples (input_tensor, target_tensor).
+
+   Initializes the supervised model with training components and configs.
+
+   Parameters
+   ----------
+   backbone : torch.nn.Module or LoadableModule
+       The backbone (feature extractor) model.
+   fc : torch.nn.Module or LoadableModule
+       The fully connected head. Use nn.Identity() if not required.
+   loss_fn : torch.nn.Module
+       Loss function to optimize during training.
+   adapter : Callable, optional
+       Function to transform backbone outputs before feeding into `fc`.
+   learning_rate : float, default=1e-3
+       Learning rate used for optimization.
+   flatten : bool, default=True
+       If True, flattens backbone outputs before `fc`.
+   train_metrics : dict, optional
+       TorchMetrics dictionary for training evaluation.
+   val_metrics : dict, optional
+       TorchMetrics dictionary for validation evaluation.
+   test_metrics : dict, optional
+       TorchMetrics dictionary for test evaluation.
+   freeze_backbone : bool, default=False
+       If True, backbone parameters are frozen during training.
+   optimizer: type
+       Optimizer class to be instantiated. By default, it is set to
+       `torch.optim.Adam`. Should be a subclass of
+       `torch.optim.Optimizer` (e.g., `torch.optim.SGD`).
+   optimizer_kwargs : dict, optional
+       Additional kwargs passed to the optimizer constructor.
+   lr_scheduler : type, optional
+       Learning rate scheduler class to be instantiated. By default, it is
+       set to None, which means no scheduler will be used. Should be a
+       subclass of `torch.optim.lr_scheduler.LRScheduler` (e.g.,
+       `torch.optim.lr_scheduler.StepLR`).
+   lr_scheduler_kwargs : dict, optional
+       Additional kwargs passed to the scheduler constructor.
+
+
+.. py:class:: ResNetBlock(in_channels = 64, activation_cls = torch.nn.ReLU)
+
+   Bases: :py:obj:`torch.nn.Module`
+
+
+   Base class for all neural network modules.
+
+   Your models should also subclass this class.
+
+   Modules can also contain other Modules, allowing them to be nested in
+   a tree structure. You can assign the submodules as regular attributes::
+
+       import torch.nn as nn
+       import torch.nn.functional as F
+
+       class Model(nn.Module):
+           def __init__(self) -> None:
+               super().__init__()
+               self.conv1 = nn.Conv2d(1, 20, 5)
+               self.conv2 = nn.Conv2d(20, 20, 5)
+
+           def forward(self, x):
+               x = F.relu(self.conv1(x))
+               return F.relu(self.conv2(x))
+
+   Submodules assigned in this way will be registered, and will also have their
+   parameters converted when you call :meth:`to`, etc.
+
+   .. note::
+       As per the example above, an ``__init__()`` call to the parent class
+       must be made before assignment on the child.
+
+   :ivar training: Boolean represents whether this module is in training or
+                   evaluation mode.
+   :vartype training: bool
+
+   Initialize internal Module state, shared by both nn.Module and ScriptModule.
+
+
+   .. py:attribute:: activation_cls
+
+
+   .. py:attribute:: block
+
+
+   .. py:method:: forward(x)
+
+
+   .. py:attribute:: in_channels
+      :value: 64
+
+
+
+.. py:class:: ResNetSE1D_5(*args, **kwargs)
+
+   Bases: :py:obj:`ResNet1DBase`
+
+
+   A modular Lightning model wrapper for supervised learning tasks.
+
+   This class enables the construction of supervised models by combining a
+   backbone (feature extractor), an optional adapter, and a fully connected
+   (FC) head. It provides a clean interface for setting up custom training,
+   validation, and testing pipelines with pluggable loss functions, metrics,
+   optimizers, and learning rate schedulers.
+
+   The architecture is structured as follows:
+
+       +------------------+
+       |  Backbone Model  |
+       +------------------+
+               |
+               v
+       +------------------------+
+       |  Adapter (Optional)    |
+       +------------------------+
+               |
+        (Flatten if needed)
+               v
+       +------------------------+
+       |  Fully Connected Head  |
+       +------------------------+
+               |
+               v
+       +------------------+
+       |  Loss Function   |
+       +------------------+
+
+   Training and validation steps comprise the following steps:
+
+   1. Forward pass input through the backbone.
+   2. Pass through adapter (if provided).
+   3. Flatten the output (if `flatten` is True) before the FC head.
+   4. Forward through the FC head.
+   5. Compute loss with respect to targets.
+   6. Backpropagate and update parameters.
+   7. Compute metrics and log them.
+   8. Return loss. `train_loss`, `val_loss`, and `test_loss` are always
+      logged, along with any additional metrics specified in the
+      `train_metrics`, `val_metrics`, and `test_metrics` dictionaries.
+
+   This wrapper is especially useful to quickly set up supervised models for
+   various tasks, such as image classification, object detection, and
+   segmentation. It is designed to be flexible and extensible, allowing users
+   to easily swap out components like the backbone, adapter, and FC head as
+   needed. The model is built with a focus on simplicity and modularity, making
+   it easy to adapt to different use cases and requirements.
+   The model is designed to be used with PyTorch Lightning and is compatible
+   with its training loop.
+
+   **Note**: For more complex architectures that does not follow the above
+   structure should not inherit from this class.
+
+   **Note**: Input batches must be tuples (input_tensor, target_tensor).
+
+   Initializes the supervised model with training components and configs.
+
+   Parameters
+   ----------
+   backbone : torch.nn.Module or LoadableModule
+       The backbone (feature extractor) model.
+   fc : torch.nn.Module or LoadableModule
+       The fully connected head. Use nn.Identity() if not required.
+   loss_fn : torch.nn.Module
+       Loss function to optimize during training.
+   adapter : Callable, optional
+       Function to transform backbone outputs before feeding into `fc`.
+   learning_rate : float, default=1e-3
+       Learning rate used for optimization.
+   flatten : bool, default=True
+       If True, flattens backbone outputs before `fc`.
+   train_metrics : dict, optional
+       TorchMetrics dictionary for training evaluation.
+   val_metrics : dict, optional
+       TorchMetrics dictionary for validation evaluation.
+   test_metrics : dict, optional
+       TorchMetrics dictionary for test evaluation.
+   freeze_backbone : bool, default=False
+       If True, backbone parameters are frozen during training.
+   optimizer: type
+       Optimizer class to be instantiated. By default, it is set to
+       `torch.optim.Adam`. Should be a subclass of
+       `torch.optim.Optimizer` (e.g., `torch.optim.SGD`).
+   optimizer_kwargs : dict, optional
+       Additional kwargs passed to the optimizer constructor.
+   lr_scheduler : type, optional
+       Learning rate scheduler class to be instantiated. By default, it is
+       set to None, which means no scheduler will be used. Should be a
+       subclass of `torch.optim.lr_scheduler.LRScheduler` (e.g.,
+       `torch.optim.lr_scheduler.StepLR`).
+   lr_scheduler_kwargs : dict, optional
+       Additional kwargs passed to the scheduler constructor.
+
+
+.. py:class:: ResNetSE1D_8(*args, **kwargs)
+
+   Bases: :py:obj:`ResNet1DBase`
+
+
+   A modular Lightning model wrapper for supervised learning tasks.
+
+   This class enables the construction of supervised models by combining a
+   backbone (feature extractor), an optional adapter, and a fully connected
+   (FC) head. It provides a clean interface for setting up custom training,
+   validation, and testing pipelines with pluggable loss functions, metrics,
+   optimizers, and learning rate schedulers.
+
+   The architecture is structured as follows:
+
+       +------------------+
+       |  Backbone Model  |
+       +------------------+
+               |
+               v
+       +------------------------+
+       |  Adapter (Optional)    |
+       +------------------------+
+               |
+        (Flatten if needed)
+               v
+       +------------------------+
+       |  Fully Connected Head  |
+       +------------------------+
+               |
+               v
+       +------------------+
+       |  Loss Function   |
+       +------------------+
+
+   Training and validation steps comprise the following steps:
+
+   1. Forward pass input through the backbone.
+   2. Pass through adapter (if provided).
+   3. Flatten the output (if `flatten` is True) before the FC head.
+   4. Forward through the FC head.
+   5. Compute loss with respect to targets.
+   6. Backpropagate and update parameters.
+   7. Compute metrics and log them.
+   8. Return loss. `train_loss`, `val_loss`, and `test_loss` are always
+      logged, along with any additional metrics specified in the
+      `train_metrics`, `val_metrics`, and `test_metrics` dictionaries.
+
+   This wrapper is especially useful to quickly set up supervised models for
+   various tasks, such as image classification, object detection, and
+   segmentation. It is designed to be flexible and extensible, allowing users
+   to easily swap out components like the backbone, adapter, and FC head as
+   needed. The model is built with a focus on simplicity and modularity, making
+   it easy to adapt to different use cases and requirements.
+   The model is designed to be used with PyTorch Lightning and is compatible
+   with its training loop.
+
+   **Note**: For more complex architectures that does not follow the above
+   structure should not inherit from this class.
+
+   **Note**: Input batches must be tuples (input_tensor, target_tensor).
+
+   Initializes the supervised model with training components and configs.
+
+   Parameters
+   ----------
+   backbone : torch.nn.Module or LoadableModule
+       The backbone (feature extractor) model.
+   fc : torch.nn.Module or LoadableModule
+       The fully connected head. Use nn.Identity() if not required.
+   loss_fn : torch.nn.Module
+       Loss function to optimize during training.
+   adapter : Callable, optional
+       Function to transform backbone outputs before feeding into `fc`.
+   learning_rate : float, default=1e-3
+       Learning rate used for optimization.
+   flatten : bool, default=True
+       If True, flattens backbone outputs before `fc`.
+   train_metrics : dict, optional
+       TorchMetrics dictionary for training evaluation.
+   val_metrics : dict, optional
+       TorchMetrics dictionary for validation evaluation.
+   test_metrics : dict, optional
+       TorchMetrics dictionary for test evaluation.
+   freeze_backbone : bool, default=False
+       If True, backbone parameters are frozen during training.
+   optimizer: type
+       Optimizer class to be instantiated. By default, it is set to
+       `torch.optim.Adam`. Should be a subclass of
+       `torch.optim.Optimizer` (e.g., `torch.optim.SGD`).
+   optimizer_kwargs : dict, optional
+       Additional kwargs passed to the optimizer constructor.
+   lr_scheduler : type, optional
+       Learning rate scheduler class to be instantiated. By default, it is
+       set to None, which means no scheduler will be used. Should be a
+       subclass of `torch.optim.lr_scheduler.LRScheduler` (e.g.,
+       `torch.optim.lr_scheduler.StepLR`).
+   lr_scheduler_kwargs : dict, optional
+       Additional kwargs passed to the scheduler constructor.
+
+
+.. py:class:: ResNetSEBlock(*args, **kwargs)
+
+   Bases: :py:obj:`ResNetBlock`
+
+
+   Base class for all neural network modules.
+
+   Your models should also subclass this class.
+
+   Modules can also contain other Modules, allowing them to be nested in
+   a tree structure. You can assign the submodules as regular attributes::
+
+       import torch.nn as nn
+       import torch.nn.functional as F
+
+       class Model(nn.Module):
+           def __init__(self) -> None:
+               super().__init__()
+               self.conv1 = nn.Conv2d(1, 20, 5)
+               self.conv2 = nn.Conv2d(20, 20, 5)
+
+           def forward(self, x):
+               x = F.relu(self.conv1(x))
+               return F.relu(self.conv2(x))
+
+   Submodules assigned in this way will be registered, and will also have their
+   parameters converted when you call :meth:`to`, etc.
+
+   .. note::
+       As per the example above, an ``__init__()`` call to the parent class
+       must be made before assignment on the child.
+
+   :ivar training: Boolean represents whether this module is in training or
+                   evaluation mode.
+   :vartype training: bool
+
+   Initialize internal Module state, shared by both nn.Module and ScriptModule.
+
+
+.. py:class:: SqueezeAndExcitation1D(in_channels, reduction_ratio = 2)
+
+   Bases: :py:obj:`torch.nn.Module`
+
+
+   Base class for all neural network modules.
+
+   Your models should also subclass this class.
+
+   Modules can also contain other Modules, allowing them to be nested in
+   a tree structure. You can assign the submodules as regular attributes::
+
+       import torch.nn as nn
+       import torch.nn.functional as F
+
+       class Model(nn.Module):
+           def __init__(self) -> None:
+               super().__init__()
+               self.conv1 = nn.Conv2d(1, 20, 5)
+               self.conv2 = nn.Conv2d(20, 20, 5)
+
+           def forward(self, x):
+               x = F.relu(self.conv1(x))
+               return F.relu(self.conv2(x))
+
+   Submodules assigned in this way will be registered, and will also have their
+   parameters converted when you call :meth:`to`, etc.
+
+   .. note::
+       As per the example above, an ``__init__()`` call to the parent class
+       must be made before assignment on the child.
+
+   :ivar training: Boolean represents whether this module is in training or
+                   evaluation mode.
+   :vartype training: bool
+
+   Initialize internal Module state, shared by both nn.Module and ScriptModule.
+
+
+   .. py:attribute:: block
+
+
+   .. py:method:: forward(input_tensor)
+
+
+   .. py:attribute:: in_channels
+
+
+   .. py:attribute:: num_channels_reduced
+
+
+   .. py:attribute:: reduction_ratio
+      :value: 2
+
+
+
+.. py:class:: _ResNet1D(input_shape, residual_block_cls = ResNetBlock, activation_cls = torch.nn.ReLU, num_residual_blocks = 5, reduction_ratio = 2, avg_pooling = True, **residual_block_cls_kwargs)
+
+   Bases: :py:obj:`torch.nn.Module`
+
+
+   Base class for all neural network modules.
+
+   Your models should also subclass this class.
+
+   Modules can also contain other Modules, allowing them to be nested in
+   a tree structure. You can assign the submodules as regular attributes::
+
+       import torch.nn as nn
+       import torch.nn.functional as F
+
+       class Model(nn.Module):
+           def __init__(self) -> None:
+               super().__init__()
+               self.conv1 = nn.Conv2d(1, 20, 5)
+               self.conv2 = nn.Conv2d(20, 20, 5)
+
+           def forward(self, x):
+               x = F.relu(self.conv1(x))
+               return F.relu(self.conv2(x))
+
+   Submodules assigned in this way will be registered, and will also have their
+   parameters converted when you call :meth:`to`, etc.
+
+   .. note::
+       As per the example above, an ``__init__()`` call to the parent class
+       must be made before assignment on the child.
+
+   :ivar training: Boolean represents whether this module is in training or
+                   evaluation mode.
+   :vartype training: bool
+
+   Initialize internal Module state, shared by both nn.Module and ScriptModule.
+
+
+   .. py:attribute:: avg_pooling
+      :value: True
+
+
+
+   .. py:attribute:: conv_block
+
+
+   .. py:method:: forward(x)
+
+
+   .. py:attribute:: global_avg_pool
+
+
+   .. py:attribute:: input_shape
+
+
+   .. py:attribute:: num_residual_blocks
+      :value: 5
+
+
+
+   .. py:attribute:: reduction_ratio
+      :value: 2
+
+
+
+   .. py:attribute:: residual_blocks
+
+

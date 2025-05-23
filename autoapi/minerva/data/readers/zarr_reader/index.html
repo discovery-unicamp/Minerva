@@ -1,0 +1,261 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>minerva.data.readers.zarr_reader &mdash; minerva  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" />
+    <link rel="next" title="minerva.losses" href="../../../losses/index.html" />
+    <link rel="prev" title="minerva.data.readers.tiff_reader" href="../tiff_reader/index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../../index.html" class="icon icon-home">
+            minerva
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../design.html">Minerva Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../tutorials.html">Examples and Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../contributing.html">Contributing to Minerva</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../../../../api.html">Programming Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../../../index.html">minerva</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="../../../index.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="../../../analysis/index.html">minerva.analysis</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="../../index.html">minerva.data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../losses/index.html">minerva.losses</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../models/index.html">minerva.models</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../optimizers/index.html">minerva.optimizers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../pipelines/index.html">minerva.pipelines</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../samplers/index.html">minerva.samplers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../transforms/index.html">minerva.transforms</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../utils/index.html">minerva.utils</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../../index.html">minerva</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../../../api.html">Programming Reference</a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">minerva</a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">minerva.data</a></li>
+          <li class="breadcrumb-item"><a href="../index.html">minerva.data.readers</a></li>
+      <li class="breadcrumb-item active">minerva.data.readers.zarr_reader</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../../../_sources/autoapi/minerva/data/readers/zarr_reader/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-minerva.data.readers.zarr_reader">
+<span id="minerva-data-readers-zarr-reader"></span><h1>minerva.data.readers.zarr_reader<a class="headerlink" href="#module-minerva.data.readers.zarr_reader" title="Link to this heading"></a></h1>
+<section id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Link to this heading"></a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#minerva.data.readers.zarr_reader.LazyPaddedPatchedZarrReader" title="minerva.data.readers.zarr_reader.LazyPaddedPatchedZarrReader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LazyPaddedPatchedZarrReader</span></code></a></p></td>
+<td><p>Reads patches from a Zarr array. This class is a subclass of</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#minerva.data.readers.zarr_reader.PatchedZarrReader" title="minerva.data.readers.zarr_reader.PatchedZarrReader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PatchedZarrReader</span></code></a></p></td>
+<td><p>Reads patches from a Zarr array. This class is a subclass of</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.data.readers.zarr_reader.LazyPaddedPatchedZarrReader">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.data.readers.zarr_reader.</span></span><span class="sig-name descname"><span class="pre">LazyPaddedPatchedZarrReader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/minerva/data/readers/zarr_reader.html#LazyPaddedPatchedZarrReader"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.data.readers.zarr_reader.LazyPaddedPatchedZarrReader" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="../patched_array_reader/index.html#minerva.data.readers.patched_array_reader.LazyPaddedPatchedArrayReader" title="minerva.data.readers.patched_array_reader.LazyPaddedPatchedArrayReader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">minerva.data.readers.patched_array_reader.LazyPaddedPatchedArrayReader</span></code></a></p>
+<p>Reads patches from a Zarr array. This class is a subclass of
+<cite>LazyPaddedPatchedArrayReader</cite> and is designed to read patches from a Zarr array,
+performing padding in a lazy manner (padding is done in <cite>__getitem__</cite> call).
+If no padding is necessary, use PatchedZarrReader.</p>
+<p>Reads patches from a Zarr array. This class is a subclass of
+<cite>LazyPaddedPatchedArrayReader</cite>. All other parameters are the same as parent class.
+Please refer to the documentation of <cite>LazyPaddedPatchedArrayReader</cite> for more
+information. This class can be used when padding is necessary and the whole dataset doesn’t fit into memory.</p>
+<section id="parameters">
+<h3>Parameters<a class="headerlink" href="#parameters" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt>path<span class="classifier">PathLike</span></dt><dd><p>Path to the Zarr array.</p>
+</dd>
+</dl>
+</section>
+<section id="notes">
+<h3>Notes<a class="headerlink" href="#notes" title="Link to this heading"></a></h3>
+<ol class="arabic simple">
+<li><p>The Zarr array is expected to be stored on disk. If the array is not
+stored on disk, it is recommended to use the <cite>LazyPaddedPatchedArrayReader</cite>
+class instead.</p></li>
+<li><p>Padding is computed when necessary during <cite>__getitem__</cite> calls.</p></li>
+</ol>
+</section>
+<section id="examples">
+<h3>Examples<a class="headerlink" href="#examples" title="Link to this heading"></a></h3>
+<p><a href="#id1"><span class="problematic" id="id2">``</span></a><a href="#id3"><span class="problematic" id="id4">`</span></a>python
+&gt;&gt;&gt; from pathlib import Path
+&gt;&gt;&gt; data_path = Path(“data.zarr”)
+&gt;&gt;&gt; reader = LazyPaddedPatchedZarrReader(
+…     path=data_path,
+…     data_shape=(5, 5),
+…     stride=(2, 5),
+…     pad_width=((1,1), (0,2)),
+… )
+&gt;&gt;&gt; print(len(reader))
+&gt;&gt;&gt; print(reader[0])</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.data.readers.zarr_reader.LazyPaddedPatchedZarrReader.path">
+<span class="sig-name descname"><span class="pre">path</span></span><a class="headerlink" href="#minerva.data.readers.zarr_reader.LazyPaddedPatchedZarrReader.path" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>path</strong> (<em>minerva.utils.typing.PathLike</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.data.readers.zarr_reader.PatchedZarrReader">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.data.readers.zarr_reader.</span></span><span class="sig-name descname"><span class="pre">PatchedZarrReader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/minerva/data/readers/zarr_reader.html#PatchedZarrReader"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.data.readers.zarr_reader.PatchedZarrReader" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="../patched_array_reader/index.html#minerva.data.readers.patched_array_reader.PatchedArrayReader" title="minerva.data.readers.patched_array_reader.PatchedArrayReader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">minerva.data.readers.patched_array_reader.PatchedArrayReader</span></code></a></p>
+<p>Reads patches from a Zarr array. This class is a subclass of
+<cite>PatchedArrayReader</cite> and is designed to read patches from a Zarr array.</p>
+<p>Reads patches from a Zarr array. This class is a subclass of
+<cite>PatchedArrayReader</cite>. All other parameters are the same as parent class.
+Please refer to the documentation of <cite>PatchedArrayReader</cite> for more
+information.</p>
+<section id="id5">
+<h3>Parameters<a class="headerlink" href="#id5" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt>path<span class="classifier">PathLike</span></dt><dd><p>Path to the Zarr array.</p>
+</dd>
+</dl>
+</section>
+<section id="id6">
+<h3>Notes<a class="headerlink" href="#id6" title="Link to this heading"></a></h3>
+<ol class="arabic simple">
+<li><p>The Zarr array is expected to be stored on disk. If the array is not
+stored on disk, it is recommended to use the <cite>PatchedArrayReader</cite>
+class instead.</p></li>
+<li><p>When using padding, the padding is applied to the entire array. This
+will load the entire array into memory. If the array is too large to
+fit into memory, it is recommended to pad before.
+See <cite>LazyPaddedPatchedZarrReader</cite> for an a lazy alternative.</p></li>
+</ol>
+</section>
+<section id="id7">
+<h3>Examples<a class="headerlink" href="#id7" title="Link to this heading"></a></h3>
+<p><a href="#id8"><span class="problematic" id="id9">``</span></a><a href="#id10"><span class="problematic" id="id11">`</span></a>python
+&gt;&gt;&gt; from pathlib import Path
+&gt;&gt;&gt; data_path = Path(“data.zarr”)
+&gt;&gt;&gt; reader = PatchedZarrReader(
+…     path=data_path,
+…     data_shape=(5, 5),
+…     stride=(2, 5),
+… )
+&gt;&gt;&gt; print(len(reader))
+&gt;&gt;&gt; print(reader[0])</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.data.readers.zarr_reader.PatchedZarrReader.path">
+<span class="sig-name descname"><span class="pre">path</span></span><a class="headerlink" href="#minerva.data.readers.zarr_reader.PatchedZarrReader.path" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>path</strong> (<em>minerva.utils.typing.PathLike</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../tiff_reader/index.html" class="btn btn-neutral float-left" title="minerva.data.readers.tiff_reader" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../../../losses/index.html" class="btn btn-neutral float-right" title="minerva.losses" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Unicamp.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

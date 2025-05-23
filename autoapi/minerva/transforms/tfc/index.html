@@ -1,0 +1,425 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>minerva.transforms.tfc &mdash; minerva  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+    <link rel="next" title="minerva.transforms.transform" href="../transform/index.html" />
+    <link rel="prev" title="minerva.transforms.split_transform" href="../split_transform/index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            minerva
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../design.html">Minerva Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorials.html">Examples and Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../contributing.html">Contributing to Minerva</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../../../api.html">Programming Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../../index.html">minerva</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="../../index.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="../../analysis/index.html">minerva.analysis</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../data/index.html">minerva.data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../losses/index.html">minerva.losses</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../models/index.html">minerva.models</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../optimizers/index.html">minerva.optimizers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../pipelines/index.html">minerva.pipelines</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../samplers/index.html">minerva.samplers</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="../index.html">minerva.transforms</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../utils/index.html">minerva.utils</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">minerva</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../../api.html">Programming Reference</a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">minerva</a></li>
+          <li class="breadcrumb-item"><a href="../index.html">minerva.transforms</a></li>
+      <li class="breadcrumb-item active">minerva.transforms.tfc</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../../_sources/autoapi/minerva/transforms/tfc/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-minerva.transforms.tfc">
+<span id="minerva-transforms-tfc"></span><h1>minerva.transforms.tfc<a class="headerlink" href="#module-minerva.transforms.tfc" title="Link to this heading"></a></h1>
+<section id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Link to this heading"></a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#minerva.transforms.tfc.TFC_Transforms" title="minerva.transforms.tfc.TFC_Transforms"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TFC_Transforms</span></code></a></p></td>
+<td><p>Transformations used in the TFC model.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.transforms.tfc.TFC_Transforms">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.transforms.tfc.</span></span><span class="sig-name descname"><span class="pre">TFC_Transforms</span></span><a class="reference internal" href="../../../../_modules/minerva/transforms/tfc.html#TFC_Transforms"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.transforms.tfc.TFC_Transforms" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="../transform/index.html#minerva.transforms.transform._Transform" title="minerva.transforms.transform._Transform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">minerva.transforms.transform._Transform</span></code></a></p>
+<p>Transformations used in the TFC model.
+It consists of time and frequency domain data augmentation.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.transforms.tfc.TFC_Transforms.DataTransform_FD">
+<span class="sig-name descname"><span class="pre">DataTransform_FD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/transforms/tfc.html#TFC_Transforms.DataTransform_FD"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.transforms.tfc.TFC_Transforms.DataTransform_FD" title="Link to this definition"></a></dt>
+<dd><p>Weak and strong augmentations.
+Consists of jittering and adding or removing frequency components.</p>
+<section id="parameters">
+<h3>Parameters<a class="headerlink" href="#parameters" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><dl class="simple">
+<dt>sample: np.ndarray</dt><dd><p>The input data to be augmented</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<section id="returns">
+<h3>Returns<a class="headerlink" href="#returns" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><dl class="simple">
+<dt>np.ndarray</dt><dd><p>The augmented data</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>sample</strong> (<em>numpy.ndarray</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.transforms.tfc.TFC_Transforms.DataTransform_TD">
+<span class="sig-name descname"><span class="pre">DataTransform_TD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sample</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">jitter_ratio</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.8</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/transforms/tfc.html#TFC_Transforms.DataTransform_TD"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.transforms.tfc.TFC_Transforms.DataTransform_TD" title="Link to this definition"></a></dt>
+<dd><p>Weak and strong augmentations.
+Consists of jittering and removing time components.</p>
+<section id="id1">
+<h3>Parameters<a class="headerlink" href="#id1" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><dl class="simple">
+<dt>sample: np.ndarray</dt><dd><p>The input data to be augmented</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>jitter_ratio: float</dt><dd><p>The ratio of the jittering transformation</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<section id="id2">
+<h3>Returns<a class="headerlink" href="#id2" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><dl class="simple">
+<dt>np.ndarray</dt><dd><p>The augmented data</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sample</strong> (<em>numpy.ndarray</em>)</p></li>
+<li><p><strong>jitter_ratio</strong> (<em>float</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.transforms.tfc.TFC_Transforms.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/transforms/tfc.html#TFC_Transforms.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.transforms.tfc.TFC_Transforms.__call__" title="Link to this definition"></a></dt>
+<dd><p>Method that applies the transformations to the input data.</p>
+<section id="id3">
+<h3>Parameters<a class="headerlink" href="#id3" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><dl class="simple">
+<dt>x: Union[np.ndarray, torch.Tensor]</dt><dd><p>The input data to be transformed</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<section id="id4">
+<h3>Returns<a class="headerlink" href="#id4" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><dl class="simple">
+<dt>Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]</dt><dd><p>A tuple with the original data, the transformed data in the time domain the frequency version of the data and the tranformed data in frequency domain</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>Union</em><em>[</em><em>numpy.ndarray</em><em>, </em><em>torch.Tensor</em><em>]</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.transforms.tfc.TFC_Transforms.add_frequency">
+<span class="sig-name descname"><span class="pre">add_frequency</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pertub_ratio</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/transforms/tfc.html#TFC_Transforms.add_frequency"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.transforms.tfc.TFC_Transforms.add_frequency" title="Link to this definition"></a></dt>
+<dd><p>function to add frequency components to the input data.</p>
+<section id="id5">
+<h3>Parameters<a class="headerlink" href="#id5" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><dl class="simple">
+<dt>x: np.ndarray</dt><dd><p>The input data to be augmented</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>pertub_ratio: float</dt><dd><p>The ratio of the frequency components to be added</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<section id="id6">
+<h3>Returns<a class="headerlink" href="#id6" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><dl class="simple">
+<dt>np.ndarray</dt><dd><p>The data with added frequency components</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>numpy.ndarray</em>)</p></li>
+<li><p><strong>pertub_ratio</strong> (<em>float</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.transforms.tfc.TFC_Transforms.jitter">
+<span class="sig-name descname"><span class="pre">jitter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.8</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/transforms/tfc.html#TFC_Transforms.jitter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.transforms.tfc.TFC_Transforms.jitter" title="Link to this definition"></a></dt>
+<dd><p>Add noise to the input data.</p>
+<section id="id7">
+<h3>Parameters<a class="headerlink" href="#id7" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><dl class="simple">
+<dt>x: np.ndarray</dt><dd><p>The input data to be augmented</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>sigma: float</dt><dd><p>The standard deviation of the noise</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<section id="id8">
+<h3>Returns<a class="headerlink" href="#id8" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><dl class="simple">
+<dt>np.ndarray</dt><dd><p>The data with added noise</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>numpy.ndarray</em>)</p></li>
+<li><p><strong>sigma</strong> (<em>float</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.transforms.tfc.TFC_Transforms.one_hot_encoding">
+<span class="sig-name descname"><span class="pre">one_hot_encoding</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_values</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/transforms/tfc.html#TFC_Transforms.one_hot_encoding"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.transforms.tfc.TFC_Transforms.one_hot_encoding" title="Link to this definition"></a></dt>
+<dd><p>One-hot encoding of the input data</p>
+<section id="id9">
+<h3>Parameters<a class="headerlink" href="#id9" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><dl class="simple">
+<dt>X: np.ndarray</dt><dd><p>The input data to be encoded</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>n_values: int</dt><dd><p>The number of classes in the data. If None, the number of classes is inferred from the data</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<section id="id10">
+<h3>Returns<a class="headerlink" href="#id10" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><dl class="simple">
+<dt>np.ndarray</dt><dd><p>The one-hot encoded data</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<em>numpy.ndarray</em>)</p></li>
+<li><p><strong>n_values</strong> (<em>int</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.transforms.tfc.TFC_Transforms.remove_frequency">
+<span class="sig-name descname"><span class="pre">remove_frequency</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maskout_ratio</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/transforms/tfc.html#TFC_Transforms.remove_frequency"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.transforms.tfc.TFC_Transforms.remove_frequency" title="Link to this definition"></a></dt>
+<dd><p>function to remove frequency components from the input data.</p>
+<section id="id11">
+<h3>Parameters<a class="headerlink" href="#id11" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><dl class="simple">
+<dt>x: np.ndarray</dt><dd><p>The input data to be augmented</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>maskout_ratio: float</dt><dd><p>The ratio of the frequency components to be removed</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<section id="id12">
+<h3>Returns<a class="headerlink" href="#id12" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><dl class="simple">
+<dt>np.ndarray</dt><dd><p>The data with removed frequency components</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>numpy.ndarray</em>)</p></li>
+<li><p><strong>maskout_ratio</strong> (<em>float</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../split_transform/index.html" class="btn btn-neutral float-left" title="minerva.transforms.split_transform" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../transform/index.html" class="btn btn-neutral float-right" title="minerva.transforms.transform" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Unicamp.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

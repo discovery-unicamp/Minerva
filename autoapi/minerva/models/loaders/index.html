@@ -1,0 +1,494 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>minerva.models.loaders &mdash; minerva  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+    <link rel="next" title="minerva.models.nets" href="../nets/index.html" />
+    <link rel="prev" title="minerva.models.finetune_adapters" href="../finetune_adapters/index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            minerva
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../design.html">Minerva Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorials.html">Examples and Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../contributing.html">Contributing to Minerva</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../../../api.html">Programming Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../../index.html">minerva</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="../../index.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="../../analysis/index.html">minerva.analysis</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../data/index.html">minerva.data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../losses/index.html">minerva.losses</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="../index.html">minerva.models</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../optimizers/index.html">minerva.optimizers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../pipelines/index.html">minerva.pipelines</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../samplers/index.html">minerva.samplers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../transforms/index.html">minerva.transforms</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../utils/index.html">minerva.utils</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">minerva</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../../api.html">Programming Reference</a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">minerva</a></li>
+          <li class="breadcrumb-item"><a href="../index.html">minerva.models</a></li>
+      <li class="breadcrumb-item active">minerva.models.loaders</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../../_sources/autoapi/minerva/models/loaders/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-minerva.models.loaders">
+<span id="minerva-models-loaders"></span><h1>minerva.models.loaders<a class="headerlink" href="#module-minerva.models.loaders" title="Link to this heading"></a></h1>
+<section id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Link to this heading"></a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#minerva.models.loaders.ExtractedModel" title="minerva.models.loaders.ExtractedModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ExtractedModel</span></code></a></p></td>
+<td><p>Class representing a submodel extracted from a larger model.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#minerva.models.loaders.FromModel" title="minerva.models.loaders.FromModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FromModel</span></code></a></p></td>
+<td><p>This class loads a complete model (pickable) from a model file, extract</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#minerva.models.loaders.FromPretrained" title="minerva.models.loaders.FromPretrained"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FromPretrained</span></code></a></p></td>
+<td><p>Load a model from a checkpoint file and wrap it in a FromPretrained</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#minerva.models.loaders.IntermediateLayerGetter" title="minerva.models.loaders.IntermediateLayerGetter"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IntermediateLayerGetter</span></code></a></p></td>
+<td><p>This class extracts intermediate layers from a model and create a new</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#minerva.models.loaders.LoadableModule" title="minerva.models.loaders.LoadableModule"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LoadableModule</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#minerva.models.loaders.ModuleExtractor" title="minerva.models.loaders.ModuleExtractor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ModuleExtractor</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.models.loaders.ExtractedModel">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.models.loaders.</span></span><span class="sig-name descname"><span class="pre">ExtractedModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">modules</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/models/loaders.html#ExtractedModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.loaders.ExtractedModel" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.ModuleDict</span></code></p>
+<p>Class representing a submodel extracted from a larger model.
+This class runs forward pass through all the modules in the model, in order
+they were added (as OrderedDict).</p>
+<p>Initialize internal Module state, shared by both nn.Module and ScriptModule.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>modules</strong> (<em>Optional</em><em>[</em><em>collections.abc.Mapping</em><em>[</em><em>str</em><em>, </em><em>torch.nn.modules.module.Module</em><em>]</em><em>]</em>)</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.loaders.ExtractedModel.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/models/loaders.html#ExtractedModel.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.loaders.ExtractedModel.forward" title="Link to this definition"></a></dt>
+<dd><p>Runs forward pass through all the modules in the model, in order.</p>
+<section id="parameters">
+<h3>Parameters<a class="headerlink" href="#parameters" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt>x<span class="classifier">Any</span></dt><dd><p>The input to forward pass through the model.</p>
+</dd>
+</dl>
+</section>
+<section id="returns">
+<h3>Returns<a class="headerlink" href="#returns" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt>Any</dt><dd><p>The output of the forward pass through the model, after passing
+through all the modules.</p>
+</dd>
+</dl>
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>Any</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Any</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.models.loaders.FromModel">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.models.loaders.</span></span><span class="sig-name descname"><span class="pre">FromModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extractor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/models/loaders.html#FromModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.loaders.FromModel" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">wrapt.ObjectProxy</span></code>, <a class="reference internal" href="#minerva.models.loaders.LoadableModule" title="minerva.models.loaders.LoadableModule"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LoadableModule</span></code></a></p>
+<p>This class loads a complete model (pickable) from a model file, extract
+the desired submodel and wraps it in a FromModel object. The FromModel
+object acts as a proxy to the submodel, allowing to call it as if it was the
+original model. All the attributes and methods of the submodel are
+accessible through the FromModel object directly.</p>
+<p>This class perform the following steps:</p>
+<ol class="arabic simple">
+<li><p>Load the whole model from the model file (pickable).</p></li>
+<li><p>Extract the desired submodel using the extractor function.</p></li>
+</ol>
+<section id="id1">
+<h3>Parameters<a class="headerlink" href="#id1" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt>model_path<span class="classifier">PathLike</span></dt><dd><p>Path to the model file from which the model will be loaded.</p>
+</dd>
+<dt>extractor<span class="classifier">Callable[[torch.nn.Module], torch.nn.Module], optional</span></dt><dd><p>The extractor function to be used to extract the desired submodel
+from the loaded model. The default is None, that is, use the module
+as it is loaded from the file.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.loaders.FromModel.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/models/loaders.html#FromModel.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.loaders.FromModel.__call__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.loaders.FromModel.__getattr__">
+<span class="sig-name descname"><span class="pre">__getattr__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/models/loaders.html#FromModel.__getattr__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.loaders.FromModel.__getattr__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.loaders.FromModel.__wrapped__">
+<span class="sig-name descname"><span class="pre">__wrapped__</span></span><a class="headerlink" href="#minerva.models.loaders.FromModel.__wrapped__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model_path</strong> (<em>minerva.utils.typing.PathLike</em>)</p></li>
+<li><p><strong>extractor</strong> (<em>Callable</em><em>[</em><em>[</em><em>torch.nn.Module</em><em>]</em><em>, </em><em>torch.nn.Module</em><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.models.loaders.FromPretrained">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.models.loaders.</span></span><span class="sig-name descname"><span class="pre">FromPretrained</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ckpt_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keys_to_rename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ckpt_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'state_dict'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extractor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">error_on_missing_keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ckpt_load_weights_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/models/loaders.html#FromPretrained"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.loaders.FromPretrained" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">wrapt.ObjectProxy</span></code>, <a class="reference internal" href="#minerva.models.loaders.LoadableModule" title="minerva.models.loaders.LoadableModule"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LoadableModule</span></code></a></p>
+<p>Load a model from a checkpoint file and wrap it in a FromPretrained
+object. The FromPretrained object acts as a proxy to the model, allowing
+to call it as if it was the original model. All the attributes and
+methods of the model are accessible through the FromPretrained object
+directly.</p>
+<section id="id2">
+<h3>Parameters<a class="headerlink" href="#id2" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt>model<span class="classifier">torch.nn.Module</span></dt><dd><p>The model to be loaded (initialized randomly).</p>
+</dd>
+<dt>ckpt_path<span class="classifier">Optional[PathLike], optional</span></dt><dd><p>The path to the checkpoint file from which the model will be loaded.
+If None, the model will be loaded without any state_dict, that is,
+nothing will be done to the model, it will remain as it is. By
+default None</p>
+</dd>
+<dt>filter_keys<span class="classifier">Optional[List[str]], optional</span></dt><dd><p>List of regular expressions to filter keys from the state_dict.
+Only keys that match any of the regular expressions will be kept.
+If None, all keys will be kept. By default None.</p>
+</dd>
+<dt>keys_to_rename<span class="classifier">Optional[Dict[str, str]], optional</span></dt><dd><p>A dictionary with keys being regular expressions and values being
+prefixes to be added to the keys that match the regular expressions.
+If prefix is an empty string, the matched part of the key will be
+removed. The keys that do not match any regular expression will
+remain the same. If a key matches multiple regular expressions, the
+first one will be used. Finally, if a empty string is used as key,
+all keys will have the prefix added (this have priority over other
+keys). By default None</p>
+</dd>
+<dt>strict<span class="classifier">bool, optional</span></dt><dd><p>If True, the state_dict must match the keys of the model exactly.
+If False, the state_dict can have extra keys that will be ignored.
+By default False</p>
+</dd>
+<dt>ckpt_key<span class="classifier">Optional[str], optional</span></dt><dd><p>The key in the checkpoint file where the state_dict is stored. If
+None, the whole checkpoint will be used as state_dict. Else, the
+value of the key will be used as state_dict. By default “state_dict”.</p>
+</dd>
+<dt>extractor<span class="classifier">Optional[ModuleExtractor], optional</span></dt><dd><p>Once model is loaded, the extractor will be called with the model
+as argument. The extractor should return the desired submodel (for
+instance, without some final layers). By default None</p>
+</dd>
+<dt>error_on_missing_keys<span class="classifier">bool, optional</span></dt><dd><p>If True, raise an error if some keys are missing in the state_dict
+when loading the model. If False, ignore missing keys.
+By default True</p>
+</dd>
+<dt>ckpt_load_weights_only<span class="classifier">bool, optional</span></dt><dd><p>If True, load only the weights from the checkpoint. If False, load
+the whole checkpoint. By default True</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.loaders.FromPretrained.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/models/loaders.html#FromPretrained.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.loaders.FromPretrained.__call__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.loaders.FromPretrained.__getattr__">
+<span class="sig-name descname"><span class="pre">__getattr__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/models/loaders.html#FromPretrained.__getattr__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.loaders.FromPretrained.__getattr__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.loaders.FromPretrained.__reduce_ex__">
+<span class="sig-name descname"><span class="pre">__reduce_ex__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proto</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/models/loaders.html#FromPretrained.__reduce_ex__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.loaders.FromPretrained.__reduce_ex__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.loaders.FromPretrained.__repr__">
+<span class="sig-name descname"><span class="pre">__repr__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/models/loaders.html#FromPretrained.__repr__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.loaders.FromPretrained.__repr__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.loaders.FromPretrained.__str__">
+<span class="sig-name descname"><span class="pre">__str__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/models/loaders.html#FromPretrained.__str__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.loaders.FromPretrained.__str__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.loaders.FromPretrained.__wrapped__">
+<span class="sig-name descname"><span class="pre">__wrapped__</span></span><a class="headerlink" href="#minerva.models.loaders.FromPretrained.__wrapped__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<em>torch.nn.Module</em>)</p></li>
+<li><p><strong>ckpt_path</strong> (<em>Optional</em><em>[</em><em>minerva.utils.typing.PathLike</em><em>]</em>)</p></li>
+<li><p><strong>filter_keys</strong> (<em>Optional</em><em>[</em><em>List</em><em>[</em><em>str</em><em>]</em><em>]</em>)</p></li>
+<li><p><strong>keys_to_rename</strong> (<em>Optional</em><em>[</em><em>Dict</em><em>[</em><em>str</em><em>, </em><em>str</em><em>]</em><em>]</em>)</p></li>
+<li><p><strong>strict</strong> (<em>bool</em>)</p></li>
+<li><p><strong>ckpt_key</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>)</p></li>
+<li><p><strong>extractor</strong> (<em>Optional</em><em>[</em><a class="reference internal" href="#minerva.models.loaders.ModuleExtractor" title="minerva.models.loaders.ModuleExtractor"><em>ModuleExtractor</em></a><em>]</em>)</p></li>
+<li><p><strong>error_on_missing_keys</strong> (<em>bool</em>)</p></li>
+<li><p><strong>ckpt_load_weights_only</strong> (<em>bool</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.models.loaders.IntermediateLayerGetter">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.models.loaders.</span></span><span class="sig-name descname"><span class="pre">IntermediateLayerGetter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">layers</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/models/loaders.html#IntermediateLayerGetter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.loaders.IntermediateLayerGetter" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#minerva.models.loaders.ModuleExtractor" title="minerva.models.loaders.ModuleExtractor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ModuleExtractor</span></code></a></p>
+<p>This class extracts intermediate layers from a model and create a new
+ExtractedModel with the extracted layers. The ExtractedModel allows
+performing a foward pass though extracted layers. Note that, if the model
+that will be extracted follows a complex structure forward  logic instead
+of a simple sequential logic, this class may not work as expected.</p>
+<p>Extracts intermediate layers from a model and create a new
+ExtractedModel with the extracted layers, in order they were extracted.</p>
+<section id="id3">
+<h3>Parameters<a class="headerlink" href="#id3" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt>layers<span class="classifier">Union[List[str], Dict[str, str], List[Tuple[str, str]]</span></dt><dd><p>This parameter can be:</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>A list of strings corresponding to the names of the layers to be</dt><dd><p>extracted from the model. In this case, the names of the layers
+in the ExtractedModel will be the same as the names of the
+layers in the model.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>A list of tuples with two strings, the first being the name of</dt><dd><p>the layer in the model and the second being the name of the
+layer in the ExtractedModel. In this case, the names of the
+layers in the ExtractedModel will be the second element of the
+tuples. This is the only option allowing repeating extracted
+layers, which is particularly useful when we want to repeat
+non-trainable layers, such as normalization, pooling, and
+activation layers.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>A dictionary with the keys being the names of the layers in the</dt><dd><p>model and the values being the names of the layers in the
+ExtractedModel. In this case, the names of the layers in the
+ExtractedModel will be the values of the dictionary</p>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</section>
+<section id="notes">
+<h3>Notes<a class="headerlink" href="#notes" title="Link to this heading"></a></h3>
+<blockquote>
+<div><ul class="simple">
+<li><p>The name of layers to be extracted can be a regular expression.</p></li>
+<li><dl class="simple">
+<dt>The layers will be extracted in the order they are passed in the</dt><dd><p>layers parameter or in the dictionary keys.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+</section>
+<section id="raises">
+<h3>Raises<a class="headerlink" href="#raises" title="Link to this heading"></a></h3>
+<dl>
+<dt>ValueError</dt><dd><ul class="simple">
+<li><p>If the layers parameter is not a list of strings or a list of</p></li>
+</ul>
+<p>tuples.</p>
+<ul class="simple">
+<li><p>If the layers parameter is an empty list.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.loaders.IntermediateLayerGetter.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/models/loaders.html#IntermediateLayerGetter.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.loaders.IntermediateLayerGetter.__call__" title="Link to this definition"></a></dt>
+<dd><p>Extracts intermediate layers from a model and create a new
+ExtractedModel with the extracted layers, in order they were extracted,
+that is, the order in which they are in the model.</p>
+<section id="id4">
+<h4>Parameters<a class="headerlink" href="#id4" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt>model<span class="classifier">torch.nn.Module</span></dt><dd><p>The model from which the layers will be extracted.</p>
+</dd>
+</dl>
+</section>
+<section id="id5">
+<h4>Returns<a class="headerlink" href="#id5" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt>torch.nn.Module</dt><dd><p>_description_</p>
+</dd>
+</dl>
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>model</strong> (<em>torch.nn.Module</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#minerva.models.loaders.ExtractedModel" title="minerva.models.loaders.ExtractedModel">ExtractedModel</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.loaders.IntermediateLayerGetter.layers">
+<span class="sig-name descname"><span class="pre">layers</span></span><a class="headerlink" href="#minerva.models.loaders.IntermediateLayerGetter.layers" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>layers</strong> (<em>Union</em><em>[</em><em>List</em><em>[</em><em>str</em><em>]</em><em>, </em><em>Dict</em><em>[</em><em>str</em><em>, </em><em>str</em><em>]</em><em>, </em><em>List</em><em>[</em><em>Tuple</em><em>[</em><em>str</em><em>, </em><em>str</em><em>]</em><em>]</em><em>]</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.models.loaders.LoadableModule">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.models.loaders.</span></span><span class="sig-name descname"><span class="pre">LoadableModule</span></span><a class="reference internal" href="../../../../_modules/minerva/models/loaders.html#LoadableModule"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.loaders.LoadableModule" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.models.loaders.ModuleExtractor">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.models.loaders.</span></span><span class="sig-name descname"><span class="pre">ModuleExtractor</span></span><a class="reference internal" href="../../../../_modules/minerva/models/loaders.html#ModuleExtractor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.loaders.ModuleExtractor" title="Link to this definition"></a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.loaders.ModuleExtractor.__call__">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/models/loaders.html#ModuleExtractor.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.loaders.ModuleExtractor.__call__" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>model</strong> (<em>torch.nn.Module</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>torch.nn.Module</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../finetune_adapters/index.html" class="btn btn-neutral float-left" title="minerva.models.finetune_adapters" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../nets/index.html" class="btn btn-neutral float-right" title="minerva.models.nets" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Unicamp.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

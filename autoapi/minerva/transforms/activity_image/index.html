@@ -1,0 +1,252 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>minerva.transforms.activity_image &mdash; minerva  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+    <link rel="next" title="minerva.transforms.random_transform" href="../random_transform/index.html" />
+    <link rel="prev" title="minerva.transforms" href="../index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            minerva
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../design.html">Minerva Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorials.html">Examples and Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../contributing.html">Contributing to Minerva</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../../../api.html">Programming Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../../index.html">minerva</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="../../index.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="../../analysis/index.html">minerva.analysis</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../data/index.html">minerva.data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../losses/index.html">minerva.losses</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../models/index.html">minerva.models</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../optimizers/index.html">minerva.optimizers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../pipelines/index.html">minerva.pipelines</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../samplers/index.html">minerva.samplers</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="../index.html">minerva.transforms</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../utils/index.html">minerva.utils</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">minerva</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../../api.html">Programming Reference</a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">minerva</a></li>
+          <li class="breadcrumb-item"><a href="../index.html">minerva.transforms</a></li>
+      <li class="breadcrumb-item active">minerva.transforms.activity_image</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../../_sources/autoapi/minerva/transforms/activity_image/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-minerva.transforms.activity_image">
+<span id="minerva-transforms-activity-image"></span><h1>minerva.transforms.activity_image<a class="headerlink" href="#module-minerva.transforms.activity_image" title="Link to this heading"></a></h1>
+<section id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Link to this heading"></a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#minerva.transforms.activity_image.ActivityImageTransforms" title="minerva.transforms.activity_image.ActivityImageTransforms"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ActivityImageTransforms</span></code></a></p></td>
+<td><p>A class to transform signals into images for Human Activity Recognition (HAR),</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.transforms.activity_image.ActivityImageTransforms">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.transforms.activity_image.</span></span><span class="sig-name descname"><span class="pre">ActivityImageTransforms</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">signal_sequences</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">9</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signal_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">68</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/transforms/activity_image.html#ActivityImageTransforms"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.transforms.activity_image.ActivityImageTransforms" title="Link to this definition"></a></dt>
+<dd><p>A class to transform signals into images for Human Activity Recognition (HAR),
+based on the methodology presented in the paper
+“Human Activity Recognition using Wearable Sensors by Deep Convolutional Neural Networks.”</p>
+<p>Initializes the ActivityImageTransforms class with the given number of signal sequences and samples.</p>
+<section id="parameters">
+<h3>Parameters:<a class="headerlink" href="#parameters" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt>signal_sequences: int, optional</dt><dd><p>The number of signal sequences. Defaults to 9</p>
+</dd>
+<dt>signal_samples: int, optional</dt><dd><p>The number of samples per signal sequence. Defaults to 68.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.transforms.activity_image.ActivityImageTransforms.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/transforms/activity_image.html#ActivityImageTransforms.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.transforms.activity_image.ActivityImageTransforms.__call__" title="Link to this definition"></a></dt>
+<dd><p>Transforms the input signals into activity images suitable for CNN processing.</p>
+<p>This method performs the following steps:
+1. Resamples the input signals to ensure consistent sample length.
+2. Constructs a 2D signal image from the resampled signals.
+3. Applies a 2D Fast Fourier Transform (FFT) to convert the signal image to the frequency domain.
+4. Shifts the zero-frequency component to the center of the spectrum.
+5. Computes the magnitude of the frequency domain representation to form the final activity image.</p>
+<section id="id1">
+<h4>Parameters:<a class="headerlink" href="#id1" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt>x: (List[np.ndarray])</dt><dd><p>The raw signal sequences from wearable sensors.</p>
+</dd>
+</dl>
+</section>
+<section id="returns">
+<h4>Returns:<a class="headerlink" href="#returns" title="Link to this heading"></a></h4>
+<blockquote>
+<div><p>tuple: A tuple containing the original signals and the corresponding activity images.</p>
+</div></blockquote>
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Any</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.transforms.activity_image.ActivityImageTransforms.get_signal_image">
+<span class="sig-name descname"><span class="pre">get_signal_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">raw_signals</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/transforms/activity_image.html#ActivityImageTransforms.get_signal_image"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.transforms.activity_image.ActivityImageTransforms.get_signal_image" title="Link to this definition"></a></dt>
+<dd><p>Constructs a signal image from the raw signals by arranging them in a specific order.</p>
+<p>This method follows the approach of combining sensor signals to form a 2D image, which is then
+suitable for CNN processing. The image is constructed by iteratively selecting signal sequences
+in a way that maximizes the spatial correlation between different sequences.</p>
+<section id="id2">
+<h4>Parameters:<a class="headerlink" href="#id2" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt>raw_signals: np.ndarray</dt><dd><p>The raw signal sequences from wearable sensors.</p>
+</dd>
+</dl>
+</section>
+<section id="id3">
+<h4>Returns:<a class="headerlink" href="#id3" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt>signal_image: np.ndarray</dt><dd><p>The constructed signal image, ready for further processing by a CNN.</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.transforms.activity_image.ActivityImageTransforms.resample_signals">
+<span class="sig-name descname"><span class="pre">resample_signals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/transforms/activity_image.html#ActivityImageTransforms.resample_signals"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.transforms.activity_image.ActivityImageTransforms.resample_signals" title="Link to this definition"></a></dt>
+<dd><p>Resamples the signals to a fixed number of samples.</p>
+<p>This resampling step ensures that all signal sequences have the same length, which is necessary
+for constructing a consistent 2D image for CNN input.</p>
+<section id="id4">
+<h4>Parameters:<a class="headerlink" href="#id4" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt>x: np.array</dt><dd><p>The raw signal sequences from wearable sensors.</p>
+</dd>
+</dl>
+</section>
+<section id="id5">
+<h4>Returns:<a class="headerlink" href="#id5" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt>resample_signal: List[np.ndarray]</dt><dd><p>The resampled signals, all having the same number of samples.</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.transforms.activity_image.ActivityImageTransforms.signal_samples">
+<span class="sig-name descname"><span class="pre">signal_samples</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">68</span></em><a class="headerlink" href="#minerva.transforms.activity_image.ActivityImageTransforms.signal_samples" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.transforms.activity_image.ActivityImageTransforms.signal_sequences">
+<span class="sig-name descname"><span class="pre">signal_sequences</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">9</span></em><a class="headerlink" href="#minerva.transforms.activity_image.ActivityImageTransforms.signal_sequences" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../index.html" class="btn btn-neutral float-left" title="minerva.transforms" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../random_transform/index.html" class="btn btn-neutral float-right" title="minerva.transforms.random_transform" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Unicamp.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

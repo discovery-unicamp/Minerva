@@ -1,0 +1,162 @@
+minerva.models.nets.image.deeplabv3
+===================================
+
+.. py:module:: minerva.models.nets.image.deeplabv3
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   minerva.models.nets.image.deeplabv3.DeepLabV3
+   minerva.models.nets.image.deeplabv3.DeepLabV3Backbone
+   minerva.models.nets.image.deeplabv3.DeepLabV3PredictionHead
+
+
+Module Contents
+---------------
+
+.. py:class:: DeepLabV3(backbone = None, pred_head = None, loss_fn = None, learning_rate = 0.001, num_classes = 6, train_metrics = None, val_metrics = None, test_metrics = None, optimizer = torch.optim.Adam, optimizer_kwargs = None, lr_scheduler = None, lr_scheduler_kwargs = None, output_shape = None)
+
+   Bases: :py:obj:`minerva.models.nets.base.SimpleSupervisedModel`
+
+
+   A DeeplabV3 with a ResNet50 backbone
+
+   References
+   ----------
+   Liang-Chieh Chen, George Papandreou, Florian Schroff, Hartwig Adam.
+   "Rethinking Atrous Convolution for Semantic Image Segmentation", 2017
+
+   Initializes a DeepLabV3 model.
+
+   Parameters
+   ----------
+   backbone: Optional[nn.Module]
+       The backbone network. Defaults to None, which will use a ResNet50
+       backbone.
+   pred_head: Optional[nn.Module]
+       The prediction head network. Defaults to None, which will use a
+       DeepLabV3PredictionHead with specified number of classes.
+   loss_fn: Optional[nn.Module]
+       The loss function. Defaults to None, which will use a
+       CrossEntropyLoss.
+   learning_rate: float
+       The learning rate for the optimizer. Defaults to 0.001.
+   num_classes: int
+       The number of classes for prediction. Defaults to 6.
+   train_metrics: Optional[Dict[str, Metric]]
+       The metrics to be computed during training. Defaults to None.
+   val_metrics: Optional[Dict[str, Metric]]
+       The metrics to be computed during validation. Defaults to None.
+   test_metrics: Optional[Dict[str, Metric]]
+       The metrics to be computed during testing. Defaults to None.
+   optimizer: type
+       Optimizer class to be instantiated. By default, it is set to
+       `torch.optim.Adam`. Should be a subclass of
+       `torch.optim.Optimizer` (e.g., `torch.optim.SGD`).
+   optimizer_kwargs : dict, optional
+       Additional kwargs passed to the optimizer constructor.
+   lr_scheduler : type, optional
+       Learning rate scheduler class to be instantiated. By default, it is
+       set to None, which means no scheduler will be used. Should be a
+       subclass of `torch.optim.lr_scheduler.LRScheduler` (e.g.,
+       `torch.optim.lr_scheduler.StepLR`).
+   lr_scheduler_kwargs : dict, optional
+       Additional kwargs passed to the scheduler constructor.
+   output_shape: Optional[Tuple[int, ...]]
+       The output shape of the model. If None, the output shape will be
+       the same as the input shape. Defaults to None. This is useful for
+       models that require a specific output shape, that is different from
+       the input shape.
+
+
+   .. py:method:: _loss_func(y_hat, y)
+
+      Calculate the loss between the output and the input data.
+
+      Parameters
+      ----------
+      y_hat : torch.Tensor
+          The output data from the forward pass.
+      y : torch.Tensor
+          The input data/label.
+
+      Returns
+      -------
+      torch.Tensor
+          The loss value.
+
+
+
+   .. py:method:: forward(x)
+
+      Perform a forward pass with the input data on the backbone model.
+
+      Parameters
+      ----------
+      x : torch.Tensor
+          The input data.
+
+      Returns
+      -------
+      torch.Tensor
+          The output data from the forward pass.
+
+
+
+   .. py:attribute:: output_shape
+      :value: None
+
+
+
+.. py:class:: DeepLabV3Backbone(num_classes = 6)
+
+   Bases: :py:obj:`torch.nn.Module`
+
+
+   A ResNet50 backbone for DeepLabV3
+
+   Initializes the DeepLabV3 model.
+
+   Parameters
+   ----------
+   num_classes: int
+       The number of classes for classification. Default is 6.
+
+
+   .. py:attribute:: RN50model
+
+
+   .. py:method:: forward(x)
+
+
+   .. py:method:: freeze_weights()
+
+
+   .. py:method:: unfreeze_weights()
+
+
+.. py:class:: DeepLabV3PredictionHead(in_channels = 2048, num_classes = 6, atrous_rates = (12, 24, 36))
+
+   Bases: :py:obj:`torch.nn.Sequential`
+
+
+   The prediction head for DeepLabV3
+
+   Initializes the DeepLabV3 model.
+
+   Parameters
+   ----------
+   in_channels: int
+       Number of input channels. Defaults to 2048.
+   num_classes: int
+       Number of output classes. Defaults to 6.
+   atrous_rates: Sequence[int]
+       A sequence of atrous rates for the ASPP module. Defaults to (12, 24, 36).
+
+
+   .. py:method:: forward(input)
+
+

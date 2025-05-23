@@ -1,0 +1,61 @@
+minerva.data.readers.csv_reader
+===============================
+
+.. py:module:: minerva.data.readers.csv_reader
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   minerva.data.readers.csv_reader.CSVReader
+
+
+Module Contents
+---------------
+
+.. py:class:: CSVReader(path, columns_to_select, cast_to = None, data_shape = None, reader_kwargs = None)
+
+   Bases: :py:obj:`minerva.data.readers.tabular_reader.TabularReader`
+
+
+   Base class for readers. Readers define an ordered collection of data and
+   provide methods to access it. This class primarily handles:
+
+   1. Definition of data structure and storage.
+   2. Reading data from the source.
+
+   The access is handled by the __getitem__ and __len__ methods, which should be
+   implemented by a subclass. Readers usually returns a single item at a time,
+   that can be a single image, a single label, etc.
+
+   Reader to select columns from a DataFrame and return them as a NumPy
+   array. The DataFrame is indexed by the row number. Each row of the
+   DataFrame is considered as a sample. Thus, the __getitem__ method will
+   return the columns of the DataFrame at the specified index as a NumPy
+   array.
+
+   Parameters
+   ----------
+   df : pd.DataFrame
+       The DataFrame to select the columns from. The DataFrame should have
+       the columns that are specified in the `columns_to_select` parameter.
+   columns_to_select : Union[str, list[str]]
+       A string or a list of strings used to select the columns from the
+       DataFrame. The string can be a regular expression pattern or a
+       column name. The columns that match the pattern will be selected.
+       Note that if columns_to_select is a list, the result is always a
+       numpy array with the columns in the same order as the list.
+       If the columns_to_select is a string, the result is a numpy array
+       if the selected columns are more than one, otherwise it is a single
+       value (which is not a numpy array).
+   cast_to : str, optional
+       Cast the selected columns to the specified data type. If None, the
+       data type of the columns will not be changed. (default is None)
+   data_shape : tuple[int, ...], optional
+       The shape of the data to be returned. If None, the data will be
+       returned as a 1D array. If provided, the data will be reshaped to
+       the specified shape. (default is None)
+
+

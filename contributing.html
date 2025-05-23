@@ -1,0 +1,317 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contributing to Minerva &mdash; minerva  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Programming Reference" href="api.html" />
+    <link rel="prev" title="Minerva Experimental Pipeline" href="notebooks/experiment_api_example.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            minerva
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="design.html">Minerva Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Examples and Tutorials</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Contributing to Minerva</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ground-rules">Ground Rules</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#issues">Issues</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#issue-pipeline">Issue Pipeline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#recommendations">Recommendations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pull-requests">Pull Requests</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#getting-started">Getting started</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#making-code-contributions">Making Code Contributions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#module-specific-guidelines">Module Specific Guidelines</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#models-module"><code class="docutils literal notranslate"><span class="pre">models</span></code> module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#data-module"><code class="docutils literal notranslate"><span class="pre">data</span></code> module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#losses-module"><code class="docutils literal notranslate"><span class="pre">losses</span></code> module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#transforms-module"><code class="docutils literal notranslate"><span class="pre">transforms</span></code> module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#analysis-module"><code class="docutils literal notranslate"><span class="pre">analysis</span></code> module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pipelines-module"><code class="docutils literal notranslate"><span class="pre">pipelines</span></code> module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#utils-module"><code class="docutils literal notranslate"><span class="pre">utils</span></code> module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#how-to-report-a-bug">How to report a bug</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#security-vulnerabilities">Security Vulnerabilities</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#other-bug-reports">Other Bug Reports</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#how-to-suggest-a-feature-or-enhancement">How to suggest a feature or enhancement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#code-review-process">Code review process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#community">Community</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">Programming Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">minerva</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Contributing to Minerva</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/contributing.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="contributing-to-minerva">
+<h1>Contributing to Minerva<a class="headerlink" href="#contributing-to-minerva" title="Link to this heading"></a></h1>
+<p>Please read this document carefully before contributing to Minerva. It contains important information about how to contribute to the project, the guidelines we follow and how to report bugs or suggest features.</p>
+<section id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Link to this heading"></a></h2>
+<p>First off, thank you for considering contributing to the project. It’s people like you that make Minerva such a great tool.</p>
+<p>Following the guidelines ensures that your contribution will be considered by the maintainers. It also helps you know what to expect from the project maintainers in return. The guidelines exist to help all of us work together in a more efficient way, creating a common language that we can all understand.</p>
+<p>Minerva is a tool that is constantly evolving, and we are always looking for ways to improve it. We are looking for contributions in bug fixes, new features, tests and documentation improvements. If you have any questions, please don’t hesitate to ask.</p>
+</section>
+<section id="ground-rules">
+<h2>Ground Rules<a class="headerlink" href="#ground-rules" title="Link to this heading"></a></h2>
+<p>First of all, make sure to follow our <a class="reference external" href="https://github.com/discovery-unicamp/Minerva/blob/main/CODE_OF_CONDUCT.md">Code of Conduct</a> and be respectful to all contributors and community members.</p>
+<section id="issues">
+<h3>Issues<a class="headerlink" href="#issues" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Bug reports</strong> should be as detailed as possible. Include the steps to reproduce the bug, the expected behavior and the actual behavior. If possible, include screenshots. There is a template available for bug reports. You should follow it as closely as possible.</p></li>
+<li><p><strong>Feature requests</strong> should be more concise. Include the problem you are facing, the solution you are thinking about and any other information that you think is relevant. There is also a template available for feature requests you should follow as close as possible.</p></li>
+<li><p><strong>Fix requests</strong> should be as detailed as possible. Fix requests should be used for small styling and cosmetic changes that don’t require a new feature to be implemented. Include the problem you are facing, the solution you are thinking about and any other information that you think is relevant. There is also a template available for fix requests you should follow as close as possible.</p></li>
+</ul>
+</section>
+<section id="issue-pipeline">
+<h3>Issue Pipeline<a class="headerlink" href="#issue-pipeline" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>New Issues</strong> are issues that have not been assigned to anyone yet. They need to be reviewed before being assigned to someone.</p></li>
+<li><p><strong>On Review</strong> are issues that got a slot at the weekly meeting. It means that the issue creator should be present at the meeting to discuss the issue.</p></li>
+<li><p><strong>Ready for Development</strong> are issues that have been reviewed and are ready to be developed. They can be assigned to anyone.</p></li>
+</ul>
+</section>
+<section id="recommendations">
+<h3>Recommendations<a class="headerlink" href="#recommendations" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Users are not allowed to assign other users to issues unless they are mentioned in the issue and have prior knowledge of the issue.</p></li>
+</ul>
+<p>Any other discussion should be done in the <a class="reference external" href="https://github.com/discovery-unicamp/Minerva-Dev/discussions">Discussions</a> tab.</p>
+</section>
+<section id="pull-requests">
+<h3>Pull Requests<a class="headerlink" href="#pull-requests" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Code changes</strong> should be tested and documented. If you are adding a new feature, make sure to include tests for it. If you are fixing a bug, make sure to include a test that reproduces the bug when possible.</p></li>
+<li><p><strong>Commit messages</strong> should be clear and concise. If you are fixing a bug, include the issue number in the commit message. If you are adding a new feature, include a brief description of it.</p></li>
+</ul>
+</section>
+</section>
+<section id="getting-started">
+<h2>Getting started<a class="headerlink" href="#getting-started" title="Link to this heading"></a></h2>
+<p>For changes bigger than one or two line fix:</p>
+<ol class="arabic simple">
+<li><p>Create a new fork for your changes</p></li>
+<li><p>Make the changes needed in this fork</p></li>
+<li><p>If you are ready to merge your code to the main make sure that:</p>
+<ol class="arabic simple">
+<li><p>You wrote tests for your changes</p></li>
+<li><p>All tests pass, new and old</p></li>
+<li><p>Your code is well documented</p></li>
+</ol>
+</li>
+<li><p>Make your PR</p></li>
+</ol>
+<p>Small contributions such as fixing spelling errors, where the content is small enough don’t need to be made from another fork.</p>
+<p>As a rule of thumb, changes are obvious fixes if they do not introduce any new functionality or creative thinking. As long as the change does not affect functionality, some likely examples include the following:</p>
+<ul class="simple">
+<li><p>Spelling / grammar fixes</p></li>
+<li><p>Typo correction, white space and formatting changes</p></li>
+<li><p>Comment clean up</p></li>
+<li><p>Bug fixes that change default return values or error codes stored in constants</p></li>
+<li><p>Adding logging messages or debugging output</p></li>
+<li><p>Changes to ‘metadata’ files like Gemfile, .gitignore, build scripts, etc.</p></li>
+<li><p>Moving source files from one directory or package to another</p></li>
+</ul>
+</section>
+<section id="making-code-contributions">
+<h2>Making Code Contributions<a class="headerlink" href="#making-code-contributions" title="Link to this heading"></a></h2>
+<p>Every code contribution should be made through a pull request. This applies to all changes, including bug fixes and new features. This allows the maintainers to review the code and discuss it with you before merging it. It also allows the community to discuss the changes and learn from them.</p>
+<p>You code should follow the following guidelines:</p>
+<ul class="simple">
+<li><p><strong>Documentation</strong>: Make sure to document your code. This includes docstrings for functions and classes, as well as comments in the code when necessary. For the documentation, we use the numpydoc style. Also make sure to update the <code class="docutils literal notranslate"><span class="pre">README</span></code> file or other metadata files if necessary.</p></li>
+<li><p><strong>Tests</strong>: Make sure to write tests for your code. We use <code class="docutils literal notranslate"><span class="pre">pytest</span></code> for testing. You can run the tests with <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">pytest</span></code> in the root directory of the project.</p></li>
+<li><p><strong>Commit messages</strong>: Make sure to write clear and concise commit messages. Include the issue number if you are fixing a bug.</p></li>
+<li><p><strong>Dependencies</strong>: Make sure to include any new dependencies in the <code class="docutils literal notranslate"><span class="pre">requirements.txt</span></code> and <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> file. If you are adding a new dependency, make sure to include a brief description of why it is needed.</p></li>
+<li><p><strong>Code formatting</strong>: Make sure to run a code formatter on your code before submitting the PR. We use <code class="docutils literal notranslate"><span class="pre">black</span></code> for this.</p></li>
+</ul>
+<p>You should also try to avoid rewriting functionality, or adding dependencies for functionalities that are already present on one of our dependencies. This would make the codebase more bloated and harder to maintain.</p>
+<p>If you are contributing code that you did not write, you must ensure that the code is licensed under an <a class="reference external" href="https://opensource.org/licenses/MIT">MIT License</a>. If the code is not licensed under an MIT License, you must get permission from the original author to license the code under the MIT License. Also make sure to credit the original author in a comment in the code.</p>
+<section id="module-specific-guidelines">
+<h3>Module Specific Guidelines<a class="headerlink" href="#module-specific-guidelines" title="Link to this heading"></a></h3>
+<section id="models-module">
+<h4><code class="docutils literal notranslate"><span class="pre">models</span></code> module<a class="headerlink" href="#models-module" title="Link to this heading"></a></h4>
+<p>Our models are based on the <code class="docutils literal notranslate"><span class="pre">lightning.LightningModule</span></code> class. This class is a PyTorch Lightning module that simplifies the training process. You should follow the PyTorch Lightning guidelines for writing your models. You can find more information <a class="reference external" href="https://pytorch-lightning.readthedocs.io/en/latest/common/lightning_module.html">here</a>.</p>
+<p>As a rule of thumb, all front facing model classes should inherit from the <code class="docutils literal notranslate"><span class="pre">LightningModule</span></code> class. Subclasses of this class can be only <code class="docutils literal notranslate"><span class="pre">torch.nn.Module</span></code> classes.</p>
+<p>In the same way, all front facing model classes should have default parameters for the <code class="docutils literal notranslate"><span class="pre">__init__</span></code> method. This classes also should be able to receive a <code class="docutils literal notranslate"><span class="pre">config</span></code> parameter that will be used to configure the model. The config parameter should be a dictionary with the parameters needed to configure the model.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">models</span></code> module is divided into <code class="docutils literal notranslate"><span class="pre">nets</span></code> and <code class="docutils literal notranslate"><span class="pre">ssl</span></code>:</p>
+<ul class="simple">
+<li><p>The <code class="docutils literal notranslate"><span class="pre">nets</span></code> module contains model architectures that can be trained in a supervised way.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">ssl</span></code> module contains logic and implementations for self-supervised learning techniques.</p></li>
+</ul>
+<p>In a general way, you should be able to use a <code class="docutils literal notranslate"><span class="pre">nets</span></code> model in to a <code class="docutils literal notranslate"><span class="pre">ssl</span></code> implementation to train a model in a self-supervised way.</p>
+<p>We strongly recommend that, when possible, you divide your model into a backbone and a head. This division allows for more flexibility when using the model in different tasks and with different ssl techniques.</p>
+<p>Moreover both <code class="docutils literal notranslate"><span class="pre">nets</span></code> and <code class="docutils literal notranslate"><span class="pre">ssl</span></code> are divided into the model’s use area (e.g. image, time series, etc.). This division allows for a more organized codebase and easier maintenance. If you are adding a new model, make sure to add it to the correct area. If the model does not fit in any of the areas, you can create a new one (make sure to justify it on your PR). To determine the area of the model you should follow the area used in its original proposal or the area where it is most used.</p>
+</section>
+<section id="data-module">
+<h4><code class="docutils literal notranslate"><span class="pre">data</span></code> module<a class="headerlink" href="#data-module" title="Link to this heading"></a></h4>
+<p>The <code class="docutils literal notranslate"><span class="pre">data</span></code> module is responsible for handling the data used by the models. This module is divided into <code class="docutils literal notranslate"><span class="pre">datasets</span></code>, <code class="docutils literal notranslate"><span class="pre">readers</span></code> and <code class="docutils literal notranslate"><span class="pre">data_modules</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">readers</span></code> are the lowest level in our data pipeline. It is responsible to read the right data requested by a dataset in it’s format and return it in a format that can be used. Every reader should know both the method for reading the data from the file it self and the file structure of the data if applicable. Every reader should inherit from the <code class="docutils literal notranslate"><span class="pre">_Reader</span></code> class.</p>
+<p><code class="docutils literal notranslate"><span class="pre">datasets</span></code> are the middle level in our data pipeline. It is composed by one or more readers and is responsible to transform the data read by the readers if necessary. Datasets usually are composed by a slice, of partition of the data (e.g. train, validation, test). The datasets and its partitions will be created and managed by a data module. Every dataset should inherit from the <code class="docutils literal notranslate"><span class="pre">torch.utils.data.Dataset</span></code> class.</p>
+<p><code class="docutils literal notranslate"><span class="pre">data_modules</span></code> are the front facing classes of the data pipeline. It is responsible for receiving all the parameters needed to create all datasets and readers. Data modules should inherit from the <code class="docutils literal notranslate"><span class="pre">lightning.LightningDataModule</span></code> class. This class is a PyTorch Lightning class that simplifies the data loading process. You should follow the PyTorch Lightning guidelines for writing your data modules. You can find more information <a class="reference external" href="https://pytorch-lightning.readthedocs.io/en/latest/common/lightning_module.html">here</a>.</p>
+</section>
+<section id="losses-module">
+<h4><code class="docutils literal notranslate"><span class="pre">losses</span></code> module<a class="headerlink" href="#losses-module" title="Link to this heading"></a></h4>
+<p>The <code class="docutils literal notranslate"><span class="pre">losses</span></code> module houses loss functions that can be used by the modules. As stated before, you should avoid rewriting functionality that is already present in one of our dependencies. If you are adding a new loss function, make sure to include a brief description of why it is needed. Every loss function should inherit from the <code class="docutils literal notranslate"><span class="pre">torch.nn.modules.loss._Loss</span></code> class.</p>
+</section>
+<section id="transforms-module">
+<h4><code class="docutils literal notranslate"><span class="pre">transforms</span></code> module<a class="headerlink" href="#transforms-module" title="Link to this heading"></a></h4>
+<p>The <code class="docutils literal notranslate"><span class="pre">transforms</span></code> module houses transformations that can be used by a dataset. Every transformation should inherit from our <code class="docutils literal notranslate"><span class="pre">_Transform</span></code> class. If you are adding a new transformation, make sure to include a brief description of why it is needed.</p>
+</section>
+<section id="analysis-module">
+<h4><code class="docutils literal notranslate"><span class="pre">analysis</span></code> module<a class="headerlink" href="#analysis-module" title="Link to this heading"></a></h4>
+<p>The <code class="docutils literal notranslate"><span class="pre">analysis</span></code> module have both metrics and visualizations that can be used to analyze the models. If you are adding a new metric or visualization, make sure to include a brief description of why it is needed. Again you should avoid rewriting functionality that is already present in one of our dependencies. All metrics should inherit from the <code class="docutils literal notranslate"><span class="pre">torchmetrics.Metric</span></code> class.</p>
+</section>
+<section id="pipelines-module">
+<h4><code class="docutils literal notranslate"><span class="pre">pipelines</span></code> module<a class="headerlink" href="#pipelines-module" title="Link to this heading"></a></h4>
+<p>Pipelines are the core of minerva. They are responsible for training and evaluating the models. Pipelines should be able to receive a config file that will be used to configure the pipeline. The config file should be a yaml file with the parameters needed to configure the pipeline. All pipelines should inherit from the our <code class="docutils literal notranslate"><span class="pre">Pipeline</span></code> class.</p>
+<p>Pipelines are meant to be reusable and are usually complex. If you are adding a new pipeline, make sure to include a description of why it is needed, how it works and why you can’t accomplish the same thing with existing ones.</p>
+</section>
+<section id="utils-module">
+<h4><code class="docutils literal notranslate"><span class="pre">utils</span></code> module<a class="headerlink" href="#utils-module" title="Link to this heading"></a></h4>
+<p>The <code class="docutils literal notranslate"><span class="pre">utils</span></code> module is a temporary module that houses functions that don’t fit in any of the other modules. ‘<code class="docutils literal notranslate"><span class="pre">utils</span></code> will cease to exist in the future, so if you are adding a new function to it, make sure to justify it on your PR.</p>
+</section>
+</section>
+</section>
+<section id="how-to-report-a-bug">
+<h2>How to report a bug<a class="headerlink" href="#how-to-report-a-bug" title="Link to this heading"></a></h2>
+<section id="security-vulnerabilities">
+<h3>Security Vulnerabilities<a class="headerlink" href="#security-vulnerabilities" title="Link to this heading"></a></h3>
+<p>If you find a security vulnerability, <strong>do NOT</strong> open an issue. Contact one of the core maintainers privately or email <a class="reference external" href="mailto:edson&#37;&#52;&#48;ic&#46;unicamp&#46;br">edson<span>&#64;</span>ic<span>&#46;</span>unicamp<span>&#46;</span>br</a> instead.</p>
+<p>In order to determine whether you are dealing with a security issue, ask yourself these two questions:</p>
+<ul class="simple">
+<li><p>Can I access something that’s not mine, or something I shouldn’t have access to?</p></li>
+<li><p>Can I disable something for other people?</p></li>
+</ul>
+<p>If the answer to either of those two questions are “yes”, then you’re probably dealing with a security issue. Note that even if you answer “no” to both questions, you may still be dealing with a security issue, so if you’re unsure, just contact us.</p>
+</section>
+<section id="other-bug-reports">
+<h3>Other Bug Reports<a class="headerlink" href="#other-bug-reports" title="Link to this heading"></a></h3>
+<p>You can even include a template so people can just copy-paste (again, less work for you).</p>
+<p>When filing an issue, make sure to answer these five questions:</p>
+<ol class="arabic simple">
+<li><p>What version of Python are you using?</p></li>
+<li><p>What operating system and processor architecture are you using?</p></li>
+<li><p>What did you do?</p></li>
+<li><p>What did you expect to see?</p></li>
+<li><p>What did you see instead?</p></li>
+</ol>
+<p>Other than these questions, if you think any other information may be useful feel free to include it.</p>
+<p>General questions should go to the <a class="reference external" href="https://github.com/discovery-unicamp/Minerva/discussions">Discussions</a> tab instead of the issue tracker. The community there will answer or ask you to file an issue if you’ve tripped over a bug.</p>
+</section>
+</section>
+<section id="how-to-suggest-a-feature-or-enhancement">
+<h2>How to suggest a feature or enhancement<a class="headerlink" href="#how-to-suggest-a-feature-or-enhancement" title="Link to this heading"></a></h2>
+<p>One of our philosophies is to implement the least redundant features possible, without making our dependencies bloated. So, if there is a function within the scope of one of our dependencies that already solves what you are trying to implement you should prioritize it.</p>
+<p>If you wish for a feature that isn’t currently available in Minerva, you’re likely not the only one. Many users share similar needs, especially since Minerva is still in its early stages. Please open an issue on our GitHub issues list, detailing the feature you’d like to see, why you need it, and how it should work.</p>
+</section>
+<section id="code-review-process">
+<h2>Code review process<a class="headerlink" href="#code-review-process" title="Link to this heading"></a></h2>
+<p>As the core team is composed mostly of postgraduate students, we may take some time to review your PR. We will do our best to review it as soon as possible, but we may take a few days to do so. Features deemed as core to the project or critical bug fixes will be reviewed first.</p>
+</section>
+<section id="community">
+<h2>Community<a class="headerlink" href="#community" title="Link to this heading"></a></h2>
+<p>If you have any questions, ideas or other topic to discuss, feel free to use the <a class="reference external" href="https://github.com/discovery-unicamp/Minerva/discussions">Discussions</a> tab. We will be happy to help you.</p>
+<p>We would like to thank you for your interest in contributing to Minerva. We are looking forward to your contributions.</p>
+<p>The Minerva Team.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="notebooks/experiment_api_example.html" class="btn btn-neutral float-left" title="Minerva Experimental Pipeline" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="api.html" class="btn btn-neutral float-right" title="Programming Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Unicamp.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

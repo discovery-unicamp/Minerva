@@ -1,0 +1,76 @@
+minerva.models.nets.dcnn
+========================
+
+.. py:module:: minerva.models.nets.dcnn
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   minerva.models.nets.dcnn.DCNN
+
+
+Module Contents
+---------------
+
+.. py:class:: DCNN(num_classes=6)
+
+   Bases: :py:obj:`torch.nn.Module`
+
+
+   A Deep Convolutional Neural Network (DCNN) for Human Activity Recognition (HAR)
+   using wearable sensors, based on the methodology presented in the paper
+   "Human Activity Recognition using Wearable Sensors by Deep Convolutional Neural Networks."
+
+   This DCNN architecture is designed to process 2D activity images generated from
+   wearable sensor signals and classify them into different activity categories.
+
+
+   Initializes the DCNN with the given number of output classes.
+
+   Parameters:
+   -----------
+   num_classes: int, optional
+       The number of activity classes. Defaults to 6.
+
+
+   .. py:attribute:: conv1
+
+
+   .. py:attribute:: conv2
+
+
+   .. py:attribute:: fc1
+
+
+   .. py:attribute:: fc2
+
+
+   .. py:method:: forward(x)
+
+      Defines the forward pass of the DCNN.
+
+      This method processes the input 2D activity images through a series of
+      convolutional and pooling layers, followed by fully connected layers
+      to produce the final class probabilities.
+
+      Parameters:
+      -----------
+      x: torch.Tensor
+          The input tensor representing the batch of 2D activity images. Shape should be (batch_size, 1, height, width).
+
+      Returns:
+      --------
+      torch.Tensor:
+          The output tensor containing the class probabilities for each input. Shape will be (batch_size, num_classes).
+
+
+
+   .. py:attribute:: pool1
+
+
+   .. py:attribute:: pool2
+
+

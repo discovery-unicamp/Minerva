@@ -1,0 +1,217 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Installation &mdash; minerva  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Getting Started" href="getting_started.html" />
+    <link rel="prev" title="Minerva" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            minerva
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#install-via-pypi">Install via PyPI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#install-locally">Install Locally</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#using-minerva-devcontainer-for-developing-with-minerva">Using Minerva DevContainer for developing with Minerva</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#prerequisites">Prerequisites</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#for-gpu-support">For GPU support</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#getting-started">Getting Started</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#testing">Testing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#what-s-next">What’s Next?</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="design.html">Minerva Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Examples and Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to Minerva</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">Programming Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">minerva</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Installation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/installation.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="installation">
+<h1>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h1>
+<p>Minerva is currently under development but is already usable and have a development release available at <a class="reference external" href="https://pypi.org/project/minerva-ml/">PyPI</a>.
+You can install minerva for development or production use.</p>
+<p>For production use, we recommend using the latest stable release available at <a class="reference external" href="https://pypi.org/project/minerva-ml/">PyPI</a>.
+For development, you can use the latest development version available at <a class="reference external" href="https://github.com/discovery-unicamp/Minerva.git">GitHub</a> using pip or by installing the VSCode DevContainer (recommended).</p>
+<section id="install-via-pypi">
+<h2>Install via PyPI<a class="headerlink" href="#install-via-pypi" title="Link to this heading"></a></h2>
+<p>To install Minerva, you can use pip:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>minerva-ml
+</pre></div>
+</div>
+<p>This will install the latest version of Minerva and all its dependencies.</p>
+</section>
+<section id="install-locally">
+<h2>Install Locally<a class="headerlink" href="#install-locally" title="Link to this heading"></a></h2>
+<ol class="arabic simple">
+<li><p>Clone the repository:</p></li>
+</ol>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/discovery-unicamp/Minerva.git
+</pre></div>
+</div>
+<ol class="arabic simple" start="2">
+<li><p>And then navigate to the project directory and install the dependencies:</p></li>
+</ol>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>Minerva
+pip<span class="w"> </span>install<span class="w"> </span>.
+</pre></div>
+</div>
+</section>
+<section id="using-minerva-devcontainer-for-developing-with-minerva">
+<h2>Using Minerva DevContainer for developing with Minerva<a class="headerlink" href="#using-minerva-devcontainer-for-developing-with-minerva" title="Link to this heading"></a></h2>
+<p>Using the Minerva DevContainer is the recommended way to develop with Minerva. It provides a consistent development environment for all developers and ensures that all dependencies are installed and configured correctly.</p>
+<section id="prerequisites">
+<h3>Prerequisites<a class="headerlink" href="#prerequisites" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><a class="reference external" href="https://www.docker.com/get-started">Docker</a></p></li>
+<li><p><a class="reference external" href="https://code.visualstudio.com/">Visual Studio Code</a></p></li>
+<li><p><a class="reference external" href="https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers">VSCode Dev Containers Extension</a></p></li>
+</ul>
+<section id="for-gpu-support">
+<h4>For GPU support<a class="headerlink" href="#for-gpu-support" title="Link to this heading"></a></h4>
+<ol class="arabic simple">
+<li><p>If you intent to use GPU resources, first ensure you have NVIDIA drivers installed on your system. Check if <code class="docutils literal notranslate"><span class="pre">nvidia-smi</span></code> works to verify your GPU setup.</p></li>
+<li><p>Install <a class="reference external" href="https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html#docker">NVIDIA Container Toolkit</a> to enable GPU support in Docker.</p></li>
+<li><p>After installing the toolkit, restart Docker. Then, test if GPU support is enabled by running</p></li>
+</ol>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>--runtime<span class="o">=</span>nvidia<span class="w"> </span>--gpus<span class="w"> </span>all<span class="w"> </span>nvidia/cuda:11.6.2-base-ubuntu20.04<span class="w"> </span>nvidia-smi
+</pre></div>
+</div>
+<p>If you see the output of <code class="docutils literal notranslate"><span class="pre">nvidia-smi</span></code>, you have successfully enabled GPU support in Docker.</p>
+</section>
+</section>
+<section id="getting-started">
+<h3>Getting Started<a class="headerlink" href="#getting-started" title="Link to this heading"></a></h3>
+<ol class="arabic simple">
+<li><p>Clone the Minerva repository</p></li>
+</ol>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/discovery-unicamp/Minerva.git
+</pre></div>
+</div>
+<ol class="arabic simple" start="2">
+<li><p>Open VSCode and open the cloned repository folder (Minerva) as your workspace.</p></li>
+<li><p>Once the workspace is open, use the command Palette (<code class="docutils literal notranslate"><span class="pre">Ctrl+Shift+P</span></code>, in Linux or <code class="docutils literal notranslate"><span class="pre">Cmd+Shift+P</span></code>, in macOS) and select <code class="docutils literal notranslate"><span class="pre">Dev</span> <span class="pre">Container:</span> <span class="pre">Rebuild</span> <span class="pre">and</span> <span class="pre">Reopen</span> <span class="pre">in</span> <span class="pre">Container</span></code>.</p></li>
+<li><p>The DevContainer will start building. This may take a few minutes the first time you run it. Next time you open the workspace, it will be much faster.</p></li>
+<li><p>Every time the container is build the <code class="docutils literal notranslate"><span class="pre">post_start.sh</span></code> script will be executed. This script will install the project dependencies and configure the environment.</p></li>
+<li><p>After the container is built, you will be inside the container. You can now start developing with Minerva.</p></li>
+</ol>
+</section>
+</section>
+<section id="testing">
+<h2>Testing<a class="headerlink" href="#testing" title="Link to this heading"></a></h2>
+<p>Once you have Minerva installed, you can use it as any other Python package using:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">minerva</span>
+</pre></div>
+</div>
+<p>You also can run the unit tests using the following command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pytest<span class="w"> </span>tests/
+</pre></div>
+</div>
+</section>
+<section id="what-s-next">
+<h2>What’s Next?<a class="headerlink" href="#what-s-next" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>If you are new to Minerva, check the <a class="reference internal" href="getting_started.html"><span class="std std-doc">getting started guide</span></a>.</p></li>
+<li><p>If you want to contribute to Minerva, check the <a class="reference internal" href="contributing.html"><span class="std std-doc">contribution guide</span></a>.</p></li>
+<li><p>If you have any questions or need help, feel free to open an issue in the <a class="reference external" href="https://github.com/discovery-unicamp/Minerva/issues">GitHub repository</a></p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Minerva" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="getting_started.html" class="btn btn-neutral float-right" title="Getting Started" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Unicamp.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

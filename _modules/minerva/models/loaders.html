@@ -1,0 +1,528 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>minerva.models.loaders &mdash; minerva  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            minerva
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../design.html">Minerva Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials.html">Examples and Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing to Minerva</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">Programming Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">minerva</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">minerva.models.loaders</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for minerva.models.loaders</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">OrderedDict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">minerva.utils.typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">PathLike</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">wrapt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+
+
+<div class="viewcode-block" id="LoadableModule">
+<a class="viewcode-back" href="../../../autoapi/minerva/models/loaders/index.html#minerva.models.loaders.LoadableModule">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LoadableModule</span><span class="p">:</span>
+    <span class="c1"># Interface for loadable modules. This is a dummy class that should be</span>
+    <span class="c1"># inherited by classes that can be loaded from a file.</span>
+    <span class="c1"># Allows type hinting for classes that can be loaded from a file.</span>
+    <span class="k">pass</span></div>
+
+
+
+<div class="viewcode-block" id="ModuleExtractor">
+<a class="viewcode-back" href="../../../autoapi/minerva/models/loaders/index.html#minerva.models.loaders.ModuleExtractor">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ModuleExtractor</span><span class="p">:</span>
+    <span class="c1"># Interface for module extractors. This is a dummy class that should be</span>
+    <span class="c1"># inherited by classes that can extract modules from a model.</span>
+    <span class="c1"># Allows type hinting for classes that can extract modules from a model.</span>
+    <span class="c1"># User should implement the __call__ method.</span>
+
+<div class="viewcode-block" id="ModuleExtractor.__call__">
+<a class="viewcode-back" href="../../../autoapi/minerva/models/loaders/index.html#minerva.models.loaders.ModuleExtractor.__call__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ExtractedModel">
+<a class="viewcode-back" href="../../../autoapi/minerva/models/loaders/index.html#minerva.models.loaders.ExtractedModel">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ExtractedModel</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">ModuleDict</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Class representing a submodel extracted from a larger model.</span>
+<span class="sd">    This class runs forward pass through all the modules in the model, in order</span>
+<span class="sd">    they were added (as OrderedDict).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ExtractedModel.forward">
+<a class="viewcode-back" href="../../../autoapi/minerva/models/loaders/index.html#minerva.models.loaders.ExtractedModel.forward">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Runs forward pass through all the modules in the model, in order.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        x : Any</span>
+<span class="sd">            The input to forward pass through the model.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Any</span>
+<span class="sd">            The output of the forward pass through the model, after passing</span>
+<span class="sd">            through all the modules.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">module</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">module</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">x</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="IntermediateLayerGetter">
+<a class="viewcode-back" href="../../../autoapi/minerva/models/loaders/index.html#minerva.models.loaders.IntermediateLayerGetter">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">IntermediateLayerGetter</span><span class="p">(</span><span class="n">ModuleExtractor</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;This class extracts intermediate layers from a model and create a new</span>
+<span class="sd">    ExtractedModel with the extracted layers. The ExtractedModel allows</span>
+<span class="sd">    performing a foward pass though extracted layers. Note that, if the model</span>
+<span class="sd">    that will be extracted follows a complex structure forward  logic instead</span>
+<span class="sd">    of a simple sequential logic, this class may not work as expected.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layers</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]]):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Extracts intermediate layers from a model and create a new</span>
+<span class="sd">        ExtractedModel with the extracted layers, in order they were extracted.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        layers : Union[List[str], Dict[str, str], List[Tuple[str, str]]</span>
+<span class="sd">            This parameter can be:</span>
+
+<span class="sd">            - A list of strings corresponding to the names of the layers to be</span>
+<span class="sd">                extracted from the model. In this case, the names of the layers</span>
+<span class="sd">                in the ExtractedModel will be the same as the names of the</span>
+<span class="sd">                layers in the model.</span>
+
+<span class="sd">            - A list of tuples with two strings, the first being the name of</span>
+<span class="sd">                the layer in the model and the second being the name of the</span>
+<span class="sd">                layer in the ExtractedModel. In this case, the names of the</span>
+<span class="sd">                layers in the ExtractedModel will be the second element of the</span>
+<span class="sd">                tuples. This is the only option allowing repeating extracted</span>
+<span class="sd">                layers, which is particularly useful when we want to repeat</span>
+<span class="sd">                non-trainable layers, such as normalization, pooling, and</span>
+<span class="sd">                activation layers.</span>
+
+<span class="sd">            - A dictionary with the keys being the names of the layers in the</span>
+<span class="sd">                model and the values being the names of the layers in the</span>
+<span class="sd">                ExtractedModel. In this case, the names of the layers in the</span>
+<span class="sd">                ExtractedModel will be the values of the dictionary</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">            - The name of layers to be extracted can be a regular expression.</span>
+
+<span class="sd">            - The layers will be extracted in the order they are passed in the</span>
+<span class="sd">                layers parameter or in the dictionary keys.</span>
+
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            - If the layers parameter is not a list of strings or a list of</span>
+<span class="sd">            tuples.</span>
+
+<span class="sd">            - If the layers parameter is an empty list.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">layers</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No layers to extract.&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">layers</span> <span class="o">=</span> <span class="n">layers</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">layers</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">layers</span> <span class="o">=</span> <span class="p">[(</span><span class="n">name</span><span class="p">,</span> <span class="n">new_name</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">new_name</span> <span class="ow">in</span> <span class="n">layers</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">layers</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">layers</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">layers</span> <span class="o">=</span> <span class="p">[(</span><span class="n">name</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">layers</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">layers</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">Iterable</span><span class="p">):</span>
+                <span class="c1"># self.layers = layers</span>
+                <span class="k">pass</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;Invalid type for layers parameter. Must be a list of strings or a list of tuples.&quot;</span>
+                <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Invalid type for layers parameter. Must be a list of strings or a list of tuples.&quot;</span>
+            <span class="p">)</span>
+
+<div class="viewcode-block" id="IntermediateLayerGetter.__call__">
+<a class="viewcode-back" href="../../../autoapi/minerva/models/loaders/index.html#minerva.models.loaders.IntermediateLayerGetter.__call__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ExtractedModel</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Extracts intermediate layers from a model and create a new</span>
+<span class="sd">        ExtractedModel with the extracted layers, in order they were extracted,</span>
+<span class="sd">        that is, the order in which they are in the model.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        model : torch.nn.Module</span>
+<span class="sd">            The model from which the layers will be extracted.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        torch.nn.Module</span>
+<span class="sd">            _description_</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Extract the layers from the model</span>
+        <span class="n">layers</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">layer_name</span><span class="p">,</span> <span class="n">new_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">:</span>
+            <span class="n">found</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">module</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">named_children</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">layer_name</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+                    <span class="n">layers</span><span class="p">[</span><span class="n">new_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">module</span>
+                    <span class="n">found</span> <span class="o">=</span> <span class="kc">True</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">found</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Layer &#39;</span><span class="si">{</span><span class="n">layer_name</span><span class="si">}</span><span class="s2">&#39; not found in model.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Return a new ExtractedModel with the extracted layers</span>
+        <span class="k">return</span> <span class="n">ExtractedModel</span><span class="p">(</span><span class="n">layers</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="FromPretrained">
+<a class="viewcode-back" href="../../../autoapi/minerva/models/loaders/index.html#minerva.models.loaders.FromPretrained">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">FromPretrained</span><span class="p">(</span><span class="n">wrapt</span><span class="o">.</span><span class="n">ObjectProxy</span><span class="p">,</span> <span class="n">LoadableModule</span><span class="p">):</span>
+    <span class="c1"># Your docstrings and previous code remain unchanged...</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">model</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>
+        <span class="n">ckpt_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">PathLike</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">filter_keys</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">keys_to_rename</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">strict</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">ckpt_key</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;state_dict&quot;</span><span class="p">,</span>
+        <span class="n">extractor</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ModuleExtractor</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">error_on_missing_keys</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">ckpt_load_weights_only</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load a model from a checkpoint file and wrap it in a FromPretrained</span>
+<span class="sd">        object. The FromPretrained object acts as a proxy to the model, allowing</span>
+<span class="sd">        to call it as if it was the original model. All the attributes and</span>
+<span class="sd">        methods of the model are accessible through the FromPretrained object</span>
+<span class="sd">        directly.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        model : torch.nn.Module</span>
+<span class="sd">            The model to be loaded (initialized randomly).</span>
+<span class="sd">        ckpt_path : Optional[PathLike], optional</span>
+<span class="sd">            The path to the checkpoint file from which the model will be loaded.</span>
+<span class="sd">            If None, the model will be loaded without any state_dict, that is,</span>
+<span class="sd">            nothing will be done to the model, it will remain as it is. By</span>
+<span class="sd">            default None</span>
+<span class="sd">        filter_keys : Optional[List[str]], optional</span>
+<span class="sd">            List of regular expressions to filter keys from the state_dict.</span>
+<span class="sd">            Only keys that match any of the regular expressions will be kept.</span>
+<span class="sd">            If None, all keys will be kept. By default None.</span>
+<span class="sd">        keys_to_rename : Optional[Dict[str, str]], optional</span>
+<span class="sd">            A dictionary with keys being regular expressions and values being</span>
+<span class="sd">            prefixes to be added to the keys that match the regular expressions.</span>
+<span class="sd">            If prefix is an empty string, the matched part of the key will be</span>
+<span class="sd">            removed. The keys that do not match any regular expression will</span>
+<span class="sd">            remain the same. If a key matches multiple regular expressions, the</span>
+<span class="sd">            first one will be used. Finally, if a empty string is used as key,</span>
+<span class="sd">            all keys will have the prefix added (this have priority over other</span>
+<span class="sd">            keys). By default None</span>
+<span class="sd">        strict : bool, optional</span>
+<span class="sd">            If True, the state_dict must match the keys of the model exactly.</span>
+<span class="sd">            If False, the state_dict can have extra keys that will be ignored.</span>
+<span class="sd">            By default False</span>
+<span class="sd">        ckpt_key : Optional[str], optional</span>
+<span class="sd">            The key in the checkpoint file where the state_dict is stored. If</span>
+<span class="sd">            None, the whole checkpoint will be used as state_dict. Else, the</span>
+<span class="sd">            value of the key will be used as state_dict. By default &quot;state_dict&quot;.</span>
+<span class="sd">        extractor : Optional[ModuleExtractor], optional</span>
+<span class="sd">            Once model is loaded, the extractor will be called with the model</span>
+<span class="sd">            as argument. The extractor should return the desired submodel (for</span>
+<span class="sd">            instance, without some final layers). By default None</span>
+<span class="sd">        error_on_missing_keys : bool, optional</span>
+<span class="sd">            If True, raise an error if some keys are missing in the state_dict</span>
+<span class="sd">            when loading the model. If False, ignore missing keys.</span>
+<span class="sd">            By default True</span>
+<span class="sd">        ckpt_load_weights_only : bool, optional</span>
+<span class="sd">            If True, load only the weights from the checkpoint. If False, load</span>
+<span class="sd">            the whole checkpoint. By default True</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__wrapped__</span> <span class="o">=</span> <span class="n">model</span>
+        <span class="k">if</span> <span class="n">ckpt_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Load the state_dict from the checkpoint</span>
+            <span class="n">ckpt</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span>
+                <span class="n">ckpt_path</span><span class="p">,</span>
+                <span class="n">map_location</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span><span class="p">,</span>
+                <span class="n">weights_only</span><span class="o">=</span><span class="n">ckpt_load_weights_only</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="c1"># Get the state_dict from the checkpoint</span>
+            <span class="k">if</span> <span class="n">ckpt_key</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">state_dict</span> <span class="o">=</span> <span class="n">ckpt</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ckpt_key</span><span class="p">,</span> <span class="n">ckpt</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">state_dict</span> <span class="o">=</span> <span class="n">ckpt</span>
+
+            <span class="c1"># Filter keys if needed</span>
+            <span class="k">if</span> <span class="n">filter_keys</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">d</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+                <span class="c1"># Iterate over all keys in the state_dict</span>
+                <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">state_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="c1"># Check if key name matches any of the filter keys</span>
+                    <span class="c1"># If it does, add it to the new state_dict (and break)</span>
+                    <span class="c1"># Thus, if multiple filter keys match the same key, the</span>
+                    <span class="c1">#   first one will be used</span>
+                    <span class="c1"># If no filter matches, the key will be ignored (not added)</span>
+                    <span class="k">for</span> <span class="n">pattern</span> <span class="ow">in</span> <span class="n">filter_keys</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">pattern</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+                            <span class="n">d</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+                            <span class="k">break</span>
+
+                <span class="c1"># Update the state_dict</span>
+                <span class="n">state_dict</span> <span class="o">=</span> <span class="n">d</span>
+
+            <span class="c1"># Rename keys with prefix</span>
+            <span class="k">if</span> <span class="n">keys_to_rename</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Performing key renaming with: </span><span class="si">{</span><span class="n">keys_to_rename</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">new_state_dict</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+                <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">state_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="n">new_k</span> <span class="o">=</span> <span class="n">k</span>
+                    <span class="k">if</span> <span class="s2">&quot;&quot;</span> <span class="ow">in</span> <span class="n">keys_to_rename</span><span class="p">:</span>
+                        <span class="n">new_k</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">keys_to_rename</span><span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">]</span><span class="si">}{</span><span class="n">k</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="c1"># Iterate over all keys to rename. If a key matches the</span>
+                        <span class="c1">#  regular expression, add the prefix to the key</span>
+                        <span class="c1">#  and break. Else keep the key as it is.</span>
+                        <span class="k">for</span> <span class="n">old_key</span><span class="p">,</span> <span class="n">new_prefix</span> <span class="ow">in</span> <span class="n">keys_to_rename</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                            <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">old_key</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+                                <span class="c1"># If the new prefix is an empty string, all keys</span>
+                                <span class="c1">#  we will remove the matched part of the key</span>
+                                <span class="k">if</span> <span class="n">new_prefix</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+                                    <span class="n">new_k</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="n">old_key</span><span class="p">,</span> <span class="n">new_prefix</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+                                    <span class="k">break</span>
+                                <span class="c1"># If the new prefix is not an empty string, we</span>
+                                <span class="c1">#  will add the prefix to the key</span>
+                                <span class="k">else</span><span class="p">:</span>
+                                    <span class="c1"># new_k = f&quot;{new_prefix}{k}&quot;</span>
+                                    <span class="n">new_k</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="n">old_key</span><span class="p">,</span> <span class="n">new_prefix</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+                                    <span class="k">break</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="k">continue</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">Renaming key: </span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2"> -&gt; </span><span class="si">{</span><span class="n">new_k</span><span class="si">}</span><span class="s2"> (changed: </span><span class="si">{</span><span class="n">k</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">new_k</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+                    <span class="n">new_state_dict</span><span class="p">[</span><span class="n">new_k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+
+                <span class="n">state_dict</span> <span class="o">=</span> <span class="n">new_state_dict</span>
+
+            <span class="c1"># Load the modified state_dict</span>
+            <span class="n">missing_keys</span><span class="p">,</span> <span class="n">unexpected_keys</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__wrapped__</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span>
+                <span class="n">state_dict</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="n">strict</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">error_on_missing_keys</span> <span class="ow">and</span> <span class="n">missing_keys</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Missing keys: </span><span class="si">{</span><span class="n">missing_keys</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Model loaded from </span><span class="si">{</span><span class="n">ckpt_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Print message with missing and unexpected keys</span>
+            <span class="k">if</span> <span class="n">missing_keys</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;When loading model, the following keys are missing: </span><span class="si">{</span><span class="n">missing_keys</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">unexpected_keys</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;When loading model, the following keys are unexpected: </span><span class="si">{</span><span class="n">unexpected_keys</span><span class="si">}</span><span class="s2">. &quot;</span><span class="p">,</span>
+                    <span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">strict</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Ignoring unexpected keys.&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;WARNING: Model loaded without state_dict.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">extractor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Extracting submodel...&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__wrapped__</span> <span class="o">=</span> <span class="n">extractor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__wrapped__</span><span class="p">)</span>
+
+    <span class="c1"># Aditional methods to make wrapped object callable and to allow pickling</span>
+<div class="viewcode-block" id="FromPretrained.__getattr__">
+<a class="viewcode-back" href="../../../autoapi/minerva/models/loaders/index.html#minerva.models.loaders.FromPretrained.__getattr__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__wrapped__</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="FromPretrained.__call__">
+<a class="viewcode-back" href="../../../autoapi/minerva/models/loaders/index.html#minerva.models.loaders.FromPretrained.__call__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__wrapped__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="FromPretrained.__reduce_ex__">
+<a class="viewcode-back" href="../../../autoapi/minerva/models/loaders/index.html#minerva.models.loaders.FromPretrained.__reduce_ex__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">__reduce_ex__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">proto</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__wrapped__</span><span class="o">.</span><span class="n">__reduce_ex__</span><span class="p">(</span><span class="n">proto</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="FromPretrained.__repr__">
+<a class="viewcode-back" href="../../../autoapi/minerva/models/loaders/index.html#minerva.models.loaders.FromPretrained.__repr__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__wrapped__</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="FromPretrained.__str__">
+<a class="viewcode-back" href="../../../autoapi/minerva/models/loaders/index.html#minerva.models.loaders.FromPretrained.__str__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__wrapped__</span><span class="o">.</span><span class="fm">__str__</span><span class="p">()</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="FromModel">
+<a class="viewcode-back" href="../../../autoapi/minerva/models/loaders/index.html#minerva.models.loaders.FromModel">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">FromModel</span><span class="p">(</span><span class="n">wrapt</span><span class="o">.</span><span class="n">ObjectProxy</span><span class="p">,</span> <span class="n">LoadableModule</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;This class loads a complete model (pickable) from a model file, extract</span>
+<span class="sd">    the desired submodel and wraps it in a FromModel object. The FromModel</span>
+<span class="sd">    object acts as a proxy to the submodel, allowing to call it as if it was the</span>
+<span class="sd">    original model. All the attributes and methods of the submodel are</span>
+<span class="sd">    accessible through the FromModel object directly.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">model_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">,</span>
+        <span class="n">extractor</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">],</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;This class perform the following steps:</span>
+
+<span class="sd">        1. Load the whole model from the model file (pickable).</span>
+
+<span class="sd">        2. Extract the desired submodel using the extractor function.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        model_path : PathLike</span>
+<span class="sd">            Path to the model file from which the model will be loaded.</span>
+<span class="sd">        extractor : Callable[[torch.nn.Module], torch.nn.Module], optional</span>
+<span class="sd">            The extractor function to be used to extract the desired submodel</span>
+<span class="sd">            from the loaded model. The default is None, that is, use the module</span>
+<span class="sd">            as it is loaded from the file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">model</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">model_path</span><span class="p">,</span> <span class="n">map_location</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__wrapped__</span> <span class="o">=</span> <span class="n">model</span>
+        <span class="k">if</span> <span class="n">extractor</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__wrapped__</span> <span class="o">=</span> <span class="n">extractor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__wrapped__</span><span class="p">)</span>
+
+<div class="viewcode-block" id="FromModel.__getattr__">
+<a class="viewcode-back" href="../../../autoapi/minerva/models/loaders/index.html#minerva.models.loaders.FromModel.__getattr__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__wrapped__</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="FromModel.__call__">
+<a class="viewcode-back" href="../../../autoapi/minerva/models/loaders/index.html#minerva.models.loaders.FromModel.__call__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__wrapped__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Unicamp.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

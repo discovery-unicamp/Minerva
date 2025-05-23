@@ -1,0 +1,18 @@
+minerva.data
+============
+
+.. py:module:: minerva.data
+
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   /autoapi/minerva/data/data_module_tools/index
+   /autoapi/minerva/data/data_modules/index
+   /autoapi/minerva/data/datasets/index
+   /autoapi/minerva/data/readers/index
+
+

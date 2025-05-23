@@ -1,0 +1,104 @@
+minerva.transforms.activity_image
+=================================
+
+.. py:module:: minerva.transforms.activity_image
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   minerva.transforms.activity_image.ActivityImageTransforms
+
+
+Module Contents
+---------------
+
+.. py:class:: ActivityImageTransforms(signal_sequences=9, signal_samples=68)
+
+   A class to transform signals into images for Human Activity Recognition (HAR),
+   based on the methodology presented in the paper
+   "Human Activity Recognition using Wearable Sensors by Deep Convolutional Neural Networks."
+
+   Initializes the ActivityImageTransforms class with the given number of signal sequences and samples.
+
+   Parameters:
+   -----------
+   signal_sequences: int, optional
+       The number of signal sequences. Defaults to 9
+   signal_samples: int, optional
+       The number of samples per signal sequence. Defaults to 68.
+
+
+   .. py:method:: __call__(x)
+
+      Transforms the input signals into activity images suitable for CNN processing.
+
+      This method performs the following steps:
+      1. Resamples the input signals to ensure consistent sample length.
+      2. Constructs a 2D signal image from the resampled signals.
+      3. Applies a 2D Fast Fourier Transform (FFT) to convert the signal image to the frequency domain.
+      4. Shifts the zero-frequency component to the center of the spectrum.
+      5. Computes the magnitude of the frequency domain representation to form the final activity image.
+
+      Parameters:
+      -----------
+      x: (List[np.ndarray])
+          The raw signal sequences from wearable sensors.
+
+      Returns:
+      --------
+          tuple: A tuple containing the original signals and the corresponding activity images.
+
+
+
+   .. py:method:: get_signal_image(raw_signals)
+
+      Constructs a signal image from the raw signals by arranging them in a specific order.
+
+      This method follows the approach of combining sensor signals to form a 2D image, which is then
+      suitable for CNN processing. The image is constructed by iteratively selecting signal sequences
+      in a way that maximizes the spatial correlation between different sequences.
+
+      Parameters:
+      -----------
+      raw_signals: np.ndarray
+          The raw signal sequences from wearable sensors.
+
+      Returns:
+      --------
+      signal_image: np.ndarray
+          The constructed signal image, ready for further processing by a CNN.
+
+
+
+   .. py:method:: resample_signals(x)
+
+      Resamples the signals to a fixed number of samples.
+
+      This resampling step ensures that all signal sequences have the same length, which is necessary
+      for constructing a consistent 2D image for CNN input.
+
+      Parameters:
+      -----------
+      x: np.array
+          The raw signal sequences from wearable sensors.
+
+      Returns:
+      --------
+      resample_signal: List[np.ndarray]
+          The resampled signals, all having the same number of samples.
+
+
+
+   .. py:attribute:: signal_samples
+      :value: 68
+
+
+
+   .. py:attribute:: signal_sequences
+      :value: 9
+
+
+

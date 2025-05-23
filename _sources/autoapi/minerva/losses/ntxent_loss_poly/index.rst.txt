@@ -1,0 +1,149 @@
+minerva.losses.ntxent_loss_poly
+===============================
+
+.. py:module:: minerva.losses.ntxent_loss_poly
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   minerva.losses.ntxent_loss_poly.NTXentLoss_poly
+
+
+Module Contents
+---------------
+
+.. py:class:: NTXentLoss_poly(device, batch_size, temperature, use_cosine_similarity)
+
+   Bases: :py:obj:`torch.nn.modules.loss._Loss`
+
+
+   Loss function used on the pretraining of the TFC model. It is based on the NTXentLoss, but it includes a polynomial loss term.
+
+   The constructor of the NTXentLoss_poly class.
+
+   Parameters
+   ----------
+   - device: str
+       The device to be used in the training of the model
+   - batch_size: int
+       The batch size of the model
+   - temperature: float
+       The temperature of the softmax function
+   - use_cosine_similarity: bool
+       If True, the cosine similarity is used. If False, the dot product is used
+
+
+
+   .. py:method:: _cosine_simililarity(x, y)
+
+      Function to calculate the cosine similarity between two tensors.
+
+      Parameters
+      ----------
+      - x: torch.Tensor
+          The first tensor
+      - y: torch.Tensor
+          The second tensor
+
+      Returns
+      -------
+      - torch.Tensor
+          The cosine similarity between the two tensors
+
+
+
+
+   .. py:method:: _dot_simililarity(x, y)
+      :staticmethod:
+
+
+      Function to calculate the dot similarity between two tensors.
+
+      Parameters
+      ----------
+      - x: torch.Tensor
+          The first tensor
+      - y: torch.Tensor
+          The second tensor
+
+      Returns
+      -------
+      - torch.Tensor
+          The dot similarity between the two tensors
+
+
+
+
+
+   .. py:method:: _get_correlated_mask()
+
+      Get the mask of correlated samples.
+
+      Returns
+      -------
+      - torch.Tensor
+          The mask of correlated samples
+
+
+
+
+   .. py:method:: _get_similarity_function(use_cosine_similarity)
+
+      Define the similarity function to be used in the loss calculation.
+
+      Parameters
+      ----------
+      - use_cosine_similarity: bool
+          If True, the cosine similarity is used. If False, the dot product is used
+
+      Returns
+      -------
+      - function
+          The similarity function to be used in the loss calculation
+
+
+
+
+   .. py:attribute:: batch_size
+
+
+   .. py:attribute:: criterion
+
+
+   .. py:attribute:: device
+
+
+   .. py:method:: forward(zis, zjs)
+
+      The forward method of the NTXentLoss_poly class. It receives the samples and returns the loss of the model.
+
+      Parameters
+      ----------
+      - zis: torch.Tensor
+          The positive samples
+      - zjs: torch.Tensor
+          The negative samples
+
+      Returns
+      -------
+      - _Loss
+          The loss of the model
+
+
+
+
+   .. py:attribute:: mask_samples_from_same_repr
+
+
+   .. py:attribute:: similarity_function
+
+
+   .. py:attribute:: softmax
+
+
+   .. py:attribute:: temperature
+
+

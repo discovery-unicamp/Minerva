@@ -1,0 +1,400 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>minerva.models.nets.image.unet &mdash; minerva  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../../../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../../../index.html" class="icon icon-home">
+            minerva
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../design.html">Minerva Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../tutorials.html">Examples and Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../contributing.html">Contributing to Minerva</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../api.html">Programming Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../../../index.html">minerva</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">minerva.models.nets.image.unet</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../../../../_sources/autoapi/minerva/models/nets/image/unet/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-minerva.models.nets.image.unet">
+<span id="minerva-models-nets-image-unet"></span><h1>minerva.models.nets.image.unet<a class="headerlink" href="#module-minerva.models.nets.image.unet" title="Link to this heading"></a></h1>
+<p>Full assembly of the parts to form the complete network</p>
+<section id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Link to this heading"></a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#minerva.models.nets.image.unet.UNet" title="minerva.models.nets.image.unet.UNet"><code class="xref py py-obj docutils literal notranslate"><span class="pre">UNet</span></code></a></p></td>
+<td><p>This class is a simple implementation of the U-Net model, which is a</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#minerva.models.nets.image.unet._DoubleConv" title="minerva.models.nets.image.unet._DoubleConv"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_DoubleConv</span></code></a></p></td>
+<td><p>(convolution =&gt; [BN] =&gt; ReLU) * 2</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#minerva.models.nets.image.unet._Down" title="minerva.models.nets.image.unet._Down"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_Down</span></code></a></p></td>
+<td><p>Downscaling with maxpool then double conv</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#minerva.models.nets.image.unet._OutConv" title="minerva.models.nets.image.unet._OutConv"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_OutConv</span></code></a></p></td>
+<td><p>Base class for all neural network modules.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#minerva.models.nets.image.unet._UNet" title="minerva.models.nets.image.unet._UNet"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_UNet</span></code></a></p></td>
+<td><p>Implementation of U-Net model.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#minerva.models.nets.image.unet._Up" title="minerva.models.nets.image.unet._Up"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_Up</span></code></a></p></td>
+<td><p>Upscaling then double conv</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.models.nets.image.unet.UNet">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.models.nets.image.unet.</span></span><span class="sig-name descname"><span class="pre">UNet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bilinear</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">learning_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss_fn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/unet.html#UNet"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.unet.UNet" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="../../base/index.html#minerva.models.nets.base.SimpleSupervisedModel" title="minerva.models.nets.base.SimpleSupervisedModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">minerva.models.nets.base.SimpleSupervisedModel</span></code></a></p>
+<p>This class is a simple implementation of the U-Net model, which is a
+convolutional neural network used for image segmentation. The model consists
+of a contracting path (encoder) and an expansive path (decoder). The
+contracting path follows the typical architecture of a convolutional neural
+network, with repeated applications of convolutions and max pooling layers.
+The expansive path consists of up-convolutions and concatenation of feature
+maps from the contracting path. The model also has skip connections, which
+allows the expansive path to use information from the contracting path at
+multiple resolutions. The U-Net model was originally proposed by
+Ronneberger, Fischer, and Brox in 2015.</p>
+<p>This architecture, handles arbitrary input sizes, and returns an output of
+the same size as the input. The expected input size is (N, C, H, W), where N
+is the batch size, C is the number of channels, H is the height of the input
+image, and W is the width of the input image.</p>
+<p>Note that, for this implementation, the input batch is a single tensor and
+not a tuple of tensors (e.g., data and label).</p>
+<p>Note that this class wrappers the <cite>_UNet</cite> class, which is the actual
+implementation of the U-Net model, into a <cite>SimpleReconstructionNet</cite> class,
+which is a simple autoencoder pipeline for reconstruction tasks.</p>
+<section id="references">
+<h3>References<a class="headerlink" href="#references" title="Link to this heading"></a></h3>
+<p>Ronneberger, Olaf, Philipp Fischer, and Thomas Brox. “U-net: Convolutional
+networks for biomedical image segmentation.” Medical Image Computing and
+Computer-Assisted Intervention-MICCAI 2015: 18th International Conference,
+Munich, Germany, October 5-9, 2015, Proceedings, Part III 18. Springer
+International Publishing, 2015.</p>
+<p>Wrapper implementation of the U-Net model.</p>
+</section>
+<section id="parameters">
+<h3>Parameters<a class="headerlink" href="#parameters" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt>n_channels<span class="classifier">int, optional</span></dt><dd><p>The number of channels of the input, by default 1</p>
+</dd>
+<dt>bilinear<span class="classifier">bool, optional</span></dt><dd><p>If <cite>True</cite> use bilinear interpolation for upsampling, by default
+False.</p>
+</dd>
+<dt>learning_rate<span class="classifier">float, optional</span></dt><dd><p>The learning rate to Adam optimizer, by default 1e-3</p>
+</dd>
+<dt>loss_fn<span class="classifier">torch.nn.Module, optional</span></dt><dd><p>The function used to compute the loss. If <cite>None</cite>, it will be used
+the MSELoss, by default None.</p>
+</dd>
+<dt>kwargs<span class="classifier">Dict</span></dt><dd><p>Additional arguments to be passed to the <cite>SimpleSupervisedModel</cite>
+class.</p>
+</dd>
+</dl>
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n_channels</strong> (<em>int</em>)</p></li>
+<li><p><strong>bilinear</strong> (<em>bool</em>)</p></li>
+<li><p><strong>learning_rate</strong> (<em>float</em>)</p></li>
+<li><p><strong>loss_fn</strong> (<em>Optional</em><em>[</em><em>torch.nn.Module</em><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.models.nets.image.unet._DoubleConv">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.models.nets.image.unet.</span></span><span class="sig-name descname"><span class="pre">_DoubleConv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mid_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/unet.html#_DoubleConv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.unet._DoubleConv" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>(convolution =&gt; [BN] =&gt; ReLU) * 2</p>
+<section id="id1">
+<h3>Parameters<a class="headerlink" href="#id1" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt>in_channels<span class="classifier">int</span></dt><dd><p>Number of input channels, i.e. the number of channels in the input image (1 for grayscale, 3 for RGB)</p>
+</dd>
+<dt>out_channels<span class="classifier">int</span></dt><dd><p>Number of output channels, i.e. the number of channels produced by the convolution</p>
+</dd>
+<dt>mid_channels<span class="classifier">int, optional</span></dt><dd><p>Number of channels in the middle, by default None</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.unet._DoubleConv.double_conv">
+<span class="sig-name descname"><span class="pre">double_conv</span></span><a class="headerlink" href="#minerva.models.nets.image.unet._DoubleConv.double_conv" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.image.unet._DoubleConv.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/unet.html#_DoubleConv.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.unet._DoubleConv.forward" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.models.nets.image.unet._Down">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.models.nets.image.unet.</span></span><span class="sig-name descname"><span class="pre">_Down</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_channels</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/unet.html#_Down"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.unet._Down" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>Downscaling with maxpool then double conv</p>
+<p>Initialize internal Module state, shared by both nn.Module and ScriptModule.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.image.unet._Down.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/unet.html#_Down.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.unet._Down.forward" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.unet._Down.maxpool_conv">
+<span class="sig-name descname"><span class="pre">maxpool_conv</span></span><a class="headerlink" href="#minerva.models.nets.image.unet._Down.maxpool_conv" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.models.nets.image.unet._OutConv">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.models.nets.image.unet.</span></span><span class="sig-name descname"><span class="pre">_OutConv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_channels</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/unet.html#_OutConv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.unet._OutConv" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>Base class for all neural network modules.</p>
+<p>Your models should also subclass this class.</p>
+<p>Modules can also contain other Modules, allowing them to be nested in
+a tree structure. You can assign the submodules as regular attributes:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn.functional</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">F</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Model</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conv1</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conv2</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conv1</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">F</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conv2</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Submodules assigned in this way will be registered, and will also have their
+parameters converted when you call <code class="xref py py-meth docutils literal notranslate"><span class="pre">to()</span></code>, etc.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>As per the example above, an <code class="docutils literal notranslate"><span class="pre">__init__()</span></code> call to the parent class
+must be made before assignment on the child.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Variables<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>training</strong> (<em>bool</em>) – Boolean represents whether this module is in training or
+evaluation mode.</p>
+</dd>
+</dl>
+<p>Initialize internal Module state, shared by both nn.Module and ScriptModule.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.unet._OutConv.conv">
+<span class="sig-name descname"><span class="pre">conv</span></span><a class="headerlink" href="#minerva.models.nets.image.unet._OutConv.conv" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.image.unet._OutConv.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/unet.html#_OutConv.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.unet._OutConv.forward" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.models.nets.image.unet._UNet">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.models.nets.image.unet.</span></span><span class="sig-name descname"><span class="pre">_UNet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bilinear</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/unet.html#_UNet"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.unet._UNet" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>Implementation of U-Net model.</p>
+<p>Implementation of U-Net model.</p>
+<section id="id2">
+<h3>Parameters<a class="headerlink" href="#id2" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt>n_channels<span class="classifier">int, optional</span></dt><dd><p>Number of input channels, by default 1</p>
+</dd>
+<dt>bilinear<span class="classifier">bool, optional</span></dt><dd><p>If <cite>True</cite> use bilinear interpolation for upsampling, by default
+False.</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.unet._UNet.bilinear">
+<span class="sig-name descname"><span class="pre">bilinear</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#minerva.models.nets.image.unet._UNet.bilinear" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.unet._UNet.down1">
+<span class="sig-name descname"><span class="pre">down1</span></span><a class="headerlink" href="#minerva.models.nets.image.unet._UNet.down1" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.unet._UNet.down2">
+<span class="sig-name descname"><span class="pre">down2</span></span><a class="headerlink" href="#minerva.models.nets.image.unet._UNet.down2" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.unet._UNet.down3">
+<span class="sig-name descname"><span class="pre">down3</span></span><a class="headerlink" href="#minerva.models.nets.image.unet._UNet.down3" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.unet._UNet.down4">
+<span class="sig-name descname"><span class="pre">down4</span></span><a class="headerlink" href="#minerva.models.nets.image.unet._UNet.down4" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.image.unet._UNet.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/unet.html#_UNet.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.unet._UNet.forward" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.unet._UNet.inc">
+<span class="sig-name descname"><span class="pre">inc</span></span><a class="headerlink" href="#minerva.models.nets.image.unet._UNet.inc" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.unet._UNet.n_channels">
+<span class="sig-name descname"><span class="pre">n_channels</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#minerva.models.nets.image.unet._UNet.n_channels" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.unet._UNet.outc">
+<span class="sig-name descname"><span class="pre">outc</span></span><a class="headerlink" href="#minerva.models.nets.image.unet._UNet.outc" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.unet._UNet.up1">
+<span class="sig-name descname"><span class="pre">up1</span></span><a class="headerlink" href="#minerva.models.nets.image.unet._UNet.up1" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.unet._UNet.up2">
+<span class="sig-name descname"><span class="pre">up2</span></span><a class="headerlink" href="#minerva.models.nets.image.unet._UNet.up2" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.unet._UNet.up3">
+<span class="sig-name descname"><span class="pre">up3</span></span><a class="headerlink" href="#minerva.models.nets.image.unet._UNet.up3" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.unet._UNet.up4">
+<span class="sig-name descname"><span class="pre">up4</span></span><a class="headerlink" href="#minerva.models.nets.image.unet._UNet.up4" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n_channels</strong> (<em>int</em>)</p></li>
+<li><p><strong>bilinear</strong> (<em>bool</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.models.nets.image.unet._Up">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.models.nets.image.unet.</span></span><span class="sig-name descname"><span class="pre">_Up</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bilinear</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/unet.html#_Up"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.unet._Up" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>Upscaling then double conv</p>
+<p>Initialize internal Module state, shared by both nn.Module and ScriptModule.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.image.unet._Up.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/unet.html#_Up.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.unet._Up.forward" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Unicamp.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

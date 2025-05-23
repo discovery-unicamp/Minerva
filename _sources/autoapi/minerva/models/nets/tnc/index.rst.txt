@@ -1,0 +1,611 @@
+minerva.models.nets.tnc
+=======================
+
+.. py:module:: minerva.models.nets.tnc
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   minerva.models.nets.tnc.ConvBlock
+   minerva.models.nets.tnc.DilatedConvEncoder
+   minerva.models.nets.tnc.Discriminator_TNC
+   minerva.models.nets.tnc.ResNetEncoder
+   minerva.models.nets.tnc.RnnEncoder
+   minerva.models.nets.tnc.SamePadConv
+   minerva.models.nets.tnc.TSEncoder
+
+
+Module Contents
+---------------
+
+.. py:class:: ConvBlock(in_channels, out_channels, kernel_size, dilation, final = False)
+
+   Bases: :py:obj:`torch.nn.Module`
+
+
+   Base class for all neural network modules.
+
+   Your models should also subclass this class.
+
+   Modules can also contain other Modules, allowing them to be nested in
+   a tree structure. You can assign the submodules as regular attributes::
+
+       import torch.nn as nn
+       import torch.nn.functional as F
+
+       class Model(nn.Module):
+           def __init__(self) -> None:
+               super().__init__()
+               self.conv1 = nn.Conv2d(1, 20, 5)
+               self.conv2 = nn.Conv2d(20, 20, 5)
+
+           def forward(self, x):
+               x = F.relu(self.conv1(x))
+               return F.relu(self.conv2(x))
+
+   Submodules assigned in this way will be registered, and will also have their
+   parameters converted when you call :meth:`to`, etc.
+
+   .. note::
+       As per the example above, an ``__init__()`` call to the parent class
+       must be made before assignment on the child.
+
+   :ivar training: Boolean represents whether this module is in training or
+                   evaluation mode.
+   :vartype training: bool
+
+   A single block of dilated convolutional layers followed by a residual connection and activation.
+
+   Parameters:
+   -----------
+   - in_channels (int):
+       Number of input channels to the first convolutional layer.
+   - out_channels (int):
+       Number of output channels from the final convolutional layer.
+   - kernel_size (int):
+       Size of the convolutional kernel.
+   - dilation (int):
+       Dilation factor for the convolutional layers.
+   - final (bool, optional):
+       Whether this is the final block in the sequence (default: False).
+
+
+
+   .. py:attribute:: conv1
+
+
+   .. py:attribute:: conv2
+
+
+   .. py:method:: forward(x)
+
+
+   .. py:attribute:: projector
+
+
+.. py:class:: DilatedConvEncoder(in_channels, channels, kernel_size)
+
+   Bases: :py:obj:`torch.nn.Module`
+
+
+   Base class for all neural network modules.
+
+   Your models should also subclass this class.
+
+   Modules can also contain other Modules, allowing them to be nested in
+   a tree structure. You can assign the submodules as regular attributes::
+
+       import torch.nn as nn
+       import torch.nn.functional as F
+
+       class Model(nn.Module):
+           def __init__(self) -> None:
+               super().__init__()
+               self.conv1 = nn.Conv2d(1, 20, 5)
+               self.conv2 = nn.Conv2d(20, 20, 5)
+
+           def forward(self, x):
+               x = F.relu(self.conv1(x))
+               return F.relu(self.conv2(x))
+
+   Submodules assigned in this way will be registered, and will also have their
+   parameters converted when you call :meth:`to`, etc.
+
+   .. note::
+       As per the example above, an ``__init__()`` call to the parent class
+       must be made before assignment on the child.
+
+   :ivar training: Boolean represents whether this module is in training or
+                   evaluation mode.
+   :vartype training: bool
+
+   This module implements a stack of dilated convolutional blocks for feature extraction
+   from sequential data.
+
+   Parameters:
+   -----------
+   - in_channels (int):
+       Number of input channels to the first convolutional layer.
+   - channels (list):
+       List of integers specifying the number of output channels for each convolutional layer.
+   - kernel_size (int):
+       Size of the convolutional kernel.
+
+
+   .. py:method:: forward(x)
+
+
+   .. py:attribute:: net
+
+
+.. py:class:: Discriminator_TNC(input_size, max_pool = False)
+
+   Bases: :py:obj:`torch.nn.Module`
+
+
+   Base class for all neural network modules.
+
+   Your models should also subclass this class.
+
+   Modules can also contain other Modules, allowing them to be nested in
+   a tree structure. You can assign the submodules as regular attributes::
+
+       import torch.nn as nn
+       import torch.nn.functional as F
+
+       class Model(nn.Module):
+           def __init__(self) -> None:
+               super().__init__()
+               self.conv1 = nn.Conv2d(1, 20, 5)
+               self.conv2 = nn.Conv2d(20, 20, 5)
+
+           def forward(self, x):
+               x = F.relu(self.conv1(x))
+               return F.relu(self.conv2(x))
+
+   Submodules assigned in this way will be registered, and will also have their
+   parameters converted when you call :meth:`to`, etc.
+
+   .. note::
+       As per the example above, an ``__init__()`` call to the parent class
+       must be made before assignment on the child.
+
+   :ivar training: Boolean represents whether this module is in training or
+                   evaluation mode.
+   :vartype training: bool
+
+   A discriminator model used for contrastive learning tasks, predicting whether two inputs belong
+   to the same neighborhood in the feature space.
+
+   Parameters
+   ----------
+   input_size : int
+       Dimensionality of each input.
+   max_pool : bool, optional
+       Whether to apply max pooling before feeding into the projection head (default is False).
+       If using TS2Vec encoder, set to True; if using RNN, set to False.
+
+   Examples
+   --------
+   >>> device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+   >>> discriminator = Discriminator_TNC(input_size=320, max_pool=True).to(device)
+   >>> forward_ts2vec1 = torch.randn(12, 128, 320)  # Example tensor with shape (batch_size, timesteps, encoding_size)
+   >>> forward_ts2vec3 = torch.randn(12, 128, 320)  # Another example tensor with shape (batch_size, timesteps, encoding_size)
+   >>> output = discriminator(forward_ts2vec1, forward_ts2vec3)
+   >>> print(output.shape)
+   torch.Size([12])
+
+   >>> # Example with RNN encoder
+   >>> rnn_encoder = RnnEncoder(hidden_size=100, in_channel=6, encoding_size=320, cell_type='GRU', num_layers=1, device=device, dropout=0.0, bidirectional=True).to(device)
+   >>> element1 = torch.randn(12, 128, 6)  # Batch size: 12, Time steps: 128, Input channels: 6
+   >>> forward_rnn1 = rnn_encoder(element1.to(device))
+   >>> forward_rnn2 = rnn_encoder(element1.to(device))
+   >>> discriminator = Discriminator_TNC(input_size=320, max_pool=False).to(device)
+   >>> output = discriminator(forward_rnn1, forward_rnn2)
+   >>> print(output.shape)
+   torch.Size([12])
+
+   Notes
+   -----
+   - The input tensors should have the shape (batch_size, input_size).
+   - The output tensor will have the shape (batch_size,) representing the predicted probabilities.
+
+
+   .. py:method:: forward(x, x_tild)
+
+      Predict the probability of the two inputs belonging to the same neighborhood.
+
+      Parameters:
+      -----------
+      - x (torch.Tensor):
+          Input tensor of shape (batch_size, input_size).
+      - x_tild (torch.Tensor):
+          Input tensor of shape (batch_size, input_size).
+
+      Returns:
+      --------
+      - p (torch.Tensor):
+          Output tensor of shape (batch_size,) representing the predicted probabilities.
+
+
+
+   .. py:attribute:: input_size
+
+
+   .. py:attribute:: max_pool
+      :value: False
+
+
+
+   .. py:attribute:: model
+
+
+.. py:class:: ResNetEncoder(input_shape, residual_block_cls = ResNetBlock, activation_cls = torch.nn.ReLU, num_residual_blocks = 5, reduction_ratio = 2, avg_pooling = True, **residual_block_cls_kwargs)
+
+   Bases: :py:obj:`minerva.models.nets.time_series.resnet._ResNet1D`
+
+
+   Base class for all neural network modules.
+
+   Your models should also subclass this class.
+
+   Modules can also contain other Modules, allowing them to be nested in
+   a tree structure. You can assign the submodules as regular attributes::
+
+       import torch.nn as nn
+       import torch.nn.functional as F
+
+       class Model(nn.Module):
+           def __init__(self) -> None:
+               super().__init__()
+               self.conv1 = nn.Conv2d(1, 20, 5)
+               self.conv2 = nn.Conv2d(20, 20, 5)
+
+           def forward(self, x):
+               x = F.relu(self.conv1(x))
+               return F.relu(self.conv2(x))
+
+   Submodules assigned in this way will be registered, and will also have their
+   parameters converted when you call :meth:`to`, etc.
+
+   .. note::
+       As per the example above, an ``__init__()`` call to the parent class
+       must be made before assignment on the child.
+
+   :ivar training: Boolean represents whether this module is in training or
+                   evaluation mode.
+   :vartype training: bool
+
+   Initialize internal Module state, shared by both nn.Module and ScriptModule.
+
+
+   .. py:method:: forward(x)
+
+
+.. py:class:: RnnEncoder(hidden_size, in_channel, encoding_size, cell_type = 'GRU', num_layers = 1, device = 'cpu', dropout = 0, bidirectional = True, permute = False, squeeze = True)
+
+   Bases: :py:obj:`torch.nn.Module`
+
+
+   Base class for all neural network modules.
+
+   Your models should also subclass this class.
+
+   Modules can also contain other Modules, allowing them to be nested in
+   a tree structure. You can assign the submodules as regular attributes::
+
+       import torch.nn as nn
+       import torch.nn.functional as F
+
+       class Model(nn.Module):
+           def __init__(self) -> None:
+               super().__init__()
+               self.conv1 = nn.Conv2d(1, 20, 5)
+               self.conv2 = nn.Conv2d(20, 20, 5)
+
+           def forward(self, x):
+               x = F.relu(self.conv1(x))
+               return F.relu(self.conv2(x))
+
+   Submodules assigned in this way will be registered, and will also have their
+   parameters converted when you call :meth:`to`, etc.
+
+   .. note::
+       As per the example above, an ``__init__()`` call to the parent class
+       must be made before assignment on the child.
+
+   :ivar training: Boolean represents whether this module is in training or
+                   evaluation mode.
+   :vartype training: bool
+
+   Initializes an RnnEncoder instance.
+
+   This encoder utilizes a recurrent neural network (RNN) to encode sequential data,
+   such as accelerometer and gyroscope readings from human activity recognition tasks.
+
+   Parameters
+   ----------
+   hidden_size : int
+       Size of the hidden state in the RNN.
+   in_channel : int
+       Number of input channels (e.g., dimensions of accelerometer and gyroscope data).
+   encoding_size : int
+       Desired size of the output encoding.
+   cell_type : str, optional
+       Type of RNN cell to use (default is 'GRU'). Options include 'GRU', 'LSTM', etc.
+   num_layers : int, optional
+       Number of RNN layers (default is 1).
+   device : str, optional
+       Device to run the model on (default is 'cpu'). Options include 'cpu' and 'cuda'.
+   dropout : float, optional
+       Dropout probability (default is 0.0).
+   bidirectional : bool, optional
+       Whether the RNN is bidirectional (default is True).
+   permute: bool, optional
+       If `True` the input data will be permuted before passing through the model, by default False.
+   squeeze: bool, optional
+       If `True`, the outputs of RNN states is squeezed before passed to Linear layer.
+       By default True.
+
+   Examples
+   --------
+   >>> device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+   >>> encoder = RnnEncoder(hidden_size=100, in_channel=6, encoding_size=320,
+                            cell_type='GRU', num_layers=1, device=device,
+                            dropout=0.0, bidirectional=True).to(device)
+   >>> element1 = torch.randn(32, 50, 6)  # Batch size: 32, Time steps: 50, Input channels: 6
+   >>> encoding = encoder(element1.to(device))
+   >>> print(encoding.shape)
+   torch.Size([32, 320])
+
+   Notes
+   -----
+   - The input tensor should have the shape (batch_size, time_steps, in_channel).
+   - The output tensor will have the shape (batch_size, encoding_size).
+
+
+   .. py:attribute:: bidirectional
+      :value: True
+
+
+
+   .. py:attribute:: cell_type
+      :value: 'GRU'
+
+
+
+   .. py:attribute:: device
+      :value: 'cpu'
+
+
+
+   .. py:attribute:: encoding_size
+
+
+   .. py:method:: forward(x)
+
+      Forward pass for the RnnEncoder.
+
+      Parameters
+      ----------
+      x : torch.Tensor
+          Input tensor of shape (batch_size, time_steps, in_channel).
+
+      Returns
+      -------
+      torch.Tensor
+          Encoded tensor of shape (batch_size, encoding_size).
+
+
+
+   .. py:attribute:: hidden_size
+
+
+   .. py:attribute:: in_channel
+
+
+   .. py:attribute:: nn
+
+
+   .. py:attribute:: num_layers
+      :value: 1
+
+
+
+   .. py:attribute:: permute
+      :value: False
+
+
+
+   .. py:attribute:: rnn
+
+
+   .. py:attribute:: squeeze
+      :value: True
+
+
+
+.. py:class:: SamePadConv(in_channels, out_channels, kernel_size, dilation = 1, groups = 1)
+
+   Bases: :py:obj:`torch.nn.Module`
+
+
+   Base class for all neural network modules.
+
+   Your models should also subclass this class.
+
+   Modules can also contain other Modules, allowing them to be nested in
+   a tree structure. You can assign the submodules as regular attributes::
+
+       import torch.nn as nn
+       import torch.nn.functional as F
+
+       class Model(nn.Module):
+           def __init__(self) -> None:
+               super().__init__()
+               self.conv1 = nn.Conv2d(1, 20, 5)
+               self.conv2 = nn.Conv2d(20, 20, 5)
+
+           def forward(self, x):
+               x = F.relu(self.conv1(x))
+               return F.relu(self.conv2(x))
+
+   Submodules assigned in this way will be registered, and will also have their
+   parameters converted when you call :meth:`to`, etc.
+
+   .. note::
+       As per the example above, an ``__init__()`` call to the parent class
+       must be made before assignment on the child.
+
+   :ivar training: Boolean represents whether this module is in training or
+                   evaluation mode.
+   :vartype training: bool
+
+   Purpose:
+   -------
+   Implements a convolutional layer with padding to maintain the same output size as the input.
+
+   Parameters:
+   -----------
+   - in_channels (int):
+       Number of input channels to the convolutional layer.
+   - out_channels (int):
+       Number of output channels from the convolutional layer.
+   - kernel_size (int):
+       Size of the convolutional kernel.
+   - dilation (int, optional):
+       Dilation factor for the convolutional layer (default: 1).
+   - groups (int, optional):
+       Number of blocked connections from input channels to output channels (default: 1).
+
+
+   .. py:attribute:: conv
+
+
+   .. py:method:: forward(x)
+
+
+   .. py:attribute:: receptive_field
+
+
+   .. py:attribute:: remove
+      :value: 1
+
+
+
+.. py:class:: TSEncoder(input_dims, output_dims, hidden_dims = 64, depth = 10, permute = False, encoder_cls = DilatedConvEncoder, encoder_cls_kwargs = {})
+
+   Bases: :py:obj:`torch.nn.Module`
+
+
+   Base class for all neural network modules.
+
+   Your models should also subclass this class.
+
+   Modules can also contain other Modules, allowing them to be nested in
+   a tree structure. You can assign the submodules as regular attributes::
+
+       import torch.nn as nn
+       import torch.nn.functional as F
+
+       class Model(nn.Module):
+           def __init__(self) -> None:
+               super().__init__()
+               self.conv1 = nn.Conv2d(1, 20, 5)
+               self.conv2 = nn.Conv2d(20, 20, 5)
+
+           def forward(self, x):
+               x = F.relu(self.conv1(x))
+               return F.relu(self.conv2(x))
+
+   Submodules assigned in this way will be registered, and will also have their
+   parameters converted when you call :meth:`to`, etc.
+
+   .. note::
+       As per the example above, an ``__init__()`` call to the parent class
+       must be made before assignment on the child.
+
+   :ivar training: Boolean represents whether this module is in training or
+                   evaluation mode.
+   :vartype training: bool
+
+   Encoder utilizing dilated convolutional layers for encoding sequential data.
+
+   Parameters
+   ----------
+   input_dims : int
+       Dimensionality of the input features.
+   output_dims : int
+       Desired dimensionality of the output features.
+   hidden_dims : int, optional
+       Number of hidden dimensions in the convolutional layers (default is 64).
+   depth : int, optional
+       Number of convolutional layers (default is 10).
+   - permute : bool, optional
+       If `True` the input data will be permuted before passing through
+       the model, by default False. This should be removed after the encoder
+       receives data in the shape (bs, channels, timesteps)
+
+   Examples
+   --------
+   >>> device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+   >>> encoder = TSEncoder(input_dims=6, output_dims=320, hidden_dims=64, depth=10).to(device)
+   >>> element1 = torch.randn(12, 128, 6)  # Batch size: 12, Time steps: 128, Input channels: 6
+   >>> encoded_features = encoder(element1.to(device))
+   >>> print(encoded_features.shape)
+   torch.Size([12, 128, 320])
+
+   Notes
+   -----
+   - The input tensor should have the shape (batch_size, seq_len, input_dims).
+   - The output tensor will have the shape (batch_size, seq_len, output_dims).
+   - If the expected output tensor is of shape (batch_size, output_dims), consider using a pooling layer.
+   One option is to use the `MaxPoolingTransposingSqueezingAdapter` adapter. at minerva/models/adapters.py
+
+
+   .. py:attribute:: feature_extractor
+
+
+   .. py:method:: forward(x, mask=None)
+
+      Forward pass of the encoder.
+
+      Parameters:
+      -----------
+      - x (torch.Tensor):
+          Input tensor of shape (batch_size, seq_len, input_dims).
+      - mask (str, optional):
+          Type of masking to apply (default: None).
+
+      Returns:
+      --------
+      - torch.Tensor:
+          Encoded features of shape (batch_size, seq_len, output_dims).
+
+
+
+   .. py:attribute:: hidden_dims
+      :value: 64
+
+
+
+   .. py:attribute:: input_dims
+
+
+   .. py:attribute:: input_fc
+
+
+   .. py:attribute:: output_dims
+
+
+   .. py:attribute:: permute
+      :value: False
+
+
+
+   .. py:attribute:: repr_dropout
+
+

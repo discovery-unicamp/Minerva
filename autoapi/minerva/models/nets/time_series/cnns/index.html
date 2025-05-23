@@ -1,0 +1,1179 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>minerva.models.nets.time_series.cnns &mdash; minerva  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../../../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../../../index.html" class="icon icon-home">
+            minerva
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../design.html">Minerva Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../tutorials.html">Examples and Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../contributing.html">Contributing to Minerva</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../api.html">Programming Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../../../index.html">minerva</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">minerva.models.nets.time_series.cnns</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../../../../_sources/autoapi/minerva/models/nets/time_series/cnns/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-minerva.models.nets.time_series.cnns">
+<span id="minerva-models-nets-time-series-cnns"></span><h1>minerva.models.nets.time_series.cnns<a class="headerlink" href="#module-minerva.models.nets.time_series.cnns" title="Link to this heading"></a></h1>
+<section id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Link to this heading"></a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#minerva.models.nets.time_series.cnns.CNN_HaEtAl_1D" title="minerva.models.nets.time_series.cnns.CNN_HaEtAl_1D"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CNN_HaEtAl_1D</span></code></a></p></td>
+<td><p>A modular Lightning model wrapper for supervised learning tasks.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#minerva.models.nets.time_series.cnns.CNN_HaEtAl_1D_Backbone" title="minerva.models.nets.time_series.cnns.CNN_HaEtAl_1D_Backbone"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CNN_HaEtAl_1D_Backbone</span></code></a></p></td>
+<td><p>Base class for all neural network modules.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#minerva.models.nets.time_series.cnns.CNN_HaEtAl_2D" title="minerva.models.nets.time_series.cnns.CNN_HaEtAl_2D"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CNN_HaEtAl_2D</span></code></a></p></td>
+<td><p>A modular Lightning model wrapper for supervised learning tasks.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#minerva.models.nets.time_series.cnns.CNN_HaEtAl_2D_Backbone" title="minerva.models.nets.time_series.cnns.CNN_HaEtAl_2D_Backbone"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CNN_HaEtAl_2D_Backbone</span></code></a></p></td>
+<td><p>Base class for all neural network modules.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#minerva.models.nets.time_series.cnns.CNN_PFF_2D" title="minerva.models.nets.time_series.cnns.CNN_PFF_2D"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CNN_PFF_2D</span></code></a></p></td>
+<td><p>A modular Lightning model wrapper for supervised learning tasks.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#minerva.models.nets.time_series.cnns.CNN_PF_2D" title="minerva.models.nets.time_series.cnns.CNN_PF_2D"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CNN_PF_2D</span></code></a></p></td>
+<td><p>A modular Lightning model wrapper for supervised learning tasks.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#minerva.models.nets.time_series.cnns.CNN_PF_Backbone" title="minerva.models.nets.time_series.cnns.CNN_PF_Backbone"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CNN_PF_Backbone</span></code></a></p></td>
+<td><p>Base class for all neural network modules.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#minerva.models.nets.time_series.cnns.ZeroPadder2D" title="minerva.models.nets.time_series.cnns.ZeroPadder2D"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ZeroPadder2D</span></code></a></p></td>
+<td><p>Base class for all neural network modules.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.models.nets.time_series.cnns.CNN_HaEtAl_1D">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.models.nets.time_series.cnns.</span></span><span class="sig-name descname"><span class="pre">CNN_HaEtAl_1D</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(6,</span> <span class="pre">60)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_classes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">learning_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/time_series/cnns.html#CNN_HaEtAl_1D"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.time_series.cnns.CNN_HaEtAl_1D" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="../../base/index.html#minerva.models.nets.base.SimpleSupervisedModel" title="minerva.models.nets.base.SimpleSupervisedModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">minerva.models.nets.base.SimpleSupervisedModel</span></code></a></p>
+<p>A modular Lightning model wrapper for supervised learning tasks.</p>
+<p>This class enables the construction of supervised models by combining a
+backbone (feature extractor), an optional adapter, and a fully connected
+(FC) head. It provides a clean interface for setting up custom training,
+validation, and testing pipelines with pluggable loss functions, metrics,
+optimizers, and learning rate schedulers.</p>
+<p>The architecture is structured as follows:</p>
+<blockquote>
+<div><table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p>Backbone Model</p></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<div><div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p>v</p>
+</div></blockquote>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p>Adapter (Optional)</p></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<div><blockquote>
+<div><div class="line-block">
+<div class="line"><br /></div>
+</div>
+</div></blockquote>
+<dl class="simple">
+<dt>(Flatten if needed)</dt><dd><p>v</p>
+</dd>
+</dl>
+</div></blockquote>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p>Fully Connected Head</p></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<div><div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p>v</p>
+</div></blockquote>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p>Loss Function</p></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+<p>Training and validation steps comprise the following steps:</p>
+<ol class="arabic simple">
+<li><p>Forward pass input through the backbone.</p></li>
+<li><p>Pass through adapter (if provided).</p></li>
+<li><p>Flatten the output (if <cite>flatten</cite> is True) before the FC head.</p></li>
+<li><p>Forward through the FC head.</p></li>
+<li><p>Compute loss with respect to targets.</p></li>
+<li><p>Backpropagate and update parameters.</p></li>
+<li><p>Compute metrics and log them.</p></li>
+<li><p>Return loss. <cite>train_loss</cite>, <cite>val_loss</cite>, and <cite>test_loss</cite> are always
+logged, along with any additional metrics specified in the
+<cite>train_metrics</cite>, <cite>val_metrics</cite>, and <cite>test_metrics</cite> dictionaries.</p></li>
+</ol>
+<p>This wrapper is especially useful to quickly set up supervised models for
+various tasks, such as image classification, object detection, and
+segmentation. It is designed to be flexible and extensible, allowing users
+to easily swap out components like the backbone, adapter, and FC head as
+needed. The model is built with a focus on simplicity and modularity, making
+it easy to adapt to different use cases and requirements.
+The model is designed to be used with PyTorch Lightning and is compatible
+with its training loop.</p>
+<p><strong>Note</strong>: For more complex architectures that does not follow the above
+structure should not inherit from this class.</p>
+<p><strong>Note</strong>: Input batches must be tuples (input_tensor, target_tensor).</p>
+<p>Initializes the supervised model with training components and configs.</p>
+<section id="parameters">
+<h3>Parameters<a class="headerlink" href="#parameters" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt>backbone<span class="classifier">torch.nn.Module or LoadableModule</span></dt><dd><p>The backbone (feature extractor) model.</p>
+</dd>
+<dt>fc<span class="classifier">torch.nn.Module or LoadableModule</span></dt><dd><p>The fully connected head. Use nn.Identity() if not required.</p>
+</dd>
+<dt>loss_fn<span class="classifier">torch.nn.Module</span></dt><dd><p>Loss function to optimize during training.</p>
+</dd>
+<dt>adapter<span class="classifier">Callable, optional</span></dt><dd><p>Function to transform backbone outputs before feeding into <cite>fc</cite>.</p>
+</dd>
+<dt>learning_rate<span class="classifier">float, default=1e-3</span></dt><dd><p>Learning rate used for optimization.</p>
+</dd>
+<dt>flatten<span class="classifier">bool, default=True</span></dt><dd><p>If True, flattens backbone outputs before <cite>fc</cite>.</p>
+</dd>
+<dt>train_metrics<span class="classifier">dict, optional</span></dt><dd><p>TorchMetrics dictionary for training evaluation.</p>
+</dd>
+<dt>val_metrics<span class="classifier">dict, optional</span></dt><dd><p>TorchMetrics dictionary for validation evaluation.</p>
+</dd>
+<dt>test_metrics<span class="classifier">dict, optional</span></dt><dd><p>TorchMetrics dictionary for test evaluation.</p>
+</dd>
+<dt>freeze_backbone<span class="classifier">bool, default=False</span></dt><dd><p>If True, backbone parameters are frozen during training.</p>
+</dd>
+<dt>optimizer: type</dt><dd><p>Optimizer class to be instantiated. By default, it is set to
+<cite>torch.optim.Adam</cite>. Should be a subclass of
+<cite>torch.optim.Optimizer</cite> (e.g., <cite>torch.optim.SGD</cite>).</p>
+</dd>
+<dt>optimizer_kwargs<span class="classifier">dict, optional</span></dt><dd><p>Additional kwargs passed to the optimizer constructor.</p>
+</dd>
+<dt>lr_scheduler<span class="classifier">type, optional</span></dt><dd><p>Learning rate scheduler class to be instantiated. By default, it is
+set to None, which means no scheduler will be used. Should be a
+subclass of <cite>torch.optim.lr_scheduler.LRScheduler</cite> (e.g.,
+<cite>torch.optim.lr_scheduler.StepLR</cite>).</p>
+</dd>
+<dt>lr_scheduler_kwargs<span class="classifier">dict, optional</span></dt><dd><p>Additional kwargs passed to the scheduler constructor.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.time_series.cnns.CNN_HaEtAl_1D._calculate_fc_input_features">
+<span class="sig-name descname"><span class="pre">_calculate_fc_input_features</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">backbone</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_shape</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/time_series/cnns.html#CNN_HaEtAl_1D._calculate_fc_input_features"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.time_series.cnns.CNN_HaEtAl_1D._calculate_fc_input_features" title="Link to this definition"></a></dt>
+<dd><p>Run a single forward pass with a random input to get the number of
+features after the convolutional layers.</p>
+<section id="id1">
+<h4>Parameters<a class="headerlink" href="#id1" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt>backbone<span class="classifier">torch.nn.Module</span></dt><dd><p>The backbone of the network</p>
+</dd>
+<dt>input_shape<span class="classifier">Tuple[int, int, int]</span></dt><dd><p>The input shape of the network.</p>
+</dd>
+</dl>
+</section>
+<section id="returns">
+<h4>Returns<a class="headerlink" href="#returns" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt>int</dt><dd><p>The number of features after the convolutional layers.</p>
+</dd>
+</dl>
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>backbone</strong> (<em>torch.nn.Module</em>)</p></li>
+<li><p><strong>input_shape</strong> (<em>Tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>, </em><em>int</em><em>]</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.time_series.cnns.CNN_HaEtAl_1D._create_fc">
+<span class="sig-name descname"><span class="pre">_create_fc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_features</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_classes</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/time_series/cnns.html#CNN_HaEtAl_1D._create_fc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.time_series.cnns.CNN_HaEtAl_1D._create_fc" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_features</strong> (<em>int</em>)</p></li>
+<li><p><strong>num_classes</strong> (<em>int</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>torch.nn.Module</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.time_series.cnns.CNN_HaEtAl_1D.fc_input_channels">
+<span class="sig-name descname"><span class="pre">fc_input_channels</span></span><a class="headerlink" href="#minerva.models.nets.time_series.cnns.CNN_HaEtAl_1D.fc_input_channels" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.time_series.cnns.CNN_HaEtAl_1D.input_shape">
+<span class="sig-name descname"><span class="pre">input_shape</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(6,</span> <span class="pre">60)</span></em><a class="headerlink" href="#minerva.models.nets.time_series.cnns.CNN_HaEtAl_1D.input_shape" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.time_series.cnns.CNN_HaEtAl_1D.num_classes">
+<span class="sig-name descname"><span class="pre">num_classes</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">6</span></em><a class="headerlink" href="#minerva.models.nets.time_series.cnns.CNN_HaEtAl_1D.num_classes" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_shape</strong> (<em>Union</em><em>[</em><em>Tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>]</em><em>, </em><em>Tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>, </em><em>int</em><em>]</em><em>]</em>)</p></li>
+<li><p><strong>num_classes</strong> (<em>int</em>)</p></li>
+<li><p><strong>learning_rate</strong> (<em>float</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.models.nets.time_series.cnns.CNN_HaEtAl_1D_Backbone">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.models.nets.time_series.cnns.</span></span><span class="sig-name descname"><span class="pre">CNN_HaEtAl_1D_Backbone</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/time_series/cnns.html#CNN_HaEtAl_1D_Backbone"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.time_series.cnns.CNN_HaEtAl_1D_Backbone" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>Base class for all neural network modules.</p>
+<p>Your models should also subclass this class.</p>
+<p>Modules can also contain other Modules, allowing them to be nested in
+a tree structure. You can assign the submodules as regular attributes:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn.functional</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">F</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Model</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conv1</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conv2</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conv1</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">F</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conv2</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Submodules assigned in this way will be registered, and will also have their
+parameters converted when you call <code class="xref py py-meth docutils literal notranslate"><span class="pre">to()</span></code>, etc.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>As per the example above, an <code class="docutils literal notranslate"><span class="pre">__init__()</span></code> call to the parent class
+must be made before assignment on the child.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Variables<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>training</strong> (<em>bool</em>) – Boolean represents whether this module is in training or
+evaluation mode.</p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>in_channels</strong> (<em>int</em>)</p>
+</dd>
+</dl>
+<p>Initialize internal Module state, shared by both nn.Module and ScriptModule.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.time_series.cnns.CNN_HaEtAl_1D_Backbone.backbone">
+<span class="sig-name descname"><span class="pre">backbone</span></span><a class="headerlink" href="#minerva.models.nets.time_series.cnns.CNN_HaEtAl_1D_Backbone.backbone" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.time_series.cnns.CNN_HaEtAl_1D_Backbone.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/time_series/cnns.html#CNN_HaEtAl_1D_Backbone.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.time_series.cnns.CNN_HaEtAl_1D_Backbone.forward" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.models.nets.time_series.cnns.CNN_HaEtAl_2D">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.models.nets.time_series.cnns.</span></span><span class="sig-name descname"><span class="pre">CNN_HaEtAl_2D</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pad_at</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(3,)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(6,</span> <span class="pre">60)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_classes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">learning_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/time_series/cnns.html#CNN_HaEtAl_2D"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.time_series.cnns.CNN_HaEtAl_2D" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="../../base/index.html#minerva.models.nets.base.SimpleSupervisedModel" title="minerva.models.nets.base.SimpleSupervisedModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">minerva.models.nets.base.SimpleSupervisedModel</span></code></a></p>
+<p>A modular Lightning model wrapper for supervised learning tasks.</p>
+<p>This class enables the construction of supervised models by combining a
+backbone (feature extractor), an optional adapter, and a fully connected
+(FC) head. It provides a clean interface for setting up custom training,
+validation, and testing pipelines with pluggable loss functions, metrics,
+optimizers, and learning rate schedulers.</p>
+<p>The architecture is structured as follows:</p>
+<blockquote>
+<div><table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p>Backbone Model</p></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<div><div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p>v</p>
+</div></blockquote>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p>Adapter (Optional)</p></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<div><blockquote>
+<div><div class="line-block">
+<div class="line"><br /></div>
+</div>
+</div></blockquote>
+<dl class="simple">
+<dt>(Flatten if needed)</dt><dd><p>v</p>
+</dd>
+</dl>
+</div></blockquote>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p>Fully Connected Head</p></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<div><div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p>v</p>
+</div></blockquote>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p>Loss Function</p></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+<p>Training and validation steps comprise the following steps:</p>
+<ol class="arabic simple">
+<li><p>Forward pass input through the backbone.</p></li>
+<li><p>Pass through adapter (if provided).</p></li>
+<li><p>Flatten the output (if <cite>flatten</cite> is True) before the FC head.</p></li>
+<li><p>Forward through the FC head.</p></li>
+<li><p>Compute loss with respect to targets.</p></li>
+<li><p>Backpropagate and update parameters.</p></li>
+<li><p>Compute metrics and log them.</p></li>
+<li><p>Return loss. <cite>train_loss</cite>, <cite>val_loss</cite>, and <cite>test_loss</cite> are always
+logged, along with any additional metrics specified in the
+<cite>train_metrics</cite>, <cite>val_metrics</cite>, and <cite>test_metrics</cite> dictionaries.</p></li>
+</ol>
+<p>This wrapper is especially useful to quickly set up supervised models for
+various tasks, such as image classification, object detection, and
+segmentation. It is designed to be flexible and extensible, allowing users
+to easily swap out components like the backbone, adapter, and FC head as
+needed. The model is built with a focus on simplicity and modularity, making
+it easy to adapt to different use cases and requirements.
+The model is designed to be used with PyTorch Lightning and is compatible
+with its training loop.</p>
+<p><strong>Note</strong>: For more complex architectures that does not follow the above
+structure should not inherit from this class.</p>
+<p><strong>Note</strong>: Input batches must be tuples (input_tensor, target_tensor).</p>
+<p>Initializes the supervised model with training components and configs.</p>
+<section id="id2">
+<h3>Parameters<a class="headerlink" href="#id2" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt>backbone<span class="classifier">torch.nn.Module or LoadableModule</span></dt><dd><p>The backbone (feature extractor) model.</p>
+</dd>
+<dt>fc<span class="classifier">torch.nn.Module or LoadableModule</span></dt><dd><p>The fully connected head. Use nn.Identity() if not required.</p>
+</dd>
+<dt>loss_fn<span class="classifier">torch.nn.Module</span></dt><dd><p>Loss function to optimize during training.</p>
+</dd>
+<dt>adapter<span class="classifier">Callable, optional</span></dt><dd><p>Function to transform backbone outputs before feeding into <cite>fc</cite>.</p>
+</dd>
+<dt>learning_rate<span class="classifier">float, default=1e-3</span></dt><dd><p>Learning rate used for optimization.</p>
+</dd>
+<dt>flatten<span class="classifier">bool, default=True</span></dt><dd><p>If True, flattens backbone outputs before <cite>fc</cite>.</p>
+</dd>
+<dt>train_metrics<span class="classifier">dict, optional</span></dt><dd><p>TorchMetrics dictionary for training evaluation.</p>
+</dd>
+<dt>val_metrics<span class="classifier">dict, optional</span></dt><dd><p>TorchMetrics dictionary for validation evaluation.</p>
+</dd>
+<dt>test_metrics<span class="classifier">dict, optional</span></dt><dd><p>TorchMetrics dictionary for test evaluation.</p>
+</dd>
+<dt>freeze_backbone<span class="classifier">bool, default=False</span></dt><dd><p>If True, backbone parameters are frozen during training.</p>
+</dd>
+<dt>optimizer: type</dt><dd><p>Optimizer class to be instantiated. By default, it is set to
+<cite>torch.optim.Adam</cite>. Should be a subclass of
+<cite>torch.optim.Optimizer</cite> (e.g., <cite>torch.optim.SGD</cite>).</p>
+</dd>
+<dt>optimizer_kwargs<span class="classifier">dict, optional</span></dt><dd><p>Additional kwargs passed to the optimizer constructor.</p>
+</dd>
+<dt>lr_scheduler<span class="classifier">type, optional</span></dt><dd><p>Learning rate scheduler class to be instantiated. By default, it is
+set to None, which means no scheduler will be used. Should be a
+subclass of <cite>torch.optim.lr_scheduler.LRScheduler</cite> (e.g.,
+<cite>torch.optim.lr_scheduler.StepLR</cite>).</p>
+</dd>
+<dt>lr_scheduler_kwargs<span class="classifier">dict, optional</span></dt><dd><p>Additional kwargs passed to the scheduler constructor.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.time_series.cnns.CNN_HaEtAl_2D._calculate_fc_input_features">
+<span class="sig-name descname"><span class="pre">_calculate_fc_input_features</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">backbone</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_shape</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/time_series/cnns.html#CNN_HaEtAl_2D._calculate_fc_input_features"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.time_series.cnns.CNN_HaEtAl_2D._calculate_fc_input_features" title="Link to this definition"></a></dt>
+<dd><p>Run a single forward pass with a random input to get the number of
+features after the convolutional layers.</p>
+<section id="id3">
+<h4>Parameters<a class="headerlink" href="#id3" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt>backbone<span class="classifier">torch.nn.Module</span></dt><dd><p>The backbone of the network</p>
+</dd>
+<dt>input_shape<span class="classifier">Tuple[int, int, int]</span></dt><dd><p>The input shape of the network.</p>
+</dd>
+</dl>
+</section>
+<section id="id4">
+<h4>Returns<a class="headerlink" href="#id4" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt>int</dt><dd><p>The number of features after the convolutional layers.</p>
+</dd>
+</dl>
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>backbone</strong> (<em>torch.nn.Module</em>)</p></li>
+<li><p><strong>input_shape</strong> (<em>Tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>, </em><em>int</em><em>]</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.time_series.cnns.CNN_HaEtAl_2D._create_fc">
+<span class="sig-name descname"><span class="pre">_create_fc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_features</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_classes</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/time_series/cnns.html#CNN_HaEtAl_2D._create_fc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.time_series.cnns.CNN_HaEtAl_2D._create_fc" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_features</strong> (<em>int</em>)</p></li>
+<li><p><strong>num_classes</strong> (<em>int</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>torch.nn.Module</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.time_series.cnns.CNN_HaEtAl_2D.fc_input_channels">
+<span class="sig-name descname"><span class="pre">fc_input_channels</span></span><a class="headerlink" href="#minerva.models.nets.time_series.cnns.CNN_HaEtAl_2D.fc_input_channels" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.time_series.cnns.CNN_HaEtAl_2D.input_shape">
+<span class="sig-name descname"><span class="pre">input_shape</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(6,</span> <span class="pre">60)</span></em><a class="headerlink" href="#minerva.models.nets.time_series.cnns.CNN_HaEtAl_2D.input_shape" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.time_series.cnns.CNN_HaEtAl_2D.num_classes">
+<span class="sig-name descname"><span class="pre">num_classes</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">6</span></em><a class="headerlink" href="#minerva.models.nets.time_series.cnns.CNN_HaEtAl_2D.num_classes" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.time_series.cnns.CNN_HaEtAl_2D.pad_at">
+<span class="sig-name descname"><span class="pre">pad_at</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(3,)</span></em><a class="headerlink" href="#minerva.models.nets.time_series.cnns.CNN_HaEtAl_2D.pad_at" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pad_at</strong> (<em>Union</em><em>[</em><em>int</em><em>, </em><em>Tuple</em><em>[</em><em>int</em><em>]</em><em>]</em>)</p></li>
+<li><p><strong>input_shape</strong> (<em>Union</em><em>[</em><em>Tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>]</em><em>, </em><em>Tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>, </em><em>int</em><em>]</em><em>]</em>)</p></li>
+<li><p><strong>num_classes</strong> (<em>int</em>)</p></li>
+<li><p><strong>learning_rate</strong> (<em>float</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.models.nets.time_series.cnns.CNN_HaEtAl_2D_Backbone">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.models.nets.time_series.cnns.</span></span><span class="sig-name descname"><span class="pre">CNN_HaEtAl_2D_Backbone</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad_at</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">first_kernel_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/time_series/cnns.html#CNN_HaEtAl_2D_Backbone"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.time_series.cnns.CNN_HaEtAl_2D_Backbone" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>Base class for all neural network modules.</p>
+<p>Your models should also subclass this class.</p>
+<p>Modules can also contain other Modules, allowing them to be nested in
+a tree structure. You can assign the submodules as regular attributes:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn.functional</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">F</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Model</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conv1</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conv2</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conv1</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">F</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conv2</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Submodules assigned in this way will be registered, and will also have their
+parameters converted when you call <code class="xref py py-meth docutils literal notranslate"><span class="pre">to()</span></code>, etc.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>As per the example above, an <code class="docutils literal notranslate"><span class="pre">__init__()</span></code> call to the parent class
+must be made before assignment on the child.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Variables<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>training</strong> (<em>bool</em>) – Boolean represents whether this module is in training or
+evaluation mode.</p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>input_shape</strong> (<em>Tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>, </em><em>int</em><em>]</em>)</p></li>
+<li><p><strong>pad_at</strong> (<em>int</em>)</p></li>
+<li><p><strong>first_kernel_size</strong> (<em>int</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<p>Initialize internal Module state, shared by both nn.Module and ScriptModule.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.time_series.cnns.CNN_HaEtAl_2D_Backbone.backbone">
+<span class="sig-name descname"><span class="pre">backbone</span></span><a class="headerlink" href="#minerva.models.nets.time_series.cnns.CNN_HaEtAl_2D_Backbone.backbone" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.time_series.cnns.CNN_HaEtAl_2D_Backbone.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/time_series/cnns.html#CNN_HaEtAl_2D_Backbone.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.time_series.cnns.CNN_HaEtAl_2D_Backbone.forward" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.models.nets.time_series.cnns.CNN_PFF_2D">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.models.nets.time_series.cnns.</span></span><span class="sig-name descname"><span class="pre">CNN_PFF_2D</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/time_series/cnns.html#CNN_PFF_2D"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.time_series.cnns.CNN_PFF_2D" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#minerva.models.nets.time_series.cnns.CNN_PF_2D" title="minerva.models.nets.time_series.cnns.CNN_PF_2D"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CNN_PF_2D</span></code></a></p>
+<p>A modular Lightning model wrapper for supervised learning tasks.</p>
+<p>This class enables the construction of supervised models by combining a
+backbone (feature extractor), an optional adapter, and a fully connected
+(FC) head. It provides a clean interface for setting up custom training,
+validation, and testing pipelines with pluggable loss functions, metrics,
+optimizers, and learning rate schedulers.</p>
+<p>The architecture is structured as follows:</p>
+<blockquote>
+<div><table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p>Backbone Model</p></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<div><div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p>v</p>
+</div></blockquote>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p>Adapter (Optional)</p></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<div><blockquote>
+<div><div class="line-block">
+<div class="line"><br /></div>
+</div>
+</div></blockquote>
+<dl class="simple">
+<dt>(Flatten if needed)</dt><dd><p>v</p>
+</dd>
+</dl>
+</div></blockquote>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p>Fully Connected Head</p></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<div><div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p>v</p>
+</div></blockquote>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p>Loss Function</p></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+<p>Training and validation steps comprise the following steps:</p>
+<ol class="arabic simple">
+<li><p>Forward pass input through the backbone.</p></li>
+<li><p>Pass through adapter (if provided).</p></li>
+<li><p>Flatten the output (if <cite>flatten</cite> is True) before the FC head.</p></li>
+<li><p>Forward through the FC head.</p></li>
+<li><p>Compute loss with respect to targets.</p></li>
+<li><p>Backpropagate and update parameters.</p></li>
+<li><p>Compute metrics and log them.</p></li>
+<li><p>Return loss. <cite>train_loss</cite>, <cite>val_loss</cite>, and <cite>test_loss</cite> are always
+logged, along with any additional metrics specified in the
+<cite>train_metrics</cite>, <cite>val_metrics</cite>, and <cite>test_metrics</cite> dictionaries.</p></li>
+</ol>
+<p>This wrapper is especially useful to quickly set up supervised models for
+various tasks, such as image classification, object detection, and
+segmentation. It is designed to be flexible and extensible, allowing users
+to easily swap out components like the backbone, adapter, and FC head as
+needed. The model is built with a focus on simplicity and modularity, making
+it easy to adapt to different use cases and requirements.
+The model is designed to be used with PyTorch Lightning and is compatible
+with its training loop.</p>
+<p><strong>Note</strong>: For more complex architectures that does not follow the above
+structure should not inherit from this class.</p>
+<p><strong>Note</strong>: Input batches must be tuples (input_tensor, target_tensor).</p>
+<p>Initializes the supervised model with training components and configs.</p>
+<section id="id5">
+<h3>Parameters<a class="headerlink" href="#id5" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt>backbone<span class="classifier">torch.nn.Module or LoadableModule</span></dt><dd><p>The backbone (feature extractor) model.</p>
+</dd>
+<dt>fc<span class="classifier">torch.nn.Module or LoadableModule</span></dt><dd><p>The fully connected head. Use nn.Identity() if not required.</p>
+</dd>
+<dt>loss_fn<span class="classifier">torch.nn.Module</span></dt><dd><p>Loss function to optimize during training.</p>
+</dd>
+<dt>adapter<span class="classifier">Callable, optional</span></dt><dd><p>Function to transform backbone outputs before feeding into <cite>fc</cite>.</p>
+</dd>
+<dt>learning_rate<span class="classifier">float, default=1e-3</span></dt><dd><p>Learning rate used for optimization.</p>
+</dd>
+<dt>flatten<span class="classifier">bool, default=True</span></dt><dd><p>If True, flattens backbone outputs before <cite>fc</cite>.</p>
+</dd>
+<dt>train_metrics<span class="classifier">dict, optional</span></dt><dd><p>TorchMetrics dictionary for training evaluation.</p>
+</dd>
+<dt>val_metrics<span class="classifier">dict, optional</span></dt><dd><p>TorchMetrics dictionary for validation evaluation.</p>
+</dd>
+<dt>test_metrics<span class="classifier">dict, optional</span></dt><dd><p>TorchMetrics dictionary for test evaluation.</p>
+</dd>
+<dt>freeze_backbone<span class="classifier">bool, default=False</span></dt><dd><p>If True, backbone parameters are frozen during training.</p>
+</dd>
+<dt>optimizer: type</dt><dd><p>Optimizer class to be instantiated. By default, it is set to
+<cite>torch.optim.Adam</cite>. Should be a subclass of
+<cite>torch.optim.Optimizer</cite> (e.g., <cite>torch.optim.SGD</cite>).</p>
+</dd>
+<dt>optimizer_kwargs<span class="classifier">dict, optional</span></dt><dd><p>Additional kwargs passed to the optimizer constructor.</p>
+</dd>
+<dt>lr_scheduler<span class="classifier">type, optional</span></dt><dd><p>Learning rate scheduler class to be instantiated. By default, it is
+set to None, which means no scheduler will be used. Should be a
+subclass of <cite>torch.optim.lr_scheduler.LRScheduler</cite> (e.g.,
+<cite>torch.optim.lr_scheduler.StepLR</cite>).</p>
+</dd>
+<dt>lr_scheduler_kwargs<span class="classifier">dict, optional</span></dt><dd><p>Additional kwargs passed to the scheduler constructor.</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.models.nets.time_series.cnns.CNN_PF_2D">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.models.nets.time_series.cnns.</span></span><span class="sig-name descname"><span class="pre">CNN_PF_2D</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pad_at</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(1,</span> <span class="pre">6,</span> <span class="pre">60)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_classes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">learning_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_middle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/time_series/cnns.html#CNN_PF_2D"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.time_series.cnns.CNN_PF_2D" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="../../base/index.html#minerva.models.nets.base.SimpleSupervisedModel" title="minerva.models.nets.base.SimpleSupervisedModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">minerva.models.nets.base.SimpleSupervisedModel</span></code></a></p>
+<p>A modular Lightning model wrapper for supervised learning tasks.</p>
+<p>This class enables the construction of supervised models by combining a
+backbone (feature extractor), an optional adapter, and a fully connected
+(FC) head. It provides a clean interface for setting up custom training,
+validation, and testing pipelines with pluggable loss functions, metrics,
+optimizers, and learning rate schedulers.</p>
+<p>The architecture is structured as follows:</p>
+<blockquote>
+<div><table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p>Backbone Model</p></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<div><div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p>v</p>
+</div></blockquote>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p>Adapter (Optional)</p></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<div><blockquote>
+<div><div class="line-block">
+<div class="line"><br /></div>
+</div>
+</div></blockquote>
+<dl class="simple">
+<dt>(Flatten if needed)</dt><dd><p>v</p>
+</dd>
+</dl>
+</div></blockquote>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p>Fully Connected Head</p></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<div><div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p>v</p>
+</div></blockquote>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p>Loss Function</p></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+<p>Training and validation steps comprise the following steps:</p>
+<ol class="arabic simple">
+<li><p>Forward pass input through the backbone.</p></li>
+<li><p>Pass through adapter (if provided).</p></li>
+<li><p>Flatten the output (if <cite>flatten</cite> is True) before the FC head.</p></li>
+<li><p>Forward through the FC head.</p></li>
+<li><p>Compute loss with respect to targets.</p></li>
+<li><p>Backpropagate and update parameters.</p></li>
+<li><p>Compute metrics and log them.</p></li>
+<li><p>Return loss. <cite>train_loss</cite>, <cite>val_loss</cite>, and <cite>test_loss</cite> are always
+logged, along with any additional metrics specified in the
+<cite>train_metrics</cite>, <cite>val_metrics</cite>, and <cite>test_metrics</cite> dictionaries.</p></li>
+</ol>
+<p>This wrapper is especially useful to quickly set up supervised models for
+various tasks, such as image classification, object detection, and
+segmentation. It is designed to be flexible and extensible, allowing users
+to easily swap out components like the backbone, adapter, and FC head as
+needed. The model is built with a focus on simplicity and modularity, making
+it easy to adapt to different use cases and requirements.
+The model is designed to be used with PyTorch Lightning and is compatible
+with its training loop.</p>
+<p><strong>Note</strong>: For more complex architectures that does not follow the above
+structure should not inherit from this class.</p>
+<p><strong>Note</strong>: Input batches must be tuples (input_tensor, target_tensor).</p>
+<p>Initializes the supervised model with training components and configs.</p>
+<section id="id6">
+<h3>Parameters<a class="headerlink" href="#id6" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt>backbone<span class="classifier">torch.nn.Module or LoadableModule</span></dt><dd><p>The backbone (feature extractor) model.</p>
+</dd>
+<dt>fc<span class="classifier">torch.nn.Module or LoadableModule</span></dt><dd><p>The fully connected head. Use nn.Identity() if not required.</p>
+</dd>
+<dt>loss_fn<span class="classifier">torch.nn.Module</span></dt><dd><p>Loss function to optimize during training.</p>
+</dd>
+<dt>adapter<span class="classifier">Callable, optional</span></dt><dd><p>Function to transform backbone outputs before feeding into <cite>fc</cite>.</p>
+</dd>
+<dt>learning_rate<span class="classifier">float, default=1e-3</span></dt><dd><p>Learning rate used for optimization.</p>
+</dd>
+<dt>flatten<span class="classifier">bool, default=True</span></dt><dd><p>If True, flattens backbone outputs before <cite>fc</cite>.</p>
+</dd>
+<dt>train_metrics<span class="classifier">dict, optional</span></dt><dd><p>TorchMetrics dictionary for training evaluation.</p>
+</dd>
+<dt>val_metrics<span class="classifier">dict, optional</span></dt><dd><p>TorchMetrics dictionary for validation evaluation.</p>
+</dd>
+<dt>test_metrics<span class="classifier">dict, optional</span></dt><dd><p>TorchMetrics dictionary for test evaluation.</p>
+</dd>
+<dt>freeze_backbone<span class="classifier">bool, default=False</span></dt><dd><p>If True, backbone parameters are frozen during training.</p>
+</dd>
+<dt>optimizer: type</dt><dd><p>Optimizer class to be instantiated. By default, it is set to
+<cite>torch.optim.Adam</cite>. Should be a subclass of
+<cite>torch.optim.Optimizer</cite> (e.g., <cite>torch.optim.SGD</cite>).</p>
+</dd>
+<dt>optimizer_kwargs<span class="classifier">dict, optional</span></dt><dd><p>Additional kwargs passed to the optimizer constructor.</p>
+</dd>
+<dt>lr_scheduler<span class="classifier">type, optional</span></dt><dd><p>Learning rate scheduler class to be instantiated. By default, it is
+set to None, which means no scheduler will be used. Should be a
+subclass of <cite>torch.optim.lr_scheduler.LRScheduler</cite> (e.g.,
+<cite>torch.optim.lr_scheduler.StepLR</cite>).</p>
+</dd>
+<dt>lr_scheduler_kwargs<span class="classifier">dict, optional</span></dt><dd><p>Additional kwargs passed to the scheduler constructor.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.time_series.cnns.CNN_PF_2D._calculate_fc_input_features">
+<span class="sig-name descname"><span class="pre">_calculate_fc_input_features</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">backbone</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_shape</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/time_series/cnns.html#CNN_PF_2D._calculate_fc_input_features"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.time_series.cnns.CNN_PF_2D._calculate_fc_input_features" title="Link to this definition"></a></dt>
+<dd><p>Run a single forward pass with a random input to get the number of
+features after the convolutional layers.</p>
+<section id="id7">
+<h4>Parameters<a class="headerlink" href="#id7" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt>backbone<span class="classifier">torch.nn.Module</span></dt><dd><p>The backbone of the network</p>
+</dd>
+<dt>input_shape<span class="classifier">Tuple[int, int, int]</span></dt><dd><p>The input shape of the network.</p>
+</dd>
+</dl>
+</section>
+<section id="id8">
+<h4>Returns<a class="headerlink" href="#id8" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt>int</dt><dd><p>The number of features after the convolutional layers.</p>
+</dd>
+</dl>
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>backbone</strong> (<em>torch.nn.Module</em>)</p></li>
+<li><p><strong>input_shape</strong> (<em>Tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>, </em><em>int</em><em>]</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.time_series.cnns.CNN_PF_2D._create_fc">
+<span class="sig-name descname"><span class="pre">_create_fc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_features</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_classes</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/time_series/cnns.html#CNN_PF_2D._create_fc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.time_series.cnns.CNN_PF_2D._create_fc" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_features</strong> (<em>int</em>)</p></li>
+<li><p><strong>num_classes</strong> (<em>int</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>torch.nn.Module</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.time_series.cnns.CNN_PF_2D.fc_input_channels">
+<span class="sig-name descname"><span class="pre">fc_input_channels</span></span><a class="headerlink" href="#minerva.models.nets.time_series.cnns.CNN_PF_2D.fc_input_channels" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.time_series.cnns.CNN_PF_2D.input_shape">
+<span class="sig-name descname"><span class="pre">input_shape</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">(1,</span> <span class="pre">6,</span> <span class="pre">60)</span></em><a class="headerlink" href="#minerva.models.nets.time_series.cnns.CNN_PF_2D.input_shape" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.time_series.cnns.CNN_PF_2D.num_classes">
+<span class="sig-name descname"><span class="pre">num_classes</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">6</span></em><a class="headerlink" href="#minerva.models.nets.time_series.cnns.CNN_PF_2D.num_classes" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.time_series.cnns.CNN_PF_2D.out_channels">
+<span class="sig-name descname"><span class="pre">out_channels</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">16</span></em><a class="headerlink" href="#minerva.models.nets.time_series.cnns.CNN_PF_2D.out_channels" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.time_series.cnns.CNN_PF_2D.pad_at">
+<span class="sig-name descname"><span class="pre">pad_at</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></em><a class="headerlink" href="#minerva.models.nets.time_series.cnns.CNN_PF_2D.pad_at" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pad_at</strong> (<em>int</em>)</p></li>
+<li><p><strong>input_shape</strong> (<em>Tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>, </em><em>int</em><em>]</em>)</p></li>
+<li><p><strong>out_channels</strong> (<em>int</em>)</p></li>
+<li><p><strong>num_classes</strong> (<em>int</em>)</p></li>
+<li><p><strong>learning_rate</strong> (<em>float</em>)</p></li>
+<li><p><strong>include_middle</strong> (<em>bool</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.models.nets.time_series.cnns.CNN_PF_Backbone">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.models.nets.time_series.cnns.</span></span><span class="sig-name descname"><span class="pre">CNN_PF_Backbone</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad_at</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_middle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">permute</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flatten</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/time_series/cnns.html#CNN_PF_Backbone"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.time_series.cnns.CNN_PF_Backbone" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>Base class for all neural network modules.</p>
+<p>Your models should also subclass this class.</p>
+<p>Modules can also contain other Modules, allowing them to be nested in
+a tree structure. You can assign the submodules as regular attributes:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn.functional</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">F</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Model</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conv1</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conv2</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conv1</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">F</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conv2</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Submodules assigned in this way will be registered, and will also have their
+parameters converted when you call <code class="xref py py-meth docutils literal notranslate"><span class="pre">to()</span></code>, etc.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>As per the example above, an <code class="docutils literal notranslate"><span class="pre">__init__()</span></code> call to the parent class
+must be made before assignment on the child.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Variables<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>training</strong> (<em>bool</em>) – Boolean represents whether this module is in training or
+evaluation mode.</p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>in_channels</strong> (<em>int</em>)</p></li>
+<li><p><strong>pad_at</strong> (<em>int</em>)</p></li>
+<li><p><strong>out_channels</strong> (<em>int</em>)</p></li>
+<li><p><strong>include_middle</strong> (<em>bool</em>)</p></li>
+<li><p><strong>permute</strong> (<em>bool</em>)</p></li>
+<li><p><strong>flatten</strong> (<em>bool</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<p>Initialize internal Module state, shared by both nn.Module and ScriptModule.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.time_series.cnns.CNN_PF_Backbone.first_pad_size">
+<span class="sig-name descname"><span class="pre">first_pad_size</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></em><a class="headerlink" href="#minerva.models.nets.time_series.cnns.CNN_PF_Backbone.first_pad_size" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.time_series.cnns.CNN_PF_Backbone.first_padder">
+<span class="sig-name descname"><span class="pre">first_padder</span></span><a class="headerlink" href="#minerva.models.nets.time_series.cnns.CNN_PF_Backbone.first_padder" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.time_series.cnns.CNN_PF_Backbone.flatten">
+<span class="sig-name descname"><span class="pre">flatten</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#minerva.models.nets.time_series.cnns.CNN_PF_Backbone.flatten" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.time_series.cnns.CNN_PF_Backbone.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/time_series/cnns.html#CNN_PF_Backbone.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.time_series.cnns.CNN_PF_Backbone.forward" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.time_series.cnns.CNN_PF_Backbone.in_channels">
+<span class="sig-name descname"><span class="pre">in_channels</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#minerva.models.nets.time_series.cnns.CNN_PF_Backbone.in_channels" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.time_series.cnns.CNN_PF_Backbone.include_middle">
+<span class="sig-name descname"><span class="pre">include_middle</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#minerva.models.nets.time_series.cnns.CNN_PF_Backbone.include_middle" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.time_series.cnns.CNN_PF_Backbone.lower_part">
+<span class="sig-name descname"><span class="pre">lower_part</span></span><a class="headerlink" href="#minerva.models.nets.time_series.cnns.CNN_PF_Backbone.lower_part" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.time_series.cnns.CNN_PF_Backbone.out_channels">
+<span class="sig-name descname"><span class="pre">out_channels</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">16</span></em><a class="headerlink" href="#minerva.models.nets.time_series.cnns.CNN_PF_Backbone.out_channels" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.time_series.cnns.CNN_PF_Backbone.pad_at">
+<span class="sig-name descname"><span class="pre">pad_at</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></em><a class="headerlink" href="#minerva.models.nets.time_series.cnns.CNN_PF_Backbone.pad_at" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.time_series.cnns.CNN_PF_Backbone.permute">
+<span class="sig-name descname"><span class="pre">permute</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#minerva.models.nets.time_series.cnns.CNN_PF_Backbone.permute" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.time_series.cnns.CNN_PF_Backbone.shared_part">
+<span class="sig-name descname"><span class="pre">shared_part</span></span><a class="headerlink" href="#minerva.models.nets.time_series.cnns.CNN_PF_Backbone.shared_part" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.time_series.cnns.CNN_PF_Backbone.upper_part">
+<span class="sig-name descname"><span class="pre">upper_part</span></span><a class="headerlink" href="#minerva.models.nets.time_series.cnns.CNN_PF_Backbone.upper_part" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.models.nets.time_series.cnns.ZeroPadder2D">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.models.nets.time_series.cnns.</span></span><span class="sig-name descname"><span class="pre">ZeroPadder2D</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pad_at</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">padding_size</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/time_series/cnns.html#ZeroPadder2D"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.time_series.cnns.ZeroPadder2D" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>Base class for all neural network modules.</p>
+<p>Your models should also subclass this class.</p>
+<p>Modules can also contain other Modules, allowing them to be nested in
+a tree structure. You can assign the submodules as regular attributes:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn.functional</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">F</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Model</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conv1</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conv2</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conv1</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">F</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conv2</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Submodules assigned in this way will be registered, and will also have their
+parameters converted when you call <code class="xref py py-meth docutils literal notranslate"><span class="pre">to()</span></code>, etc.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>As per the example above, an <code class="docutils literal notranslate"><span class="pre">__init__()</span></code> call to the parent class
+must be made before assignment on the child.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Variables<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>training</strong> (<em>bool</em>) – Boolean represents whether this module is in training or
+evaluation mode.</p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>pad_at</strong> (<em>Tuple</em><em>[</em><em>int</em><em>]</em>)</p></li>
+<li><p><strong>padding_size</strong> (<em>int</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<p>Initialize internal Module state, shared by both nn.Module and ScriptModule.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.time_series.cnns.ZeroPadder2D.__repr__">
+<span class="sig-name descname"><span class="pre">__repr__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/time_series/cnns.html#ZeroPadder2D.__repr__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.time_series.cnns.ZeroPadder2D.__repr__" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.time_series.cnns.ZeroPadder2D.__str__">
+<span class="sig-name descname"><span class="pre">__str__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/time_series/cnns.html#ZeroPadder2D.__str__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.time_series.cnns.ZeroPadder2D.__str__" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.time_series.cnns.ZeroPadder2D.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/time_series/cnns.html#ZeroPadder2D.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.time_series.cnns.ZeroPadder2D.forward" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.time_series.cnns.ZeroPadder2D.pad_at">
+<span class="sig-name descname"><span class="pre">pad_at</span></span><a class="headerlink" href="#minerva.models.nets.time_series.cnns.ZeroPadder2D.pad_at" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.time_series.cnns.ZeroPadder2D.padding_size">
+<span class="sig-name descname"><span class="pre">padding_size</span></span><a class="headerlink" href="#minerva.models.nets.time_series.cnns.ZeroPadder2D.padding_size" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Unicamp.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

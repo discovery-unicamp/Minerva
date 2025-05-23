@@ -1,0 +1,384 @@
+minerva.models.ssl
+==================
+
+.. py:module:: minerva.models.ssl
+
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   /autoapi/minerva/models/ssl/autoencoder/index
+   /autoapi/minerva/models/ssl/byol/index
+   /autoapi/minerva/models/ssl/cpc/index
+   /autoapi/minerva/models/ssl/simclr/index
+   /autoapi/minerva/models/ssl/tfc/index
+   /autoapi/minerva/models/ssl/tnc/index
+   /autoapi/minerva/models/ssl/topological_autoencoder/index
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   minerva.models.ssl.BYOL
+   minerva.models.ssl.SimCLR
+
+
+Package Contents
+----------------
+
+.. py:class:: BYOL(backbone = None, projection_head = None, prediction_head = None, learning_rate = 0.001, schedule = 90000, criterion = None)
+
+   Bases: :py:obj:`lightning.LightningModule`
+
+
+   Bootstrap Your Own Latent (BYOL) model for self-supervised learning.
+
+   References
+   ----------
+   Grill, J., Strub, F., Altché, F., Tallec, C., Richemond, P. H., Buchatskaya, E., ... & Valko, M. (2020).
+   "Bootstrap your own latent - a new approach to self-supervised learning." Advances in Neural Information Processing Systems, 33, 21271-21284.
+
+   Initializes the BYOL model.
+
+   Parameters
+   ----------
+   backbone : Optional[nn.Module]
+       The backbone network for feature extraction. Defaults to DeepLabV3Backbone.
+   projection_head : Optional[nn.Module]
+       Optional custom projection head module. If None, a default MLP-based projection head is used.
+   prediction_head : Optional[nn.Module]
+       Optional custom prediction head module. If None, a default MLP-based prediction head is used.
+   learning_rate : float
+       The learning rate for the optimizer. Defaults to 1e-3.
+   schedule : int
+       The total number of steps for cosine decay scheduling. Defaults to 90000.
+   criterion : Optional[Optimizer]
+       Loss function to use. Defaults to NegativeCosineSimilarity.
+
+
+   .. py:method:: _default_prediction_head()
+
+      Creates the default prediction head used in BYOL.
+
+
+
+   .. py:method:: _default_projection_head()
+
+      Creates the default projection head used in BYOL.
+
+
+
+   .. py:attribute:: backbone
+
+
+   .. py:attribute:: backbone_momentum
+
+
+   .. py:method:: configure_optimizers()
+
+      Configures the optimizer for the BYOL model.
+
+      Returns
+      -------
+      torch.optim.SGD
+          Optimizer with configured learning rate.
+
+
+
+   .. py:method:: cosine_schedule(step, max_steps, start_value, end_value, period = None)
+
+      Uses cosine decay to gradually modify `start_value` to reach `end_value`.
+
+      Parameters
+      ----------
+      step : int
+          Current step number.
+      max_steps : int
+          Total number of steps.
+      start_value : float
+          Starting value.
+      end_value : float
+          Target value.
+      period : Optional[int]
+          Steps over which cosine decay completes a full cycle. Defaults to max_steps.
+
+      Returns
+      -------
+      float
+          Cosine decay value.
+
+
+
+   .. py:attribute:: criterion
+
+
+   .. py:method:: deactivate_requires_grad(model)
+
+      Freezes the weights of the model.
+
+      Parameters
+      ----------
+      model : nn.Module
+          Model to freeze.
+
+
+
+   .. py:method:: forward(x)
+
+      Forward pass for the BYOL model.
+
+      Parameters
+      ----------
+      x : Tensor
+          Input image tensor.
+
+      Returns
+      -------
+      Tensor
+          Output tensor after passing through the backbone, projection, and prediction heads.
+
+
+
+   .. py:method:: forward_momentum(x)
+
+      Forward pass using momentum encoder.
+
+      Parameters
+      ----------
+      x : Tensor
+          Input image tensor.
+
+      Returns
+      -------
+      Tensor
+          Output tensor after passing through the momentum backbone and projection head.
+
+
+
+   .. py:attribute:: learning_rate
+      :value: 0.001
+
+
+
+   .. py:attribute:: prediction_head
+
+
+   .. py:attribute:: projection_head
+
+
+   .. py:attribute:: projection_head_momentum
+
+
+   .. py:attribute:: schedule_length
+      :value: 90000
+
+
+
+   .. py:method:: training_step(batch, batch_idx)
+
+      Performs a training step for BYOL.
+
+      Parameters
+      ----------
+      batch : Sequence[Tensor]
+          A batch of input pairs (x0, x1).
+      batch_idx : int
+          Batch index.
+
+      Returns
+      -------
+      Tensor
+          The computed loss for the current batch.
+
+
+
+   .. py:method:: update_momentum(model, model_ema, m)
+
+      Updates model weights using momentum.
+
+      Parameters
+      ----------
+      model : nn.Module
+          Original model.
+      model_ema : nn.Module
+          Momentum model.
+      m : float
+          Momentum factor.
+
+
+
+.. py:class:: SimCLR(backbone, projection_head, flatten = True, temperature = 0.5, lr = 0.001)
+
+   Bases: :py:obj:`lightning.LightningModule`
+
+
+   Base class for all neural network modules.
+
+   Your models should also subclass this class.
+
+   Modules can also contain other Modules, allowing them to be nested in
+   a tree structure. You can assign the submodules as regular attributes::
+
+       import torch.nn as nn
+       import torch.nn.functional as F
+
+       class Model(nn.Module):
+           def __init__(self) -> None:
+               super().__init__()
+               self.conv1 = nn.Conv2d(1, 20, 5)
+               self.conv2 = nn.Conv2d(20, 20, 5)
+
+           def forward(self, x):
+               x = F.relu(self.conv1(x))
+               return F.relu(self.conv2(x))
+
+   Submodules assigned in this way will be registered, and will also have their
+   parameters converted when you call :meth:`to`, etc.
+
+   .. note::
+       As per the example above, an ``__init__()`` call to the parent class
+       must be made before assignment on the child.
+
+   :ivar training: Boolean represents whether this module is in training or
+                   evaluation mode.
+   :vartype training: bool
+
+   Initializes the SimCLR model.
+
+   Parameters
+   ----------
+   backbone : nn.Module
+       Backbone model for feature extraction.
+   projection_head : nn.Module
+       Projection head model.
+   flatten : bool, optional, default=True
+       Whether to flatten the output of the backbone model, by default True
+   temperature : float, optional, default=0.5
+       Temperature for the NT-Xent loss, by default 0.5
+   lr : float, optional, default=1e-3
+       Learning rate for the optimizer, by default 1e-3
+
+
+   .. py:method:: _single_step(batch)
+
+      Performs a single forward and loss computation step.
+
+      Parameters
+      ----------
+      batch : Tuple[Tuple[Tensor, Tensor], Any]
+          Input batch containing images and optional labels.
+
+      Returns
+      -------
+      Tensor
+          Computed loss for the batch.
+
+
+
+   .. py:attribute:: backbone
+
+
+   .. py:method:: configure_optimizers()
+
+      Configures the optimizer for training.
+
+      Returns
+      -------
+      torch.optim.Optimizer
+          Optimizer instance.
+
+
+
+   .. py:attribute:: flatten
+      :value: True
+
+
+
+   .. py:method:: forward(x)
+
+      Forward pass through the SimCLR model.
+
+      Parameters
+      ----------
+      x : Tuple[Tensor, Tensor]
+          Input tensor of features with shape (batch_size, input_dim).
+
+      Returns
+      -------
+      Tensor
+          Output tensor of projected features with shape (batch_size, output_dim).
+
+
+
+   .. py:attribute:: loss
+
+
+   .. py:attribute:: lr
+      :value: 0.001
+
+
+
+   .. py:method:: predict_step(batch, batch_idx, dataloader_idx = None)
+
+      Predict step.
+
+      Parameters
+      ----------
+      batch : Tuple[Tuple[Tensor, Tensor], Any]
+          Input batch containing images and optional labels.
+      batch_idx : int
+          Index of the current batch.
+      dataloader_idx : Optional[int], optional
+          Index of the dataloader, by default None
+
+      Returns
+      -------
+      Tensor
+          Computed loss for the batch.
+
+
+
+   .. py:attribute:: projector
+
+
+   .. py:method:: training_step(batch, batch_idx)
+
+      Training step.
+
+      Parameters
+      ----------
+      batch : Tuple[Tuple[Tensor, Tensor], Any]
+          Input batch containing images and optional labels.
+      batch_idx : int
+          Index of the current batch.
+
+      Returns
+      -------
+      Tensor
+          Computed loss for the batch.
+
+
+
+   .. py:method:: validation_step(batch, batch_idx)
+
+      Validation step.
+
+      Parameters
+      ----------
+      batch : Tuple[Tuple[Tensor, Tensor], Any]
+          Input batch containing images and optional labels.
+      batch_idx : int
+          Index of the current batch.
+
+      Returns
+      -------
+      Tensor
+          Computed loss for the batch.
+
+
+

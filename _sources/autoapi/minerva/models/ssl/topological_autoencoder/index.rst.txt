@@ -1,0 +1,340 @@
+minerva.models.ssl.topological_autoencoder
+==========================================
+
+.. py:module:: minerva.models.ssl.topological_autoencoder
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   minerva.models.ssl.topological_autoencoder.TopologicalAutoencoder
+
+
+Module Contents
+---------------
+
+.. py:class:: TopologicalAutoencoder(encoder, decoder, topological_loss = None, reconstruction_loss = None, lambda_param = 0.001, learning_rate = 0.001)
+
+   Bases: :py:obj:`lightning.LightningModule`
+
+
+   Base class for all neural network modules.
+
+   Your models should also subclass this class.
+
+   Modules can also contain other Modules, allowing them to be nested in
+   a tree structure. You can assign the submodules as regular attributes::
+
+       import torch.nn as nn
+       import torch.nn.functional as F
+
+       class Model(nn.Module):
+           def __init__(self) -> None:
+               super().__init__()
+               self.conv1 = nn.Conv2d(1, 20, 5)
+               self.conv2 = nn.Conv2d(20, 20, 5)
+
+           def forward(self, x):
+               x = F.relu(self.conv1(x))
+               return F.relu(self.conv2(x))
+
+   Submodules assigned in this way will be registered, and will also have their
+   parameters converted when you call :meth:`to`, etc.
+
+   .. note::
+       As per the example above, an ``__init__()`` call to the parent class
+       must be made before assignment on the child.
+
+   :ivar training: Boolean represents whether this module is in training or
+                   evaluation mode.
+   :vartype training: bool
+
+   Topological autoencoder model.
+
+   Parameters
+   ----------
+   encoder : torch.nn.Module
+       Encoder model
+   decoder : torch.nn.Module
+       Decoder model
+   topological_loss : torch.nn.Module, optional
+       Topological loss, by default None
+   reconstruction_loss : torch.nn.Module, optional
+       Reconstruction loss, by default None
+   lambda_param : float, optional
+       Weight of the topological loss, by default 1e-3
+   learning_rate : float, optional
+       Learning rate, by default 1e-3
+
+
+   .. py:method:: configure_optimizers()
+
+      Choose what optimizers and learning-rate schedulers to use in your optimization. Normally you'd need one.
+      But in the case of GANs or similar you might have multiple. Optimization with multiple optimizers only works in
+      the manual optimization mode.
+
+      Return:
+          Any of these 6 options.
+
+          - **Single optimizer**.
+          - **List or Tuple** of optimizers.
+          - **Two lists** - The first list has multiple optimizers, and the second has multiple LR schedulers
+            (or multiple ``lr_scheduler_config``).
+          - **Dictionary**, with an ``"optimizer"`` key, and (optionally) a ``"lr_scheduler"``
+            key whose value is a single LR scheduler or ``lr_scheduler_config``.
+          - **None** - Fit will run without any optimizer.
+
+      The ``lr_scheduler_config`` is a dictionary which contains the scheduler and its associated configuration.
+      The default configuration is shown below.
+
+      .. code-block:: python
+
+          lr_scheduler_config = {
+              # REQUIRED: The scheduler instance
+              "scheduler": lr_scheduler,
+              # The unit of the scheduler's step size, could also be 'step'.
+              # 'epoch' updates the scheduler on epoch end whereas 'step'
+              # updates it after a optimizer update.
+              "interval": "epoch",
+              # How many epochs/steps should pass between calls to
+              # `scheduler.step()`. 1 corresponds to updating the learning
+              # rate after every epoch/step.
+              "frequency": 1,
+              # Metric to monitor for schedulers like `ReduceLROnPlateau`
+              "monitor": "val_loss",
+              # If set to `True`, will enforce that the value specified 'monitor'
+              # is available when the scheduler is updated, thus stopping
+              # training if not found. If set to `False`, it will only produce a warning
+              "strict": True,
+              # If using the `LearningRateMonitor` callback to monitor the
+              # learning rate progress, this keyword can be used to specify
+              # a custom logged name
+              "name": None,
+          }
+
+      When there are schedulers in which the ``.step()`` method is conditioned on a value, such as the
+      :class:`torch.optim.lr_scheduler.ReduceLROnPlateau` scheduler, Lightning requires that the
+      ``lr_scheduler_config`` contains the keyword ``"monitor"`` set to the metric name that the scheduler
+      should be conditioned on.
+
+      .. testcode::
+
+          # The ReduceLROnPlateau scheduler requires a monitor
+          def configure_optimizers(self):
+              optimizer = Adam(...)
+              return {
+                  "optimizer": optimizer,
+                  "lr_scheduler": {
+                      "scheduler": ReduceLROnPlateau(optimizer, ...),
+                      "monitor": "metric_to_track",
+                      "frequency": "indicates how often the metric is updated",
+                      # If "monitor" references validation metrics, then "frequency" should be set to a
+                      # multiple of "trainer.check_val_every_n_epoch".
+                  },
+              }
+
+
+          # In the case of two optimizers, only one using the ReduceLROnPlateau scheduler
+          def configure_optimizers(self):
+              optimizer1 = Adam(...)
+              optimizer2 = SGD(...)
+              scheduler1 = ReduceLROnPlateau(optimizer1, ...)
+              scheduler2 = LambdaLR(optimizer2, ...)
+              return (
+                  {
+                      "optimizer": optimizer1,
+                      "lr_scheduler": {
+                          "scheduler": scheduler1,
+                          "monitor": "metric_to_track",
+                      },
+                  },
+                  {"optimizer": optimizer2, "lr_scheduler": scheduler2},
+              )
+
+      Metrics can be made available to monitor by simply logging it using
+      ``self.log('metric_to_track', metric_val)`` in your :class:`~lightning.pytorch.core.LightningModule`.
+
+      Note:
+          Some things to know:
+
+          - Lightning calls ``.backward()`` and ``.step()`` automatically in case of automatic optimization.
+          - If a learning rate scheduler is specified in ``configure_optimizers()`` with key
+            ``"interval"`` (default "epoch") in the scheduler configuration, Lightning will call
+            the scheduler's ``.step()`` method automatically in case of automatic optimization.
+          - If you use 16-bit precision (``precision=16``), Lightning will automatically handle the optimizer.
+          - If you use :class:`torch.optim.LBFGS`, Lightning handles the closure function automatically for you.
+          - If you use multiple optimizers, you will have to switch to 'manual optimization' mode and step them
+            yourself.
+          - If you need to control how often the optimizer steps, override the :meth:`optimizer_step` hook.
+
+
+
+
+   .. py:attribute:: decoder
+
+
+   .. py:attribute:: encoder
+
+
+   .. py:method:: forward(x)
+
+      Same as :meth:`torch.nn.Module.forward`.
+
+      Args:
+          *args: Whatever you decide to pass into the forward method.
+          **kwargs: Keyword arguments are also possible.
+
+      Return:
+          Your model's output
+
+
+
+
+   .. py:attribute:: lambda_param
+      :value: 0.001
+
+
+
+   .. py:attribute:: learning_rate
+      :value: 0.001
+
+
+
+   .. py:attribute:: reconstruction_loss
+      :value: None
+
+
+
+   .. py:attribute:: topological_loss
+      :value: None
+
+
+
+   .. py:method:: training_step(batch, batch_idx)
+
+      Here you compute and return the training loss and some additional metrics for e.g. the progress bar or
+      logger.
+
+      Args:
+          batch: The output of your data iterable, normally a :class:`~torch.utils.data.DataLoader`.
+          batch_idx: The index of this batch.
+          dataloader_idx: The index of the dataloader that produced this batch.
+              (only if multiple dataloaders used)
+
+      Return:
+          - :class:`~torch.Tensor` - The loss tensor
+          - ``dict`` - A dictionary which can include any keys, but must include the key ``'loss'`` in the case of
+            automatic optimization.
+          - ``None`` - In automatic optimization, this will skip to the next batch (but is not supported for
+            multi-GPU, TPU, or DeepSpeed). For manual optimization, this has no special meaning, as returning
+            the loss is not required.
+
+      In this step you'd normally do the forward pass and calculate the loss for a batch.
+      You can also do fancier things like multiple forward passes or something model specific.
+
+      Example::
+
+          def training_step(self, batch, batch_idx):
+              x, y, z = batch
+              out = self.encoder(x)
+              loss = self.loss(out, x)
+              return loss
+
+      To use multiple optimizers, you can switch to 'manual optimization' and control their stepping:
+
+      .. code-block:: python
+
+          def __init__(self):
+              super().__init__()
+              self.automatic_optimization = False
+
+
+          # Multiple optimizers (e.g.: GANs)
+          def training_step(self, batch, batch_idx):
+              opt1, opt2 = self.optimizers()
+
+              # do training_step with encoder
+              ...
+              opt1.step()
+              # do training_step with decoder
+              ...
+              opt2.step()
+
+      Note:
+          When ``accumulate_grad_batches`` > 1, the loss returned here will be automatically
+          normalized by ``accumulate_grad_batches`` internally.
+
+
+
+
+   .. py:method:: validation_step(batch, batch_idx)
+
+      Operates on a single batch of data from the validation set. In this step you'd might generate examples or
+      calculate anything of interest like accuracy.
+
+      Args:
+          batch: The output of your data iterable, normally a :class:`~torch.utils.data.DataLoader`.
+          batch_idx: The index of this batch.
+          dataloader_idx: The index of the dataloader that produced this batch.
+              (only if multiple dataloaders used)
+
+      Return:
+          - :class:`~torch.Tensor` - The loss tensor
+          - ``dict`` - A dictionary. Can include any keys, but must include the key ``'loss'``.
+          - ``None`` - Skip to the next batch.
+
+      .. code-block:: python
+
+          # if you have one val dataloader:
+          def validation_step(self, batch, batch_idx): ...
+
+
+          # if you have multiple val dataloaders:
+          def validation_step(self, batch, batch_idx, dataloader_idx=0): ...
+
+      Examples::
+
+          # CASE 1: A single validation dataset
+          def validation_step(self, batch, batch_idx):
+              x, y = batch
+
+              # implement your own
+              out = self(x)
+              loss = self.loss(out, y)
+
+              # log 6 example images
+              # or generated text... or whatever
+              sample_imgs = x[:6]
+              grid = torchvision.utils.make_grid(sample_imgs)
+              self.logger.experiment.add_image('example_images', grid, 0)
+
+              # calculate acc
+              labels_hat = torch.argmax(out, dim=1)
+              val_acc = torch.sum(y == labels_hat).item() / (len(y) * 1.0)
+
+              # log the outputs!
+              self.log_dict({'val_loss': loss, 'val_acc': val_acc})
+
+      If you pass in multiple val dataloaders, :meth:`validation_step` will have an additional argument. We recommend
+      setting the default value of 0 so that you can quickly switch between single and multiple dataloaders.
+
+      .. code-block:: python
+
+          # CASE 2: multiple validation dataloaders
+          def validation_step(self, batch, batch_idx, dataloader_idx=0):
+              # dataloader_idx tells you which dataset this is.
+              ...
+
+      Note:
+          If you don't need to validate you don't need to implement this method.
+
+      Note:
+          When the :meth:`validation_step` is called, the model has been put in eval mode
+          and PyTorch gradients have been disabled. At the end of validation,
+          the model goes back to training mode and gradients are enabled.
+
+
+
+

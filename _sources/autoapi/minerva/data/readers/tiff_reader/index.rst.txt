@@ -1,0 +1,65 @@
+minerva.data.readers.tiff_reader
+================================
+
+.. py:module:: minerva.data.readers.tiff_reader
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   minerva.data.readers.tiff_reader.TiffReader
+
+
+Module Contents
+---------------
+
+.. py:class:: TiffReader(path, sort_method = None, delimiter = None, key_index = 0, reverse = False)
+
+   Bases: :py:obj:`minerva.data.readers.base_file_iterator.BaseFileIterator`
+
+
+   A base class for iterating over files in a directory in a custom sorted
+   order.
+
+   Load image files from a directory.
+
+   Parameters
+   ----------
+   path : Union[Path, str]
+       The path to the directory containing the image files. Files will be
+       searched recursively.
+   sort_method : Optional[List[str]], optional
+       A list specifying how to sort each part of the filename. Each
+       element can  be either "text" (lexicographical) or "numeric"
+       (numerically). By default, None, which will use "numeric" if
+       numeric parts are detected.
+   delimiter : Optional[str], optional
+       The delimiter to split filenames into components, by default None.
+   key_index : Union[int, List[int]], optional
+       The index (or list of indices) of the part(s) of the filename to
+       use  for sorting. If a list is provided, files will be sorted
+       based on  multiple parts in sequence. Thus, first by the part at
+       index 0, then by the part at index 1, and so on. By default 0.
+   reverse : bool, optional
+       Whether to sort in reverse order, by default False.
+
+   Raises
+   ------
+   NotADirectoryError
+       If the path is not a directory.
+
+
+   .. py:method:: __getitem__(index)
+
+      Retrieve the TIFF file at the specified index.
+
+
+
+   .. py:method:: __str__()
+
+
+   .. py:attribute:: root_dir
+
+

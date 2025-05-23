@@ -1,0 +1,1126 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>minerva.models.nets.image.setr &mdash; minerva  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../../../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../../../index.html" class="icon icon-home">
+            minerva
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../design.html">Minerva Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../tutorials.html">Examples and Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../contributing.html">Contributing to Minerva</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../api.html">Programming Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../../../index.html">minerva</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">minerva.models.nets.image.setr</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../../../../_sources/autoapi/minerva/models/nets/image/setr/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-minerva.models.nets.image.setr">
+<span id="minerva-models-nets-image-setr"></span><h1>minerva.models.nets.image.setr<a class="headerlink" href="#module-minerva.models.nets.image.setr" title="Link to this heading"></a></h1>
+<section id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Link to this heading"></a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#minerva.models.nets.image.setr.SETR_PUP" title="minerva.models.nets.image.setr.SETR_PUP"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SETR_PUP</span></code></a></p></td>
+<td><p>SET-R model with PUP head for image segmentation.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#minerva.models.nets.image.setr._SETRMLAHead" title="minerva.models.nets.image.setr._SETRMLAHead"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_SETRMLAHead</span></code></a></p></td>
+<td><p>Multi level feature aggretation head of SETR (as in</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#minerva.models.nets.image.setr._SETRUPHead" title="minerva.models.nets.image.setr._SETRUPHead"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_SETRUPHead</span></code></a></p></td>
+<td><p>Naive upsampling head and Progressive upsampling head of SETR</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#minerva.models.nets.image.setr._SetR_PUP" title="minerva.models.nets.image.setr._SetR_PUP"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_SetR_PUP</span></code></a></p></td>
+<td><p>Base class for all neural network modules.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.models.nets.image.setr.SETR_PUP">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.models.nets.image.setr.</span></span><span class="sig-name descname"><span class="pre">SETR_PUP</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">512</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_layers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">24</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_heads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hidden_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1024</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mlp_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4096</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encoder_dropout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_classes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm_layer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decoder_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">256</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_convs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">up_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">align_corners</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decoder_dropout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conv_norm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conv_act</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interpolate_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'bilinear'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss_fn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimizer_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimizer_params</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_metrics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val_metrics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_metrics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aux_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aux_output_layers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aux_weights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">load_backbone_path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freeze_backbone_on_load</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">learning_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss_weights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">original_resolution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">head_lr_factor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_engine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/setr.html#SETR_PUP"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.setr.SETR_PUP" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">lightning.pytorch.LightningModule</span></code></p>
+<p>SET-R model with PUP head for image segmentation.</p>
+<section id="methods">
+<h3>Methods<a class="headerlink" href="#methods" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt>forward(x: torch.Tensor) -&gt; torch.Tensor</dt><dd><p>Forward pass of the model.</p>
+</dd>
+<dt>_compute_metrics(y_hat: torch.Tensor, y: torch.Tensor, step_name: str)</dt><dd><p>Compute metrics for the given step.</p>
+</dd>
+<dt>_loss_func(y_hat: Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]], y: torch.Tensor) -&gt; torch.Tensor</dt><dd><p>Calculate the loss between the output and the input data.</p>
+</dd>
+<dt>_single_step(batch: torch.Tensor, batch_idx: int, step_name: str)</dt><dd><p>Perform a single step of the training/validation loop.</p>
+</dd>
+<dt>training_step(batch: torch.Tensor, batch_idx: int)</dt><dd><p>Perform a single training step.</p>
+</dd>
+<dt>validation_step(batch: torch.Tensor, batch_idx: int)</dt><dd><p>Perform a single validation step.</p>
+</dd>
+<dt>test_step(batch: torch.Tensor, batch_idx: int)</dt><dd><p>Perform a single test step.</p>
+</dd>
+<dt>predict_step(batch: torch.Tensor, batch_idx: int, dataloader_idx: Optional[int] = None)</dt><dd><p>Perform a single prediction step.</p>
+</dd>
+<dt>load_backbone(path: str, freeze: bool = False)</dt><dd><p>Load a pre-trained backbone.</p>
+</dd>
+<dt>configure_optimizers()</dt><dd><p>Configure the optimizer for the model.</p>
+</dd>
+<dt>create_from_dict(config: Dict) -&gt; “SETR_PUP”</dt><dd><p>Create an instance of SETR_PUP from a configuration dictionary.</p>
+</dd>
+</dl>
+<p>Initialize the SETR model with Progressive Upsampling Head.</p>
+</section>
+<section id="parameters">
+<h3>Parameters<a class="headerlink" href="#parameters" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt>image_size<span class="classifier">Union[int, Tuple[int, int]], optional</span></dt><dd><p>Size of the input image, by default 512.</p>
+</dd>
+<dt>patch_size<span class="classifier">int, optional</span></dt><dd><p>Size of the patches to be extracted from the input image, by
+default 16.</p>
+</dd>
+<dt>num_layers<span class="classifier">int, optional</span></dt><dd><p>Number of transformer layers, by default 24.</p>
+</dd>
+<dt>num_heads<span class="classifier">int, optional</span></dt><dd><p>Number of attention heads, by default 16.</p>
+</dd>
+<dt>hidden_dim<span class="classifier">int, optional</span></dt><dd><p>Dimension of the hidden layer, by default 1024.</p>
+</dd>
+<dt>mlp_dim<span class="classifier">int, optional</span></dt><dd><p>Dimension of the MLP layer, by default 4096.</p>
+</dd>
+<dt>encoder_dropout<span class="classifier">float, optional</span></dt><dd><p>Dropout rate for the encoder, by default 0.1.</p>
+</dd>
+<dt>num_classes<span class="classifier">int, optional</span></dt><dd><p>Number of output classes, by default 1000.</p>
+</dd>
+<dt>norm_layer<span class="classifier">Optional[nn.Module], optional</span></dt><dd><p>Normalization layer, by default None.</p>
+</dd>
+<dt>decoder_channels<span class="classifier">int, optional</span></dt><dd><p>Number of channels in the decoder, by default 256.</p>
+</dd>
+<dt>num_convs<span class="classifier">int, optional</span></dt><dd><p>Number of convolutional layers in the decoder, by default 4.</p>
+</dd>
+<dt>up_scale<span class="classifier">int, optional</span></dt><dd><p>Upscaling factor for the decoder, by default 2.</p>
+</dd>
+<dt>kernel_size<span class="classifier">int, optional</span></dt><dd><p>Kernel size for the convolutional layers, by default 3.</p>
+</dd>
+<dt>align_corners<span class="classifier">bool, optional</span></dt><dd><p>Whether to align corners when interpolating, by default False.</p>
+</dd>
+<dt>decoder_dropout<span class="classifier">float, optional</span></dt><dd><p>Dropout rate for the decoder, by default 0.1.</p>
+</dd>
+<dt>conv_norm<span class="classifier">Optional[nn.Module], optional</span></dt><dd><p>Normalization layer for the convolutional layers, by default None.</p>
+</dd>
+<dt>conv_act<span class="classifier">Optional[nn.Module], optional</span></dt><dd><p>Activation function for the convolutional layers, by default None.</p>
+</dd>
+<dt>interpolate_mode<span class="classifier">str, optional</span></dt><dd><p>Interpolation mode, by default “bilinear”.</p>
+</dd>
+<dt>loss_fn<span class="classifier">Optional[nn.Module], optional</span></dt><dd><p>Loss function, when None defaults to nn.CrossEntropyLoss, by
+default None.</p>
+</dd>
+<dt>optimizer_type<span class="classifier">Optional[type], optional</span></dt><dd><p>Type of optimizer, by default None.</p>
+</dd>
+<dt>optimizer_params<span class="classifier">Optional[Dict], optional</span></dt><dd><p>Parameters for the optimizer, by default None.</p>
+</dd>
+<dt>train_metrics<span class="classifier">Optional[Dict[str, Metric]], optional</span></dt><dd><p>Metrics for training, by default None.</p>
+</dd>
+<dt>val_metrics<span class="classifier">Optional[Dict[str, Metric]], optional</span></dt><dd><p>Metrics for validation, by default None.</p>
+</dd>
+<dt>test_metrics<span class="classifier">Optional[Dict[str, Metric]], optional</span></dt><dd><p>Metrics for testing, by default None.</p>
+</dd>
+<dt>aux_output<span class="classifier">bool, optional</span></dt><dd><p>Whether to use auxiliary outputs, by default True.</p>
+</dd>
+<dt>aux_output_layers<span class="classifier">list[int], optional</span></dt><dd><p>Layers for auxiliary outputs, when None it defaults to [9, 14, 19].</p>
+</dd>
+<dt>aux_weights<span class="classifier">list[float], optional</span></dt><dd><p>Weights for auxiliary outputs, when None it defaults [0.3, 0.3, 0.3].</p>
+</dd>
+<dt>load_backbone_path<span class="classifier">Optional[str], optional</span></dt><dd><p>Path to load the backbone model, by default None.</p>
+</dd>
+<dt>freeze_backbone_on_load<span class="classifier">bool, optional</span></dt><dd><p>Whether to freeze the backbone model on load, by default True.</p>
+</dd>
+<dt>learning_rate<span class="classifier">float, optional</span></dt><dd><p>Learning rate, by default 1e-3.</p>
+</dd>
+<dt>loss_weights<span class="classifier">Optional[list[float]], optional</span></dt><dd><p>Weights for the loss function, by default None.</p>
+</dd>
+<dt>original_resolution<span class="classifier">Optional[Tuple[int, int]], optional</span></dt><dd><p>The original resolution of the input image in the pre-training
+weights. When None, positional embeddings will not be interpolated.
+Defaults to None.</p>
+</dd>
+<dt>head_lr_factor<span class="classifier">float, optional</span></dt><dd><p>Learning rate factor for the head. used if you need different
+learning rates for backbone and prediction head, by default 1.0.</p>
+</dd>
+<dt>test_engine<span class="classifier">Optional[_Engine], optional</span></dt><dd><p>Engine used for test and validation steps. When None, behavior of
+all steps, training, testing and validation is the same, by default None.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.image.setr.SETR_PUP._compute_metrics">
+<span class="sig-name descname"><span class="pre">_compute_metrics</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y_hat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/setr.html#SETR_PUP._compute_metrics"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.setr.SETR_PUP._compute_metrics" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>y_hat</strong> (<em>torch.Tensor</em>)</p></li>
+<li><p><strong>y</strong> (<em>torch.Tensor</em>)</p></li>
+<li><p><strong>step_name</strong> (<em>str</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.image.setr.SETR_PUP._loss_func">
+<span class="sig-name descname"><span class="pre">_loss_func</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y_hat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/setr.html#SETR_PUP._loss_func"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.setr.SETR_PUP._loss_func" title="Link to this definition"></a></dt>
+<dd><p>Calculate the loss between the output and the input data.</p>
+<section id="id1">
+<h4>Parameters<a class="headerlink" href="#id1" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt>y_hat<span class="classifier">torch.Tensor</span></dt><dd><p>The output data from the forward pass.</p>
+</dd>
+<dt>y<span class="classifier">torch.Tensor</span></dt><dd><p>The input data/label.</p>
+</dd>
+</dl>
+</section>
+<section id="returns">
+<h4>Returns<a class="headerlink" href="#returns" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt>torch.Tensor</dt><dd><p>The loss value.</p>
+</dd>
+</dl>
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>y_hat</strong> (<em>Union</em><em>[</em><em>torch.Tensor</em><em>, </em><em>Tuple</em><em>[</em><em>torch.Tensor</em><em>, </em><em>torch.Tensor</em><em>, </em><em>torch.Tensor</em><em>, </em><em>torch.Tensor</em><em>]</em><em>]</em>)</p></li>
+<li><p><strong>y</strong> (<em>torch.Tensor</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>torch.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.image.setr.SETR_PUP._single_step">
+<span class="sig-name descname"><span class="pre">_single_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_idx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/setr.html#SETR_PUP._single_step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.setr.SETR_PUP._single_step" title="Link to this definition"></a></dt>
+<dd><p>Perform a single step of the training/validation loop.</p>
+<section id="id2">
+<h4>Parameters<a class="headerlink" href="#id2" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt>batch<span class="classifier">torch.Tensor</span></dt><dd><p>The input data.</p>
+</dd>
+<dt>batch_idx<span class="classifier">int</span></dt><dd><p>The index of the batch.</p>
+</dd>
+<dt>step_name<span class="classifier">str</span></dt><dd><p>The name of the step, either “train” or “val”.</p>
+</dd>
+</dl>
+</section>
+<section id="id3">
+<h4>Returns<a class="headerlink" href="#id3" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt>torch.Tensor</dt><dd><p>The loss value.</p>
+</dd>
+</dl>
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>batch</strong> (<em>torch.Tensor</em>)</p></li>
+<li><p><strong>batch_idx</strong> (<em>int</em>)</p></li>
+<li><p><strong>step_name</strong> (<em>str</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.setr.SETR_PUP.aux_weights">
+<span class="sig-name descname"><span class="pre">aux_weights</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#minerva.models.nets.image.setr.SETR_PUP.aux_weights" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.image.setr.SETR_PUP.configure_optimizers">
+<span class="sig-name descname"><span class="pre">configure_optimizers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/setr.html#SETR_PUP.configure_optimizers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.setr.SETR_PUP.configure_optimizers" title="Link to this definition"></a></dt>
+<dd><p>Choose what optimizers and learning-rate schedulers to use in your optimization. Normally you’d need one.
+But in the case of GANs or similar you might have multiple. Optimization with multiple optimizers only works in
+the manual optimization mode.</p>
+<dl class="simple">
+<dt>Return:</dt><dd><p>Any of these 6 options.</p>
+<ul class="simple">
+<li><p><strong>Single optimizer</strong>.</p></li>
+<li><p><strong>List or Tuple</strong> of optimizers.</p></li>
+<li><p><strong>Two lists</strong> - The first list has multiple optimizers, and the second has multiple LR schedulers
+(or multiple <code class="docutils literal notranslate"><span class="pre">lr_scheduler_config</span></code>).</p></li>
+<li><p><strong>Dictionary</strong>, with an <code class="docutils literal notranslate"><span class="pre">&quot;optimizer&quot;</span></code> key, and (optionally) a <code class="docutils literal notranslate"><span class="pre">&quot;lr_scheduler&quot;</span></code>
+key whose value is a single LR scheduler or <code class="docutils literal notranslate"><span class="pre">lr_scheduler_config</span></code>.</p></li>
+<li><p><strong>None</strong> - Fit will run without any optimizer.</p></li>
+</ul>
+</dd>
+</dl>
+<p>The <code class="docutils literal notranslate"><span class="pre">lr_scheduler_config</span></code> is a dictionary which contains the scheduler and its associated configuration.
+The default configuration is shown below.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">lr_scheduler_config</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c1"># REQUIRED: The scheduler instance</span>
+    <span class="s2">&quot;scheduler&quot;</span><span class="p">:</span> <span class="n">lr_scheduler</span><span class="p">,</span>
+    <span class="c1"># The unit of the scheduler&#39;s step size, could also be &#39;step&#39;.</span>
+    <span class="c1"># &#39;epoch&#39; updates the scheduler on epoch end whereas &#39;step&#39;</span>
+    <span class="c1"># updates it after a optimizer update.</span>
+    <span class="s2">&quot;interval&quot;</span><span class="p">:</span> <span class="s2">&quot;epoch&quot;</span><span class="p">,</span>
+    <span class="c1"># How many epochs/steps should pass between calls to</span>
+    <span class="c1"># `scheduler.step()`. 1 corresponds to updating the learning</span>
+    <span class="c1"># rate after every epoch/step.</span>
+    <span class="s2">&quot;frequency&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="c1"># Metric to monitor for schedulers like `ReduceLROnPlateau`</span>
+    <span class="s2">&quot;monitor&quot;</span><span class="p">:</span> <span class="s2">&quot;val_loss&quot;</span><span class="p">,</span>
+    <span class="c1"># If set to `True`, will enforce that the value specified &#39;monitor&#39;</span>
+    <span class="c1"># is available when the scheduler is updated, thus stopping</span>
+    <span class="c1"># training if not found. If set to `False`, it will only produce a warning</span>
+    <span class="s2">&quot;strict&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="c1"># If using the `LearningRateMonitor` callback to monitor the</span>
+    <span class="c1"># learning rate progress, this keyword can be used to specify</span>
+    <span class="c1"># a custom logged name</span>
+    <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>When there are schedulers in which the <code class="docutils literal notranslate"><span class="pre">.step()</span></code> method is conditioned on a value, such as the
+<code class="xref py py-class docutils literal notranslate"><span class="pre">torch.optim.lr_scheduler.ReduceLROnPlateau</span></code> scheduler, Lightning requires that the
+<code class="docutils literal notranslate"><span class="pre">lr_scheduler_config</span></code> contains the keyword <code class="docutils literal notranslate"><span class="pre">&quot;monitor&quot;</span></code> set to the metric name that the scheduler
+should be conditioned on.</p>
+<p>Metrics can be made available to monitor by simply logging it using
+<code class="docutils literal notranslate"><span class="pre">self.log('metric_to_track',</span> <span class="pre">metric_val)</span></code> in your <code class="xref py py-class docutils literal notranslate"><span class="pre">LightningModule</span></code>.</p>
+<dl class="simple">
+<dt>Note:</dt><dd><p>Some things to know:</p>
+<ul class="simple">
+<li><p>Lightning calls <code class="docutils literal notranslate"><span class="pre">.backward()</span></code> and <code class="docutils literal notranslate"><span class="pre">.step()</span></code> automatically in case of automatic optimization.</p></li>
+<li><p>If a learning rate scheduler is specified in <code class="docutils literal notranslate"><span class="pre">configure_optimizers()</span></code> with key
+<code class="docutils literal notranslate"><span class="pre">&quot;interval&quot;</span></code> (default “epoch”) in the scheduler configuration, Lightning will call
+the scheduler’s <code class="docutils literal notranslate"><span class="pre">.step()</span></code> method automatically in case of automatic optimization.</p></li>
+<li><p>If you use 16-bit precision (<code class="docutils literal notranslate"><span class="pre">precision=16</span></code>), Lightning will automatically handle the optimizer.</p></li>
+<li><p>If you use <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.optim.LBFGS</span></code>, Lightning handles the closure function automatically for you.</p></li>
+<li><p>If you use multiple optimizers, you will have to switch to ‘manual optimization’ mode and step them
+yourself.</p></li>
+<li><p>If you need to control how often the optimizer steps, override the <code class="xref py py-meth docutils literal notranslate"><span class="pre">optimizer_step()</span></code> hook.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.image.setr.SETR_PUP.create_from_dict">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">create_from_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/setr.html#SETR_PUP.create_from_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.setr.SETR_PUP.create_from_dict" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>config</strong> (<em>Dict</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#minerva.models.nets.image.setr.SETR_PUP" title="minerva.models.nets.image.setr.SETR_PUP">SETR_PUP</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.image.setr.SETR_PUP.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/setr.html#SETR_PUP.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.setr.SETR_PUP.forward" title="Link to this definition"></a></dt>
+<dd><p>Same as <code class="xref py py-meth docutils literal notranslate"><span class="pre">torch.nn.Module.forward()</span></code>.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p><a href="#id4"><span class="problematic" id="id5">*</span></a>args: Whatever you decide to pass into the forward method.
+<a href="#id6"><span class="problematic" id="id7">**</span></a>kwargs: Keyword arguments are also possible.</p>
+</dd>
+<dt>Return:</dt><dd><p>Your model’s output</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>torch.Tensor</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>torch.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.setr.SETR_PUP.head_lr_factor">
+<span class="sig-name descname"><span class="pre">head_lr_factor</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.0</span></em><a class="headerlink" href="#minerva.models.nets.image.setr.SETR_PUP.head_lr_factor" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.setr.SETR_PUP.learning_rate">
+<span class="sig-name descname"><span class="pre">learning_rate</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.001</span></em><a class="headerlink" href="#minerva.models.nets.image.setr.SETR_PUP.learning_rate" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.image.setr.SETR_PUP.load_backbone">
+<span class="sig-name descname"><span class="pre">load_backbone</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freeze</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/setr.html#SETR_PUP.load_backbone"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.setr.SETR_PUP.load_backbone" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> (<em>str</em>)</p></li>
+<li><p><strong>freeze</strong> (<em>bool</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.setr.SETR_PUP.loss_fn">
+<span class="sig-name descname"><span class="pre">loss_fn</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#minerva.models.nets.image.setr.SETR_PUP.loss_fn" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.setr.SETR_PUP.metrics">
+<span class="sig-name descname"><span class="pre">metrics</span></span><a class="headerlink" href="#minerva.models.nets.image.setr.SETR_PUP.metrics" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.setr.SETR_PUP.model">
+<span class="sig-name descname"><span class="pre">model</span></span><a class="headerlink" href="#minerva.models.nets.image.setr.SETR_PUP.model" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.setr.SETR_PUP.num_classes">
+<span class="sig-name descname"><span class="pre">num_classes</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1000</span></em><a class="headerlink" href="#minerva.models.nets.image.setr.SETR_PUP.num_classes" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.setr.SETR_PUP.optimizer_type">
+<span class="sig-name descname"><span class="pre">optimizer_type</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#minerva.models.nets.image.setr.SETR_PUP.optimizer_type" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.image.setr.SETR_PUP.predict_step">
+<span class="sig-name descname"><span class="pre">predict_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_idx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataloader_idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/setr.html#SETR_PUP.predict_step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.setr.SETR_PUP.predict_step" title="Link to this definition"></a></dt>
+<dd><p>Step function called during <code class="xref py py-meth docutils literal notranslate"><span class="pre">predict()</span></code>. By default, it calls
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">forward()</span></code>. Override to add any processing logic.</p>
+<p>The <code class="xref py py-meth docutils literal notranslate"><span class="pre">predict_step()</span></code> is used
+to scale inference on multi-devices.</p>
+<p>To prevent an OOM error, it is possible to use <code class="xref py py-class docutils literal notranslate"><span class="pre">BasePredictionWriter</span></code>
+callback to write the predictions to disk or database after each batch or on epoch end.</p>
+<p>The <code class="xref py py-class docutils literal notranslate"><span class="pre">BasePredictionWriter</span></code> should be used while using a spawn
+based accelerator. This happens for <code class="docutils literal notranslate"><span class="pre">Trainer(strategy=&quot;ddp_spawn&quot;)</span></code>
+or training on 8 TPU cores with <code class="docutils literal notranslate"><span class="pre">Trainer(accelerator=&quot;tpu&quot;,</span> <span class="pre">devices=8)</span></code> as predictions won’t be returned.</p>
+<dl>
+<dt>Args:</dt><dd><p>batch: The output of your data iterable, normally a <code class="xref py py-class docutils literal notranslate"><span class="pre">DataLoader</span></code>.
+batch_idx: The index of this batch.
+dataloader_idx: The index of the dataloader that produced this batch.</p>
+<blockquote>
+<div><p>(only if multiple dataloaders used)</p>
+</div></blockquote>
+</dd>
+<dt>Return:</dt><dd><p>Predicted output (optional).</p>
+</dd>
+</dl>
+<p>Example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">MyModel</span><span class="p">(</span><span class="n">LightningModule</span><span class="p">):</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">predict_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">,</span> <span class="n">dataloader_idx</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span>
+
+<span class="n">dm</span> <span class="o">=</span> <span class="o">...</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">MyModel</span><span class="p">()</span>
+<span class="n">trainer</span> <span class="o">=</span> <span class="n">Trainer</span><span class="p">(</span><span class="n">accelerator</span><span class="o">=</span><span class="s2">&quot;gpu&quot;</span><span class="p">,</span> <span class="n">devices</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">predictions</span> <span class="o">=</span> <span class="n">trainer</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">dm</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>batch</strong> (<em>torch.Tensor</em>)</p></li>
+<li><p><strong>batch_idx</strong> (<em>int</em>)</p></li>
+<li><p><strong>dataloader_idx</strong> (<em>Optional</em><em>[</em><em>int</em><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.setr.SETR_PUP.test_engine">
+<span class="sig-name descname"><span class="pre">test_engine</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#minerva.models.nets.image.setr.SETR_PUP.test_engine" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.image.setr.SETR_PUP.test_step">
+<span class="sig-name descname"><span class="pre">test_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_idx</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/setr.html#SETR_PUP.test_step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.setr.SETR_PUP.test_step" title="Link to this definition"></a></dt>
+<dd><p>Operates on a single batch of data from the test set. In this step you’d normally generate examples or
+calculate anything of interest such as accuracy.</p>
+<dl>
+<dt>Args:</dt><dd><p>batch: The output of your data iterable, normally a <code class="xref py py-class docutils literal notranslate"><span class="pre">DataLoader</span></code>.
+batch_idx: The index of this batch.
+dataloader_idx: The index of the dataloader that produced this batch.</p>
+<blockquote>
+<div><p>(only if multiple dataloaders used)</p>
+</div></blockquote>
+</dd>
+<dt>Return:</dt><dd><ul class="simple">
+<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Tensor</span></code> - The loss tensor</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dict</span></code> - A dictionary. Can include any keys, but must include the key <code class="docutils literal notranslate"><span class="pre">'loss'</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">None</span></code> - Skip to the next batch.</p></li>
+</ul>
+</dd>
+</dl>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># if you have one test dataloader:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">):</span> <span class="o">...</span>
+
+
+<span class="c1"># if you have multiple test dataloaders:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">,</span> <span class="n">dataloader_idx</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span> <span class="o">...</span>
+</pre></div>
+</div>
+<p>Examples:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># CASE 1: A single test dataset</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">):</span>
+    <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">batch</span>
+
+    <span class="c1"># implement your own</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+
+    <span class="c1"># log 6 example images</span>
+    <span class="c1"># or generated text... or whatever</span>
+    <span class="n">sample_imgs</span> <span class="o">=</span> <span class="n">x</span><span class="p">[:</span><span class="mi">6</span><span class="p">]</span>
+    <span class="n">grid</span> <span class="o">=</span> <span class="n">torchvision</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">make_grid</span><span class="p">(</span><span class="n">sample_imgs</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">experiment</span><span class="o">.</span><span class="n">add_image</span><span class="p">(</span><span class="s1">&#39;example_images&#39;</span><span class="p">,</span> <span class="n">grid</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="c1"># calculate acc</span>
+    <span class="n">labels_hat</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">test_acc</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">y</span> <span class="o">==</span> <span class="n">labels_hat</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span> <span class="o">/</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1.0</span><span class="p">)</span>
+
+    <span class="c1"># log the outputs!</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">log_dict</span><span class="p">({</span><span class="s1">&#39;test_loss&#39;</span><span class="p">:</span> <span class="n">loss</span><span class="p">,</span> <span class="s1">&#39;test_acc&#39;</span><span class="p">:</span> <span class="n">test_acc</span><span class="p">})</span>
+</pre></div>
+</div>
+<p>If you pass in multiple test dataloaders, <a class="reference internal" href="#minerva.models.nets.image.setr.SETR_PUP.test_step" title="minerva.models.nets.image.setr.SETR_PUP.test_step"><code class="xref py py-meth docutils literal notranslate"><span class="pre">test_step()</span></code></a> will have an additional argument. We recommend
+setting the default value of 0 so that you can quickly switch between single and multiple dataloaders.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># CASE 2: multiple test dataloaders</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">,</span> <span class="n">dataloader_idx</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="c1"># dataloader_idx tells you which dataset this is.</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<dl class="simple">
+<dt>Note:</dt><dd><p>If you don’t need to test you don’t need to implement this method.</p>
+</dd>
+<dt>Note:</dt><dd><p>When the <a class="reference internal" href="#minerva.models.nets.image.setr.SETR_PUP.test_step" title="minerva.models.nets.image.setr.SETR_PUP.test_step"><code class="xref py py-meth docutils literal notranslate"><span class="pre">test_step()</span></code></a> is called, the model has been put in eval mode and
+PyTorch gradients have been disabled. At the end of the test epoch, the model goes back
+to training mode and gradients are enabled.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>batch</strong> (<em>torch.Tensor</em>)</p></li>
+<li><p><strong>batch_idx</strong> (<em>int</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.image.setr.SETR_PUP.training_step">
+<span class="sig-name descname"><span class="pre">training_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_idx</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/setr.html#SETR_PUP.training_step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.setr.SETR_PUP.training_step" title="Link to this definition"></a></dt>
+<dd><p>Here you compute and return the training loss and some additional metrics for e.g. the progress bar or
+logger.</p>
+<dl>
+<dt>Args:</dt><dd><p>batch: The output of your data iterable, normally a <code class="xref py py-class docutils literal notranslate"><span class="pre">DataLoader</span></code>.
+batch_idx: The index of this batch.
+dataloader_idx: The index of the dataloader that produced this batch.</p>
+<blockquote>
+<div><p>(only if multiple dataloaders used)</p>
+</div></blockquote>
+</dd>
+<dt>Return:</dt><dd><ul class="simple">
+<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Tensor</span></code> - The loss tensor</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dict</span></code> - A dictionary which can include any keys, but must include the key <code class="docutils literal notranslate"><span class="pre">'loss'</span></code> in the case of
+automatic optimization.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">None</span></code> - In automatic optimization, this will skip to the next batch (but is not supported for
+multi-GPU, TPU, or DeepSpeed). For manual optimization, this has no special meaning, as returning
+the loss is not required.</p></li>
+</ul>
+</dd>
+</dl>
+<p>In this step you’d normally do the forward pass and calculate the loss for a batch.
+You can also do fancier things like multiple forward passes or something model specific.</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">training_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">):</span>
+    <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">batch</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">encoder</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">loss</span>
+</pre></div>
+</div>
+<p>To use multiple optimizers, you can switch to ‘manual optimization’ and control their stepping:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">automatic_optimization</span> <span class="o">=</span> <span class="kc">False</span>
+
+
+<span class="c1"># Multiple optimizers (e.g.: GANs)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">training_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">):</span>
+    <span class="n">opt1</span><span class="p">,</span> <span class="n">opt2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">optimizers</span><span class="p">()</span>
+
+    <span class="c1"># do training_step with encoder</span>
+    <span class="o">...</span>
+    <span class="n">opt1</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+    <span class="c1"># do training_step with decoder</span>
+    <span class="o">...</span>
+    <span class="n">opt2</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+</pre></div>
+</div>
+<dl class="simple">
+<dt>Note:</dt><dd><p>When <code class="docutils literal notranslate"><span class="pre">accumulate_grad_batches</span></code> &gt; 1, the loss returned here will be automatically
+normalized by <code class="docutils literal notranslate"><span class="pre">accumulate_grad_batches</span></code> internally.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>batch</strong> (<em>torch.Tensor</em>)</p></li>
+<li><p><strong>batch_idx</strong> (<em>int</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.image.setr.SETR_PUP.validation_step">
+<span class="sig-name descname"><span class="pre">validation_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_idx</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/setr.html#SETR_PUP.validation_step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.setr.SETR_PUP.validation_step" title="Link to this definition"></a></dt>
+<dd><p>Operates on a single batch of data from the validation set. In this step you’d might generate examples or
+calculate anything of interest like accuracy.</p>
+<dl>
+<dt>Args:</dt><dd><p>batch: The output of your data iterable, normally a <code class="xref py py-class docutils literal notranslate"><span class="pre">DataLoader</span></code>.
+batch_idx: The index of this batch.
+dataloader_idx: The index of the dataloader that produced this batch.</p>
+<blockquote>
+<div><p>(only if multiple dataloaders used)</p>
+</div></blockquote>
+</dd>
+<dt>Return:</dt><dd><ul class="simple">
+<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Tensor</span></code> - The loss tensor</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dict</span></code> - A dictionary. Can include any keys, but must include the key <code class="docutils literal notranslate"><span class="pre">'loss'</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">None</span></code> - Skip to the next batch.</p></li>
+</ul>
+</dd>
+</dl>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># if you have one val dataloader:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">validation_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">):</span> <span class="o">...</span>
+
+
+<span class="c1"># if you have multiple val dataloaders:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">validation_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">,</span> <span class="n">dataloader_idx</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span> <span class="o">...</span>
+</pre></div>
+</div>
+<p>Examples:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># CASE 1: A single validation dataset</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">validation_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">):</span>
+    <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">batch</span>
+
+    <span class="c1"># implement your own</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+
+    <span class="c1"># log 6 example images</span>
+    <span class="c1"># or generated text... or whatever</span>
+    <span class="n">sample_imgs</span> <span class="o">=</span> <span class="n">x</span><span class="p">[:</span><span class="mi">6</span><span class="p">]</span>
+    <span class="n">grid</span> <span class="o">=</span> <span class="n">torchvision</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">make_grid</span><span class="p">(</span><span class="n">sample_imgs</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">experiment</span><span class="o">.</span><span class="n">add_image</span><span class="p">(</span><span class="s1">&#39;example_images&#39;</span><span class="p">,</span> <span class="n">grid</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="c1"># calculate acc</span>
+    <span class="n">labels_hat</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">val_acc</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">y</span> <span class="o">==</span> <span class="n">labels_hat</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span> <span class="o">/</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1.0</span><span class="p">)</span>
+
+    <span class="c1"># log the outputs!</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">log_dict</span><span class="p">({</span><span class="s1">&#39;val_loss&#39;</span><span class="p">:</span> <span class="n">loss</span><span class="p">,</span> <span class="s1">&#39;val_acc&#39;</span><span class="p">:</span> <span class="n">val_acc</span><span class="p">})</span>
+</pre></div>
+</div>
+<p>If you pass in multiple val dataloaders, <a class="reference internal" href="#minerva.models.nets.image.setr.SETR_PUP.validation_step" title="minerva.models.nets.image.setr.SETR_PUP.validation_step"><code class="xref py py-meth docutils literal notranslate"><span class="pre">validation_step()</span></code></a> will have an additional argument. We recommend
+setting the default value of 0 so that you can quickly switch between single and multiple dataloaders.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># CASE 2: multiple validation dataloaders</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">validation_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">,</span> <span class="n">dataloader_idx</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="c1"># dataloader_idx tells you which dataset this is.</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<dl class="simple">
+<dt>Note:</dt><dd><p>If you don’t need to validate you don’t need to implement this method.</p>
+</dd>
+<dt>Note:</dt><dd><p>When the <a class="reference internal" href="#minerva.models.nets.image.setr.SETR_PUP.validation_step" title="minerva.models.nets.image.setr.SETR_PUP.validation_step"><code class="xref py py-meth docutils literal notranslate"><span class="pre">validation_step()</span></code></a> is called, the model has been put in eval mode
+and PyTorch gradients have been disabled. At the end of validation,
+the model goes back to training mode and gradients are enabled.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>batch</strong> (<em>torch.Tensor</em>)</p></li>
+<li><p><strong>batch_idx</strong> (<em>int</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image_size</strong> (<em>Union</em><em>[</em><em>int</em><em>, </em><em>Tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>]</em><em>]</em>)</p></li>
+<li><p><strong>patch_size</strong> (<em>int</em>)</p></li>
+<li><p><strong>num_layers</strong> (<em>int</em>)</p></li>
+<li><p><strong>num_heads</strong> (<em>int</em>)</p></li>
+<li><p><strong>hidden_dim</strong> (<em>int</em>)</p></li>
+<li><p><strong>mlp_dim</strong> (<em>int</em>)</p></li>
+<li><p><strong>encoder_dropout</strong> (<em>float</em>)</p></li>
+<li><p><strong>num_classes</strong> (<em>int</em>)</p></li>
+<li><p><strong>norm_layer</strong> (<em>Optional</em><em>[</em><em>torch.nn.Module</em><em>]</em>)</p></li>
+<li><p><strong>decoder_channels</strong> (<em>int</em>)</p></li>
+<li><p><strong>num_convs</strong> (<em>int</em>)</p></li>
+<li><p><strong>up_scale</strong> (<em>int</em>)</p></li>
+<li><p><strong>kernel_size</strong> (<em>int</em>)</p></li>
+<li><p><strong>align_corners</strong> (<em>bool</em>)</p></li>
+<li><p><strong>decoder_dropout</strong> (<em>float</em>)</p></li>
+<li><p><strong>conv_norm</strong> (<em>Optional</em><em>[</em><em>torch.nn.Module</em><em>]</em>)</p></li>
+<li><p><strong>conv_act</strong> (<em>Optional</em><em>[</em><em>torch.nn.Module</em><em>]</em>)</p></li>
+<li><p><strong>interpolate_mode</strong> (<em>str</em>)</p></li>
+<li><p><strong>loss_fn</strong> (<em>Optional</em><em>[</em><em>torch.nn.Module</em><em>]</em>)</p></li>
+<li><p><strong>optimizer_type</strong> (<em>Optional</em><em>[</em><em>type</em><em>]</em>)</p></li>
+<li><p><strong>optimizer_params</strong> (<em>Optional</em><em>[</em><em>Dict</em><em>]</em>)</p></li>
+<li><p><strong>train_metrics</strong> (<em>Optional</em><em>[</em><em>Dict</em><em>[</em><em>str</em><em>, </em><em>torchmetrics.Metric</em><em>]</em><em>]</em>)</p></li>
+<li><p><strong>val_metrics</strong> (<em>Optional</em><em>[</em><em>Dict</em><em>[</em><em>str</em><em>, </em><em>torchmetrics.Metric</em><em>]</em><em>]</em>)</p></li>
+<li><p><strong>test_metrics</strong> (<em>Optional</em><em>[</em><em>Dict</em><em>[</em><em>str</em><em>, </em><em>torchmetrics.Metric</em><em>]</em><em>]</em>)</p></li>
+<li><p><strong>aux_output</strong> (<em>bool</em>)</p></li>
+<li><p><strong>aux_output_layers</strong> (<em>Optional</em><em>[</em><em>list</em><em>[</em><em>int</em><em>]</em><em>]</em>)</p></li>
+<li><p><strong>aux_weights</strong> (<em>Optional</em><em>[</em><em>list</em><em>[</em><em>float</em><em>]</em><em>]</em>)</p></li>
+<li><p><strong>load_backbone_path</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>)</p></li>
+<li><p><strong>freeze_backbone_on_load</strong> (<em>bool</em>)</p></li>
+<li><p><strong>learning_rate</strong> (<em>float</em>)</p></li>
+<li><p><strong>loss_weights</strong> (<em>Optional</em><em>[</em><em>list</em><em>[</em><em>float</em><em>]</em><em>]</em>)</p></li>
+<li><p><strong>original_resolution</strong> (<em>Optional</em><em>[</em><em>Tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>]</em><em>]</em>)</p></li>
+<li><p><strong>head_lr_factor</strong> (<em>float</em>)</p></li>
+<li><p><strong>test_engine</strong> (<em>Optional</em><em>[</em><a class="reference internal" href="../../../../engines/engine/index.html#minerva.engines.engine._Engine" title="minerva.engines.engine._Engine"><em>minerva.engines.engine._Engine</em></a><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.models.nets.image.setr._SETRMLAHead">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.models.nets.image.setr.</span></span><span class="sig-name descname"><span class="pre">_SETRMLAHead</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conv_norm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conv_act</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_classes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mla_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">128</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">up_scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">align_corners</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/setr.html#_SETRMLAHead"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.setr._SETRMLAHead" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>Multi level feature aggretation head of SETR (as in
+<a class="reference external" href="https://arxiv.org/pdf/2012.15840.pdf">https://arxiv.org/pdf/2012.15840.pdf</a>)</p>
+<p>Note: This has not been tested yet!</p>
+<p>Initialize internal Module state, shared by both nn.Module and ScriptModule.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>channels</strong> (<em>int</em>)</p></li>
+<li><p><strong>conv_norm</strong> (<em>Optional</em><em>[</em><em>torch.nn.Module</em><em>]</em>)</p></li>
+<li><p><strong>conv_act</strong> (<em>Optional</em><em>[</em><em>torch.nn.Module</em><em>]</em>)</p></li>
+<li><p><strong>in_channels</strong> (<em>List</em><em>[</em><em>int</em><em>]</em>)</p></li>
+<li><p><strong>out_channels</strong> (<em>int</em>)</p></li>
+<li><p><strong>num_classes</strong> (<em>int</em>)</p></li>
+<li><p><strong>mla_channels</strong> (<em>int</em>)</p></li>
+<li><p><strong>up_scale</strong> (<em>int</em>)</p></li>
+<li><p><strong>kernel_size</strong> (<em>int</em>)</p></li>
+<li><p><strong>align_corners</strong> (<em>bool</em>)</p></li>
+<li><p><strong>dropout</strong> (<em>float</em>)</p></li>
+<li><p><strong>threshold</strong> (<em>Optional</em><em>[</em><em>float</em><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.setr._SETRMLAHead.cls_seg">
+<span class="sig-name descname"><span class="pre">cls_seg</span></span><a class="headerlink" href="#minerva.models.nets.image.setr._SETRMLAHead.cls_seg" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.setr._SETRMLAHead.dropout">
+<span class="sig-name descname"><span class="pre">dropout</span></span><a class="headerlink" href="#minerva.models.nets.image.setr._SETRMLAHead.dropout" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.image.setr._SETRMLAHead.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/setr.html#_SETRMLAHead.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.setr._SETRMLAHead.forward" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.setr._SETRMLAHead.num_classes">
+<span class="sig-name descname"><span class="pre">num_classes</span></span><a class="headerlink" href="#minerva.models.nets.image.setr._SETRMLAHead.num_classes" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.setr._SETRMLAHead.out_channels">
+<span class="sig-name descname"><span class="pre">out_channels</span></span><a class="headerlink" href="#minerva.models.nets.image.setr._SETRMLAHead.out_channels" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.setr._SETRMLAHead.threshold">
+<span class="sig-name descname"><span class="pre">threshold</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#minerva.models.nets.image.setr._SETRMLAHead.threshold" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.setr._SETRMLAHead.up_convs">
+<span class="sig-name descname"><span class="pre">up_convs</span></span><a class="headerlink" href="#minerva.models.nets.image.setr._SETRMLAHead.up_convs" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.models.nets.image.setr._SETRUPHead">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.models.nets.image.setr.</span></span><span class="sig-name descname"><span class="pre">_SETRUPHead</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_classes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm_layer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conv_norm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conv_act</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_convs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">up_scale</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">align_corners</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropout</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interpolate_mode</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/setr.html#_SETRUPHead"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.setr._SETRUPHead" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>Naive upsampling head and Progressive upsampling head of SETR
+(as in <a class="reference external" href="https://arxiv.org/pdf/2012.15840.pdf">https://arxiv.org/pdf/2012.15840.pdf</a>).</p>
+<p>The SETR PUP Head.</p>
+<section id="id8">
+<h3>Parameters<a class="headerlink" href="#id8" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt>channels<span class="classifier">int</span></dt><dd><p>Number of output channels.</p>
+</dd>
+<dt>in_channels<span class="classifier">int</span></dt><dd><p>Number of input channels.</p>
+</dd>
+<dt>num_classes<span class="classifier">int</span></dt><dd><p>Number of output classes.</p>
+</dd>
+<dt>norm_layer<span class="classifier">nn.Module</span></dt><dd><p>Normalization layer.</p>
+</dd>
+<dt>conv_norm<span class="classifier">nn.Module</span></dt><dd><p>Convolutional normalization layer.</p>
+</dd>
+<dt>conv_act<span class="classifier">nn.Module</span></dt><dd><p>Convolutional activation layer.</p>
+</dd>
+<dt>num_convs<span class="classifier">int</span></dt><dd><p>Number of convolutional layers.</p>
+</dd>
+<dt>up_scale<span class="classifier">int</span></dt><dd><p>Upsampling scale factor.</p>
+</dd>
+<dt>kernel_size<span class="classifier">int</span></dt><dd><p>Kernel size for convolutional layers.</p>
+</dd>
+<dt>align_corners<span class="classifier">bool</span></dt><dd><p>Whether to align corners during upsampling.</p>
+</dd>
+<dt>dropout<span class="classifier">float</span></dt><dd><p>Dropout rate.</p>
+</dd>
+<dt>interpolate_mode<span class="classifier">str</span></dt><dd><p>Interpolation mode for upsampling.</p>
+</dd>
+</dl>
+</section>
+<section id="raises">
+<h3>Raises<a class="headerlink" href="#raises" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt>AssertionError</dt><dd><p>If kernel_size is not 1 or 3.</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.setr._SETRUPHead.cls_seg">
+<span class="sig-name descname"><span class="pre">cls_seg</span></span><a class="headerlink" href="#minerva.models.nets.image.setr._SETRUPHead.cls_seg" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.setr._SETRUPHead.dropout">
+<span class="sig-name descname"><span class="pre">dropout</span></span><a class="headerlink" href="#minerva.models.nets.image.setr._SETRUPHead.dropout" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.image.setr._SETRUPHead.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/setr.html#_SETRUPHead.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.setr._SETRUPHead.forward" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.setr._SETRUPHead.norm">
+<span class="sig-name descname"><span class="pre">norm</span></span><a class="headerlink" href="#minerva.models.nets.image.setr._SETRUPHead.norm" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.setr._SETRUPHead.num_classes">
+<span class="sig-name descname"><span class="pre">num_classes</span></span><a class="headerlink" href="#minerva.models.nets.image.setr._SETRUPHead.num_classes" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.setr._SETRUPHead.out_channels">
+<span class="sig-name descname"><span class="pre">out_channels</span></span><a class="headerlink" href="#minerva.models.nets.image.setr._SETRUPHead.out_channels" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.setr._SETRUPHead.up_convs">
+<span class="sig-name descname"><span class="pre">up_convs</span></span><a class="headerlink" href="#minerva.models.nets.image.setr._SETRUPHead.up_convs" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>channels</strong> (<em>int</em>)</p></li>
+<li><p><strong>in_channels</strong> (<em>int</em>)</p></li>
+<li><p><strong>num_classes</strong> (<em>int</em>)</p></li>
+<li><p><strong>norm_layer</strong> (<em>torch.nn.Module</em>)</p></li>
+<li><p><strong>conv_norm</strong> (<em>torch.nn.Module</em>)</p></li>
+<li><p><strong>conv_act</strong> (<em>torch.nn.Module</em>)</p></li>
+<li><p><strong>num_convs</strong> (<em>int</em>)</p></li>
+<li><p><strong>up_scale</strong> (<em>int</em>)</p></li>
+<li><p><strong>kernel_size</strong> (<em>int</em>)</p></li>
+<li><p><strong>align_corners</strong> (<em>bool</em>)</p></li>
+<li><p><strong>dropout</strong> (<em>float</em>)</p></li>
+<li><p><strong>interpolate_mode</strong> (<em>str</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.models.nets.image.setr._SetR_PUP">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.models.nets.image.setr.</span></span><span class="sig-name descname"><span class="pre">_SetR_PUP</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_layers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_heads</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hidden_dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mlp_dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_convs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_classes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decoder_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">up_scale</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encoder_dropout</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decoder_dropout</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm_layer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interpolate_mode</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conv_norm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conv_act</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">align_corners</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aux_output</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aux_output_layers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">original_resolution</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/setr.html#_SetR_PUP"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.setr._SetR_PUP" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>Base class for all neural network modules.</p>
+<p>Your models should also subclass this class.</p>
+<p>Modules can also contain other Modules, allowing them to be nested in
+a tree structure. You can assign the submodules as regular attributes:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn.functional</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">F</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Model</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conv1</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conv2</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conv1</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">F</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conv2</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Submodules assigned in this way will be registered, and will also have their
+parameters converted when you call <code class="xref py py-meth docutils literal notranslate"><span class="pre">to()</span></code>, etc.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>As per the example above, an <code class="docutils literal notranslate"><span class="pre">__init__()</span></code> call to the parent class
+must be made before assignment on the child.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Variables<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>training</strong> (<em>bool</em>) – Boolean represents whether this module is in training or
+evaluation mode.</p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>image_size</strong> (<em>Union</em><em>[</em><em>int</em><em>, </em><em>Tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>]</em><em>]</em>)</p></li>
+<li><p><strong>patch_size</strong> (<em>int</em>)</p></li>
+<li><p><strong>num_layers</strong> (<em>int</em>)</p></li>
+<li><p><strong>num_heads</strong> (<em>int</em>)</p></li>
+<li><p><strong>hidden_dim</strong> (<em>int</em>)</p></li>
+<li><p><strong>mlp_dim</strong> (<em>int</em>)</p></li>
+<li><p><strong>num_convs</strong> (<em>int</em>)</p></li>
+<li><p><strong>num_classes</strong> (<em>int</em>)</p></li>
+<li><p><strong>decoder_channels</strong> (<em>int</em>)</p></li>
+<li><p><strong>up_scale</strong> (<em>int</em>)</p></li>
+<li><p><strong>encoder_dropout</strong> (<em>float</em>)</p></li>
+<li><p><strong>kernel_size</strong> (<em>int</em>)</p></li>
+<li><p><strong>decoder_dropout</strong> (<em>float</em>)</p></li>
+<li><p><strong>norm_layer</strong> (<em>torch.nn.Module</em>)</p></li>
+<li><p><strong>interpolate_mode</strong> (<em>str</em>)</p></li>
+<li><p><strong>conv_norm</strong> (<em>torch.nn.Module</em>)</p></li>
+<li><p><strong>conv_act</strong> (<em>torch.nn.Module</em>)</p></li>
+<li><p><strong>align_corners</strong> (<em>bool</em>)</p></li>
+<li><p><strong>aux_output</strong> (<em>bool</em>)</p></li>
+<li><p><strong>aux_output_layers</strong> (<em>Optional</em><em>[</em><em>List</em><em>[</em><em>int</em><em>]</em><em>]</em>)</p></li>
+<li><p><strong>original_resolution</strong> (<em>Optional</em><em>[</em><em>Tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>]</em><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<p>Initializes the SETR PUP head.</p>
+<section id="id9">
+<h3>Parameters<a class="headerlink" href="#id9" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt>image_size<span class="classifier">int or Tuple[int, int]</span></dt><dd><p>The size of the input image.</p>
+</dd>
+<dt>patch_size<span class="classifier">int</span></dt><dd><p>The size of each patch in the input image.</p>
+</dd>
+<dt>num_layers<span class="classifier">int</span></dt><dd><p>The number of layers in the transformer encoder.</p>
+</dd>
+<dt>num_heads<span class="classifier">int</span></dt><dd><p>The number of attention heads in the transformer encoder.</p>
+</dd>
+<dt>hidden_dim<span class="classifier">int</span></dt><dd><p>The hidden dimension of the transformer encoder.</p>
+</dd>
+<dt>mlp_dim<span class="classifier">int</span></dt><dd><p>The dimension of the feed-forward network in the transformer encoder</p>
+</dd>
+<dt>num_convs<span class="classifier">int</span></dt><dd><p>The number of convolutional layers in the decoder.</p>
+</dd>
+<dt>num_classes<span class="classifier">int</span></dt><dd><p>The number of output classes.</p>
+</dd>
+<dt>decoder_channels<span class="classifier">int</span></dt><dd><p>The number of channels in the decoder.</p>
+</dd>
+<dt>up_scale<span class="classifier">int</span></dt><dd><p>The scale factor for upsampling in the decoder.</p>
+</dd>
+<dt>encoder_dropout<span class="classifier">float</span></dt><dd><p>The dropout rate for the transformer encoder.</p>
+</dd>
+<dt>kernel_size<span class="classifier">int</span></dt><dd><p>The kernel size for the convolutional layers in the decoder.</p>
+</dd>
+<dt>decoder_dropout<span class="classifier">float</span></dt><dd><p>The dropout rate for the decoder.</p>
+</dd>
+<dt>norm_layer<span class="classifier">nn.Module</span></dt><dd><p>The normalization layer to be used.</p>
+</dd>
+<dt>interpolate_mode<span class="classifier">str</span></dt><dd><p>The mode for interpolation during upsampling.</p>
+</dd>
+<dt>conv_norm<span class="classifier">nn.Module</span></dt><dd><p>The normalization layer to be used in the decoder convolutional
+layers.</p>
+</dd>
+<dt>conv_act<span class="classifier">nn.Module</span></dt><dd><p>The activation function to be used in the decoder convolutional
+layers.</p>
+</dd>
+<dt>align_corners<span class="classifier">bool</span></dt><dd><p>Whether to align corners during upsampling.</p>
+</dd>
+<dt>aux_output: bool</dt><dd><p>Whether to use auxiliary outputs. If True, aux_output_layers must
+be provided.</p>
+</dd>
+<dt>aux_output_layers: List[int], optional</dt><dd><p>The layers to use for auxiliary outputs. Must have exacly 3 values.</p>
+</dd>
+<dt>original_resolution: Tuple[int, int], optional</dt><dd><p>The original resolution of the input image in the pre-training
+weights. When None, positional embeddings will not be interpolated.</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.setr._SetR_PUP.aux_head1">
+<span class="sig-name descname"><span class="pre">aux_head1</span></span><a class="headerlink" href="#minerva.models.nets.image.setr._SetR_PUP.aux_head1" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.setr._SetR_PUP.aux_head2">
+<span class="sig-name descname"><span class="pre">aux_head2</span></span><a class="headerlink" href="#minerva.models.nets.image.setr._SetR_PUP.aux_head2" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.setr._SetR_PUP.aux_head3">
+<span class="sig-name descname"><span class="pre">aux_head3</span></span><a class="headerlink" href="#minerva.models.nets.image.setr._SetR_PUP.aux_head3" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.setr._SetR_PUP.aux_output">
+<span class="sig-name descname"><span class="pre">aux_output</span></span><a class="headerlink" href="#minerva.models.nets.image.setr._SetR_PUP.aux_output" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.setr._SetR_PUP.aux_output_layers">
+<span class="sig-name descname"><span class="pre">aux_output_layers</span></span><a class="headerlink" href="#minerva.models.nets.image.setr._SetR_PUP.aux_output_layers" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.setr._SetR_PUP.decoder">
+<span class="sig-name descname"><span class="pre">decoder</span></span><a class="headerlink" href="#minerva.models.nets.image.setr._SetR_PUP.decoder" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.setr._SetR_PUP.encoder">
+<span class="sig-name descname"><span class="pre">encoder</span></span><a class="headerlink" href="#minerva.models.nets.image.setr._SetR_PUP.encoder" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.image.setr._SetR_PUP.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/setr.html#_SetR_PUP.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.setr._SetR_PUP.forward" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>torch.Tensor</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.image.setr._SetR_PUP.load_backbone">
+<span class="sig-name descname"><span class="pre">load_backbone</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freeze</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/setr.html#_SetR_PUP.load_backbone"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.setr._SetR_PUP.load_backbone" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> (<em>str</em>)</p></li>
+<li><p><strong>freeze</strong> (<em>bool</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Unicamp.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

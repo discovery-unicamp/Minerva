@@ -1,0 +1,59 @@
+minerva.utils.string_ops
+========================
+
+.. py:module:: minerva.utils.string_ops
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   minerva.utils.string_ops.indent_text
+   minerva.utils.string_ops.tree_like_formating
+
+
+Module Contents
+---------------
+
+.. py:function:: indent_text(text, spaces = 4, char = ' ')
+
+   Add indentation to each line of a given text.
+
+   Parameters
+   ----------
+   text : str
+       The text to be indented.
+   spaces : int, optional
+       The number of spaces to indent each line, by default 4
+   char : str, optional
+       The character to use for indentation, by default " "
+
+   Returns
+   -------
+   str
+       The indented text.
+
+
+.. py:function:: tree_like_formating(d, initial_indent = '')
+
+   Format a dictionary into a tree-like structure.
+
+   Parameters
+   ----------
+   d : dict
+       The dictionary to format.
+   initial_indent : str, optional
+       The initial indentation for the first level of the tree structure
+       (default is no indentation), by default "". This is useful for
+       controlling the starting point of the tree structure. For example,
+       if you want to start the tree structure with a specific indentation
+       level, you can pass a string of spaces or other characters to this
+       parameter. This allows for more flexibility in formatting the tree
+       structure according to your preferences.
+   Returns
+   -------
+   str
+       The formatted tree-like structure as a string.
+
+

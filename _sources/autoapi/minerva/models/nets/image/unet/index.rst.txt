@@ -1,0 +1,241 @@
+minerva.models.nets.image.unet
+==============================
+
+.. py:module:: minerva.models.nets.image.unet
+
+.. autoapi-nested-parse::
+
+   Full assembly of the parts to form the complete network
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   minerva.models.nets.image.unet.UNet
+   minerva.models.nets.image.unet._DoubleConv
+   minerva.models.nets.image.unet._Down
+   minerva.models.nets.image.unet._OutConv
+   minerva.models.nets.image.unet._UNet
+   minerva.models.nets.image.unet._Up
+
+
+Module Contents
+---------------
+
+.. py:class:: UNet(n_channels = 1, bilinear = False, learning_rate = 0.001, loss_fn = None, **kwargs)
+
+   Bases: :py:obj:`minerva.models.nets.base.SimpleSupervisedModel`
+
+
+   This class is a simple implementation of the U-Net model, which is a
+   convolutional neural network used for image segmentation. The model consists
+   of a contracting path (encoder) and an expansive path (decoder). The
+   contracting path follows the typical architecture of a convolutional neural
+   network, with repeated applications of convolutions and max pooling layers.
+   The expansive path consists of up-convolutions and concatenation of feature
+   maps from the contracting path. The model also has skip connections, which
+   allows the expansive path to use information from the contracting path at
+   multiple resolutions. The U-Net model was originally proposed by
+   Ronneberger, Fischer, and Brox in 2015.
+
+   This architecture, handles arbitrary input sizes, and returns an output of
+   the same size as the input. The expected input size is (N, C, H, W), where N
+   is the batch size, C is the number of channels, H is the height of the input
+   image, and W is the width of the input image.
+
+   Note that, for this implementation, the input batch is a single tensor and
+   not a tuple of tensors (e.g., data and label).
+
+   Note that this class wrappers the `_UNet` class, which is the actual
+   implementation of the U-Net model, into a `SimpleReconstructionNet` class,
+   which is a simple autoencoder pipeline for reconstruction tasks.
+
+   References
+   ----------
+   Ronneberger, Olaf, Philipp Fischer, and Thomas Brox. "U-net: Convolutional
+   networks for biomedical image segmentation." Medical Image Computing and
+   Computer-Assisted Intervention-MICCAI 2015: 18th International Conference,
+   Munich, Germany, October 5-9, 2015, Proceedings, Part III 18. Springer
+   International Publishing, 2015.
+
+   Wrapper implementation of the U-Net model.
+
+   Parameters
+   ----------
+   n_channels : int, optional
+       The number of channels of the input, by default 1
+   bilinear : bool, optional
+       If `True` use bilinear interpolation for upsampling, by default
+       False.
+   learning_rate : float, optional
+       The learning rate to Adam optimizer, by default 1e-3
+   loss_fn : torch.nn.Module, optional
+       The function used to compute the loss. If `None`, it will be used
+       the MSELoss, by default None.
+   kwargs : Dict
+       Additional arguments to be passed to the `SimpleSupervisedModel`
+       class.
+
+
+.. py:class:: _DoubleConv(in_channels, out_channels, mid_channels=None)
+
+   Bases: :py:obj:`torch.nn.Module`
+
+
+   (convolution => [BN] => ReLU) * 2
+
+   Parameters
+   ----------
+   in_channels : int
+       Number of input channels, i.e. the number of channels in the input image (1 for grayscale, 3 for RGB)
+   out_channels : int
+       Number of output channels, i.e. the number of channels produced by the convolution
+   mid_channels : int, optional
+       Number of channels in the middle, by default None
+
+
+
+   .. py:attribute:: double_conv
+
+
+   .. py:method:: forward(x)
+
+
+.. py:class:: _Down(in_channels, out_channels)
+
+   Bases: :py:obj:`torch.nn.Module`
+
+
+   Downscaling with maxpool then double conv
+
+   Initialize internal Module state, shared by both nn.Module and ScriptModule.
+
+
+   .. py:method:: forward(x)
+
+
+   .. py:attribute:: maxpool_conv
+
+
+.. py:class:: _OutConv(in_channels, out_channels)
+
+   Bases: :py:obj:`torch.nn.Module`
+
+
+   Base class for all neural network modules.
+
+   Your models should also subclass this class.
+
+   Modules can also contain other Modules, allowing them to be nested in
+   a tree structure. You can assign the submodules as regular attributes::
+
+       import torch.nn as nn
+       import torch.nn.functional as F
+
+       class Model(nn.Module):
+           def __init__(self) -> None:
+               super().__init__()
+               self.conv1 = nn.Conv2d(1, 20, 5)
+               self.conv2 = nn.Conv2d(20, 20, 5)
+
+           def forward(self, x):
+               x = F.relu(self.conv1(x))
+               return F.relu(self.conv2(x))
+
+   Submodules assigned in this way will be registered, and will also have their
+   parameters converted when you call :meth:`to`, etc.
+
+   .. note::
+       As per the example above, an ``__init__()`` call to the parent class
+       must be made before assignment on the child.
+
+   :ivar training: Boolean represents whether this module is in training or
+                   evaluation mode.
+   :vartype training: bool
+
+   Initialize internal Module state, shared by both nn.Module and ScriptModule.
+
+
+   .. py:attribute:: conv
+
+
+   .. py:method:: forward(x)
+
+
+.. py:class:: _UNet(n_channels = 1, bilinear = False)
+
+   Bases: :py:obj:`torch.nn.Module`
+
+
+   Implementation of U-Net model.
+
+   Implementation of U-Net model.
+
+   Parameters
+   ----------
+   n_channels : int, optional
+       Number of input channels, by default 1
+   bilinear : bool, optional
+       If `True` use bilinear interpolation for upsampling, by default
+       False.
+
+
+   .. py:attribute:: bilinear
+      :value: False
+
+
+
+   .. py:attribute:: down1
+
+
+   .. py:attribute:: down2
+
+
+   .. py:attribute:: down3
+
+
+   .. py:attribute:: down4
+
+
+   .. py:method:: forward(x)
+
+
+   .. py:attribute:: inc
+
+
+   .. py:attribute:: n_channels
+      :value: 1
+
+
+
+   .. py:attribute:: outc
+
+
+   .. py:attribute:: up1
+
+
+   .. py:attribute:: up2
+
+
+   .. py:attribute:: up3
+
+
+   .. py:attribute:: up4
+
+
+.. py:class:: _Up(in_channels, out_channels, bilinear=True)
+
+   Bases: :py:obj:`torch.nn.Module`
+
+
+   Upscaling then double conv
+
+   Initialize internal Module state, shared by both nn.Module and ScriptModule.
+
+
+   .. py:method:: forward(x1, x2)
+
+

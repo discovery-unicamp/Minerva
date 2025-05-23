@@ -1,0 +1,139 @@
+minerva.samplers.domain_sampler
+===============================
+
+.. py:module:: minerva.samplers.domain_sampler
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   minerva.samplers.domain_sampler.RandomDomainSampler
+
+
+Module Contents
+---------------
+
+.. py:class:: RandomDomainSampler(dataset, domain_labels, batch_size = 1, n_domains_per_sample = 2, shuffle = True, consistent_iterating = False)
+
+   Bases: :py:obj:`torch.utils.data.sampler.Sampler`
+
+
+   Base class for all Samplers.
+
+   Every Sampler subclass has to provide an :meth:`__iter__` method, providing a
+   way to iterate over indices or lists of indices (batches) of dataset elements,
+   and may provide a :meth:`__len__` method that returns the length of the returned iterators.
+
+   Args:
+       data_source (Dataset): This argument is not used and will be removed in 2.2.0.
+           You may still have custom implementation that utilizes it.
+
+   Example:
+       >>> # xdoctest: +SKIP
+       >>> class AccedingSequenceLengthSampler(Sampler[int]):
+       >>>     def __init__(self, data: List[str]) -> None:
+       >>>         self.data = data
+       >>>
+       >>>     def __len__(self) -> int:
+       >>>         return len(self.data)
+       >>>
+       >>>     def __iter__(self) -> Iterator[int]:
+       >>>         sizes = torch.tensor([len(x) for x in self.data])
+       >>>         yield from torch.argsort(sizes).tolist()
+       >>>
+       >>> class AccedingSequenceLengthBatchSampler(Sampler[List[int]]):
+       >>>     def __init__(self, data: List[str], batch_size: int) -> None:
+       >>>         self.data = data
+       >>>         self.batch_size = batch_size
+       >>>
+       >>>     def __len__(self) -> int:
+       >>>         return (len(self.data) + self.batch_size - 1) // self.batch_size
+       >>>
+       >>>     def __iter__(self) -> Iterator[List[int]]:
+       >>>         sizes = torch.tensor([len(x) for x in self.data])
+       >>>         for batch in torch.chunk(torch.argsort(sizes), len(self)):
+       >>>             yield batch.tolist()
+
+   .. note:: The :meth:`__len__` method isn't strictly required by
+             :class:`~torch.utils.data.DataLoader`, but is expected in any
+             calculation involving the length of a :class:`~torch.utils.data.DataLoader`.
+
+   Sample data from multiple domains in a balanced way. If domains have
+   different number of samples, the number of samples will be the minimum
+   number of samples for each domain.
+
+   Parameters
+   ----------
+   dataset : Dataset
+       The dataset to sample from.
+   domain_labels : List[int]
+       The domain labels for each sample in the dataset.
+   batch_size : int, optional
+       The number of samples for each domain in a batch, by default 1.
+       The effective batch size will be batch_size * n_domains_per_sample.
+   n_domains_per_sample : int, optional
+       The number of domains to sample from in each batch, by default 2.
+       Note that, the domain labels must have at least n_domains_per_sample
+       distinct domains.
+   shuffle : bool, optional
+       Shuffle the samples in each domain before sampling, by default True
+   consistent_iterating : bool, optional
+       As each domain may have different number of samples, in different
+       iterations, the same samples may not be used. If True, the same
+       samples will be used in every iteration, by default False.
+
+
+   .. py:method:: __iter__()
+
+
+   .. py:method:: __len__()
+
+
+   .. py:method:: _select_samples()
+
+
+   .. py:attribute:: batch_size
+      :value: 1
+
+
+
+   .. py:attribute:: cached
+      :value: None
+
+
+
+   .. py:attribute:: consistent_iterating
+      :value: False
+
+
+
+   .. py:attribute:: dataset
+
+
+   .. py:attribute:: domain_labels
+
+
+   .. py:attribute:: domains
+
+
+   .. py:attribute:: min_batches
+
+
+   .. py:attribute:: n_domains_per_sample
+      :value: 2
+
+
+
+   .. py:attribute:: rng
+
+
+   .. py:attribute:: seed
+
+
+   .. py:attribute:: shuffle
+      :value: True
+
+
+

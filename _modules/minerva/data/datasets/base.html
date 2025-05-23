@@ -1,0 +1,320 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>minerva.data.datasets.base &mdash; minerva  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            minerva
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../design.html">Minerva Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorials.html">Examples and Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../contributing.html">Contributing to Minerva</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api.html">Programming Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">minerva</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">minerva.data.datasets.base</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for minerva.data.datasets.base</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">torch.utils.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dataset</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">minerva.data.readers.reader</span><span class="w"> </span><span class="kn">import</span> <span class="n">_Reader</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">minerva.transforms.transform</span><span class="w"> </span><span class="kn">import</span> <span class="n">_Transform</span>
+
+
+<div class="viewcode-block" id="SimpleDataset">
+<a class="viewcode-back" href="../../../../autoapi/minerva/data/datasets/index.html#minerva.data.datasets.base.SimpleDataset">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SimpleDataset</span><span class="p">(</span><span class="n">Dataset</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Dataset is responsible for loading data from multiple readers and</span>
+<span class="sd">    responsible for loading data from multiple readers and</span>
+
+<span class="sd">    apply specified transforms. It is a generic implementation that can be</span>
+<span class="sd">    used to create differents dataset, from supervised to unsupervised ones.</span>
+
+<span class="sd">    This class implements the common pipeline for reading and transforming data.</span>
+<span class="sd">    The __getitem__ pipeline is as follows:</span>
+
+<span class="sd">    For each reader R and transform list T:</span>
+<span class="sd">        1. Read the data from the reader R at the index idx.</span>
+<span class="sd">        2. Apply the transforms T to the data.</span>
+<span class="sd">        3. Append the transformed data to the list of data.</span>
+<span class="sd">    Return the tuple of transformed data.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">readers</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">_Reader</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">_Reader</span><span class="p">]],</span>
+        <span class="n">transforms</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">_Transform</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">_Transform</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">return_single</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load data from multiple sources and apply specified transforms.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        readers : Union[_Reader, List[_Reader]]</span>
+<span class="sd">            The list of readers to load data from. It can be a single reader or</span>
+<span class="sd">            a list of readers.</span>
+<span class="sd">        transforms : Optional[Union[_Transform, List[_Transform]]], optional</span>
+<span class="sd">            The list of transforms to apply to each sample. This can be:</span>
+<span class="sd">            -   None, in which case no transform is applied.</span>
+<span class="sd">            -   A single transform, in which case the same transform is applied</span>
+<span class="sd">                to data from all readers.</span>
+<span class="sd">            -   A list of transforms, in which case each transform is applied</span>
+<span class="sd">                to the corresponding reader. That is, the first transform is</span>
+<span class="sd">                applied to the first reader, the second transform is applied to</span>
+<span class="sd">                the second reader, and so on.</span>
+<span class="sd">        return_single : bool, optional</span>
+<span class="sd">            If True, the __getitem__ method will return a single sample  when</span>
+<span class="sd">            a single reader is used. This is useful for unsupervised datasets,</span>
+<span class="sd">            where we usually have a single reader. If False, the __getitem__</span>
+<span class="sd">            method will return a tuple of samples, where each sample is from a</span>
+<span class="sd">            different reader, from same index. This is useful for supervised</span>
+<span class="sd">            datasets, where the data from different readers are related and</span>
+<span class="sd">            should be returned together. The default is False.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        1. Supervised Dataset:</span>
+<span class="sd">        ```python</span>
+<span class="sd">        from minerva.data.readers import ImageReader, LabelReader</span>
+<span class="sd">        from minerva.transforms import ImageTransform, LabelTransform</span>
+<span class="sd">        from minerva.data.datasets import SimpleDataset</span>
+
+<span class="sd">        # Create the readers</span>
+<span class="sd">        image_reader = ImageReader(&quot;path/to/images&quot;)</span>
+<span class="sd">        label_reader = LabelReader(&quot;path/to/labels&quot;)</span>
+
+<span class="sd">        # Create the transforms</span>
+<span class="sd">        image_transform = ImageTransform()</span>
+<span class="sd">        label_transform = None          # No transform for the labels</span>
+<span class="sd">        # Create the dataset</span>
+<span class="sd">        dataset = SimpleDataset(</span>
+<span class="sd">            readers=[image_reader, label_reader],</span>
+<span class="sd">            transforms=[image_transform, label_transform]</span>
+<span class="sd">        )</span>
+
+<span class="sd">        dataset[0]  # Returns [image, label]</span>
+<span class="sd">        ```</span>
+
+<span class="sd">        2. Unsupervised Dataset:</span>
+<span class="sd">        ```python</span>
+<span class="sd">        from minerva.data.readers import ImageReader</span>
+<span class="sd">        from minerva.transforms import ImageTransform</span>
+<span class="sd">        from minerva.data.datasets import SimpleDataset</span>
+
+<span class="sd">        # Create the reader</span>
+<span class="sd">        image_reader = ImageReader(&quot;path/to/images&quot;)</span>
+
+<span class="sd">        # Create the transform</span>
+<span class="sd">        image_transform = ImageTransform()</span>
+<span class="sd">        # Create the dataset</span>
+<span class="sd">        dataset = SimpleDataset(</span>
+<span class="sd">            readers=[image_reader],</span>
+<span class="sd">            transforms=image_transform,</span>
+<span class="sd">            return_single=True</span>
+<span class="sd">        )</span>
+<span class="sd">        dataset[0]  # Returns image</span>
+<span class="sd">        ```</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">readers</span> <span class="o">=</span> <span class="n">readers</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transforms</span> <span class="o">=</span> <span class="n">transforms</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">return_single</span> <span class="o">=</span> <span class="n">return_single</span>
+
+        <span class="c1"># ---------------- Parsing readers ----------------</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">readers</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">readers</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">readers</span><span class="p">]</span>
+        <span class="c1"># ---------------- Parsing transforms ----------------</span>
+        <span class="c1"># If no transform is provided, use the identity transform.</span>
+        <span class="c1"># It will generate a list of None transforms with the same length</span>
+        <span class="c1"># as the number of readers.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">transforms</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">transforms</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">readers</span><span class="p">)</span>
+
+        <span class="c1"># If a single transform is provided, use the same transform for all</span>
+        <span class="c1"># readers, that is, generate a list of the same transform with the same</span>
+        <span class="c1"># length as the number of readers.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">transforms</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">transforms</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">transforms</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">readers</span><span class="p">)</span>
+
+        <span class="c1"># ---------------- Validating objects ----------------</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">readers</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">transforms</span>
+        <span class="p">),</span> <span class="s2">&quot;The number of readers and transforms must be the same.&quot;</span>
+
+        <span class="c1"># If return_single is True, there must be only one reader.</span>
+        <span class="k">assert</span> <span class="p">(</span>
+            <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">return_single</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">readers</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+        <span class="p">),</span> <span class="s2">&quot;If return_single is True, there must be only one reader.&quot;</span>
+
+<div class="viewcode-block" id="SimpleDataset.__len__">
+<a class="viewcode-back" href="../../../../autoapi/minerva/data/datasets/index.html#minerva.data.datasets.base.SimpleDataset.__len__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The length of the dataset is the length of the first reader.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        int</span>
+<span class="sd">            The number of samples in the dataset.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">readers</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="SimpleDataset.__getitem__">
+<a class="viewcode-back" href="../../../../autoapi/minerva/data/datasets/index.html#minerva.data.datasets.base.SimpleDataset.__getitem__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="o">...</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load data from multiple sources and apply specified transforms.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        idx : int</span>
+<span class="sd">            The index of the sample to load.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        List[Any]</span>
+<span class="sd">            A list of transformed data from each reader.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># For each reader and transform, read the data and apply the transform.</span>
+        <span class="c1"># Then, append the transformed data to the list of data.</span>
+        <span class="k">for</span> <span class="n">reader</span><span class="p">,</span> <span class="n">transform</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">readers</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">transforms</span><span class="p">):</span>
+            <span class="n">sample</span> <span class="o">=</span> <span class="n">reader</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+            <span class="c1"># Apply the transform if it is not None</span>
+            <span class="k">if</span> <span class="n">transform</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">sample</span> <span class="o">=</span> <span class="n">transform</span><span class="p">(</span><span class="n">sample</span><span class="p">)</span>
+            <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sample</span><span class="p">)</span>
+        <span class="c1"># Return the list of transformed data or a single sample if return_single</span>
+        <span class="c1"># is True and there is only one reader.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">return_single</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SimpleDataset.__str__">
+<a class="viewcode-back" href="../../../../autoapi/minerva/data/datasets/index.html#minerva.data.datasets.base.SimpleDataset.__str__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">readers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">readers</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">readers</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="k">else</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">readers</span><span class="p">]</span>
+        <span class="n">transforms</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">transforms</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">transforms</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="k">else</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">transforms</span><span class="p">]</span>
+        <span class="p">)</span>
+
+        <span class="n">readers_info</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="sa">f</span><span class="s2">&quot;   └── Reader </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">reader</span><span class="si">}</span><span class="se">\n</span><span class="s2">   │     └── Transform: </span><span class="si">{</span><span class="n">transform</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">reader</span><span class="p">,</span> <span class="n">transform</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">readers</span><span class="p">,</span> <span class="n">transforms</span><span class="p">))</span>
+            <span class="p">]</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;=&#39;</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">50</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;📂 SimpleDataset Information&#39;</span><span class="si">:</span><span class="s2">^50</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;=&#39;</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">50</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;📌 Dataset Type: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">readers_info</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;   │</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;   └── Total Readers: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">readers</span><span class="p">)</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;=&#39;</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">50</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SimpleDataset.__repr__">
+<a class="viewcode-back" href="../../../../autoapi/minerva/data/datasets/index.html#minerva.data.datasets.base.SimpleDataset.__repr__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__str__</span><span class="p">()</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Unicamp.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

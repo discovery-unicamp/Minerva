@@ -1,0 +1,597 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>minerva.engines.patch_inferencer_engine &mdash; minerva  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            minerva
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../design.html">Minerva Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials.html">Examples and Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing to Minerva</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">Programming Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">minerva</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">minerva.engines.patch_inferencer_engine</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for minerva.engines.patch_inferencer_engine</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">lightning</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">L</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">minerva.engines.engine</span><span class="w"> </span><span class="kn">import</span> <span class="n">_Engine</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">minerva.models.nets.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">SimpleSupervisedModel</span>
+
+
+<div class="viewcode-block" id="PatchInferencer">
+<a class="viewcode-back" href="../../../autoapi/minerva/engines/patch_inferencer_engine/index.html#minerva.engines.patch_inferencer_engine.PatchInferencer">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PatchInferencer</span><span class="p">(</span><span class="n">L</span><span class="o">.</span><span class="n">LightningModule</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;This class acts as a normal `L.LightningModule` that wraps a</span>
+<span class="sd">    `SimpleSupervisedModel` model allowing it to perform inference in patches.</span>
+<span class="sd">    This is useful when the model&#39;s default input size is smaller than the</span>
+<span class="sd">    desired input size (sample size). In this case, the engine split the input</span>
+<span class="sd">    tensor into patches, perform inference in each patch, and combine them into</span>
+<span class="sd">    a single output of the desired size. The combination of patches can be</span>
+<span class="sd">    parametrized by a `weight_function` allowing a customizable combination of</span>
+<span class="sd">    patches (e.g, combining using weighted average). It is important to note</span>
+<span class="sd">    that only model&#39;s forward are wrapped, and, thus, any method that requires</span>
+<span class="sd">    the forward method (e.g., training_step, predict_step) will be performed in</span>
+<span class="sd">    patches, transparently to the user.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">model</span><span class="p">:</span> <span class="n">SimpleSupervisedModel</span><span class="p">,</span>
+        <span class="n">input_shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span>
+        <span class="n">output_shape</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">weight_function</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]],</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">offsets</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">padding</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">return_tuple</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Wrap a `SimpleSupervisedModel` model&#39;s forward method to perform</span>
+<span class="sd">        inference in patches, transparently splitting the input tensor into</span>
+<span class="sd">        patches, performing inference in each patch, and combining them into a</span>
+<span class="sd">        single output of the desired size.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        model : SimpleSupervisedModel</span>
+<span class="sd">            Model to be wrapped.</span>
+<span class="sd">        input_shape : Tuple[int, ...]</span>
+<span class="sd">            Expected input shape of the wrapped model.</span>
+<span class="sd">        output_shape : Tuple[int, ...], optional</span>
+<span class="sd">            Expected output shape of the wrapped model. For models that return</span>
+<span class="sd">            logits (e.g., classification models), the `output_shape` must</span>
+<span class="sd">            include an  additional dimension at the beginning to accommodate</span>
+<span class="sd">            the number of output classes. For example, if the model processes</span>
+<span class="sd">            an input tensor of shape (1, 128, 128) and outputs logits for 10</span>
+<span class="sd">            classes, the expected `output_shape` should be (10, 1, 128, 128).</span>
+<span class="sd">            If the model does not return logits (e.g., return a tensor after</span>
+<span class="sd">            applying an `argmax` operation, or a regression models that usually</span>
+<span class="sd">            returns a tensor with the same shape as the input tensor), the</span>
+<span class="sd">            `output_shape` should have the same number of dimensions as the</span>
+<span class="sd">            input shape. Defaults to None, which assumes the output shape is</span>
+<span class="sd">            the same as the `input_shape` parameter.</span>
+<span class="sd">        weight_function: Callable[[Tuple[int, ...]], torch.Tensor], optional</span>
+<span class="sd">            Function that receives a tensor shape and returns the weights for</span>
+<span class="sd">            each position of a tensor with the given shape. Useful when regions</span>
+<span class="sd">            of the inference present diminishing performance when getting</span>
+<span class="sd">            closer to borders, for instance.</span>
+<span class="sd">        offsets : List[Tuple[int, ...]], optional</span>
+<span class="sd">            List of tuples with offsets that determine the shift of the initial</span>
+<span class="sd">            position of the patch subdivision.</span>
+<span class="sd">        padding : Dict[str, Any], optional</span>
+<span class="sd">            Dictionary describing padding strategy. Keys:</span>
+<span class="sd">                - pad (mandatory): tuple with pad width (int) for each</span>
+<span class="sd">                    dimension, e.g.(0, 3, 3) when working with a tensor with 3</span>
+<span class="sd">                    dimensions.</span>
+<span class="sd">                - mode (optional): &#39;constant&#39;, &#39;reflect&#39;, &#39;replicate&#39; or</span>
+<span class="sd">                    &#39;circular&#39;. Defaults to &#39;constant&#39;.</span>
+<span class="sd">                - value (optional): fill value for &#39;constant&#39;. Defaults to 0.</span>
+<span class="sd">            If None, no padding is applied.</span>
+<span class="sd">        return_tuple: int, optional</span>
+<span class="sd">            Some models may return multiple outputs for a single sample (e.g.,</span>
+<span class="sd">            outputs from multiple auxiliary heads). This parameter is a integer</span>
+<span class="sd">            that defines the number of outputs the model generates. By default,</span>
+<span class="sd">            it is None, which indicates that the model produces a single output</span>
+<span class="sd">            for a single input. When set, it indicates the number of outputs</span>
+<span class="sd">            the model produces.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">patch_inferencer</span> <span class="o">=</span> <span class="n">PatchInferencerEngine</span><span class="p">(</span>
+            <span class="n">input_shape</span><span class="p">,</span>
+            <span class="n">output_shape</span><span class="p">,</span>
+            <span class="n">offsets</span><span class="p">,</span>
+            <span class="n">padding</span><span class="p">,</span>
+            <span class="n">weight_function</span><span class="p">,</span>
+            <span class="n">return_tuple</span><span class="p">,</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="PatchInferencer.__call__">
+<a class="viewcode-back" href="../../../autoapi/minerva/engines/patch_inferencer_engine/index.html#minerva.engines.patch_inferencer_engine.PatchInferencer.__call__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">x</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="PatchInferencer.forward">
+<a class="viewcode-back" href="../../../autoapi/minerva/engines/patch_inferencer_engine/index.html#minerva.engines.patch_inferencer_engine.PatchInferencer.forward">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Perform inference in patches.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        x : torch.Tensor</span>
+<span class="sd">            Batch of input data.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">patch_inferencer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="PatchInferencer._single_step">
+<a class="viewcode-back" href="../../../autoapi/minerva/engines/patch_inferencer_engine/index.html#minerva.engines.patch_inferencer_engine.PatchInferencer._single_step">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_single_step</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">step_name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Perform a single step of the training/validation loop.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        batch : torch.Tensor</span>
+<span class="sd">            The input data.</span>
+<span class="sd">        batch_idx : int</span>
+<span class="sd">            The index of the batch.</span>
+<span class="sd">        step_name : str</span>
+<span class="sd">            The name of the step, either &quot;train&quot; or &quot;val&quot;.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        torch.Tensor</span>
+<span class="sd">            The loss value.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">batch</span>
+        <span class="n">y_hat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">float</span><span class="p">())</span>
+        <span class="n">loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">_loss_func</span><span class="p">(</span><span class="n">y_hat</span><span class="p">,</span> <span class="n">y</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+
+        <span class="n">metrics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">_compute_metrics</span><span class="p">(</span><span class="n">y_hat</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">step_name</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">metric_name</span><span class="p">,</span> <span class="n">metric_value</span> <span class="ow">in</span> <span class="n">metrics</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span>
+                <span class="n">metric_name</span><span class="p">,</span>
+                <span class="n">metric_value</span><span class="p">,</span>
+                <span class="n">on_step</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">on_epoch</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">prog_bar</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">logger</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">sync_dist</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">step_name</span><span class="si">}</span><span class="s2">_loss&quot;</span><span class="p">,</span>
+            <span class="n">loss</span><span class="p">,</span>
+            <span class="n">on_step</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">on_epoch</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">prog_bar</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">logger</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">sync_dist</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">loss</span></div>
+
+
+<div class="viewcode-block" id="PatchInferencer.training_step">
+<a class="viewcode-back" href="../../../autoapi/minerva/engines/patch_inferencer_engine/index.html#minerva.engines.patch_inferencer_engine.PatchInferencer.training_step">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">training_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_single_step</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">,</span> <span class="s2">&quot;train&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="PatchInferencer.validation_step">
+<a class="viewcode-back" href="../../../autoapi/minerva/engines/patch_inferencer_engine/index.html#minerva.engines.patch_inferencer_engine.PatchInferencer.validation_step">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">validation_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_single_step</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">,</span> <span class="s2">&quot;val&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="PatchInferencer.test_step">
+<a class="viewcode-back" href="../../../autoapi/minerva/engines/patch_inferencer_engine/index.html#minerva.engines.patch_inferencer_engine.PatchInferencer.test_step">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_single_step</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">,</span> <span class="s2">&quot;test&quot;</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="PatchInferencerEngine">
+<a class="viewcode-back" href="../../../autoapi/minerva/engines/patch_inferencer_engine/index.html#minerva.engines.patch_inferencer_engine.PatchInferencerEngine">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PatchInferencerEngine</span><span class="p">(</span><span class="n">_Engine</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">input_shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span>
+        <span class="n">output_shape</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">offsets</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">padding</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">weight_function</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">return_tuple</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        input_shape : Tuple[int, ...]</span>
+<span class="sd">            Shape of each patch to process.</span>
+<span class="sd">        output_shape : Tuple[int, ...], optional</span>
+<span class="sd">            Expected output shape of the model. For models that return logits,</span>
+<span class="sd">            the `output_shape` must include an additional dimension at the</span>
+<span class="sd">            beginning to accommodate the number of output classes. Else, the</span>
+<span class="sd">            `output_shape` should have the same number of dimensions as the</span>
+<span class="sd">            `input_shape` (i.e., no logits are returned). Defaults to</span>
+<span class="sd">            input_shape.</span>
+<span class="sd">        padding : Dict[str, Any], optional</span>
+<span class="sd">            Padding configuration with keys:</span>
+<span class="sd">                - &#39;pad&#39;: Tuple of padding for each expected final dimension,</span>
+<span class="sd">                    e.g., (0, 512, 512) - (c, h, w).</span>
+<span class="sd">                - &#39;mode&#39;: Padding mode, e.g., &#39;constant&#39;, &#39;reflect&#39;.</span>
+<span class="sd">                - &#39;value&#39;: Padding value if mode is &#39;constant&#39;.</span>
+<span class="sd">            Defaults to None, which means no padding is applyied.</span>
+<span class="sd">        weight_function : Callable, optional</span>
+<span class="sd">            Function to calculate the weight of each patch. Defaults to None.</span>
+<span class="sd">        return_tuple : int, optional</span>
+<span class="sd">            Number of outputs to return. This is useful when the model returns</span>
+<span class="sd">            multiple outputs for a single input (e.g., from multiple auxiliary</span>
+<span class="sd">            heads). Defaults to None.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">input_shape</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">*</span><span class="n">input_shape</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_shape</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">*</span><span class="n">output_shape</span><span class="p">)</span> <span class="k">if</span> <span class="n">output_shape</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_shape</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Check if possible classification task (has logits)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logits_dim</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">input_shape</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_shape</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_simplified_shape</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="nb">tuple</span><span class="p">([</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">output_shape</span><span class="p">[:</span><span class="mi">1</span><span class="p">],</span> <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">output_shape</span><span class="p">[</span><span class="mi">2</span><span class="p">:]])</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">logits_dim</span>
+            <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_shape</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">weight_function</span> <span class="o">=</span> <span class="n">weight_function</span>
+
+        <span class="k">if</span> <span class="n">offsets</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">offset</span> <span class="ow">in</span> <span class="n">offsets</span><span class="p">:</span>
+                <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">input_shape</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span>
+                    <span class="n">offset</span>
+                <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;Offset tuple does not match expected size (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">input_shape</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">offsets</span> <span class="o">=</span> <span class="n">offsets</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">offsets</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">if</span> <span class="n">padding</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">input_shape</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span>
+                <span class="n">padding</span><span class="p">[</span><span class="s2">&quot;pad&quot;</span><span class="p">]</span>
+            <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;Pad tuple does not match expected size (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">input_shape</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">padding</span> <span class="o">=</span> <span class="n">padding</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">padding</span><span class="p">[</span><span class="s2">&quot;pad&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">padding</span><span class="p">[</span><span class="s2">&quot;pad&quot;</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">padding</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;pad&quot;</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">([</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">input_shape</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">return_tuple</span> <span class="o">=</span> <span class="n">return_tuple</span>
+
+<div class="viewcode-block" id="PatchInferencerEngine._reconstruct_patches">
+<a class="viewcode-back" href="../../../autoapi/minerva/engines/patch_inferencer_engine/index.html#minerva.engines.patch_inferencer_engine.PatchInferencerEngine._reconstruct_patches">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_reconstruct_patches</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">patches</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
+        <span class="n">index</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Rearranges patches to reconstruct area of interest from patches and</span>
+<span class="sd">        weights.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">([</span><span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">,</span> <span class="o">*</span><span class="n">index</span><span class="p">[</span><span class="mi">1</span><span class="p">:]])</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">logits_dim</span> <span class="k">else</span> <span class="n">index</span>
+        <span class="n">reconstruct_shape</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_shape</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+
+        <span class="n">weight</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>
+                <span class="nb">tuple</span><span class="p">([</span><span class="o">*</span><span class="n">reconstruct_shape</span><span class="p">[:</span><span class="mi">1</span><span class="p">],</span> <span class="o">*</span><span class="n">reconstruct_shape</span><span class="p">[</span><span class="mi">2</span><span class="p">:]]),</span>
+                <span class="n">device</span><span class="o">=</span><span class="n">patches</span><span class="o">.</span><span class="n">device</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">logits_dim</span>
+            <span class="k">else</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">reconstruct_shape</span><span class="p">),</span> <span class="n">device</span><span class="o">=</span><span class="n">patches</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="n">base_weight</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">weight_function</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_simplified_shape</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight_function</span>
+            <span class="k">else</span> <span class="n">torch</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_simplified_shape</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">patches</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="n">reconstruct</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">reconstruct_shape</span><span class="p">),</span> <span class="n">device</span><span class="o">=</span><span class="n">patches</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">patch_index</span><span class="p">,</span> <span class="n">patch</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndindex</span><span class="p">(</span><span class="n">index</span><span class="p">),</span> <span class="n">patches</span><span class="p">):</span>
+            <span class="n">sl</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="nb">slice</span><span class="p">(</span><span class="n">idx</span> <span class="o">*</span> <span class="n">patch_len</span><span class="p">,</span> <span class="p">(</span><span class="n">idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">patch_len</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">patch_len</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">patch_index</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_shape</span><span class="p">)</span>
+            <span class="p">]</span>
+            <span class="n">reconstruct</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">sl</span><span class="p">)]</span> <span class="o">=</span> <span class="n">patch</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">logits_dim</span><span class="p">:</span>
+                <span class="n">sl</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">weight</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">sl</span><span class="p">)]</span> <span class="o">=</span> <span class="n">base_weight</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">logits_dim</span><span class="p">:</span>
+            <span class="n">weight</span> <span class="o">=</span> <span class="n">weight</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">reconstruct</span><span class="p">,</span> <span class="n">weight</span></div>
+
+
+<div class="viewcode-block" id="PatchInferencerEngine._adjust_patches">
+<a class="viewcode-back" href="../../../autoapi/minerva/engines/patch_inferencer_engine/index.html#minerva.engines.patch_inferencer_engine.PatchInferencerEngine._adjust_patches">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_adjust_patches</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">arrays</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span>
+        <span class="n">ref_shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+        <span class="n">offset</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
+        <span class="n">pad_value</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Pads reconstructed patches with `pad_value` to have same shape as</span>
+<span class="sd">        the reference shape from the base patch set.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pad_width</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">sl</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">ref_shape</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ref_shape</span><span class="p">)</span>
+        <span class="n">arr_shape</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">arrays</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="n">adjusted_offset</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">*</span><span class="n">offset</span><span class="p">]</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">logits_dim</span> <span class="k">else</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="o">*</span><span class="n">offset</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">length</span><span class="p">,</span> <span class="n">ref</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">adjusted_offset</span><span class="p">,</span> <span class="n">arr_shape</span><span class="p">,</span> <span class="n">ref_shape</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">idx</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">sl</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">length</span><span class="p">,</span> <span class="n">ref</span> <span class="o">-</span> <span class="n">idx</span><span class="p">),</span> <span class="kc">None</span><span class="p">))</span>
+                <span class="n">pad_width</span> <span class="o">=</span> <span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="n">ref</span> <span class="o">-</span> <span class="n">length</span> <span class="o">-</span> <span class="n">idx</span><span class="p">,</span> <span class="mi">0</span><span class="p">)]</span> <span class="o">+</span> <span class="n">pad_width</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">sl</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">idx</span><span class="p">),</span> <span class="nb">min</span><span class="p">(</span><span class="n">length</span><span class="p">,</span> <span class="n">ref</span> <span class="o">-</span> <span class="n">idx</span><span class="p">),</span> <span class="kc">None</span><span class="p">))</span>
+                <span class="n">pad_width</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="n">ref</span> <span class="o">-</span> <span class="n">length</span> <span class="o">-</span> <span class="n">idx</span><span class="p">,</span> <span class="mi">0</span><span class="p">)]</span> <span class="o">+</span> <span class="n">pad_width</span>
+        <span class="n">adjusted</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">(</span>
+                <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span>
+                    <span class="n">arr</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">sl</span><span class="p">)],</span>
+                    <span class="n">pad</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">pad_width</span><span class="p">),</span>
+                    <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;constant&quot;</span><span class="p">,</span>
+                    <span class="n">value</span><span class="o">=</span><span class="n">pad_value</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="n">arr</span> <span class="ow">in</span> <span class="n">arrays</span>
+        <span class="p">]</span>
+        <span class="k">return</span> <span class="n">adjusted</span></div>
+
+
+<div class="viewcode-block" id="PatchInferencerEngine._combine_patches">
+<a class="viewcode-back" href="../../../autoapi/minerva/engines/patch_inferencer_engine/index.html#minerva.engines.patch_inferencer_engine.PatchInferencerEngine._combine_patches">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_combine_patches</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">results</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span>
+        <span class="n">offsets</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">]],</span>
+        <span class="n">indexes</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">]],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Performs the combination of patches based on the weight function.&quot;&quot;&quot;</span>
+        <span class="n">reconstructed</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">weights</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">patches</span><span class="p">,</span> <span class="n">offset</span><span class="p">,</span> <span class="n">shape</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">results</span><span class="p">,</span> <span class="n">offsets</span><span class="p">,</span> <span class="n">indexes</span><span class="p">):</span>
+            <span class="n">reconstruct</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reconstruct_patches</span><span class="p">(</span><span class="n">patches</span><span class="p">,</span> <span class="n">shape</span><span class="p">)</span>
+            <span class="n">reconstruct</span><span class="p">,</span> <span class="n">weight</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_adjust_patches</span><span class="p">(</span>
+                <span class="p">[</span><span class="n">reconstruct</span><span class="p">,</span> <span class="n">weight</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">ref_shape</span><span class="p">,</span> <span class="n">offset</span>
+            <span class="p">)</span>
+            <span class="n">reconstructed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">reconstruct</span><span class="p">)</span>
+            <span class="n">weights</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">weight</span><span class="p">)</span>
+        <span class="n">reconstructed</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">reconstructed</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">weights</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">weights</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">reconstructed</span> <span class="o">*</span> <span class="n">weights</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">/</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">weights</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="PatchInferencerEngine._extract_patches">
+<a class="viewcode-back" href="../../../autoapi/minerva/engines/patch_inferencer_engine/index.html#minerva.engines.patch_inferencer_engine.PatchInferencerEngine._extract_patches">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_extract_patches</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">patch_shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Patch extraction method. It will be called once for the base patch</span>
+<span class="sd">        set and also for the requested offsets (overlapping patch sets).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">indexes</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">//</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">patch_shape</span><span class="p">))</span>
+        <span class="n">patches</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">patch_index</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">ndindex</span><span class="p">(</span><span class="n">indexes</span><span class="p">):</span>
+            <span class="n">sl</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="nb">slice</span><span class="p">(</span><span class="n">idx</span> <span class="o">*</span> <span class="n">patch_len</span><span class="p">,</span> <span class="p">(</span><span class="n">idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">patch_len</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">patch_len</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">patch_index</span><span class="p">,</span> <span class="n">patch_shape</span><span class="p">)</span>
+            <span class="p">]</span>
+            <span class="n">patches</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">sl</span><span class="p">)])</span>
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">patches</span><span class="p">),</span> <span class="n">indexes</span></div>
+
+
+<div class="viewcode-block" id="PatchInferencerEngine._compute_output_shape">
+<a class="viewcode-back" href="../../../autoapi/minerva/engines/patch_inferencer_engine/index.html#minerva.engines.patch_inferencer_engine.PatchInferencerEngine._compute_output_shape">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_compute_output_shape</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tensor</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Computes `PatchInferencer` output shape based on input tensor shape,</span>
+<span class="sd">        and model&#39;s input and output shapes.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_shape</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_shape</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">tensor</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">shape</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">o</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">input_shape</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_simplified_shape</span><span class="p">,</span> <span class="n">tensor</span><span class="o">.</span><span class="n">shape</span>
+        <span class="p">):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">!=</span> <span class="n">o</span><span class="p">:</span>
+                <span class="n">shape</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">t</span> <span class="o">*</span> <span class="n">o</span> <span class="o">//</span> <span class="n">i</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">shape</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">logits_dim</span><span class="p">:</span>
+            <span class="n">shape</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="PatchInferencerEngine._compute_base_padding">
+<a class="viewcode-back" href="../../../autoapi/minerva/engines/patch_inferencer_engine/index.html#minerva.engines.patch_inferencer_engine.PatchInferencerEngine._compute_base_padding">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_compute_base_padding</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tensor</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Computes the padding for the base patch set based on the input</span>
+<span class="sd">        tensor shape and the model&#39;s input shape.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">padding</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">padding</span><span class="p">[</span><span class="s2">&quot;pad&quot;</span><span class="p">][</span><span class="mi">2</span><span class="p">:],</span> <span class="n">tensor</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">:]):</span>
+            <span class="n">padding</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">i</span> <span class="o">-</span> <span class="n">t</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">padding</span></div>
+
+
+<div class="viewcode-block" id="PatchInferencerEngine.__call__">
+<a class="viewcode-back" href="../../../autoapi/minerva/engines/patch_inferencer_engine/index.html#minerva.engines.patch_inferencer_engine.PatchInferencerEngine.__call__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">model</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">L</span><span class="o">.</span><span class="n">LightningModule</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">],</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Perform inference in patches, from the input tensor `x` using the</span>
+<span class="sd">        model `model`.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        model: Union[L.LightningModule, torch.nn.Module]</span>
+<span class="sd">            Model to perform inference.</span>
+<span class="sd">        x : torch.Tensor</span>
+<span class="sd">            Input tensor of the sample. It can be a single sample or a batch</span>
+<span class="sd">            of samples.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">input_shape</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">input_shape</span><span class="p">):</span>
+            <span class="k">pass</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Invalid input shape&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ref_shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_output_shape</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">offsets</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">offsets</span><span class="p">)</span>
+        <span class="n">base</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_base_padding</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">offsets</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">([</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">base</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)))</span>
+        <span class="n">slices</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="nb">tuple</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="nb">slice</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>  <span class="c1"># TODO: if ((i + base &gt;= 0) and (i &lt; in_dim))</span>
+                    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">in_dim</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="o">*</span><span class="n">offset</span><span class="p">],</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+                <span class="p">]</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="n">offset</span> <span class="ow">in</span> <span class="n">offsets</span>
+        <span class="p">]</span>
+
+        <span class="n">torch_pad</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">pad_value</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">base</span><span class="p">):</span>
+            <span class="n">torch_pad</span> <span class="o">=</span> <span class="n">torch_pad</span> <span class="o">+</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">pad_value</span><span class="p">]</span>
+        <span class="n">x_padded</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span>
+            <span class="n">x</span><span class="p">,</span>
+            <span class="n">pad</span><span class="o">=</span><span class="nb">tuple</span><span class="p">(</span><span class="n">torch_pad</span><span class="p">),</span>
+            <span class="n">mode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">padding</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;mode&quot;</span><span class="p">,</span> <span class="s2">&quot;constant&quot;</span><span class="p">),</span>
+            <span class="n">value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">padding</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;value&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="nb">tuple</span><span class="p">([]</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">return_tuple</span><span class="p">))</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">return_tuple</span> <span class="k">else</span> <span class="p">[]</span>
+        <span class="p">)</span>
+        <span class="n">indexes</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">sl</span> <span class="ow">in</span> <span class="n">slices</span><span class="p">:</span>
+            <span class="n">patch_set</span><span class="p">,</span> <span class="n">patch_idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_extract_patches</span><span class="p">(</span><span class="n">x_padded</span><span class="p">[</span><span class="n">sl</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">input_shape</span><span class="p">)</span>
+            <span class="n">patch_set</span> <span class="o">=</span> <span class="n">patch_set</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">inference</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">patch_set</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">return_tuple</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">return_tuple</span><span class="p">):</span>
+                    <span class="n">results</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">inference</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">inference</span><span class="p">)</span>
+            <span class="n">indexes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">patch_idx</span><span class="p">)</span>
+        <span class="n">output_slice</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">([</span><span class="nb">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">length</span><span class="p">)</span> <span class="k">for</span> <span class="n">length</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ref_shape</span><span class="p">])</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">return_tuple</span><span class="p">:</span>
+            <span class="n">comb_list</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">return_tuple</span><span class="p">):</span>
+                <span class="n">comb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_combine_patches</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">offsets</span><span class="p">,</span> <span class="n">indexes</span><span class="p">)</span>
+                <span class="n">comb</span> <span class="o">=</span> <span class="n">comb</span><span class="p">[</span><span class="n">output_slice</span><span class="p">]</span>
+                <span class="n">comb_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">comb</span><span class="p">)</span>
+            <span class="n">comb</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">comb_list</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">comb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_combine_patches</span><span class="p">(</span><span class="n">results</span><span class="p">,</span> <span class="n">offsets</span><span class="p">,</span> <span class="n">indexes</span><span class="p">)</span>
+            <span class="n">comb</span> <span class="o">=</span> <span class="n">comb</span><span class="p">[</span><span class="n">output_slice</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">comb</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Unicamp.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

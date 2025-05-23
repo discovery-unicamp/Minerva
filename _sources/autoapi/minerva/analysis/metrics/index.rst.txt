@@ -1,0 +1,183 @@
+minerva.analysis.metrics
+========================
+
+.. py:module:: minerva.analysis.metrics
+
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   /autoapi/minerva/analysis/metrics/balanced_accuracy/index
+   /autoapi/minerva/analysis/metrics/pixel_accuracy/index
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   minerva.analysis.metrics.BalancedAccuracy
+   minerva.analysis.metrics.PixelAccuracy
+
+
+Package Contents
+----------------
+
+.. py:class:: BalancedAccuracy(num_classes, task, adjusted = False)
+
+   Bases: :py:obj:`torchmetrics.Metric`
+
+
+   Base class for all metrics present in the Metrics API.
+
+   This class is inherited by all metrics and implements the following functionality:
+
+       1. Handles the transfer of metric states to the correct device.
+       2. Handles the synchronization of metric states across processes.
+       3. Provides properties and methods to control the overall behavior of the metric and its states.
+
+   The three core methods of the base class are: ``add_state()``, ``forward()`` and ``reset()`` which should almost
+   never be overwritten by child classes. Instead, the following methods should be overwritten ``update()`` and
+   ``compute()``.
+
+   Args:
+       kwargs: additional keyword arguments, see :ref:`Metric kwargs` for more info.
+
+           - **compute_on_cpu**:
+               If metric state should be stored on CPU during computations. Only works for list states.
+           - **dist_sync_on_step**:
+               If metric state should synchronize on ``forward()``. Default is ``False``.
+           - **process_group**:
+               The process group on which the synchronization is called. Default is the world.
+           - **dist_sync_fn**:
+               Function that performs the allgather option on the metric state. Default is a custom
+               implementation that calls ``torch.distributed.all_gather`` internally.
+           - **distributed_available_fn**:
+               Function that checks if the distributed backend is available. Defaults to a
+               check of ``torch.distributed.is_available()`` and ``torch.distributed.is_initialized()``.
+           - **sync_on_compute**:
+               If metric state should synchronize when ``compute`` is called. Default is ``True``.
+           - **compute_with_cache**:
+               If results from ``compute`` should be cached. Default is ``True``.
+
+
+   Compute the balanced accuracy.
+
+   The balanced accuracy in binary, multiclass, and multilabel classification problems
+   deals with imbalanced datasets. It is defined as the average of recall obtained on each class.
+
+   Parameters
+   ----------
+   num_classes : int
+       The number of classes in the target data.
+
+   task : str
+       The type of classification task, should be one of 'binary' or 'multiclass'
+
+   adjusted : bool, optional (default=False)
+       When true, the result is adjusted for chance, so that random performance would score 0,
+       while keeping perfect performance at a score of 1.
+
+   Attributes
+   ----------
+   confmat : torch.Tensor
+       Confusion matrix to keep track of true positives, false positives, true negatives, and false negatives.
+
+   Examples
+   --------
+   >>> y_true = torch.tensor([0, 1, 0, 0, 1, 0])
+   >>> y_pred = torch.tensor([0, 1, 0, 0, 0, 1])
+   >>> metric = BalancedAccuracy(num_classes=2, task='binary')
+   >>> metric(y_pred, y_true)
+   0.625
+
+
+   .. py:attribute:: adjusted
+      :value: False
+
+
+
+   .. py:method:: compute()
+
+
+   .. py:attribute:: num_classes
+
+
+   .. py:attribute:: task
+
+
+   .. py:method:: update(preds, target)
+
+
+.. py:class:: PixelAccuracy(dist_sync_on_step = False)
+
+   Bases: :py:obj:`torchmetrics.Metric`
+
+
+   Base class for all metrics present in the Metrics API.
+
+   This class is inherited by all metrics and implements the following functionality:
+
+       1. Handles the transfer of metric states to the correct device.
+       2. Handles the synchronization of metric states across processes.
+       3. Provides properties and methods to control the overall behavior of the metric and its states.
+
+   The three core methods of the base class are: ``add_state()``, ``forward()`` and ``reset()`` which should almost
+   never be overwritten by child classes. Instead, the following methods should be overwritten ``update()`` and
+   ``compute()``.
+
+   Args:
+       kwargs: additional keyword arguments, see :ref:`Metric kwargs` for more info.
+
+           - **compute_on_cpu**:
+               If metric state should be stored on CPU during computations. Only works for list states.
+           - **dist_sync_on_step**:
+               If metric state should synchronize on ``forward()``. Default is ``False``.
+           - **process_group**:
+               The process group on which the synchronization is called. Default is the world.
+           - **dist_sync_fn**:
+               Function that performs the allgather option on the metric state. Default is a custom
+               implementation that calls ``torch.distributed.all_gather`` internally.
+           - **distributed_available_fn**:
+               Function that checks if the distributed backend is available. Defaults to a
+               check of ``torch.distributed.is_available()`` and ``torch.distributed.is_initialized()``.
+           - **sync_on_compute**:
+               If metric state should synchronize when ``compute`` is called. Default is ``True``.
+           - **compute_with_cache**:
+               If results from ``compute`` should be cached. Default is ``True``.
+
+
+   Initializes a PixelAccuracy metric object.
+
+   Parameters
+   ----------
+       dist_sync_on_step: bool, optional
+           Whether to synchronize metric state across processes at each step.
+           Defaults to False.
+
+
+   .. py:method:: compute()
+
+      Computes the pixel accuracy.
+
+      Returns:
+          float: The pixel accuracy.
+
+
+
+   .. py:method:: update(preds, target)
+
+      Updates the metric state with the predictions and targets.
+
+      Parameters
+      ----------
+          preds: torch.Tensor
+              The predicted tensor.
+          target:
+              torch.Tensor The target tensor.
+
+
+

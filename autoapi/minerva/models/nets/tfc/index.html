@@ -1,0 +1,679 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>minerva.models.nets.tfc &mdash; minerva  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" />
+    <link rel="next" title="minerva.models.nets.tnc" href="../tnc/index.html" />
+    <link rel="prev" title="minerva.models.nets.siamese_network_wrapper" href="../siamese_network_wrapper/index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../../index.html" class="icon icon-home">
+            minerva
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../design.html">Minerva Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../tutorials.html">Examples and Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../contributing.html">Contributing to Minerva</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../../../../api.html">Programming Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../../../index.html">minerva</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="../../../index.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="../../../analysis/index.html">minerva.analysis</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../data/index.html">minerva.data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../losses/index.html">minerva.losses</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="../../index.html">minerva.models</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../optimizers/index.html">minerva.optimizers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../pipelines/index.html">minerva.pipelines</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../samplers/index.html">minerva.samplers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../transforms/index.html">minerva.transforms</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../utils/index.html">minerva.utils</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../../index.html">minerva</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../../../api.html">Programming Reference</a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">minerva</a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">minerva.models</a></li>
+          <li class="breadcrumb-item"><a href="../index.html">minerva.models.nets</a></li>
+      <li class="breadcrumb-item active">minerva.models.nets.tfc</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../../../_sources/autoapi/minerva/models/nets/tfc/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-minerva.models.nets.tfc">
+<span id="minerva-models-nets-tfc"></span><h1>minerva.models.nets.tfc<a class="headerlink" href="#module-minerva.models.nets.tfc" title="Link to this heading"></a></h1>
+<section id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Link to this heading"></a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#minerva.models.nets.tfc.IgnoreWhenBatch1" title="minerva.models.nets.tfc.IgnoreWhenBatch1"><code class="xref py py-obj docutils literal notranslate"><span class="pre">IgnoreWhenBatch1</span></code></a></p></td>
+<td><p>This class is used to ignore some processes when the batch size is 1. It is necessary in Batch Normalization.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#minerva.models.nets.tfc.TFC_Backbone" title="minerva.models.nets.tfc.TFC_Backbone"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TFC_Backbone</span></code></a></p></td>
+<td><p>A convolutional version of backbone of the Temporal-Frequency Convolutional (TFC) model.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#minerva.models.nets.tfc.TFC_Conv_Block" title="minerva.models.nets.tfc.TFC_Conv_Block"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TFC_Conv_Block</span></code></a></p></td>
+<td><p>A standart convolutional block for the Temporal-Frequency Convolutional (TFC) model.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#minerva.models.nets.tfc.TFC_PredicionHead" title="minerva.models.nets.tfc.TFC_PredicionHead"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TFC_PredicionHead</span></code></a></p></td>
+<td><p>A simple prediction head for the Temporal-Frequency Convolutional (TFC) model.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#minerva.models.nets.tfc.TFC_Standard_Projector" title="minerva.models.nets.tfc.TFC_Standard_Projector"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TFC_Standard_Projector</span></code></a></p></td>
+<td><p>A standart projector for the Temporal-Frequency Convolutional (TFC) model.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.models.nets.tfc.IgnoreWhenBatch1">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.models.nets.tfc.</span></span><span class="sig-name descname"><span class="pre">IgnoreWhenBatch1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">active</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/minerva/models/nets/tfc.html#IgnoreWhenBatch1"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.tfc.IgnoreWhenBatch1" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>This class is used to ignore some processes when the batch size is 1. It is necessary in Batch Normalization.</p>
+<section id="parameters">
+<h3>Parameters<a class="headerlink" href="#parameters" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><dl class="simple">
+<dt>module: nn.Module</dt><dd><p>The module to be used in the forward method that will be ignored when the batch size is 1.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>active: bool</dt><dd><p>If True, the module is only used in the forward method if batch size is different from 1. If False, the module is always used.</p>
+</dd>
+</dl>
+</li>
+</ul>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.tfc.IgnoreWhenBatch1.active">
+<span class="sig-name descname"><span class="pre">active</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#minerva.models.nets.tfc.IgnoreWhenBatch1.active" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.tfc.IgnoreWhenBatch1.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/minerva/models/nets/tfc.html#IgnoreWhenBatch1.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.tfc.IgnoreWhenBatch1.forward" title="Link to this definition"></a></dt>
+<dd><p>The forward method of the IgnoreWhenBatch1 class. It receives the input data and returns the
+output of the module if the batch size is greater than 1. Otherwise, it returns the input data.</p>
+<section id="id1">
+<h4>Parameters<a class="headerlink" href="#id1" title="Link to this heading"></a></h4>
+<ul class="simple">
+<li><dl class="simple">
+<dt>x: torch.Tensor</dt><dd><p>The input data</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<section id="returns">
+<h4>Returns<a class="headerlink" href="#returns" title="Link to this heading"></a></h4>
+<ul class="simple">
+<li><dl class="simple">
+<dt>torch.Tensor</dt><dd><p>The output of the module if the batch size is greater than 1. Otherwise, the input data.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.tfc.IgnoreWhenBatch1.module">
+<span class="sig-name descname"><span class="pre">module</span></span><a class="headerlink" href="#minerva.models.nets.tfc.IgnoreWhenBatch1.module" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>module</strong> (<em>torch.nn.Module</em>)</p></li>
+<li><p><strong>active</strong> (<em>bool</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.models.nets.tfc.TFC_Backbone">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.models.nets.tfc.</span></span><span class="sig-name descname"><span class="pre">TFC_Backbone</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">TS_length</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">single_encoding_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">128</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transform</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_encoder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequency_encoder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_projector</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequency_projector</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adapter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_1_correction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/minerva/models/nets/tfc.html#TFC_Backbone"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.tfc.TFC_Backbone" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>A convolutional version of backbone of the Temporal-Frequency Convolutional (TFC) model.
+The backbone is composed of two convolutional neural networks that extract features from the input data in the time domain and frequency domain.
+The features are then projected to a latent space.
+This class implements the forward method that receives the input data and returns the features extracted in the time domain and frequency domain.</p>
+<p>Constructor of the TFC_Backbone class.</p>
+<section id="id2">
+<h3>Parameters<a class="headerlink" href="#id2" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><dl class="simple">
+<dt>input_channels: int</dt><dd><p>The number of channels in the input data</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>TS_length: int</dt><dd><p>The number of time steps in the input data</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>single_encoding_size: int</dt><dd><p>The size of the encoding in the latent space of frequency or time domain individually</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>transform: _Transform</dt><dd><p>The transformation to be applied to the input data. If None, a default transformation is applied that includes data augmentation and frequency domain transformation</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>time_encoder: Optional[nn.Module]</dt><dd><p>The encoder for the time domain. If None, a default encoder is used</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>frequency_encoder: Optional[nn.Module]</dt><dd><p>The encoder for the frequency domain. If None, a default encoder is used</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>time_projector: Optional[nn.Module]</dt><dd><p>The projector for the time domain. If None, a default projector is used. If passing, make sure to correct calculate the input features by backbone</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>frequency_projector: Optional[nn.Module]</dt><dd><p>The projector for the frequency domain. If None, a default projector is used. If passing, make sure to correct calculate the input features by backbone</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>adapter<span class="classifier">Callable[[torch.Tensor], torch.Tensor], optional</span></dt><dd><p>An adapter to be used from the backbone to the head, by default None.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>batch_1_correction: bool</dt><dd><p>If True, the batch normalization is ignored when the batch size is 1,
+If False, a runtime error is raised when the batch size is 1
+Standard is False</p>
+</dd>
+</dl>
+</li>
+</ul>
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.tfc.TFC_Backbone._calculate_fc_input_features">
+<span class="sig-name descname"><span class="pre">_calculate_fc_input_features</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">encoder</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">adapter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/minerva/models/nets/tfc.html#TFC_Backbone._calculate_fc_input_features"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.tfc.TFC_Backbone._calculate_fc_input_features" title="Link to this definition"></a></dt>
+<dd><p>Calculate the input features of the fully connected layer after the encoders (conv blocks).</p>
+<section id="id3">
+<h4>Parameters<a class="headerlink" href="#id3" title="Link to this heading"></a></h4>
+<ul class="simple">
+<li><dl class="simple">
+<dt>encoder: torch.nn.Module</dt><dd><p>The encoder to calculate the input features</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>input_shape: Tuple[int, int]</dt><dd><p>The input shape of the data</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>adapter<span class="classifier">Callable[[torch.Tensor], torch.Tensor], optional</span></dt><dd><p>An adapter to be used from the backbone to the head, by default None.</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<section id="id4">
+<h4>Returns<a class="headerlink" href="#id4" title="Link to this heading"></a></h4>
+<ul class="simple">
+<li><dl class="simple">
+<dt>int</dt><dd><p>The number of features to be passed to the fully connected layer</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>encoder</strong> (<em>torch.nn.Module</em>)</p></li>
+<li><p><strong>input_shape</strong> (<em>Tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>]</em>)</p></li>
+<li><p><strong>adapter</strong> (<em>Optional</em><em>[</em><em>Callable</em><em>[</em><em>[</em><em>torch.Tensor</em><em>]</em><em>, </em><em>torch.Tensor</em><em>]</em><em>]</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.tfc.TFC_Backbone.adapter">
+<span class="sig-name descname"><span class="pre">adapter</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#minerva.models.nets.tfc.TFC_Backbone.adapter" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.tfc.TFC_Backbone.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/minerva/models/nets/tfc.html#TFC_Backbone.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.tfc.TFC_Backbone.forward" title="Link to this definition"></a></dt>
+<dd><p>The forward method of the backbone. It receives the input data in the time domain and frequency domain and returns the features extracted in the time domain and frequency domain.</p>
+<section id="id5">
+<h4>Parameters<a class="headerlink" href="#id5" title="Link to this heading"></a></h4>
+<ul class="simple">
+<li><dl class="simple">
+<dt>x: torch.Tensor</dt><dd><p>The input data</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<section id="id6">
+<h4>Returns<a class="headerlink" href="#id6" title="Link to this heading"></a></h4>
+<ul class="simple">
+<li><dl class="simple">
+<dt>tuple</dt><dd><p>A tuple with the features extracted in the time domain and frequency domain, h_time, z_time, h_freq, z_freq respectively</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>torch.Tensor</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>torch.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.tfc.TFC_Backbone.frequency_encoder">
+<span class="sig-name descname"><span class="pre">frequency_encoder</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#minerva.models.nets.tfc.TFC_Backbone.frequency_encoder" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.tfc.TFC_Backbone.frequency_projector">
+<span class="sig-name descname"><span class="pre">frequency_projector</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#minerva.models.nets.tfc.TFC_Backbone.frequency_projector" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.tfc.TFC_Backbone.get_representations">
+<span class="sig-name descname"><span class="pre">get_representations</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/minerva/models/nets/tfc.html#TFC_Backbone.get_representations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.tfc.TFC_Backbone.get_representations" title="Link to this definition"></a></dt>
+<dd><p>This function returns the representations of the time and frequency domain extracted by the backbone.
+The h and z representations, after ther encoder and after the projector, respectively.
+This function must be called after the forward method.</p>
+<section id="id7">
+<h4>Returns<a class="headerlink" href="#id7" title="Link to this heading"></a></h4>
+<ul class="simple">
+<li><p>Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]</p></li>
+</ul>
+</section>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.tfc.TFC_Backbone.time_encoder">
+<span class="sig-name descname"><span class="pre">time_encoder</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#minerva.models.nets.tfc.TFC_Backbone.time_encoder" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.tfc.TFC_Backbone.time_projector">
+<span class="sig-name descname"><span class="pre">time_projector</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#minerva.models.nets.tfc.TFC_Backbone.time_projector" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.tfc.TFC_Backbone.transform">
+<span class="sig-name descname"><span class="pre">transform</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#minerva.models.nets.tfc.TFC_Backbone.transform" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_channels</strong> (<em>int</em>)</p></li>
+<li><p><strong>TS_length</strong> (<em>int</em>)</p></li>
+<li><p><strong>single_encoding_size</strong> (<em>int</em>)</p></li>
+<li><p><strong>transform</strong> (<a class="reference internal" href="../../../transforms/transform/index.html#minerva.transforms.transform._Transform" title="minerva.transforms.transform._Transform"><em>minerva.transforms.transform._Transform</em></a>)</p></li>
+<li><p><strong>time_encoder</strong> (<em>Optional</em><em>[</em><em>torch.nn.Module</em><em>]</em>)</p></li>
+<li><p><strong>frequency_encoder</strong> (<em>Optional</em><em>[</em><em>torch.nn.Module</em><em>]</em>)</p></li>
+<li><p><strong>time_projector</strong> (<em>Optional</em><em>[</em><em>torch.nn.Module</em><em>]</em>)</p></li>
+<li><p><strong>frequency_projector</strong> (<em>Optional</em><em>[</em><em>torch.nn.Module</em><em>]</em>)</p></li>
+<li><p><strong>adapter</strong> (<em>Optional</em><em>[</em><em>Callable</em><em>[</em><em>[</em><em>torch.Tensor</em><em>]</em><em>, </em><em>torch.Tensor</em><em>]</em><em>]</em>)</p></li>
+<li><p><strong>batch_1_correction</strong> (<em>bool</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.models.nets.tfc.TFC_Conv_Block">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.models.nets.tfc.</span></span><span class="sig-name descname"><span class="pre">TFC_Conv_Block</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_1_correction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/minerva/models/nets/tfc.html#TFC_Conv_Block"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.tfc.TFC_Conv_Block" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>A standart convolutional block for the Temporal-Frequency Convolutional (TFC) model.</p>
+<p>This class implements the forward method that receives the input data and returns the features extracted by the block.</p>
+<p>Constructor of the TFC_Conv_Block class.</p>
+<section id="id8">
+<h3>Parameters<a class="headerlink" href="#id8" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><dl class="simple">
+<dt>input_channels: int</dt><dd><p>The number of channels in the input data</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>batch_1_correction: bool</dt><dd><p>If True, the batch normalization is ignored when the batch size is 1,
+If False, a runtime error is raised when the batch size is 1
+Standard is False</p>
+</dd>
+</dl>
+</li>
+</ul>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.tfc.TFC_Conv_Block.block">
+<span class="sig-name descname"><span class="pre">block</span></span><a class="headerlink" href="#minerva.models.nets.tfc.TFC_Conv_Block.block" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.tfc.TFC_Conv_Block.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/minerva/models/nets/tfc.html#TFC_Conv_Block.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.tfc.TFC_Conv_Block.forward" title="Link to this definition"></a></dt>
+<dd><p>The forward method of the convolutional block. It receives the input data and returns the features extracted by the block.</p>
+<section id="id9">
+<h4>Parameters<a class="headerlink" href="#id9" title="Link to this heading"></a></h4>
+<ul class="simple">
+<li><dl class="simple">
+<dt>x: torch.Tensor</dt><dd><p>The input data</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<section id="id10">
+<h4>Returns<a class="headerlink" href="#id10" title="Link to this heading"></a></h4>
+<ul class="simple">
+<li><dl class="simple">
+<dt>torch.Tensor</dt><dd><p>The features extracted by the block</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>torch.Tensor</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_channels</strong> (<em>int</em>)</p></li>
+<li><p><strong>batch_1_correction</strong> (<em>bool</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.models.nets.tfc.TFC_PredicionHead">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.models.nets.tfc.</span></span><span class="sig-name descname"><span class="pre">TFC_PredicionHead</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_classes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">connections</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">single_encoding_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">128</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">argmax_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/minerva/models/nets/tfc.html#TFC_PredicionHead"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.tfc.TFC_PredicionHead" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>A simple prediction head for the Temporal-Frequency Convolutional (TFC) model.
+The prediction head is composed of a linear layer that receives the features extracted by the backbone and returns the prediction of the model.
+This class implements the forward method that receives the features extracted by the backbone and returns the prediction of the model.</p>
+<p>Constructor of the TFC_PredicionHead class.</p>
+<section id="id11">
+<h3>Parameters<a class="headerlink" href="#id11" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><dl class="simple">
+<dt>num_classes: int</dt><dd><p>The number of classes in the classification task</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>connections: int</dt><dd><p>The number of pipelines in the backbone. If 1, only the time or frequency domain is used. If 2, both domains are used. Other values are treated as 1.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>single_encoding_size: int</dt><dd><p>The size of the encoding in the latent space of frequency or time domain individually</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>argmax: bool</dt><dd><p>If True, the argmax function is applied to the prediction. If False, the prediction returns the logits</p>
+</dd>
+</dl>
+</li>
+</ul>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.tfc.TFC_PredicionHead.argmax_output">
+<span class="sig-name descname"><span class="pre">argmax_output</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#minerva.models.nets.tfc.TFC_PredicionHead.argmax_output" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.tfc.TFC_PredicionHead.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">emb</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/minerva/models/nets/tfc.html#TFC_PredicionHead.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.tfc.TFC_PredicionHead.forward" title="Link to this definition"></a></dt>
+<dd><p>The forward method of the prediction head. It receives the features extracted by the backbone and returns the prediction of the model.</p>
+<section id="id12">
+<h4>Parameters<a class="headerlink" href="#id12" title="Link to this heading"></a></h4>
+<ul class="simple">
+<li><dl class="simple">
+<dt>emb: torch.Tensor</dt><dd><p>The features extracted by the backbone</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<section id="id13">
+<h4>Returns<a class="headerlink" href="#id13" title="Link to this heading"></a></h4>
+<ul class="simple">
+<li><dl class="simple">
+<dt>torch.Tensor</dt><dd><p>The prediction of the model</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>emb</strong> (<em>torch.Tensor</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>torch.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.tfc.TFC_PredicionHead.logits">
+<span class="sig-name descname"><span class="pre">logits</span></span><a class="headerlink" href="#minerva.models.nets.tfc.TFC_PredicionHead.logits" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.tfc.TFC_PredicionHead.logits_simple">
+<span class="sig-name descname"><span class="pre">logits_simple</span></span><a class="headerlink" href="#minerva.models.nets.tfc.TFC_PredicionHead.logits_simple" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_classes</strong> (<em>int</em>)</p></li>
+<li><p><strong>connections</strong> (<em>int</em>)</p></li>
+<li><p><strong>single_encoding_size</strong> (<em>int</em>)</p></li>
+<li><p><strong>argmax_output</strong> (<em>bool</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.models.nets.tfc.TFC_Standard_Projector">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.models.nets.tfc.</span></span><span class="sig-name descname"><span class="pre">TFC_Standard_Projector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">single_encoding_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_1_correction</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/minerva/models/nets/tfc.html#TFC_Standard_Projector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.tfc.TFC_Standard_Projector" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>A standart projector for the Temporal-Frequency Convolutional (TFC) model.</p>
+<p>This class implements the forward method that receives the input data and returns the features extracted by the projector.</p>
+<p>Constructor of the TFC_Standard_Projector class.</p>
+<section id="id14">
+<h3>Parameters<a class="headerlink" href="#id14" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><dl class="simple">
+<dt>input_channels: int</dt><dd><p>The number of channels in the input data</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>single_encoding_size: int</dt><dd><p>The size of the encoding in the latent space of frequency or time domain individually</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>batch_1_correction: bool</dt><dd><p>If True, the batch normalization is ignored when the batch size is 1,
+If False, a runtime error is raised when the batch size is 1
+Standard is False</p>
+</dd>
+</dl>
+</li>
+</ul>
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.tfc.TFC_Standard_Projector.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/minerva/models/nets/tfc.html#TFC_Standard_Projector.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.tfc.TFC_Standard_Projector.forward" title="Link to this definition"></a></dt>
+<dd><p>The forward method of the projector. It receives the input data and returns the features extracted by the projector.</p>
+<section id="id15">
+<h4>Parameters<a class="headerlink" href="#id15" title="Link to this heading"></a></h4>
+<ul class="simple">
+<li><dl class="simple">
+<dt>x: torch.Tensor</dt><dd><p>The input data</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<section id="id16">
+<h4>Returns<a class="headerlink" href="#id16" title="Link to this heading"></a></h4>
+<ul class="simple">
+<li><dl class="simple">
+<dt>torch.Tensor</dt><dd><p>The features extracted by the projector</p>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>torch.Tensor</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.tfc.TFC_Standard_Projector.projector">
+<span class="sig-name descname"><span class="pre">projector</span></span><a class="headerlink" href="#minerva.models.nets.tfc.TFC_Standard_Projector.projector" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_channels</strong> (<em>int</em>)</p></li>
+<li><p><strong>single_encoding_size</strong> (<em>int</em>)</p></li>
+<li><p><strong>batch_1_correction</strong> (<em>bool</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../siamese_network_wrapper/index.html" class="btn btn-neutral float-left" title="minerva.models.nets.siamese_network_wrapper" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../tnc/index.html" class="btn btn-neutral float-right" title="minerva.models.nets.tnc" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Unicamp.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,23 @@
+minerva
+=======
+
+.. py:module:: minerva
+
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   /autoapi/minerva/analysis/index
+   /autoapi/minerva/data/index
+   /autoapi/minerva/losses/index
+   /autoapi/minerva/models/index
+   /autoapi/minerva/optimizers/index
+   /autoapi/minerva/pipelines/index
+   /autoapi/minerva/samplers/index
+   /autoapi/minerva/transforms/index
+   /autoapi/minerva/utils/index
+
+

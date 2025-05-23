@@ -1,0 +1,240 @@
+minerva.transforms.random_transform
+===================================
+
+.. py:module:: minerva.transforms.random_transform
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   minerva.transforms.random_transform.EmptyTransform
+   minerva.transforms.random_transform.RandomCrop
+   minerva.transforms.random_transform.RandomFlip
+   minerva.transforms.random_transform.RandomGrayScale
+   minerva.transforms.random_transform.RandomRotation
+   minerva.transforms.random_transform.RandomSolarize
+   minerva.transforms.random_transform._RandomSyncedTransform
+
+
+Module Contents
+---------------
+
+.. py:class:: EmptyTransform
+
+   Bases: :py:obj:`minerva.transforms.transform._Transform`
+
+
+   A transform that does nothing to the input data.
+
+
+   .. py:method:: __call__(data)
+
+      Implement the transformation logic in this method. Usually, the
+      transformation is applied on a single sample of data.
+
+
+
+.. py:class:: RandomCrop(crop_size, num_samples = 1, seed = None, pad_mode = 'reflect')
+
+   Bases: :py:obj:`_RandomSyncedTransform`
+
+
+   Orchestrate the application of a type of random transform to a list of data, ensuring that the same random state is used for all of them.
+
+   Orchestrate the application of a type of random transform to a list of data, ensuring that the same random state is used for all of them.
+
+   Parameters
+   ----------
+   transform : _Transform
+       A transform that will be applied to the input data.
+   num_samples : int
+       The number of samples that will be transformed.
+   seed : Optional[int], optional
+       The seed that will be used to generate the random state, by default None.
+
+
+   .. py:attribute:: crop_size
+
+
+   .. py:attribute:: pad_mode
+      :value: 'reflect'
+
+
+
+   .. py:method:: select_transform()
+
+
+.. py:class:: RandomFlip(num_samples = 1, possible_axis = 0, seed = None)
+
+   Bases: :py:obj:`_RandomSyncedTransform`
+
+
+   Orchestrate the application of a type of random transform to a list of data, ensuring that the same random state is used for all of them.
+
+   A transform that flips the input data along a random axis.
+
+   Parameters
+   ----------
+   num_samples : int
+       The number of samples that will be transformed.
+   possible_axis : Union[int, List[int]], optional
+       Possible axis to be transformed, will be chosen at random, by default 0
+   seed : Optional[int], optional
+       A seed to ensure deterministic run, by default None
+
+
+   .. py:attribute:: possible_axis
+      :value: 0
+
+
+
+   .. py:method:: select_transform()
+
+      selects the transform to be applied to the data.
+
+
+
+.. py:class:: RandomGrayScale(num_samples = 1, seed = None, prob = 0.1, method = 'luminosity')
+
+   Bases: :py:obj:`_RandomSyncedTransform`
+
+
+   Orchestrate the application of a type of random transform to a list of data, ensuring that the same random state is used for all of them.
+
+   Orchestrate the application of a type of random transform to a list of data, ensuring that the same random state is used for all of them.
+
+   Parameters
+   ----------
+   transform : _Transform
+       A transform that will be applied to the input data.
+   num_samples : int
+       The number of samples that will be transformed.
+   seed : Optional[int], optional
+       The seed that will be used to generate the random state, by default None.
+
+
+   .. py:attribute:: method
+      :value: 'luminosity'
+
+
+
+   .. py:attribute:: prob
+      :value: 0.1
+
+
+
+   .. py:method:: select_transform()
+
+
+.. py:class:: RandomRotation(degrees, prob, num_samples = 1, seed = None)
+
+   Bases: :py:obj:`_RandomSyncedTransform`
+
+
+   Orchestrate the application of a type of random transform to a list of data, ensuring that the same random state is used for all of them.
+
+   Randomly applies a rotation to the image with a specified probability.
+
+   Parameters
+   ----------
+   degrees : float
+       Maximum absolute value of the rotation angle in degrees. The angle is sampled
+       uniformly from [-degrees, +degrees].
+   prob : float
+       Probability that the rotation will be applied.
+   num_samples : int, optional
+       Number of samples to generate per call (for contrastive learning), default is 1.
+   seed : int, optional
+       Seed for the random number generator, useful for reproducibility.
+
+
+   .. py:attribute:: degrees
+
+
+   .. py:attribute:: prob
+
+
+   .. py:method:: select_transform()
+
+
+.. py:class:: RandomSolarize(num_samples = 1, seed = None, threshold = 128, prob = 1.0)
+
+   Bases: :py:obj:`_RandomSyncedTransform`
+
+
+   Orchestrate the application of a type of random transform to a list of data, ensuring that the same random state is used for all of them.
+
+   Orchestrate the application of a type of random transform to a list of data, ensuring that the same random state is used for all of them.
+
+   Parameters
+   ----------
+   transform : _Transform
+       A transform that will be applied to the input data.
+   num_samples : int
+       The number of samples that will be transformed.
+   seed : Optional[int], optional
+       The seed that will be used to generate the random state, by default None.
+
+
+   .. py:attribute:: prob
+      :value: 1.0
+
+
+
+   .. py:method:: select_transform()
+
+
+   .. py:attribute:: threshold
+      :value: 128
+
+
+
+.. py:class:: _RandomSyncedTransform(num_samples = 1, seed = None)
+
+   Bases: :py:obj:`minerva.transforms.transform._Transform`
+
+
+   Orchestrate the application of a type of random transform to a list of data, ensuring that the same random state is used for all of them.
+
+   Orchestrate the application of a type of random transform to a list of data, ensuring that the same random state is used for all of them.
+
+   Parameters
+   ----------
+   transform : _Transform
+       A transform that will be applied to the input data.
+   num_samples : int
+       The number of samples that will be transformed.
+   seed : Optional[int], optional
+       The seed that will be used to generate the random state, by default None.
+
+
+   .. py:method:: __call__(data)
+
+      Implement the transformation logic in this method. Usually, the
+      transformation is applied on a single sample of data.
+
+
+
+   .. py:attribute:: num_samples
+      :value: 1
+
+
+
+   .. py:attribute:: rng
+
+
+   .. py:method:: select_transform()
+      :abstractmethod:
+
+
+
+   .. py:attribute:: transform
+
+
+   .. py:attribute:: transformations_executed
+      :value: 0
+
+
+

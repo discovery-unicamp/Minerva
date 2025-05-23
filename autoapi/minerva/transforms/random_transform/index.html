@@ -1,0 +1,458 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>minerva.transforms.random_transform &mdash; minerva  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+    <link rel="next" title="minerva.transforms.split_transform" href="../split_transform/index.html" />
+    <link rel="prev" title="minerva.transforms.activity_image" href="../activity_image/index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            minerva
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../design.html">Minerva Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorials.html">Examples and Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../contributing.html">Contributing to Minerva</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../../../api.html">Programming Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../../index.html">minerva</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="../../index.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="../../analysis/index.html">minerva.analysis</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../data/index.html">minerva.data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../losses/index.html">minerva.losses</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../models/index.html">minerva.models</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../optimizers/index.html">minerva.optimizers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../pipelines/index.html">minerva.pipelines</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../samplers/index.html">minerva.samplers</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="../index.html">minerva.transforms</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../utils/index.html">minerva.utils</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">minerva</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../../api.html">Programming Reference</a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">minerva</a></li>
+          <li class="breadcrumb-item"><a href="../index.html">minerva.transforms</a></li>
+      <li class="breadcrumb-item active">minerva.transforms.random_transform</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../../_sources/autoapi/minerva/transforms/random_transform/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-minerva.transforms.random_transform">
+<span id="minerva-transforms-random-transform"></span><h1>minerva.transforms.random_transform<a class="headerlink" href="#module-minerva.transforms.random_transform" title="Link to this heading"></a></h1>
+<section id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Link to this heading"></a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#minerva.transforms.random_transform.EmptyTransform" title="minerva.transforms.random_transform.EmptyTransform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EmptyTransform</span></code></a></p></td>
+<td><p>A transform that does nothing to the input data.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#minerva.transforms.random_transform.RandomCrop" title="minerva.transforms.random_transform.RandomCrop"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RandomCrop</span></code></a></p></td>
+<td><p>Orchestrate the application of a type of random transform to a list of data, ensuring that the same random state is used for all of them.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#minerva.transforms.random_transform.RandomFlip" title="minerva.transforms.random_transform.RandomFlip"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RandomFlip</span></code></a></p></td>
+<td><p>Orchestrate the application of a type of random transform to a list of data, ensuring that the same random state is used for all of them.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#minerva.transforms.random_transform.RandomGrayScale" title="minerva.transforms.random_transform.RandomGrayScale"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RandomGrayScale</span></code></a></p></td>
+<td><p>Orchestrate the application of a type of random transform to a list of data, ensuring that the same random state is used for all of them.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#minerva.transforms.random_transform.RandomRotation" title="minerva.transforms.random_transform.RandomRotation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RandomRotation</span></code></a></p></td>
+<td><p>Orchestrate the application of a type of random transform to a list of data, ensuring that the same random state is used for all of them.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#minerva.transforms.random_transform.RandomSolarize" title="minerva.transforms.random_transform.RandomSolarize"><code class="xref py py-obj docutils literal notranslate"><span class="pre">RandomSolarize</span></code></a></p></td>
+<td><p>Orchestrate the application of a type of random transform to a list of data, ensuring that the same random state is used for all of them.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#minerva.transforms.random_transform._RandomSyncedTransform" title="minerva.transforms.random_transform._RandomSyncedTransform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_RandomSyncedTransform</span></code></a></p></td>
+<td><p>Orchestrate the application of a type of random transform to a list of data, ensuring that the same random state is used for all of them.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.transforms.random_transform.EmptyTransform">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.transforms.random_transform.</span></span><span class="sig-name descname"><span class="pre">EmptyTransform</span></span><a class="reference internal" href="../../../../_modules/minerva/transforms/random_transform.html#EmptyTransform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.transforms.random_transform.EmptyTransform" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="../transform/index.html#minerva.transforms.transform._Transform" title="minerva.transforms.transform._Transform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">minerva.transforms.transform._Transform</span></code></a></p>
+<p>A transform that does nothing to the input data.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.transforms.random_transform.EmptyTransform.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/transforms/random_transform.html#EmptyTransform.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.transforms.random_transform.EmptyTransform.__call__" title="Link to this definition"></a></dt>
+<dd><p>Implement the transformation logic in this method. Usually, the
+transformation is applied on a single sample of data.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.transforms.random_transform.RandomCrop">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.transforms.random_transform.</span></span><span class="sig-name descname"><span class="pre">RandomCrop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">crop_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'reflect'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/transforms/random_transform.html#RandomCrop"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.transforms.random_transform.RandomCrop" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#minerva.transforms.random_transform._RandomSyncedTransform" title="minerva.transforms.random_transform._RandomSyncedTransform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_RandomSyncedTransform</span></code></a></p>
+<p>Orchestrate the application of a type of random transform to a list of data, ensuring that the same random state is used for all of them.</p>
+<p>Orchestrate the application of a type of random transform to a list of data, ensuring that the same random state is used for all of them.</p>
+<section id="parameters">
+<h3>Parameters<a class="headerlink" href="#parameters" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt>transform<span class="classifier">_Transform</span></dt><dd><p>A transform that will be applied to the input data.</p>
+</dd>
+<dt>num_samples<span class="classifier">int</span></dt><dd><p>The number of samples that will be transformed.</p>
+</dd>
+<dt>seed<span class="classifier">Optional[int], optional</span></dt><dd><p>The seed that will be used to generate the random state, by default None.</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.transforms.random_transform.RandomCrop.crop_size">
+<span class="sig-name descname"><span class="pre">crop_size</span></span><a class="headerlink" href="#minerva.transforms.random_transform.RandomCrop.crop_size" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.transforms.random_transform.RandomCrop.pad_mode">
+<span class="sig-name descname"><span class="pre">pad_mode</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'reflect'</span></em><a class="headerlink" href="#minerva.transforms.random_transform.RandomCrop.pad_mode" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.transforms.random_transform.RandomCrop.select_transform">
+<span class="sig-name descname"><span class="pre">select_transform</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/transforms/random_transform.html#RandomCrop.select_transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.transforms.random_transform.RandomCrop.select_transform" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>crop_size</strong> (<em>Tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>]</em>)</p></li>
+<li><p><strong>num_samples</strong> (<em>int</em>)</p></li>
+<li><p><strong>seed</strong> (<em>Optional</em><em>[</em><em>int</em><em>]</em>)</p></li>
+<li><p><strong>pad_mode</strong> (<em>str</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.transforms.random_transform.RandomFlip">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.transforms.random_transform.</span></span><span class="sig-name descname"><span class="pre">RandomFlip</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">possible_axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/transforms/random_transform.html#RandomFlip"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.transforms.random_transform.RandomFlip" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#minerva.transforms.random_transform._RandomSyncedTransform" title="minerva.transforms.random_transform._RandomSyncedTransform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_RandomSyncedTransform</span></code></a></p>
+<p>Orchestrate the application of a type of random transform to a list of data, ensuring that the same random state is used for all of them.</p>
+<p>A transform that flips the input data along a random axis.</p>
+<section id="id1">
+<h3>Parameters<a class="headerlink" href="#id1" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt>num_samples<span class="classifier">int</span></dt><dd><p>The number of samples that will be transformed.</p>
+</dd>
+<dt>possible_axis<span class="classifier">Union[int, List[int]], optional</span></dt><dd><p>Possible axis to be transformed, will be chosen at random, by default 0</p>
+</dd>
+<dt>seed<span class="classifier">Optional[int], optional</span></dt><dd><p>A seed to ensure deterministic run, by default None</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.transforms.random_transform.RandomFlip.possible_axis">
+<span class="sig-name descname"><span class="pre">possible_axis</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#minerva.transforms.random_transform.RandomFlip.possible_axis" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.transforms.random_transform.RandomFlip.select_transform">
+<span class="sig-name descname"><span class="pre">select_transform</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/transforms/random_transform.html#RandomFlip.select_transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.transforms.random_transform.RandomFlip.select_transform" title="Link to this definition"></a></dt>
+<dd><p>selects the transform to be applied to the data.</p>
+</dd></dl>
+
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_samples</strong> (<em>int</em>)</p></li>
+<li><p><strong>possible_axis</strong> (<em>Union</em><em>[</em><em>int</em><em>, </em><em>List</em><em>[</em><em>int</em><em>]</em><em>]</em>)</p></li>
+<li><p><strong>seed</strong> (<em>Optional</em><em>[</em><em>int</em><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.transforms.random_transform.RandomGrayScale">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.transforms.random_transform.</span></span><span class="sig-name descname"><span class="pre">RandomGrayScale</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prob</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'luminosity'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/transforms/random_transform.html#RandomGrayScale"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.transforms.random_transform.RandomGrayScale" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#minerva.transforms.random_transform._RandomSyncedTransform" title="minerva.transforms.random_transform._RandomSyncedTransform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_RandomSyncedTransform</span></code></a></p>
+<p>Orchestrate the application of a type of random transform to a list of data, ensuring that the same random state is used for all of them.</p>
+<p>Orchestrate the application of a type of random transform to a list of data, ensuring that the same random state is used for all of them.</p>
+<section id="id2">
+<h3>Parameters<a class="headerlink" href="#id2" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt>transform<span class="classifier">_Transform</span></dt><dd><p>A transform that will be applied to the input data.</p>
+</dd>
+<dt>num_samples<span class="classifier">int</span></dt><dd><p>The number of samples that will be transformed.</p>
+</dd>
+<dt>seed<span class="classifier">Optional[int], optional</span></dt><dd><p>The seed that will be used to generate the random state, by default None.</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.transforms.random_transform.RandomGrayScale.method">
+<span class="sig-name descname"><span class="pre">method</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'luminosity'</span></em><a class="headerlink" href="#minerva.transforms.random_transform.RandomGrayScale.method" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.transforms.random_transform.RandomGrayScale.prob">
+<span class="sig-name descname"><span class="pre">prob</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.1</span></em><a class="headerlink" href="#minerva.transforms.random_transform.RandomGrayScale.prob" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.transforms.random_transform.RandomGrayScale.select_transform">
+<span class="sig-name descname"><span class="pre">select_transform</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/transforms/random_transform.html#RandomGrayScale.select_transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.transforms.random_transform.RandomGrayScale.select_transform" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_samples</strong> (<em>int</em>)</p></li>
+<li><p><strong>seed</strong> (<em>Optional</em><em>[</em><em>int</em><em>]</em>)</p></li>
+<li><p><strong>prob</strong> (<em>float</em>)</p></li>
+<li><p><strong>method</strong> (<em>str</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.transforms.random_transform.RandomRotation">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.transforms.random_transform.</span></span><span class="sig-name descname"><span class="pre">RandomRotation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">degrees</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prob</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/transforms/random_transform.html#RandomRotation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.transforms.random_transform.RandomRotation" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#minerva.transforms.random_transform._RandomSyncedTransform" title="minerva.transforms.random_transform._RandomSyncedTransform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_RandomSyncedTransform</span></code></a></p>
+<p>Orchestrate the application of a type of random transform to a list of data, ensuring that the same random state is used for all of them.</p>
+<p>Randomly applies a rotation to the image with a specified probability.</p>
+<section id="id3">
+<h3>Parameters<a class="headerlink" href="#id3" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt>degrees<span class="classifier">float</span></dt><dd><p>Maximum absolute value of the rotation angle in degrees. The angle is sampled
+uniformly from [-degrees, +degrees].</p>
+</dd>
+<dt>prob<span class="classifier">float</span></dt><dd><p>Probability that the rotation will be applied.</p>
+</dd>
+<dt>num_samples<span class="classifier">int, optional</span></dt><dd><p>Number of samples to generate per call (for contrastive learning), default is 1.</p>
+</dd>
+<dt>seed<span class="classifier">int, optional</span></dt><dd><p>Seed for the random number generator, useful for reproducibility.</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.transforms.random_transform.RandomRotation.degrees">
+<span class="sig-name descname"><span class="pre">degrees</span></span><a class="headerlink" href="#minerva.transforms.random_transform.RandomRotation.degrees" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.transforms.random_transform.RandomRotation.prob">
+<span class="sig-name descname"><span class="pre">prob</span></span><a class="headerlink" href="#minerva.transforms.random_transform.RandomRotation.prob" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.transforms.random_transform.RandomRotation.select_transform">
+<span class="sig-name descname"><span class="pre">select_transform</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/transforms/random_transform.html#RandomRotation.select_transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.transforms.random_transform.RandomRotation.select_transform" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>degrees</strong> (<em>float</em>)</p></li>
+<li><p><strong>prob</strong> (<em>float</em>)</p></li>
+<li><p><strong>num_samples</strong> (<em>int</em>)</p></li>
+<li><p><strong>seed</strong> (<em>Optional</em><em>[</em><em>int</em><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.transforms.random_transform.RandomSolarize">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.transforms.random_transform.</span></span><span class="sig-name descname"><span class="pre">RandomSolarize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">128</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prob</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/transforms/random_transform.html#RandomSolarize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.transforms.random_transform.RandomSolarize" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#minerva.transforms.random_transform._RandomSyncedTransform" title="minerva.transforms.random_transform._RandomSyncedTransform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_RandomSyncedTransform</span></code></a></p>
+<p>Orchestrate the application of a type of random transform to a list of data, ensuring that the same random state is used for all of them.</p>
+<p>Orchestrate the application of a type of random transform to a list of data, ensuring that the same random state is used for all of them.</p>
+<section id="id4">
+<h3>Parameters<a class="headerlink" href="#id4" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt>transform<span class="classifier">_Transform</span></dt><dd><p>A transform that will be applied to the input data.</p>
+</dd>
+<dt>num_samples<span class="classifier">int</span></dt><dd><p>The number of samples that will be transformed.</p>
+</dd>
+<dt>seed<span class="classifier">Optional[int], optional</span></dt><dd><p>The seed that will be used to generate the random state, by default None.</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.transforms.random_transform.RandomSolarize.prob">
+<span class="sig-name descname"><span class="pre">prob</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1.0</span></em><a class="headerlink" href="#minerva.transforms.random_transform.RandomSolarize.prob" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.transforms.random_transform.RandomSolarize.select_transform">
+<span class="sig-name descname"><span class="pre">select_transform</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/transforms/random_transform.html#RandomSolarize.select_transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.transforms.random_transform.RandomSolarize.select_transform" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.transforms.random_transform.RandomSolarize.threshold">
+<span class="sig-name descname"><span class="pre">threshold</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">128</span></em><a class="headerlink" href="#minerva.transforms.random_transform.RandomSolarize.threshold" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_samples</strong> (<em>int</em>)</p></li>
+<li><p><strong>seed</strong> (<em>Optional</em><em>[</em><em>int</em><em>]</em>)</p></li>
+<li><p><strong>threshold</strong> (<em>int</em>)</p></li>
+<li><p><strong>prob</strong> (<em>float</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.transforms.random_transform._RandomSyncedTransform">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.transforms.random_transform.</span></span><span class="sig-name descname"><span class="pre">_RandomSyncedTransform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/transforms/random_transform.html#_RandomSyncedTransform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.transforms.random_transform._RandomSyncedTransform" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="../transform/index.html#minerva.transforms.transform._Transform" title="minerva.transforms.transform._Transform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">minerva.transforms.transform._Transform</span></code></a></p>
+<p>Orchestrate the application of a type of random transform to a list of data, ensuring that the same random state is used for all of them.</p>
+<p>Orchestrate the application of a type of random transform to a list of data, ensuring that the same random state is used for all of them.</p>
+<section id="id5">
+<h3>Parameters<a class="headerlink" href="#id5" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt>transform<span class="classifier">_Transform</span></dt><dd><p>A transform that will be applied to the input data.</p>
+</dd>
+<dt>num_samples<span class="classifier">int</span></dt><dd><p>The number of samples that will be transformed.</p>
+</dd>
+<dt>seed<span class="classifier">Optional[int], optional</span></dt><dd><p>The seed that will be used to generate the random state, by default None.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.transforms.random_transform._RandomSyncedTransform.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/transforms/random_transform.html#_RandomSyncedTransform.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.transforms.random_transform._RandomSyncedTransform.__call__" title="Link to this definition"></a></dt>
+<dd><p>Implement the transformation logic in this method. Usually, the
+transformation is applied on a single sample of data.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.transforms.random_transform._RandomSyncedTransform.num_samples">
+<span class="sig-name descname"><span class="pre">num_samples</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#minerva.transforms.random_transform._RandomSyncedTransform.num_samples" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.transforms.random_transform._RandomSyncedTransform.rng">
+<span class="sig-name descname"><span class="pre">rng</span></span><a class="headerlink" href="#minerva.transforms.random_transform._RandomSyncedTransform.rng" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.transforms.random_transform._RandomSyncedTransform.select_transform">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">select_transform</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/transforms/random_transform.html#_RandomSyncedTransform.select_transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.transforms.random_transform._RandomSyncedTransform.select_transform" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.transforms.random_transform._RandomSyncedTransform.transform">
+<span class="sig-name descname"><span class="pre">transform</span></span><a class="headerlink" href="#minerva.transforms.random_transform._RandomSyncedTransform.transform" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.transforms.random_transform._RandomSyncedTransform.transformations_executed">
+<span class="sig-name descname"><span class="pre">transformations_executed</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#minerva.transforms.random_transform._RandomSyncedTransform.transformations_executed" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>num_samples</strong> (<em>int</em>)</p></li>
+<li><p><strong>seed</strong> (<em>Optional</em><em>[</em><em>int</em><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../activity_image/index.html" class="btn btn-neutral float-left" title="minerva.transforms.activity_image" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../split_transform/index.html" class="btn btn-neutral float-right" title="minerva.transforms.split_transform" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Unicamp.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

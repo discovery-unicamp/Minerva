@@ -1,0 +1,59 @@
+minerva.data.readers.index_reader
+=================================
+
+.. py:module:: minerva.data.readers.index_reader
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   minerva.data.readers.index_reader.IndexReader
+
+
+Module Contents
+---------------
+
+.. py:class:: IndexReader(len = None)
+
+   Bases: :py:obj:`minerva.data.readers.reader._Reader`
+
+
+   A class that returns the asked index as the item. Useful for some ssl methods and techniques.
+   If you previously have the length of your dataset you can set it on the initialization, otherwise when calling len it will return None.
+   This class does not support slicing, negative indexes or out of range indexes.
+
+
+   .. py:method:: __getitem__(index)
+
+      Retrieve an item from the reader at the specified index.
+
+      Parameters
+      ----------
+      index : int
+          Index of the item to retrieve.
+
+      Returns
+      -------
+      Any
+          An item from the reader.
+
+
+
+   .. py:method:: __len__()
+
+      Get the length of the reader.
+
+      Returns
+      -------
+      int
+          The length of the reader.
+
+
+
+   .. py:attribute:: len
+      :value: None
+
+
+

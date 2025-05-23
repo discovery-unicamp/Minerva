@@ -1,0 +1,237 @@
+minerva.models.ssl.tfc
+======================
+
+.. py:module:: minerva.models.ssl.tfc
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   minerva.models.ssl.tfc.TFC_Model
+
+
+Module Contents
+---------------
+
+.. py:class:: TFC_Model(input_channels, TS_length, num_classes = None, single_encoding_size = 128, backbone = None, pred_head = True, loss = None, learning_rate = 0.0003, transform = None, device = 'cuda', batch_size = 42, pipeline = 'both', time_encoder = None, frequency_encoder = None, time_projector = None, frequency_projector = None, train_metrics = None, val_metrics = None, test_metrics = None, batch_1_correction=False)
+
+   Bases: :py:obj:`lightning.LightningModule`
+
+
+   Main class for the Temporal-Frequency Convolutional (TFC) model.
+   The model is composed of a backbone and a prediction head. The backbone is (by default) a Convolutional Neural Network (CNN) that extracts features
+   from the input data in the time domain and frequency domain. The prediction head is a fully connected layer that classifies the features extracted
+   by the backbone in the given classes.
+   This class can be trained with a supervised learning approach or with a self-supervised learning approach, or even with single pipelines.
+   This class implements the training and validation steps for the model, as well as the forward method and the configuration of the optimizer, as
+   requeired by pytorch-lightning.
+
+   The constructor of the TFC_Model class.
+
+   Parameters
+   ----------
+   - input_channels: int
+       The number of channels in the input data
+   - TS_length: int
+       The number of time steps in the input data
+   - num_classes: Optional[int]
+       The number of downstream classes in the dataset, if none, the model is trained in a self-supervised learning approach
+   - single_encoding_size: int
+       The size of the encoding in the latent space of frequency or time domain individually
+   - backbone: Optional[Union[TFC_Backbone, LoadableModule]]
+       The backbone of the model. If None, a default backbone is created with the encoders and projectors provided. If a LoadableModule is provided, it is used as the backbone.
+       If provided, make sure you really know what you are doing.
+   - pred_head: Union[bool, nn.Module]
+       If True, a prediction head (MLP) is added to the model. If False or None, the model is trained in a self-supervised learning approach. If a nn.Module is provided, it is used as the prediction head
+   - loss: _Loss
+       The loss function to be used in the training step. If None, the ntxent_poly is used for pretrain or the CrossEntropyLoss is used for downstream
+   - learning_rate: float
+       The learning rate of the optimizer
+   - transform: _Transform
+       The transformation to be applied to the input data. If None, a default transformation is applied that includes data augmentation and frequency domain transformation
+   - device: str
+       The device to be used in the training of the model, default is 'cuda'
+   - batch_size: int
+       The batch size of the model
+   - pipeline: str
+       The pipeline to be used in the training of the model. It can be 'both', 'time' or 'freq'. Default is 'both'. If 'both', the model is trained with both time and frequency domain data as default described in tfc paper.
+        If 'time', the model is trained with only time domain data. If 'freq', the model is trained with only frequency domain data obtained by fft. At these scenarios, the input data must have the time and frequency domain
+        but the prediction head will be used only for the selected one. Also is necesssary to adapt the prediction head input half size of expected (only single_encoding_size instead of single_encoding_size*2)
+   - time_encoder: Optional[nn.Module]
+       The encoder to be used in the time domain. If None, a default encoder is used. time_encoder can not be passed if backbone is passed.
+   - frequency_encoder: Optional[nn.Module]
+       The encoder to be used in the frequency domain. If None, a default encoder is used. frequency_encoder can not be passed if backbone is passed.
+   - time_projector: Optional[nn.Module]
+       The projector to be used in the time domain. If None, a default projector is used. time_projector can not be passed if backbone is passed.
+   - frequency_projector: Optional[nn.Module]
+       The projector to be used in the frequency domain. If None, a default projector is used. frequency_projector can not be passed if backbone is passed.
+   - train_metrics : Dict[str, Metric], optional
+       The metrics to be used during training, by default None
+   - val_metrics : Dict[str, Metric], optional
+       The metrics to be used during validation, by default None
+   - test_metrics : Dict[str, Metric], optional
+       The metrics to be used during testing, by default None
+   - batch_1_correction: bool
+       If True, some parts of the architecture are adapted to
+       work with batch size 1. Default is False, which means
+       that the model is not adapted to work with batch size 1.
+
+
+   .. py:method:: _compute_metrics(y_hat, y, step_name)
+
+      Calculate the metrics for the given step.
+
+      Parameters
+      ----------
+      y_hat : torch.Tensor
+          The output data from the forward pass.
+      y : torch.Tensor
+          The input data/label.
+      step_name : str
+          Name of the step. It will be used to get the metrics from the
+          `self.metrics` attribute.
+
+      Returns
+      -------
+      Dict[str, torch.Tensor]
+          A dictionary with the metrics values.
+
+
+
+   .. py:method:: configure_optimizers()
+
+      Function that configures the optimizer of the model. It returns an Adam optimizer with the learning rate defined in the constructor.
+
+      Returns
+      -------
+      - Optimizer
+          The optimizer of the model
+
+
+
+
+   .. py:method:: forward(x, all = False)
+
+      The forward method of the model. It receives the input data in the time domain and frequency domain and returns the prediction of the model.
+
+      Parameters
+      ----------
+      - x: torch.Tensor
+          The input data
+      - all: bool
+          If True, the method returns the prediction of the model and the features extracted by the backbone. If False, only the prediction is returned
+
+      Returns
+      -------
+      - torch.Tensor
+          If the model has a prediction head and parameter "all" is False, the method returns the prediction of the model, a tensor with the shape (batch_size, num_classes)
+      - tuple
+          If the model has not a prediction head, the method returns a tuple with the features extracted by the backbone, h_t, z_t, h_f, z_f respectively.
+      - tuple
+          If the model has a prediction head and parameter "all" is True, the method returns a tuple with the prediction of the model and the features extracted by the backbone, following the format prediction, h_t, z_t, h_f, z_f.
+
+
+
+
+   .. py:attribute:: learning_rate
+      :value: 0.0003
+
+
+
+   .. py:attribute:: metrics
+
+
+   .. py:attribute:: num_classes
+      :value: None
+
+
+
+   .. py:attribute:: pipeline
+      :value: 'both'
+
+
+
+   .. py:method:: predict_step(batch, batch_index)
+
+      The predict step of the model. It receives a batch of data and returns the torch tensor of probability of prediction or the latent space if a prediction head is not provided.
+
+      Parameters
+      ----------
+      - batch: Tuple[torch.Tensor, torch.Tensor]
+          A tuple with the input data and its labels as X, Y
+      - batch_index: int
+          The index of the batch in the dataset (not used in this method)
+
+      Returns
+      -------
+      - loss
+          The loss of the model in this test step
+      can also return f1 score and accuracy if a prediction head is provided:
+      - Tuple[loss, f1, accuracy] types: Tuple[torch.Tensor, float, float]
+
+
+
+
+
+   .. py:method:: test_step(batch, batch_index)
+
+      The test step of the model. It receives a batch of data and returns the loss of the model and f1 score and accuracy if a prediction head is provided.
+
+      Parameters
+      ----------
+      - batch: Tuple[torch.Tensor, torch.Tensor]
+          A tuple with the input data and its labels as X, Y
+      - batch_index: int
+          The index of the batch in the dataset (not used in this method)
+
+      Returns
+      -------
+      - loss
+          The loss of the model in this test step
+      can also return f1 score and accuracy if a prediction head is provided:
+      - Tuple[loss, f1, accuracy] types: Tuple[torch.Tensor, float, float]
+
+
+
+
+
+   .. py:method:: training_step(batch, batch_index)
+
+      The training step of the model. It receives a batch of data and returns the loss of the model.
+
+      Parameters
+      ----------
+      - batch: Tuple[torch.Tensor, torch.Tensor]
+          A tuple with the input data and its labels as X, Y
+      - batch_index: int
+          The index of the batch in the dataset (not used in this method)
+
+      Returns
+      -------
+      - loss
+          The loss of the model in this training step
+
+
+
+   .. py:method:: validation_step(batch, batch_index)
+
+      The validation step of the model. It receives a batch of data and returns the loss of the model.
+
+      Parameters
+      ----------
+      - batch: Tuple[torch.Tensor, torch.Tensor]
+          A tuple with the input data and its labels as X, Y
+      - batch_index: int
+          The index of the batch in the dataset (not used in this method)
+
+      Returns
+      -------
+      - loss
+          The loss of the model in this validation step
+
+
+
+
+

@@ -1,0 +1,729 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>minerva.engines.patch_inferencer_engine &mdash; minerva  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            minerva
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../design.html">Minerva Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorials.html">Examples and Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../contributing.html">Contributing to Minerva</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api.html">Programming Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">minerva</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">minerva.engines.patch_inferencer_engine</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../../_sources/autoapi/minerva/engines/patch_inferencer_engine/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-minerva.engines.patch_inferencer_engine">
+<span id="minerva-engines-patch-inferencer-engine"></span><h1>minerva.engines.patch_inferencer_engine<a class="headerlink" href="#module-minerva.engines.patch_inferencer_engine" title="Link to this heading"></a></h1>
+<section id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Link to this heading"></a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#minerva.engines.patch_inferencer_engine.PatchInferencer" title="minerva.engines.patch_inferencer_engine.PatchInferencer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PatchInferencer</span></code></a></p></td>
+<td><p>This class acts as a normal <cite>L.LightningModule</cite> that wraps a</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#minerva.engines.patch_inferencer_engine.PatchInferencerEngine" title="minerva.engines.patch_inferencer_engine.PatchInferencerEngine"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PatchInferencerEngine</span></code></a></p></td>
+<td><p>Main interface for Engine classes. Engines are used to alter the behavior of a model's prediction.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.engines.patch_inferencer_engine.PatchInferencer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.engines.patch_inferencer_engine.</span></span><span class="sig-name descname"><span class="pre">PatchInferencer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight_function</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offsets</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">padding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_tuple</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/engines/patch_inferencer_engine.html#PatchInferencer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.engines.patch_inferencer_engine.PatchInferencer" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">lightning.LightningModule</span></code></p>
+<p>This class acts as a normal <cite>L.LightningModule</cite> that wraps a
+<cite>SimpleSupervisedModel</cite> model allowing it to perform inference in patches.
+This is useful when the model’s default input size is smaller than the
+desired input size (sample size). In this case, the engine split the input
+tensor into patches, perform inference in each patch, and combine them into
+a single output of the desired size. The combination of patches can be
+parametrized by a <cite>weight_function</cite> allowing a customizable combination of
+patches (e.g, combining using weighted average). It is important to note
+that only model’s forward are wrapped, and, thus, any method that requires
+the forward method (e.g., training_step, predict_step) will be performed in
+patches, transparently to the user.</p>
+<p>Wrap a <cite>SimpleSupervisedModel</cite> model’s forward method to perform
+inference in patches, transparently splitting the input tensor into
+patches, performing inference in each patch, and combining them into a
+single output of the desired size.</p>
+<section id="parameters">
+<h3>Parameters<a class="headerlink" href="#parameters" title="Link to this heading"></a></h3>
+<dl>
+<dt>model<span class="classifier">SimpleSupervisedModel</span></dt><dd><p>Model to be wrapped.</p>
+</dd>
+<dt>input_shape<span class="classifier">Tuple[int, …]</span></dt><dd><p>Expected input shape of the wrapped model.</p>
+</dd>
+<dt>output_shape<span class="classifier">Tuple[int, …], optional</span></dt><dd><p>Expected output shape of the wrapped model. For models that return
+logits (e.g., classification models), the <cite>output_shape</cite> must
+include an  additional dimension at the beginning to accommodate
+the number of output classes. For example, if the model processes
+an input tensor of shape (1, 128, 128) and outputs logits for 10
+classes, the expected <cite>output_shape</cite> should be (10, 1, 128, 128).
+If the model does not return logits (e.g., return a tensor after
+applying an <cite>argmax</cite> operation, or a regression models that usually
+returns a tensor with the same shape as the input tensor), the
+<cite>output_shape</cite> should have the same number of dimensions as the
+input shape. Defaults to None, which assumes the output shape is
+the same as the <cite>input_shape</cite> parameter.</p>
+</dd>
+<dt>weight_function: Callable[[Tuple[int, …]], torch.Tensor], optional</dt><dd><p>Function that receives a tensor shape and returns the weights for
+each position of a tensor with the given shape. Useful when regions
+of the inference present diminishing performance when getting
+closer to borders, for instance.</p>
+</dd>
+<dt>offsets<span class="classifier">List[Tuple[int, …]], optional</span></dt><dd><p>List of tuples with offsets that determine the shift of the initial
+position of the patch subdivision.</p>
+</dd>
+<dt>padding<span class="classifier">Dict[str, Any], optional</span></dt><dd><dl class="simple">
+<dt>Dictionary describing padding strategy. Keys:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>pad (mandatory): tuple with pad width (int) for each</dt><dd><p>dimension, e.g.(0, 3, 3) when working with a tensor with 3
+dimensions.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>mode (optional): ‘constant’, ‘reflect’, ‘replicate’ or</dt><dd><p>‘circular’. Defaults to ‘constant’.</p>
+</dd>
+</dl>
+</li>
+<li><p>value (optional): fill value for ‘constant’. Defaults to 0.</p></li>
+</ul>
+</dd>
+</dl>
+<p>If None, no padding is applied.</p>
+</dd>
+<dt>return_tuple: int, optional</dt><dd><p>Some models may return multiple outputs for a single sample (e.g.,
+outputs from multiple auxiliary heads). This parameter is a integer
+that defines the number of outputs the model generates. By default,
+it is None, which indicates that the model produces a single output
+for a single input. When set, it indicates the number of outputs
+the model produces.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.engines.patch_inferencer_engine.PatchInferencer.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/engines/patch_inferencer_engine.html#PatchInferencer.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.engines.patch_inferencer_engine.PatchInferencer.__call__" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>torch.Tensor</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>torch.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.engines.patch_inferencer_engine.PatchInferencer._single_step">
+<span class="sig-name descname"><span class="pre">_single_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_idx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/engines/patch_inferencer_engine.html#PatchInferencer._single_step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.engines.patch_inferencer_engine.PatchInferencer._single_step" title="Link to this definition"></a></dt>
+<dd><p>Perform a single step of the training/validation loop.</p>
+<section id="id1">
+<h4>Parameters<a class="headerlink" href="#id1" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt>batch<span class="classifier">torch.Tensor</span></dt><dd><p>The input data.</p>
+</dd>
+<dt>batch_idx<span class="classifier">int</span></dt><dd><p>The index of the batch.</p>
+</dd>
+<dt>step_name<span class="classifier">str</span></dt><dd><p>The name of the step, either “train” or “val”.</p>
+</dd>
+</dl>
+</section>
+<section id="returns">
+<h4>Returns<a class="headerlink" href="#returns" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt>torch.Tensor</dt><dd><p>The loss value.</p>
+</dd>
+</dl>
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>batch</strong> (<em>torch.Tensor</em>)</p></li>
+<li><p><strong>batch_idx</strong> (<em>int</em>)</p></li>
+<li><p><strong>step_name</strong> (<em>str</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>torch.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.engines.patch_inferencer_engine.PatchInferencer.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/engines/patch_inferencer_engine.html#PatchInferencer.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.engines.patch_inferencer_engine.PatchInferencer.forward" title="Link to this definition"></a></dt>
+<dd><p>Perform inference in patches.</p>
+<section id="id2">
+<h4>Parameters<a class="headerlink" href="#id2" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt>x<span class="classifier">torch.Tensor</span></dt><dd><p>Batch of input data.</p>
+</dd>
+</dl>
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>torch.Tensor</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>torch.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.engines.patch_inferencer_engine.PatchInferencer.model">
+<span class="sig-name descname"><span class="pre">model</span></span><a class="headerlink" href="#minerva.engines.patch_inferencer_engine.PatchInferencer.model" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.engines.patch_inferencer_engine.PatchInferencer.patch_inferencer">
+<span class="sig-name descname"><span class="pre">patch_inferencer</span></span><a class="headerlink" href="#minerva.engines.patch_inferencer_engine.PatchInferencer.patch_inferencer" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.engines.patch_inferencer_engine.PatchInferencer.test_step">
+<span class="sig-name descname"><span class="pre">test_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_idx</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/engines/patch_inferencer_engine.html#PatchInferencer.test_step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.engines.patch_inferencer_engine.PatchInferencer.test_step" title="Link to this definition"></a></dt>
+<dd><p>Operates on a single batch of data from the test set. In this step you’d normally generate examples or
+calculate anything of interest such as accuracy.</p>
+<dl>
+<dt>Args:</dt><dd><p>batch: The output of your data iterable, normally a <code class="xref py py-class docutils literal notranslate"><span class="pre">DataLoader</span></code>.
+batch_idx: The index of this batch.
+dataloader_idx: The index of the dataloader that produced this batch.</p>
+<blockquote>
+<div><p>(only if multiple dataloaders used)</p>
+</div></blockquote>
+</dd>
+<dt>Return:</dt><dd><ul class="simple">
+<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Tensor</span></code> - The loss tensor</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dict</span></code> - A dictionary. Can include any keys, but must include the key <code class="docutils literal notranslate"><span class="pre">'loss'</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">None</span></code> - Skip to the next batch.</p></li>
+</ul>
+</dd>
+</dl>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># if you have one test dataloader:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">):</span> <span class="o">...</span>
+
+
+<span class="c1"># if you have multiple test dataloaders:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">,</span> <span class="n">dataloader_idx</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span> <span class="o">...</span>
+</pre></div>
+</div>
+<p>Examples:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># CASE 1: A single test dataset</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">):</span>
+    <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">batch</span>
+
+    <span class="c1"># implement your own</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+
+    <span class="c1"># log 6 example images</span>
+    <span class="c1"># or generated text... or whatever</span>
+    <span class="n">sample_imgs</span> <span class="o">=</span> <span class="n">x</span><span class="p">[:</span><span class="mi">6</span><span class="p">]</span>
+    <span class="n">grid</span> <span class="o">=</span> <span class="n">torchvision</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">make_grid</span><span class="p">(</span><span class="n">sample_imgs</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">experiment</span><span class="o">.</span><span class="n">add_image</span><span class="p">(</span><span class="s1">&#39;example_images&#39;</span><span class="p">,</span> <span class="n">grid</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="c1"># calculate acc</span>
+    <span class="n">labels_hat</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">test_acc</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">y</span> <span class="o">==</span> <span class="n">labels_hat</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span> <span class="o">/</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1.0</span><span class="p">)</span>
+
+    <span class="c1"># log the outputs!</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">log_dict</span><span class="p">({</span><span class="s1">&#39;test_loss&#39;</span><span class="p">:</span> <span class="n">loss</span><span class="p">,</span> <span class="s1">&#39;test_acc&#39;</span><span class="p">:</span> <span class="n">test_acc</span><span class="p">})</span>
+</pre></div>
+</div>
+<p>If you pass in multiple test dataloaders, <a class="reference internal" href="#minerva.engines.patch_inferencer_engine.PatchInferencer.test_step" title="minerva.engines.patch_inferencer_engine.PatchInferencer.test_step"><code class="xref py py-meth docutils literal notranslate"><span class="pre">test_step()</span></code></a> will have an additional argument. We recommend
+setting the default value of 0 so that you can quickly switch between single and multiple dataloaders.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># CASE 2: multiple test dataloaders</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">test_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">,</span> <span class="n">dataloader_idx</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="c1"># dataloader_idx tells you which dataset this is.</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<dl class="simple">
+<dt>Note:</dt><dd><p>If you don’t need to test you don’t need to implement this method.</p>
+</dd>
+<dt>Note:</dt><dd><p>When the <a class="reference internal" href="#minerva.engines.patch_inferencer_engine.PatchInferencer.test_step" title="minerva.engines.patch_inferencer_engine.PatchInferencer.test_step"><code class="xref py py-meth docutils literal notranslate"><span class="pre">test_step()</span></code></a> is called, the model has been put in eval mode and
+PyTorch gradients have been disabled. At the end of the test epoch, the model goes back
+to training mode and gradients are enabled.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>batch</strong> (<em>torch.Tensor</em>)</p></li>
+<li><p><strong>batch_idx</strong> (<em>int</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.engines.patch_inferencer_engine.PatchInferencer.training_step">
+<span class="sig-name descname"><span class="pre">training_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_idx</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/engines/patch_inferencer_engine.html#PatchInferencer.training_step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.engines.patch_inferencer_engine.PatchInferencer.training_step" title="Link to this definition"></a></dt>
+<dd><p>Here you compute and return the training loss and some additional metrics for e.g. the progress bar or
+logger.</p>
+<dl>
+<dt>Args:</dt><dd><p>batch: The output of your data iterable, normally a <code class="xref py py-class docutils literal notranslate"><span class="pre">DataLoader</span></code>.
+batch_idx: The index of this batch.
+dataloader_idx: The index of the dataloader that produced this batch.</p>
+<blockquote>
+<div><p>(only if multiple dataloaders used)</p>
+</div></blockquote>
+</dd>
+<dt>Return:</dt><dd><ul class="simple">
+<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Tensor</span></code> - The loss tensor</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dict</span></code> - A dictionary which can include any keys, but must include the key <code class="docutils literal notranslate"><span class="pre">'loss'</span></code> in the case of
+automatic optimization.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">None</span></code> - In automatic optimization, this will skip to the next batch (but is not supported for
+multi-GPU, TPU, or DeepSpeed). For manual optimization, this has no special meaning, as returning
+the loss is not required.</p></li>
+</ul>
+</dd>
+</dl>
+<p>In this step you’d normally do the forward pass and calculate the loss for a batch.
+You can also do fancier things like multiple forward passes or something model specific.</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">training_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">):</span>
+    <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">batch</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">encoder</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">loss</span>
+</pre></div>
+</div>
+<p>To use multiple optimizers, you can switch to ‘manual optimization’ and control their stepping:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">automatic_optimization</span> <span class="o">=</span> <span class="kc">False</span>
+
+
+<span class="c1"># Multiple optimizers (e.g.: GANs)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">training_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">):</span>
+    <span class="n">opt1</span><span class="p">,</span> <span class="n">opt2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">optimizers</span><span class="p">()</span>
+
+    <span class="c1"># do training_step with encoder</span>
+    <span class="o">...</span>
+    <span class="n">opt1</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+    <span class="c1"># do training_step with decoder</span>
+    <span class="o">...</span>
+    <span class="n">opt2</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+</pre></div>
+</div>
+<dl class="simple">
+<dt>Note:</dt><dd><p>When <code class="docutils literal notranslate"><span class="pre">accumulate_grad_batches</span></code> &gt; 1, the loss returned here will be automatically
+normalized by <code class="docutils literal notranslate"><span class="pre">accumulate_grad_batches</span></code> internally.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>batch</strong> (<em>torch.Tensor</em>)</p></li>
+<li><p><strong>batch_idx</strong> (<em>int</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.engines.patch_inferencer_engine.PatchInferencer.validation_step">
+<span class="sig-name descname"><span class="pre">validation_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_idx</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/engines/patch_inferencer_engine.html#PatchInferencer.validation_step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.engines.patch_inferencer_engine.PatchInferencer.validation_step" title="Link to this definition"></a></dt>
+<dd><p>Operates on a single batch of data from the validation set. In this step you’d might generate examples or
+calculate anything of interest like accuracy.</p>
+<dl>
+<dt>Args:</dt><dd><p>batch: The output of your data iterable, normally a <code class="xref py py-class docutils literal notranslate"><span class="pre">DataLoader</span></code>.
+batch_idx: The index of this batch.
+dataloader_idx: The index of the dataloader that produced this batch.</p>
+<blockquote>
+<div><p>(only if multiple dataloaders used)</p>
+</div></blockquote>
+</dd>
+<dt>Return:</dt><dd><ul class="simple">
+<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">Tensor</span></code> - The loss tensor</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dict</span></code> - A dictionary. Can include any keys, but must include the key <code class="docutils literal notranslate"><span class="pre">'loss'</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">None</span></code> - Skip to the next batch.</p></li>
+</ul>
+</dd>
+</dl>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># if you have one val dataloader:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">validation_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">):</span> <span class="o">...</span>
+
+
+<span class="c1"># if you have multiple val dataloaders:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">validation_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">,</span> <span class="n">dataloader_idx</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span> <span class="o">...</span>
+</pre></div>
+</div>
+<p>Examples:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># CASE 1: A single validation dataset</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">validation_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">):</span>
+    <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">batch</span>
+
+    <span class="c1"># implement your own</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+
+    <span class="c1"># log 6 example images</span>
+    <span class="c1"># or generated text... or whatever</span>
+    <span class="n">sample_imgs</span> <span class="o">=</span> <span class="n">x</span><span class="p">[:</span><span class="mi">6</span><span class="p">]</span>
+    <span class="n">grid</span> <span class="o">=</span> <span class="n">torchvision</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">make_grid</span><span class="p">(</span><span class="n">sample_imgs</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">experiment</span><span class="o">.</span><span class="n">add_image</span><span class="p">(</span><span class="s1">&#39;example_images&#39;</span><span class="p">,</span> <span class="n">grid</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="c1"># calculate acc</span>
+    <span class="n">labels_hat</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">val_acc</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">y</span> <span class="o">==</span> <span class="n">labels_hat</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span> <span class="o">/</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1.0</span><span class="p">)</span>
+
+    <span class="c1"># log the outputs!</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">log_dict</span><span class="p">({</span><span class="s1">&#39;val_loss&#39;</span><span class="p">:</span> <span class="n">loss</span><span class="p">,</span> <span class="s1">&#39;val_acc&#39;</span><span class="p">:</span> <span class="n">val_acc</span><span class="p">})</span>
+</pre></div>
+</div>
+<p>If you pass in multiple val dataloaders, <a class="reference internal" href="#minerva.engines.patch_inferencer_engine.PatchInferencer.validation_step" title="minerva.engines.patch_inferencer_engine.PatchInferencer.validation_step"><code class="xref py py-meth docutils literal notranslate"><span class="pre">validation_step()</span></code></a> will have an additional argument. We recommend
+setting the default value of 0 so that you can quickly switch between single and multiple dataloaders.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># CASE 2: multiple validation dataloaders</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">validation_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">,</span> <span class="n">dataloader_idx</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="c1"># dataloader_idx tells you which dataset this is.</span>
+    <span class="o">...</span>
+</pre></div>
+</div>
+<dl class="simple">
+<dt>Note:</dt><dd><p>If you don’t need to validate you don’t need to implement this method.</p>
+</dd>
+<dt>Note:</dt><dd><p>When the <a class="reference internal" href="#minerva.engines.patch_inferencer_engine.PatchInferencer.validation_step" title="minerva.engines.patch_inferencer_engine.PatchInferencer.validation_step"><code class="xref py py-meth docutils literal notranslate"><span class="pre">validation_step()</span></code></a> is called, the model has been put in eval mode
+and PyTorch gradients have been disabled. At the end of validation,
+the model goes back to training mode and gradients are enabled.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>batch</strong> (<em>torch.Tensor</em>)</p></li>
+<li><p><strong>batch_idx</strong> (<em>int</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<a class="reference internal" href="../../models/nets/base/index.html#minerva.models.nets.base.SimpleSupervisedModel" title="minerva.models.nets.base.SimpleSupervisedModel"><em>minerva.models.nets.base.SimpleSupervisedModel</em></a>)</p></li>
+<li><p><strong>input_shape</strong> (<em>Tuple</em><em>[</em><em>int</em><em>, </em><em>Ellipsis</em><em>]</em>)</p></li>
+<li><p><strong>output_shape</strong> (<em>Optional</em><em>[</em><em>Tuple</em><em>[</em><em>int</em><em>, </em><em>Ellipsis</em><em>]</em><em>]</em>)</p></li>
+<li><p><strong>weight_function</strong> (<em>Optional</em><em>[</em><em>Callable</em><em>[</em><em>[</em><em>Tuple</em><em>[</em><em>int</em><em>, </em><em>Ellipsis</em><em>]</em><em>]</em><em>, </em><em>torch.Tensor</em><em>]</em><em>]</em>)</p></li>
+<li><p><strong>offsets</strong> (<em>Optional</em><em>[</em><em>List</em><em>[</em><em>Tuple</em><em>[</em><em>int</em><em>, </em><em>Ellipsis</em><em>]</em><em>]</em><em>]</em>)</p></li>
+<li><p><strong>padding</strong> (<em>Optional</em><em>[</em><em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em><em>]</em>)</p></li>
+<li><p><strong>return_tuple</strong> (<em>Optional</em><em>[</em><em>int</em><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.engines.patch_inferencer_engine.PatchInferencerEngine">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.engines.patch_inferencer_engine.</span></span><span class="sig-name descname"><span class="pre">PatchInferencerEngine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offsets</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">padding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight_function</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_tuple</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/engines/patch_inferencer_engine.html#PatchInferencerEngine"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.engines.patch_inferencer_engine.PatchInferencerEngine" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="../engine/index.html#minerva.engines.engine._Engine" title="minerva.engines.engine._Engine"><code class="xref py py-obj docutils literal notranslate"><span class="pre">minerva.engines.engine._Engine</span></code></a></p>
+<p>Main interface for Engine classes. Engines are used to alter the behavior of a model’s prediction.
+An engine should be able to take a <cite>model</cite> and input data <cite>x</cite> and return a prediction.
+An use case for Engines is patched inference, where the model’s default input size is smaller them the desired input size.
+The engine can be used to make predictions in patches and combine this predictions in to a single output.</p>
+<section id="id3">
+<h3>Parameters<a class="headerlink" href="#id3" title="Link to this heading"></a></h3>
+<dl>
+<dt>input_shape<span class="classifier">Tuple[int, …]</span></dt><dd><p>Shape of each patch to process.</p>
+</dd>
+<dt>output_shape<span class="classifier">Tuple[int, …], optional</span></dt><dd><p>Expected output shape of the model. For models that return logits,
+the <cite>output_shape</cite> must include an additional dimension at the
+beginning to accommodate the number of output classes. Else, the
+<cite>output_shape</cite> should have the same number of dimensions as the
+<cite>input_shape</cite> (i.e., no logits are returned). Defaults to
+input_shape.</p>
+</dd>
+<dt>padding<span class="classifier">Dict[str, Any], optional</span></dt><dd><dl class="simple">
+<dt>Padding configuration with keys:</dt><dd><ul class="simple">
+<li><dl class="simple">
+<dt>‘pad’: Tuple of padding for each expected final dimension,</dt><dd><p>e.g., (0, 512, 512) - (c, h, w).</p>
+</dd>
+</dl>
+</li>
+<li><p>‘mode’: Padding mode, e.g., ‘constant’, ‘reflect’.</p></li>
+<li><p>‘value’: Padding value if mode is ‘constant’.</p></li>
+</ul>
+</dd>
+</dl>
+<p>Defaults to None, which means no padding is applyied.</p>
+</dd>
+<dt>weight_function<span class="classifier">Callable, optional</span></dt><dd><p>Function to calculate the weight of each patch. Defaults to None.</p>
+</dd>
+<dt>return_tuple<span class="classifier">int, optional</span></dt><dd><p>Number of outputs to return. This is useful when the model returns
+multiple outputs for a single input (e.g., from multiple auxiliary
+heads). Defaults to None.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.engines.patch_inferencer_engine.PatchInferencerEngine.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/engines/patch_inferencer_engine.html#PatchInferencerEngine.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.engines.patch_inferencer_engine.PatchInferencerEngine.__call__" title="Link to this definition"></a></dt>
+<dd><p>Perform inference in patches, from the input tensor <cite>x</cite> using the
+model <cite>model</cite>.</p>
+<section id="id4">
+<h4>Parameters<a class="headerlink" href="#id4" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt>model: Union[L.LightningModule, torch.nn.Module]</dt><dd><p>Model to perform inference.</p>
+</dd>
+<dt>x<span class="classifier">torch.Tensor</span></dt><dd><p>Input tensor of the sample. It can be a single sample or a batch
+of samples.</p>
+</dd>
+</dl>
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<em>Union</em><em>[</em><em>lightning.LightningModule</em><em>, </em><em>torch.nn.Module</em><em>]</em>)</p></li>
+<li><p><strong>x</strong> (<em>torch.Tensor</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.engines.patch_inferencer_engine.PatchInferencerEngine._adjust_patches">
+<span class="sig-name descname"><span class="pre">_adjust_patches</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arrays</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/engines/patch_inferencer_engine.html#PatchInferencerEngine._adjust_patches"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.engines.patch_inferencer_engine.PatchInferencerEngine._adjust_patches" title="Link to this definition"></a></dt>
+<dd><p>Pads reconstructed patches with <cite>pad_value</cite> to have same shape as
+the reference shape from the base patch set.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>arrays</strong> (<em>List</em><em>[</em><em>torch.Tensor</em><em>]</em>)</p></li>
+<li><p><strong>ref_shape</strong> (<em>Tuple</em><em>[</em><em>int</em><em>]</em>)</p></li>
+<li><p><strong>offset</strong> (<em>Tuple</em><em>[</em><em>int</em><em>]</em>)</p></li>
+<li><p><strong>pad_value</strong> (<em>int</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>List[torch.Tensor]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.engines.patch_inferencer_engine.PatchInferencerEngine._combine_patches">
+<span class="sig-name descname"><span class="pre">_combine_patches</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">results</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offsets</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">indexes</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/engines/patch_inferencer_engine.html#PatchInferencerEngine._combine_patches"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.engines.patch_inferencer_engine.PatchInferencerEngine._combine_patches" title="Link to this definition"></a></dt>
+<dd><p>Performs the combination of patches based on the weight function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>results</strong> (<em>List</em><em>[</em><em>torch.Tensor</em><em>]</em>)</p></li>
+<li><p><strong>offsets</strong> (<em>List</em><em>[</em><em>Tuple</em><em>[</em><em>int</em><em>]</em><em>]</em>)</p></li>
+<li><p><strong>indexes</strong> (<em>List</em><em>[</em><em>Tuple</em><em>[</em><em>int</em><em>]</em><em>]</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>torch.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.engines.patch_inferencer_engine.PatchInferencerEngine._compute_base_padding">
+<span class="sig-name descname"><span class="pre">_compute_base_padding</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tensor</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/engines/patch_inferencer_engine.html#PatchInferencerEngine._compute_base_padding"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.engines.patch_inferencer_engine.PatchInferencerEngine._compute_base_padding" title="Link to this definition"></a></dt>
+<dd><p>Computes the padding for the base patch set based on the input
+tensor shape and the model’s input shape.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>tensor</strong> (<em>torch.Tensor</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.engines.patch_inferencer_engine.PatchInferencerEngine._compute_output_shape">
+<span class="sig-name descname"><span class="pre">_compute_output_shape</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tensor</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/engines/patch_inferencer_engine.html#PatchInferencerEngine._compute_output_shape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.engines.patch_inferencer_engine.PatchInferencerEngine._compute_output_shape" title="Link to this definition"></a></dt>
+<dd><p>Computes <cite>PatchInferencer</cite> output shape based on input tensor shape,
+and model’s input and output shapes.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>tensor</strong> (<em>torch.Tensor</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Tuple[int]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.engines.patch_inferencer_engine.PatchInferencerEngine._extract_patches">
+<span class="sig-name descname"><span class="pre">_extract_patches</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_shape</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/engines/patch_inferencer_engine.html#PatchInferencerEngine._extract_patches"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.engines.patch_inferencer_engine.PatchInferencerEngine._extract_patches" title="Link to this definition"></a></dt>
+<dd><p>Patch extraction method. It will be called once for the base patch
+set and also for the requested offsets (overlapping patch sets).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>torch.Tensor</em>)</p></li>
+<li><p><strong>patch_shape</strong> (<em>Tuple</em><em>[</em><em>int</em><em>]</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Tuple[torch.Tensor, Tuple[int]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.engines.patch_inferencer_engine.PatchInferencerEngine._reconstruct_patches">
+<span class="sig-name descname"><span class="pre">_reconstruct_patches</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">patches</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">index</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/engines/patch_inferencer_engine.html#PatchInferencerEngine._reconstruct_patches"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.engines.patch_inferencer_engine.PatchInferencerEngine._reconstruct_patches" title="Link to this definition"></a></dt>
+<dd><p>Rearranges patches to reconstruct area of interest from patches and
+weights.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>patches</strong> (<em>torch.Tensor</em>)</p></li>
+<li><p><strong>index</strong> (<em>Tuple</em><em>[</em><em>int</em><em>]</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Tuple[torch.Tensor, torch.Tensor]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.engines.patch_inferencer_engine.PatchInferencerEngine.input_shape">
+<span class="sig-name descname"><span class="pre">input_shape</span></span><a class="headerlink" href="#minerva.engines.patch_inferencer_engine.PatchInferencerEngine.input_shape" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.engines.patch_inferencer_engine.PatchInferencerEngine.logits_dim">
+<span class="sig-name descname"><span class="pre">logits_dim</span></span><a class="headerlink" href="#minerva.engines.patch_inferencer_engine.PatchInferencerEngine.logits_dim" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.engines.patch_inferencer_engine.PatchInferencerEngine.output_shape">
+<span class="sig-name descname"><span class="pre">output_shape</span></span><a class="headerlink" href="#minerva.engines.patch_inferencer_engine.PatchInferencerEngine.output_shape" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.engines.patch_inferencer_engine.PatchInferencerEngine.output_simplified_shape">
+<span class="sig-name descname"><span class="pre">output_simplified_shape</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">()</span></em><a class="headerlink" href="#minerva.engines.patch_inferencer_engine.PatchInferencerEngine.output_simplified_shape" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.engines.patch_inferencer_engine.PatchInferencerEngine.return_tuple">
+<span class="sig-name descname"><span class="pre">return_tuple</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#minerva.engines.patch_inferencer_engine.PatchInferencerEngine.return_tuple" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.engines.patch_inferencer_engine.PatchInferencerEngine.weight_function">
+<span class="sig-name descname"><span class="pre">weight_function</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#minerva.engines.patch_inferencer_engine.PatchInferencerEngine.weight_function" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_shape</strong> (<em>Tuple</em><em>[</em><em>int</em><em>, </em><em>Ellipsis</em><em>]</em>)</p></li>
+<li><p><strong>output_shape</strong> (<em>Optional</em><em>[</em><em>Tuple</em><em>[</em><em>int</em><em>, </em><em>Ellipsis</em><em>]</em><em>]</em>)</p></li>
+<li><p><strong>offsets</strong> (<em>Optional</em><em>[</em><em>List</em><em>[</em><em>Tuple</em><em>[</em><em>int</em><em>, </em><em>Ellipsis</em><em>]</em><em>]</em><em>]</em>)</p></li>
+<li><p><strong>padding</strong> (<em>Optional</em><em>[</em><em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em><em>]</em>)</p></li>
+<li><p><strong>weight_function</strong> (<em>Optional</em><em>[</em><em>Callable</em><em>]</em>)</p></li>
+<li><p><strong>return_tuple</strong> (<em>Optional</em><em>[</em><em>int</em><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Unicamp.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

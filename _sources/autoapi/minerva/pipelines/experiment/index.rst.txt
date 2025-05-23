@@ -1,0 +1,948 @@
+minerva.pipelines.experiment
+============================
+
+.. py:module:: minerva.pipelines.experiment
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   minerva.pipelines.experiment.Experiment
+   minerva.pipelines.experiment.ModelConfig
+   minerva.pipelines.experiment.ModelInformation
+   minerva.pipelines.experiment.ModelInstantiator
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   minerva.pipelines.experiment.get_trainer
+   minerva.pipelines.experiment.load_predictions
+   minerva.pipelines.experiment.load_results
+   minerva.pipelines.experiment.perform_evaluation
+   minerva.pipelines.experiment.perform_predict
+   minerva.pipelines.experiment.perform_train
+   minerva.pipelines.experiment.save_predictions
+   minerva.pipelines.experiment.save_results
+
+
+Module Contents
+---------------
+
+.. py:class:: Experiment(experiment_name, model_config, data_module, pretrained_backbone_ckpt_path = None, root_log_dir = './logs', execution_id = 0, checkpoint_metrics = None, max_epochs = 100, accelerator = 'gpu', devices = 1, strategy = 'auto', num_nodes = 1, limit_train_batches = None, limit_val_batches = None, limit_test_batches = None, limit_predict_batches = None, evaluation_metrics = None, per_sample_evaluation_metrics = None, seed = None, progress_bar_refresh_rate = 1, profiler = None, save_predictions = True, save_results = True, add_last_checkpoint = True)
+
+   Bases: :py:obj:`minerva.pipelines.base.Pipeline`
+
+
+   Pipelines provide a versatile API for automating tasks efficiently.
+   They are runnable objects that keeps track of their parameters, results, and
+   status, allowing the reproductibility and traceability of the experiments.
+
+   This is the base class for all pipelines. It provides the basic structure
+   for running a pipeline and saving the results and status of the runs.
+   Users should inherit from this class and implement the `_run` method.
+
+   Pipelines are clonal objects, meaning that they can be cloned to create
+   new pipelines with the same configuration. Cloned pipelines do receive a
+   new pipeline_id and run_count.
+
+   Pipelines expose their public API though properties (which are read-only)
+   and though the `run` method. Users should not access or modify the internal
+   attributes directly. The run method may set desired attributed (hence
+   properties), used to be accessed after or during the run. The run method
+   may return a result, which can be cached and accessed through the `result`
+   property (if the `cache_result` is set to True).
+
+   An experiment is a pipeline that contains all the parameters needed
+   to train and evaluate a model, as well as to manage the logging,
+   checkpointing, prediction, and results processes in a coherent way.
+
+   Parameters
+   ----------
+   experiment_name : str
+       The name of the experiment. This name will be used to create a
+       directory for the experiment in the log directory.
+   model_config : ModelConfig
+       The model configuration. This object contains the model instantiator
+       and the model information.
+   data_module : MinervaDataModule
+       The data module. This object contains the training, validation, and
+       test datasets, as well as the data loaders. For now, datasets must
+       return a 2 element tuple (input, label) for each sample.
+   pretrained_backbone_ckpt_path : Optional[PathLike], optional
+       The path to the pretrained backbone checkpoint. This is used to
+       finetune the model. If None, the model will be trained from
+       scratch. This parameter handles the lazy instantiation of the model
+       and calls `create_model_and_load_backbone` method of the model
+       instantiator if `pretrained_backbone_ckpt_path` is not None or
+       `create_model_randomly_initialized` method if it is None. By
+       default None
+   root_log_dir : PathLike, optional
+       Root directory for logging and checkpoints. This directory will be
+       used to create a subdirectory for the experiment. By default ./logs
+   execution_id : Union[str, int], optional
+       The execution ID for the experiment. This ID will be used to create
+       a subdirectory for the experiment in the log directory. This is
+       useful when running the experiment multiple times with the same
+       parameters. By default 0
+   checkpoint_metrics : Optional[List[Dict[str, str]]], optional
+       The checkpoint metrics. This is a list of dictionaries that contain
+       the checkpoint metrics. Each dictionary must contain the keys
+       "monitor", "mode", and "filename". The "monitor" key is the name of
+       the metric to monitor, the "mode" key is the mode of the metric
+       ("min" or "max"), and the "filename" key is the name of the
+       checkpoint file. The "monitor" key can be None if the checkpoint is
+       the last one. By default None
+   max_epochs : int, optional
+       Number of epochs to train the model. This parameter is passed to the
+       `get_trainer` function. By default 100.
+   accelerator : str, optional
+       The accelerator to use for training. This parameter is passed to the
+       `get_trainer` function. By default "gpu". Possible values are
+       "cpu", "gpu", "tpu", "ipu", "hpu", "mps", "auto". If "auto" is
+       selected, the accelerator will be automatically selected based on
+       the available hardware. By default "gpu"
+   devices : Optional[Union[int, list[int], str]], optional
+       Number of accelerators to use for training. This parameter is
+       passed to the `get_trainer` function. By default 1.
+   strategy : str, optional
+       Strategy to use for distributed training. This parameter is passed
+       to the `get_trainer` function. By default "auto".
+   num_nodes : int, optional
+       Number of nodes to use for distributed training. This parameter is
+       passed to the `get_trainer` function. By default 1.
+   limit_train_batches : Optional[Union[int, float]], optional
+       Limit the number of training batches to use. This parameter is
+       passed to the `get_trainer` function. By default None. If None, all
+       batches will be used. If an integer is provided, it will be the
+       absolute number of batches. If a float is provided, it will be the
+       fraction of the total number of batches. For example, 0.1 means 10%
+       of the training batches will be used.
+   limit_val_batches : Optional[Union[int, float]], optional
+       Limit the number of validation batches to use. This parameter is
+       passed to the `get_trainer` function. By default None. If None, all
+       batches will be used. If an integer is provided, it will be the
+       absolute number of batches. If a float is provided, it will be the
+       fraction of the total number of batches. For example, 0.1 means 10%
+       of the validation batches will be used.
+   limit_test_batches : Optional[Union[int, float]], optional
+       Limit the number of test batches to use. This parameter is
+       passed to the `get_trainer` function. By default None. If None, all
+       batches will be used. If an integer is provided, it will be the
+       absolute number of batches. If a float is provided, it will be the
+       fraction of the total number of batches. For example, 0.1 means 10%
+       of the test batches will be used.
+   limit_predict_batches : Optional[Union[int, float]], optional
+       Limit the number of prediction batches to use. This parameter is
+       passed to the `get_trainer` function. By default None. If None, all
+       batches will be used. If an integer is provided, it will be the
+       absolute number of batches. If a float is provided, it will be the
+       fraction of the total number of batches. For example, 0.1 means 10%
+       of the prediction batches will be used.
+   evaluation_metrics : Optional[Dict[str, torchmetrics.Metric]], optional
+       A dictionary of evaluation metrics to use for the predictions. The
+       keys are the names of the metrics and the values are the
+       `torchmetrics.Metric` objects. These metrics are calculated using
+       all the predictions. By default None.
+   per_sample_evaluation_metrics : Optional[ Dict[str, torchmetrics.Metric] ], optional
+       A dictionary of evaluation metrics to use for the predictions. The
+       keys are the names of the metrics and the values are the
+       `torchmetrics.Metric` objects. These metrics are calculated using
+       each prediction separately, that is, applyied per sample. By
+       default None.
+   seed : Optional[int], optional
+       The seed to use for the experiment, by default None
+   progress_bar_refresh_rate : int, optional
+       The refresh rate of the progress bar (in batches). If 0, the
+       progress bar is disabled. If 1, the progress bar is updated every
+       batch. By default 1
+   profiler : Optional[str], optional
+       A profiler to use for the experiment. This parameter is passed to
+       the `get_trainer` function. By default None.
+   save_predictions : bool, optional
+       If True, the predictions will be saved to the log directory. By
+       default True
+   save_results : bool, optional
+       If True, the results will be saved to the log directory. By
+       default True
+   add_last_checkpoint : bool, optional
+       If True, the last checkpoint will be added to the list of checkpoint
+       metrics. By default True.
+
+   Raises
+   ------
+   ValueError
+       If the checkpoint metrics are not valid or do not contain the
+       required keys.
+
+   Notes
+   ------
+   - This class assumes that the `MinervaDataModule` class returns a
+       (input, label) tuple for each sample in the dataset. The input is
+       the data and the label is the ground truth/target.
+
+
+   .. py:attribute:: NUM_DEBUG_BATCHES
+      :value: 10
+
+
+
+   .. py:attribute:: NUM_DEBUG_EPOCHS
+      :value: 3
+
+
+
+   .. py:method:: __str__()
+
+
+   .. py:method:: __typing_string(value)
+      :staticmethod:
+
+
+
+   .. py:attribute:: _checkpoint_dir
+
+
+   .. py:method:: _evaluate_model(ckpts_to_evaluate = None, print_summary = True, debug = False)
+
+
+   .. py:attribute:: _predictions_dir
+
+
+   .. py:method:: _print_evaluation_summary(trainer_params, debug = False, ckpt_path = None, predictions_path = None, results_path = None)
+
+
+   .. py:method:: _print_train_summary(model, trainer_params, debug = False, resume_from_ckpt = None)
+
+
+   .. py:attribute:: _results_dir
+
+
+   .. py:method:: _run(task, debug = False, resume_from_ckpt = None, print_summary = True, ckpts_to_evaluate = None)
+
+      Default pipeline method to be implemented in derived classes. This
+      implements the pipeline logic.
+
+      Returns
+      -------
+      Any
+          The result of the pipeline run.
+
+
+
+   .. py:method:: _train_model(resume_from_ckpt = None, debug = False, print_summary = True)
+
+
+   .. py:method:: _trainer_parameters(enable_logging = True, debug = False)
+
+      Return the parameters for the trainer based on the current on debug
+      and logging settings.
+
+      Parameters
+      ----------
+      enable_logging : bool, optional
+          If True, logging will be enabled, by default True
+      debug : bool, optional
+          If True,  model will be trained with a few batches and for a few
+          epochs only. Logging will always be disabled, by default False
+
+      Returns
+      -------
+      Dict[str, Any]
+          All the parameters for the `get_trainer` function.
+
+
+
+   .. py:attribute:: _training_metrics_path
+
+
+   .. py:attribute:: accelerator
+      :value: 'gpu'
+
+
+
+   .. py:attribute:: checkpoint_metrics
+      :value: []
+
+
+
+   .. py:property:: checkpoint_paths
+      :type: Dict[str, pathlib.Path]
+
+
+      Returns a dictionary of checkpoint paths for the experiment.
+
+      The keys are the checkpoint names, and the values are the corresponding
+      paths to the checkpoints.
+
+      Returns
+      -------
+      Dict[str, Path]
+          A dictionary mapping checkpoint names to their respective paths.
+
+
+
+   .. py:method:: cleanup()
+
+      Clean up the experiment by removing the log directory.
+
+
+
+   .. py:attribute:: data_module
+
+
+   .. py:attribute:: devices
+      :value: 1
+
+
+
+   .. py:attribute:: evaluation_metrics
+
+
+   .. py:attribute:: execution_id
+      :value: ''
+
+
+
+   .. py:attribute:: experiment_name
+
+
+   .. py:attribute:: limit_predict_batches
+      :value: None
+
+
+
+   .. py:attribute:: limit_test_batches
+      :value: None
+
+
+
+   .. py:attribute:: limit_train_batches
+      :value: None
+
+
+
+   .. py:attribute:: limit_val_batches
+      :value: None
+
+
+
+   .. py:method:: load_predictions_of_ckpt(name)
+
+      Load predictions from a file.
+
+      Parameters
+      ----------
+      name : str
+          The name of the prediction file (without extension).
+
+      Returns
+      -------
+      np.ndarray
+          The loaded predictions as a numpy array.
+
+
+
+   .. py:method:: load_results_of_ckpt(name)
+
+      Load results from a file.
+
+      Parameters
+      ----------
+      name : str
+          The name of the result file (without extension).
+
+      Returns
+      -------
+      pd.DataFrame
+          The loaded results as a pandas DataFrame.
+
+
+
+   .. py:attribute:: max_epochs
+      :value: 100
+
+
+
+   .. py:attribute:: model_config
+
+
+   .. py:attribute:: num_nodes
+      :value: 1
+
+
+
+   .. py:attribute:: per_sample_evaluation_metrics
+
+
+   .. py:property:: prediction_paths
+      :type: Dict[str, pathlib.Path]
+
+
+      Returns a dictionary of prediction paths for the experiment.
+
+      The keys are the prediction names, and the values are the corresponding
+      paths to the predictions.
+
+      Returns
+      -------
+      Dict[str, Path]
+          A dictionary mapping prediction names to their respective paths.
+
+
+
+   .. py:attribute:: pretrained_backbone_ckpt_path
+      :value: None
+
+
+
+   .. py:attribute:: profiler
+      :value: None
+
+
+
+   .. py:attribute:: progress_bar_refresh_rate
+      :value: 1
+
+
+
+   .. py:property:: results_paths
+      :type: Dict[str, pathlib.Path]
+
+
+      Returns a dictionary of results paths for the experiment.
+
+      The keys are the result names, and the values are the corresponding
+      paths to the results.
+
+      Returns
+      -------
+      Dict[str, Path]
+          A dictionary mapping result names to their respective paths.
+
+
+
+   .. py:attribute:: root_log_dir
+
+
+   .. py:attribute:: save_predictions
+      :value: True
+
+
+
+   .. py:attribute:: save_results
+      :value: True
+
+
+
+   .. py:attribute:: seed
+      :value: None
+
+
+
+   .. py:property:: status
+      :type: Dict[str, Any]
+
+
+
+   .. py:attribute:: strategy
+      :value: 'auto'
+
+
+
+   .. py:property:: training_metrics
+      :type: Optional[pandas.DataFrame]
+
+
+      Returns the training metrics as a pandas DataFrame.
+      If the metrics file does not exist, returns None.
+
+      Returns
+      -------
+      Optional[pd.DataFrame]
+          A DataFrame containing the training metrics.
+
+
+
+   .. py:property:: training_metrics_path
+      :type: Optional[pathlib.Path]
+
+
+      The path to the training metrics file.
+
+      Returns
+      -------
+      Optional[Path]
+          The path to the metrics file if it exists, otherwise None.
+
+
+
+.. py:class:: ModelConfig(instantiator, information)
+
+   Encapsulates the full configuration of a model for use in a training or
+   inference pipeline.
+
+   A `ModelConfig` brings together two key components:
+
+   - `ModelInstantiator`: Responsible for creating the model in different
+     modes (lazily instantiated):
+       - From scratch (randomly initialized)
+       - Finetuning (load pretrained backbone, new head)
+       - From checkpoint (fully restored model)
+
+   - `ModelInformation`: Contains descriptive metadata about the model such
+     as input/output shapes, number of classes, backbone used, and task type.
+
+   This class serves as the primary interface for managing and accessing
+   model configuration throughout the lifecycle of training, evaluation, or
+   deployment.
+
+   Initialize a model configuration.
+
+   Parameters
+   ----------
+   instantiator : ModelInstantiator
+       An instance responsible for constructing the model in various
+       training modes (random init, load backbone, load full checkpoint).
+       This enables lazy instantiation depending on the training phase.
+
+   information : ModelInformation
+       Metadata describing the model's architecture and behavior.
+       Includes input/output shapes, task type, number of classes, and
+       other relevant info useful for logging, validation, and downstream
+       processing.
+
+
+   .. py:method:: __str__()
+
+
+   .. py:attribute:: information
+
+
+   .. py:attribute:: instantiator
+
+
+.. py:class:: ModelInformation
+
+   Container for metadata related to a machine learning model configuration.
+
+   This class stores essential information about a model's identity,
+   architecture, data shapes, and output behavior. Such metadata is useful
+   for tasks such as logging, reproducibility, automated evaluation, or
+   dynamic behavior in pipelines.
+
+   Attributes
+   ----------
+   name : str
+       A unique identifier for the model configuration. Commonly used for
+       logging, saving checkpoints, or experiment tracking.
+
+   backbone_name : Optional[str], optional
+       The name of the backbone architecture used in the model (e.g.,
+       "resnet50", "vit-base"). Useful for identifying model variants or
+       tracking architectural differences.
+
+   task_type : Optional[str], optional
+       The task the model is designed for (e.g., "classification",
+       "segmentation", "detection"). Enables downstream logic to adapt based
+       on the task type.
+
+   input_shape : Optional[Tuple[int, ...]], optional
+       Expected shape of input tensors (excluding batch size), typically in
+       the format (C, H, W) for image data. For example: (3, 224, 224) for an
+       RGB image of size 224x224.
+
+   output_shape : Optional[Tuple[int, ...]], optional
+       Expected shape of model outputs (excluding batch size). Examples
+       include:
+           - (6, 224, 224) for semantic segmentation logits with 6 classes
+           - (224, 224) for semantic segmentation predictions (argmax indices)
+           - (6,) for classification logits (6 classes)
+           - (1,) for classification predictions as class indices
+
+   num_classes : Optional[int], optional
+       Total number of classes the model is predicting. Primarily relevant for
+       classification or segmentation tasks.
+
+   return_logits : Optional[bool], optional
+       If True, the model returns raw logits. If False, it returns
+       post-processed class predictions (e.g., argmax indices or
+       probabilities).
+
+
+   .. py:attribute:: backbone_name
+      :type:  Optional[str]
+      :value: None
+
+
+
+   .. py:attribute:: input_shape
+      :type:  Optional[Tuple[int, Ellipsis]]
+      :value: None
+
+
+
+   .. py:attribute:: name
+      :type:  str
+
+
+   .. py:attribute:: num_classes
+      :type:  Optional[int]
+      :value: None
+
+
+
+   .. py:attribute:: output_shape
+      :type:  Optional[Tuple[int, Ellipsis]]
+      :value: None
+
+
+
+   .. py:attribute:: return_logits
+      :type:  Optional[bool]
+      :value: None
+
+
+
+   .. py:attribute:: task_type
+      :type:  Optional[str]
+      :value: None
+
+
+
+.. py:class:: ModelInstantiator
+
+   Bases: :py:obj:`abc.ABC`
+
+
+   Abstract base class for lazy instantiation of PyTorch Lightning models.
+
+   This interface defines a standardized way to construct models in three
+   common training scenarios:
+
+   1. Training from scratch: the entire model (backbone + head) is randomly
+      initialized.
+   2. Finetuning: a pretrained backbone is loaded from a checkpoint, while the
+      head is randomly initialized.
+   3. Inference/Evaluation: the full model is restored from a previously
+      saved checkpoint. Usually, this checkpoint is generated using one of the
+      two scenarios above.
+
+   This abstraction allows for flexible and decoupled model construction across
+   various stages of the machine learning lifecycle. Thus, is expected that
+   model's architecture follows the same pattern as the one below:
+
+       +-------------------------------+
+       |   Model (LightningModule)     |
+       |                               |
+       |     +-----------------+       |
+       |     |    Backbone     |       |   --> Feature extractor
+       |     +-----------------+       |
+       |             |                 |
+       |             v                 |
+       |        +----------+           |
+       |        |   Head   |           |   --> Task-specific layers
+       |        +----------+           |
+       +-------------------------------+
+
+   Definitions
+   -----------
+   - Backbone: Core feature extractor (e.g., ResNet, Transformer encoder).
+   - Head: Task-specific layers (e.g., classification head, regression head).
+
+   Implementations of this class should handle the appropriate model loading
+   logic for each use case described above.
+
+
+   .. py:method:: create_model_and_load_backbone(backbone_checkpoint_path)
+      :abstractmethod:
+
+
+      Create a model for finetuning with a pretrained backbone and a
+      new head (randomly initialized). This method should load the backbone
+      weights from the specified checkpoint and attach a freshly initialized
+      head for the downstream task. User must handle the logic to load the
+      backbone weights into the model's state dict.
+
+      Parameters
+      ----------
+      backbone_checkpoint_path : PathLike
+          Path to the checkpoint containing pretrained backbone weights. The
+          checkpoint must be compatible with the model architecture.
+
+      Returns
+      -------
+      L.LightningModule
+          The model ready for finetuning (pretrained backbone, new head).
+
+
+
+   .. py:method:: create_model_randomly_initialized()
+      :abstractmethod:
+
+
+      Create a model with both backbone and head randomly initialized.
+      Typically used when training a model from scratch.
+
+      Returns
+      -------
+      L.LightningModule
+          A Lightning model fully initialized with random weights, ready for
+          training.
+
+
+
+   .. py:method:: load_model_from_checkpoint(checkpoint_path)
+      :abstractmethod:
+
+
+      Load the full model (backbone and head) from a saved checkpoint.
+      Typically used for resuming training, evaluation, or inference when the
+      model must be restored in its entirety. In practice, the checkpoint
+      should be one created using `create_model_and_load_backbone` or
+      `create_model_randomly_initialized`.
+      The checkpoint must be compatible with the model architecture.
+
+      Parameters
+      ----------
+      checkpoint_path : PathLike
+          Path to the checkpoint file containing the full model state.
+
+      Returns
+      -------
+      L.LightningModule
+          A Lightning model fully restored from checkpoint, ready for
+          evaluation or inference.
+
+
+
+.. py:function:: get_trainer(log_dir, max_epochs = 100, limit_train_batches = None, limit_val_batches = None, limit_test_batches = None, limit_predict_batches = None, accelerator = 'auto', strategy = 'auto', devices = 'auto', num_nodes = 1, progress_bar_refresh_rate = 1, enable_logging = True, checkpoint_metrics = None, precision = '32-true', accumulate_grad_batches = 1, deterministic = False, benchmark = True, profiler = None, overfit_batches = 0.0, sync_batchnorm = False)
+
+   Creates and configures a PyTorch Lightning Trainer instance.
+
+   This function encapsulates all necessary options for flexible training,
+   evaluation, or inference, including logging, checkpointing, device setup,
+   precision, and more.
+
+   Parameters
+   ----------
+   log_dir : Path
+       Directory path where logs and checkpoints will be saved.
+
+   max_epochs : int, default=100
+       Maximum number of epochs for training.
+
+   limit_train_batches : int or float, optional
+       Limit on the number of training batches per epoch. Can be an integer
+       (absolute number) or a float (fraction of total batches).
+
+   limit_val_batches : int or float, optional
+       Limit on the number of validation batches per epoch.
+
+   limit_test_batches : int or float, optional
+       Limit on the number of test batches per epoch.
+
+   limit_predict_batches : int or float, optional
+       Limit on the number of prediction batches.
+
+   accelerator : str, default="auto"
+       Hardware accelerator to use (e.g., "gpu", "cpu", "tpu", "auto").
+
+   strategy : str, default="auto"
+       Distributed training strategy (e.g., "ddp", "deepspeed", etc.).
+
+   devices : int, list of int, or str, optional, default="auto"
+       Devices to use for training (e.g., 1, [0,1], "auto").
+
+   num_nodes : int, default=1
+       Number of nodes to use for distributed training.
+
+   progress_bar_refresh_rate : int, default=1
+       Frequency (in steps) at which the progress bar is updated.
+       Set to 0 to disable.
+
+   enable_logging : bool, default=True
+       Whether to enable CSV logging.
+
+   checkpoint_metrics : list of dict, optional
+       List of dictionaries containing checkpoint configurations. Each
+       dictionary should specify "monitor", "mode", and "filename".
+
+   precision : str, default="32-true"
+       Numerical precision to use during training (e.g., 32-true, 16-mixed).
+
+   accumulate_grad_batches : int, default=1
+       Number of batches for which gradients should be accumulated before
+       performing an optimizer step.
+
+   deterministic : bool, default=False
+       If True, sets deterministic behavior for reproducibility.
+
+   benchmark : bool, default=True
+       Enables the cudnn.benchmark flag for optimized performance on fixed
+       input sizes.
+
+   profiler : str, optional
+       Enables performance profiling (e.g., "simple", "advanced").
+
+   overfit_batches : int or float, default=0.0
+       Uses a fraction or number of batches for both training and validation
+       to quickly debug overfitting behavior.
+
+   sync_batchnorm : bool, default=False
+       Synchronizes batch norm layers across devices during distributed
+       training.
+
+   Returns
+   -------
+   L.Trainer
+       A configured PyTorch Lightning Trainer instance.
+
+
+.. py:function:: load_predictions(path)
+
+   Load a prediction from a given path.
+
+   Parameters
+   ----------
+   path : PathLike
+       The path to the prediction file.
+
+   Returns
+   -------
+   np.ndarray
+       The loaded prediction data.
+
+
+.. py:function:: load_results(path)
+
+   Load results from a given path.
+
+   Parameters
+   ----------
+   path : PathLike
+       The path to the results file.
+
+   Returns
+   -------
+   pd.DataFrame
+       The loaded results data.
+
+
+.. py:function:: perform_evaluation(evaluation_metrics, data_module, predictions, argmax_axis = None, per_sample = False, batch_size = 1, device = 'cpu')
+
+   Evaluates predictions using provided evaluation metrics and a data module
+
+   This function compares predicted values against ground truth labels from
+   a prediction dataset. It supports both aggregate evaluation over the entire
+   dataset and per-sample evaluation. Metrics should be compatible with
+   `torchmetrics`.
+
+   Parameters
+   ----------
+   evaluation_metrics : dict of str to torchmetrics.Metric
+       A dictionary mapping metric names to `torchmetrics.Metric` instances.
+
+   data_module : MinervaDataModule
+       A data module that contains the `predict_dataset` used for evaluation.
+
+   predictions : np.ndarray
+       An array of predictions generated by the model.
+
+   argmax_axis : int, optional
+       If provided, applies `torch.argmax` along this axis to the predictions
+       before metric evaluation.
+
+   per_sample : bool, default=False
+       If True, computes metrics individually for each sample. Otherwise,
+       evaluates metrics over the entire dataset in batches.
+
+   batch_size : int, default=1
+       Batch size used for evaluation when `per_sample` is False.
+
+   device : str, default="cpu"
+       The device (e.g., "cpu", "cuda") on which metric computations will run.
+
+   Returns
+   -------
+   pd.DataFrame
+       A DataFrame containing computed metric values. If `per_sample` is True,
+       each row corresponds to one sample. Otherwise, a single-row summary is
+       returned.
+
+
+.. py:function:: perform_predict(data_module, model, trainer, squeeze = False)
+
+   Perform predictions using the provided data module and trainer.
+
+   Parameters
+   ----------
+   data_module : MinervaDataModule
+       The data module containing the dataset for predictions.
+   model : L.LightningModule
+       The model to be used for predictions.
+   trainer : L.Trainer
+       The trainer instance to use for predictions.
+   squeeze : bool, optional
+       If True, squeeze the predictions to remove single-dimensional entries
+       from the shape of the predictions (except from first dimension). By
+       default False
+
+   Returns
+   -------
+   np.ndarray
+       The predictions as a numpy array.
+
+
+.. py:function:: perform_train(data_module, model, trainer, resume_from_ckpt = None)
+
+   Train the model using the provided data module and trainer.
+
+   Parameters
+   ----------
+   data_module : MinervaDataModule
+       The data module containing the training and validation datasets.
+   model : L.LightningModule
+       The model to be trained.
+   trainer : L.Trainer
+       The trainer instance to use for training.
+   resume_from_ckpt : Optional[PathLike], optional
+       A path to a checkpoint in which to resume training. If None, training
+       starts from scratch. By default None
+
+   Returns
+   -------
+   L.LightningModule
+       The trained model.
+
+
+.. py:function:: save_predictions(predictions, path)
+
+   Save predictions to a given path.
+
+   Parameters
+   ----------
+   predictions : Union[np.ndarray, torch.Tensor]
+       The prediction data to save.
+   path : PathLike
+       The path where the predictions will be saved.
+
+
+.. py:function:: save_results(results, path, index = False)
+
+   Save results to a given path.
+
+   Parameters
+   ----------
+   results : pd.DataFrame
+       The results data to save.
+   path : PathLike
+       The path where the results will be saved.
+   index : bool, optional
+       Whether to save the index of the DataFrame, by default False
+
+

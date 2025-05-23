@@ -1,0 +1,228 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>minerva.utils.position_embedding &mdash; minerva  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            minerva
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../design.html">Minerva Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials.html">Examples and Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing to Minerva</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">Programming Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">minerva</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">minerva.utils.position_embedding</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for minerva.utils.position_embedding</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">partial</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pytorch_lightning</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pl</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">timm.models.vision_transformer</span><span class="w"> </span><span class="kn">import</span> <span class="n">Block</span><span class="p">,</span> <span class="n">PatchEmbed</span>
+
+
+<span class="c1"># --------------------------------------------------------</span>
+<span class="c1"># 2D sine-cosine position embedding</span>
+<span class="c1"># References:</span>
+<span class="c1"># Transformer: https://github.com/tensorflow/models/blob/master/official/nlp/transformer/model_utils.py</span>
+<span class="c1"># MoCo v3: https://github.com/facebookresearch/moco-v3</span>
+<span class="c1"># --------------------------------------------------------</span>
+<div class="viewcode-block" id="get_2d_sincos_pos_embed">
+<a class="viewcode-back" href="../../../autoapi/minerva/utils/position_embedding/index.html#minerva.utils.position_embedding.get_2d_sincos_pos_embed">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_2d_sincos_pos_embed</span><span class="p">(</span><span class="n">embed_dim</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">grid_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">cls_token</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    grid_size: int of the grid height and width</span>
+<span class="sd">    return:</span>
+<span class="sd">    pos_embed: [grid_size*grid_size, embed_dim] or [1+grid_size*grid_size, embed_dim] (w/ or w/o cls_token)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">grid_h</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">grid_size</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">grid_w</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">grid_size</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">grid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">grid_w</span><span class="p">,</span> <span class="n">grid_h</span><span class="p">)</span>  <span class="c1"># here w goes first</span>
+    <span class="n">grid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">grid</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="n">grid</span> <span class="o">=</span> <span class="n">grid</span><span class="o">.</span><span class="n">reshape</span><span class="p">([</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">grid_size</span><span class="p">,</span> <span class="n">grid_size</span><span class="p">])</span>
+    <span class="n">pos_embed</span> <span class="o">=</span> <span class="n">get_2d_sincos_pos_embed_from_grid</span><span class="p">(</span><span class="n">embed_dim</span><span class="p">,</span> <span class="n">grid</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">cls_token</span><span class="p">:</span>
+        <span class="n">pos_embed</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="n">embed_dim</span><span class="p">]),</span> <span class="n">pos_embed</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">pos_embed</span></div>
+
+
+
+<div class="viewcode-block" id="get_2d_sincos_pos_embed_from_grid">
+<a class="viewcode-back" href="../../../autoapi/minerva/utils/position_embedding/index.html#minerva.utils.position_embedding.get_2d_sincos_pos_embed_from_grid">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_2d_sincos_pos_embed_from_grid</span><span class="p">(</span><span class="n">embed_dim</span><span class="p">,</span> <span class="n">grid</span><span class="p">):</span>
+    <span class="k">assert</span> <span class="n">embed_dim</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span>
+
+    <span class="c1"># use half of dimensions to encode grid_h</span>
+    <span class="n">emb_h</span> <span class="o">=</span> <span class="n">get_1d_sincos_pos_embed_from_grid</span><span class="p">(</span><span class="n">embed_dim</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">grid</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>  <span class="c1"># (H*W, D/2)</span>
+    <span class="n">emb_w</span> <span class="o">=</span> <span class="n">get_1d_sincos_pos_embed_from_grid</span><span class="p">(</span><span class="n">embed_dim</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">grid</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>  <span class="c1"># (H*W, D/2)</span>
+
+    <span class="n">emb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">emb_h</span><span class="p">,</span> <span class="n">emb_w</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># (H*W, D)</span>
+    <span class="k">return</span> <span class="n">emb</span></div>
+
+
+
+<div class="viewcode-block" id="get_1d_sincos_pos_embed_from_grid">
+<a class="viewcode-back" href="../../../autoapi/minerva/utils/position_embedding/index.html#minerva.utils.position_embedding.get_1d_sincos_pos_embed_from_grid">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_1d_sincos_pos_embed_from_grid</span><span class="p">(</span><span class="n">embed_dim</span><span class="p">,</span> <span class="n">pos</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    embed_dim: output dimension for each position</span>
+<span class="sd">    pos: a list of positions to be encoded: size (M,)</span>
+<span class="sd">    out: (M, D)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="n">embed_dim</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span>
+    <span class="n">omega</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">embed_dim</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">omega</span> <span class="o">/=</span> <span class="n">embed_dim</span> <span class="o">/</span> <span class="mf">2.0</span>
+    <span class="n">omega</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="mi">10000</span><span class="o">**</span><span class="n">omega</span>  <span class="c1"># (D/2,)</span>
+
+    <span class="n">pos</span> <span class="o">=</span> <span class="n">pos</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># (M,)</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s2">&quot;m,d-&gt;md&quot;</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">omega</span><span class="p">)</span>  <span class="c1"># (M, D/2), outer product</span>
+
+    <span class="n">emb_sin</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>  <span class="c1"># (M, D/2)</span>
+    <span class="n">emb_cos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>  <span class="c1"># (M, D/2)</span>
+
+    <span class="n">emb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">emb_sin</span><span class="p">,</span> <span class="n">emb_cos</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># (M, D)</span>
+    <span class="k">return</span> <span class="n">emb</span></div>
+
+
+
+<span class="c1"># --------------------------------------------------------</span>
+<span class="c1"># Interpolate position embeddings for high-resolution</span>
+<span class="c1"># References:</span>
+<span class="c1"># DeiT: https://github.com/facebookresearch/deit</span>
+<span class="c1"># --------------------------------------------------------</span>
+<div class="viewcode-block" id="interpolate_pos_embed">
+<a class="viewcode-back" href="../../../autoapi/minerva/utils/position_embedding/index.html#minerva.utils.position_embedding.interpolate_pos_embed">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">interpolate_pos_embed</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">checkpoint_model</span><span class="p">,</span> <span class="n">newsize1</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">newsize2</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">if</span> <span class="s2">&quot;pos_embed&quot;</span> <span class="ow">in</span> <span class="n">checkpoint_model</span><span class="p">:</span>
+        <span class="n">pos_embed_checkpoint</span> <span class="o">=</span> <span class="n">checkpoint_model</span><span class="p">[</span><span class="s2">&quot;pos_embed&quot;</span><span class="p">]</span>
+        <span class="n">embedding_size</span> <span class="o">=</span> <span class="n">pos_embed_checkpoint</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">num_patches</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">patch_embed</span><span class="o">.</span><span class="n">num_patches</span>
+        <span class="n">num_extra_tokens</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">pos_embed</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">num_patches</span>
+        <span class="c1"># height (== width) for the checkpoint position embedding</span>
+        <span class="n">orig_size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">pos_embed_checkpoint</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">num_extra_tokens</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.5</span><span class="p">)</span>
+        <span class="c1"># height (== width) for the new position embedding</span>
+        <span class="n">new_size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">num_patches</span><span class="o">**</span><span class="mf">0.5</span><span class="p">)</span>
+        <span class="c1"># class_token and dist_token are kept unchanged</span>
+        <span class="k">if</span> <span class="n">orig_size</span> <span class="o">!=</span> <span class="n">new_size</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">newsize1</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">newsize1</span><span class="p">,</span> <span class="n">newsize2</span> <span class="o">=</span> <span class="n">new_size</span><span class="p">,</span> <span class="n">new_size</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="s2">&quot;Position interpolate from </span><span class="si">%d</span><span class="s2">x</span><span class="si">%d</span><span class="s2"> to </span><span class="si">%d</span><span class="s2">x</span><span class="si">%d</span><span class="s2">&quot;</span>
+                <span class="o">%</span> <span class="p">(</span><span class="n">orig_size</span><span class="p">,</span> <span class="n">orig_size</span><span class="p">,</span> <span class="n">newsize1</span><span class="p">,</span> <span class="n">newsize2</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="n">extra_tokens</span> <span class="o">=</span> <span class="n">pos_embed_checkpoint</span><span class="p">[:,</span> <span class="p">:</span><span class="n">num_extra_tokens</span><span class="p">]</span>
+            <span class="c1"># only the position tokens are interpolated</span>
+            <span class="n">pos_tokens</span> <span class="o">=</span> <span class="n">pos_embed_checkpoint</span><span class="p">[:,</span> <span class="n">num_extra_tokens</span><span class="p">:]</span>
+            <span class="n">pos_tokens</span> <span class="o">=</span> <span class="n">pos_tokens</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
+                <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">orig_size</span><span class="p">,</span> <span class="n">orig_size</span><span class="p">,</span> <span class="n">embedding_size</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">permute</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="n">pos_tokens</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span>
+                <span class="n">pos_tokens</span><span class="p">,</span>
+                <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">newsize1</span><span class="p">,</span> <span class="n">newsize2</span><span class="p">),</span>
+                <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;bicubic&quot;</span><span class="p">,</span>
+                <span class="n">align_corners</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">pos_tokens</span> <span class="o">=</span> <span class="n">pos_tokens</span><span class="o">.</span><span class="n">permute</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="n">new_pos_embed</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">extra_tokens</span><span class="p">,</span> <span class="n">pos_tokens</span><span class="p">),</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">checkpoint_model</span><span class="p">[</span><span class="s2">&quot;pos_embed&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_pos_embed</span></div>
+
+        <span class="c1"># elif orig_size &gt; new_size:</span>
+        <span class="c1">#     print(&quot;Position generate from %dx%d to %dx%d&quot; % (orig_size, orig_size, new_size, new_size))</span>
+        <span class="c1">#     pos_tokens = get_2d_sincos_pos_embed(embedding_size, new_size, cls_token=True)</span>
+        <span class="c1">#     pos_tokens = torch.from_numpy(pos_tokens).float().unsqueeze(0)</span>
+        <span class="c1">#     checkpoint_model[&#39;pos_embed&#39;] = pos_tokens</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Unicamp.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

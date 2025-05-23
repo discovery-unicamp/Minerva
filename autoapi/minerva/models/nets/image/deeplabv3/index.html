@@ -1,0 +1,348 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>minerva.models.nets.image.deeplabv3 &mdash; minerva  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../../../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../../../index.html" class="icon icon-home">
+            minerva
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../design.html">Minerva Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../tutorials.html">Examples and Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../contributing.html">Contributing to Minerva</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../api.html">Programming Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../../../index.html">minerva</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">minerva.models.nets.image.deeplabv3</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../../../../_sources/autoapi/minerva/models/nets/image/deeplabv3/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-minerva.models.nets.image.deeplabv3">
+<span id="minerva-models-nets-image-deeplabv3"></span><h1>minerva.models.nets.image.deeplabv3<a class="headerlink" href="#module-minerva.models.nets.image.deeplabv3" title="Link to this heading"></a></h1>
+<section id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Link to this heading"></a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#minerva.models.nets.image.deeplabv3.DeepLabV3" title="minerva.models.nets.image.deeplabv3.DeepLabV3"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DeepLabV3</span></code></a></p></td>
+<td><p>A DeeplabV3 with a ResNet50 backbone</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#minerva.models.nets.image.deeplabv3.DeepLabV3Backbone" title="minerva.models.nets.image.deeplabv3.DeepLabV3Backbone"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DeepLabV3Backbone</span></code></a></p></td>
+<td><p>A ResNet50 backbone for DeepLabV3</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#minerva.models.nets.image.deeplabv3.DeepLabV3PredictionHead" title="minerva.models.nets.image.deeplabv3.DeepLabV3PredictionHead"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DeepLabV3PredictionHead</span></code></a></p></td>
+<td><p>The prediction head for DeepLabV3</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.models.nets.image.deeplabv3.DeepLabV3">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.models.nets.image.deeplabv3.</span></span><span class="sig-name descname"><span class="pre">DeepLabV3</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">backbone</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pred_head</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss_fn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">learning_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_classes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_metrics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">val_metrics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">test_metrics</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimizer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">torch.optim.Adam</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">optimizer_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lr_scheduler</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lr_scheduler_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/deeplabv3.html#DeepLabV3"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.deeplabv3.DeepLabV3" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="../../base/index.html#minerva.models.nets.base.SimpleSupervisedModel" title="minerva.models.nets.base.SimpleSupervisedModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">minerva.models.nets.base.SimpleSupervisedModel</span></code></a></p>
+<p>A DeeplabV3 with a ResNet50 backbone</p>
+<section id="references">
+<h3>References<a class="headerlink" href="#references" title="Link to this heading"></a></h3>
+<p>Liang-Chieh Chen, George Papandreou, Florian Schroff, Hartwig Adam.
+“Rethinking Atrous Convolution for Semantic Image Segmentation”, 2017</p>
+<p>Initializes a DeepLabV3 model.</p>
+</section>
+<section id="parameters">
+<h3>Parameters<a class="headerlink" href="#parameters" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt>backbone: Optional[nn.Module]</dt><dd><p>The backbone network. Defaults to None, which will use a ResNet50
+backbone.</p>
+</dd>
+<dt>pred_head: Optional[nn.Module]</dt><dd><p>The prediction head network. Defaults to None, which will use a
+DeepLabV3PredictionHead with specified number of classes.</p>
+</dd>
+<dt>loss_fn: Optional[nn.Module]</dt><dd><p>The loss function. Defaults to None, which will use a
+CrossEntropyLoss.</p>
+</dd>
+<dt>learning_rate: float</dt><dd><p>The learning rate for the optimizer. Defaults to 0.001.</p>
+</dd>
+<dt>num_classes: int</dt><dd><p>The number of classes for prediction. Defaults to 6.</p>
+</dd>
+<dt>train_metrics: Optional[Dict[str, Metric]]</dt><dd><p>The metrics to be computed during training. Defaults to None.</p>
+</dd>
+<dt>val_metrics: Optional[Dict[str, Metric]]</dt><dd><p>The metrics to be computed during validation. Defaults to None.</p>
+</dd>
+<dt>test_metrics: Optional[Dict[str, Metric]]</dt><dd><p>The metrics to be computed during testing. Defaults to None.</p>
+</dd>
+<dt>optimizer: type</dt><dd><p>Optimizer class to be instantiated. By default, it is set to
+<cite>torch.optim.Adam</cite>. Should be a subclass of
+<cite>torch.optim.Optimizer</cite> (e.g., <cite>torch.optim.SGD</cite>).</p>
+</dd>
+<dt>optimizer_kwargs<span class="classifier">dict, optional</span></dt><dd><p>Additional kwargs passed to the optimizer constructor.</p>
+</dd>
+<dt>lr_scheduler<span class="classifier">type, optional</span></dt><dd><p>Learning rate scheduler class to be instantiated. By default, it is
+set to None, which means no scheduler will be used. Should be a
+subclass of <cite>torch.optim.lr_scheduler.LRScheduler</cite> (e.g.,
+<cite>torch.optim.lr_scheduler.StepLR</cite>).</p>
+</dd>
+<dt>lr_scheduler_kwargs<span class="classifier">dict, optional</span></dt><dd><p>Additional kwargs passed to the scheduler constructor.</p>
+</dd>
+<dt>output_shape: Optional[Tuple[int, …]]</dt><dd><p>The output shape of the model. If None, the output shape will be
+the same as the input shape. Defaults to None. This is useful for
+models that require a specific output shape, that is different from
+the input shape.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.image.deeplabv3.DeepLabV3._loss_func">
+<span class="sig-name descname"><span class="pre">_loss_func</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y_hat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/deeplabv3.html#DeepLabV3._loss_func"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.deeplabv3.DeepLabV3._loss_func" title="Link to this definition"></a></dt>
+<dd><p>Calculate the loss between the output and the input data.</p>
+<section id="id1">
+<h4>Parameters<a class="headerlink" href="#id1" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt>y_hat<span class="classifier">torch.Tensor</span></dt><dd><p>The output data from the forward pass.</p>
+</dd>
+<dt>y<span class="classifier">torch.Tensor</span></dt><dd><p>The input data/label.</p>
+</dd>
+</dl>
+</section>
+<section id="returns">
+<h4>Returns<a class="headerlink" href="#returns" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt>torch.Tensor</dt><dd><p>The loss value.</p>
+</dd>
+</dl>
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>y_hat</strong> (<em>torch.Tensor</em>)</p></li>
+<li><p><strong>y</strong> (<em>torch.Tensor</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>torch.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.image.deeplabv3.DeepLabV3.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/deeplabv3.html#DeepLabV3.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.deeplabv3.DeepLabV3.forward" title="Link to this definition"></a></dt>
+<dd><p>Perform a forward pass with the input data on the backbone model.</p>
+<section id="id2">
+<h4>Parameters<a class="headerlink" href="#id2" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt>x<span class="classifier">torch.Tensor</span></dt><dd><p>The input data.</p>
+</dd>
+</dl>
+</section>
+<section id="id3">
+<h4>Returns<a class="headerlink" href="#id3" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt>torch.Tensor</dt><dd><p>The output data from the forward pass.</p>
+</dd>
+</dl>
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>torch.Tensor</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>torch.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.deeplabv3.DeepLabV3.output_shape">
+<span class="sig-name descname"><span class="pre">output_shape</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#minerva.models.nets.image.deeplabv3.DeepLabV3.output_shape" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>backbone</strong> (<em>Optional</em><em>[</em><em>torch.nn.Module</em><em>]</em>)</p></li>
+<li><p><strong>pred_head</strong> (<em>Optional</em><em>[</em><em>torch.nn.Module</em><em>]</em>)</p></li>
+<li><p><strong>loss_fn</strong> (<em>Optional</em><em>[</em><em>torch.nn.Module</em><em>]</em>)</p></li>
+<li><p><strong>learning_rate</strong> (<em>float</em>)</p></li>
+<li><p><strong>num_classes</strong> (<em>int</em>)</p></li>
+<li><p><strong>train_metrics</strong> (<em>Optional</em><em>[</em><em>Dict</em><em>[</em><em>str</em><em>, </em><em>torchmetrics.Metric</em><em>]</em><em>]</em>)</p></li>
+<li><p><strong>val_metrics</strong> (<em>Optional</em><em>[</em><em>Dict</em><em>[</em><em>str</em><em>, </em><em>torchmetrics.Metric</em><em>]</em><em>]</em>)</p></li>
+<li><p><strong>test_metrics</strong> (<em>Optional</em><em>[</em><em>Dict</em><em>[</em><em>str</em><em>, </em><em>torchmetrics.Metric</em><em>]</em><em>]</em>)</p></li>
+<li><p><strong>optimizer</strong> (<em>type</em>)</p></li>
+<li><p><strong>optimizer_kwargs</strong> (<em>Optional</em><em>[</em><em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em><em>]</em>)</p></li>
+<li><p><strong>lr_scheduler</strong> (<em>Optional</em><em>[</em><em>type</em><em>]</em>)</p></li>
+<li><p><strong>lr_scheduler_kwargs</strong> (<em>Optional</em><em>[</em><em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em><em>]</em>)</p></li>
+<li><p><strong>output_shape</strong> (<em>Optional</em><em>[</em><em>Tuple</em><em>[</em><em>int</em><em>, </em><em>Ellipsis</em><em>]</em><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.models.nets.image.deeplabv3.DeepLabV3Backbone">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.models.nets.image.deeplabv3.</span></span><span class="sig-name descname"><span class="pre">DeepLabV3Backbone</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_classes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/deeplabv3.html#DeepLabV3Backbone"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.deeplabv3.DeepLabV3Backbone" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>A ResNet50 backbone for DeepLabV3</p>
+<p>Initializes the DeepLabV3 model.</p>
+<section id="id4">
+<h3>Parameters<a class="headerlink" href="#id4" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt>num_classes: int</dt><dd><p>The number of classes for classification. Default is 6.</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.deeplabv3.DeepLabV3Backbone.RN50model">
+<span class="sig-name descname"><span class="pre">RN50model</span></span><a class="headerlink" href="#minerva.models.nets.image.deeplabv3.DeepLabV3Backbone.RN50model" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.image.deeplabv3.DeepLabV3Backbone.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/deeplabv3.html#DeepLabV3Backbone.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.deeplabv3.DeepLabV3Backbone.forward" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.image.deeplabv3.DeepLabV3Backbone.freeze_weights">
+<span class="sig-name descname"><span class="pre">freeze_weights</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/deeplabv3.html#DeepLabV3Backbone.freeze_weights"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.deeplabv3.DeepLabV3Backbone.freeze_weights" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.image.deeplabv3.DeepLabV3Backbone.unfreeze_weights">
+<span class="sig-name descname"><span class="pre">unfreeze_weights</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/deeplabv3.html#DeepLabV3Backbone.unfreeze_weights"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.deeplabv3.DeepLabV3Backbone.unfreeze_weights" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>num_classes</strong> (<em>int</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.models.nets.image.deeplabv3.DeepLabV3PredictionHead">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.models.nets.image.deeplabv3.</span></span><span class="sig-name descname"><span class="pre">DeepLabV3PredictionHead</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2048</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_classes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">atrous_rates</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(12,</span> <span class="pre">24,</span> <span class="pre">36)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/deeplabv3.html#DeepLabV3PredictionHead"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.deeplabv3.DeepLabV3PredictionHead" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Sequential</span></code></p>
+<p>The prediction head for DeepLabV3</p>
+<p>Initializes the DeepLabV3 model.</p>
+<section id="id5">
+<h3>Parameters<a class="headerlink" href="#id5" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt>in_channels: int</dt><dd><p>Number of input channels. Defaults to 2048.</p>
+</dd>
+<dt>num_classes: int</dt><dd><p>Number of output classes. Defaults to 6.</p>
+</dd>
+<dt>atrous_rates: Sequence[int]</dt><dd><p>A sequence of atrous rates for the ASPP module. Defaults to (12, 24, 36).</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.image.deeplabv3.DeepLabV3PredictionHead.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/deeplabv3.html#DeepLabV3PredictionHead.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.deeplabv3.DeepLabV3PredictionHead.forward" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>torch.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>in_channels</strong> (<em>int</em>)</p></li>
+<li><p><strong>num_classes</strong> (<em>int</em>)</p></li>
+<li><p><strong>atrous_rates</strong> (<em>Sequence</em><em>[</em><em>int</em><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Unicamp.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

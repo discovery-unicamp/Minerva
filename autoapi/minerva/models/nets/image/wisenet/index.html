@@ -1,0 +1,458 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>minerva.models.nets.image.wisenet &mdash; minerva  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../../../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../../../index.html" class="icon icon-home">
+            minerva
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../design.html">Minerva Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../tutorials.html">Examples and Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../contributing.html">Contributing to Minerva</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../api.html">Programming Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../../../index.html">minerva</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">minerva.models.nets.image.wisenet</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../../../../_sources/autoapi/minerva/models/nets/image/wisenet/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-minerva.models.nets.image.wisenet">
+<span id="minerva-models-nets-image-wisenet"></span><h1>minerva.models.nets.image.wisenet<a class="headerlink" href="#module-minerva.models.nets.image.wisenet" title="Link to this heading"></a></h1>
+<section id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Link to this heading"></a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#minerva.models.nets.image.wisenet.WiseNet" title="minerva.models.nets.image.wisenet.WiseNet"><code class="xref py py-obj docutils literal notranslate"><span class="pre">WiseNet</span></code></a></p></td>
+<td><p>A modular Lightning model wrapper for supervised learning tasks.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#minerva.models.nets.image.wisenet._WiseNet" title="minerva.models.nets.image.wisenet._WiseNet"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_WiseNet</span></code></a></p></td>
+<td><p>Base class for all neural network modules.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.models.nets.image.wisenet.WiseNet">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.models.nets.image.wisenet.</span></span><span class="sig-name descname"><span class="pre">WiseNet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss_fn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">learning_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/wisenet.html#WiseNet"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.wisenet.WiseNet" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="../../base/index.html#minerva.models.nets.base.SimpleSupervisedModel" title="minerva.models.nets.base.SimpleSupervisedModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">minerva.models.nets.base.SimpleSupervisedModel</span></code></a></p>
+<p>A modular Lightning model wrapper for supervised learning tasks.</p>
+<p>This class enables the construction of supervised models by combining a
+backbone (feature extractor), an optional adapter, and a fully connected
+(FC) head. It provides a clean interface for setting up custom training,
+validation, and testing pipelines with pluggable loss functions, metrics,
+optimizers, and learning rate schedulers.</p>
+<p>The architecture is structured as follows:</p>
+<blockquote>
+<div><table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p>Backbone Model</p></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<div><div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p>v</p>
+</div></blockquote>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p>Adapter (Optional)</p></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<div><blockquote>
+<div><div class="line-block">
+<div class="line"><br /></div>
+</div>
+</div></blockquote>
+<dl class="simple">
+<dt>(Flatten if needed)</dt><dd><p>v</p>
+</dd>
+</dl>
+</div></blockquote>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p>Fully Connected Head</p></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<div><div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p>v</p>
+</div></blockquote>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p>Loss Function</p></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+<p>Training and validation steps comprise the following steps:</p>
+<ol class="arabic simple">
+<li><p>Forward pass input through the backbone.</p></li>
+<li><p>Pass through adapter (if provided).</p></li>
+<li><p>Flatten the output (if <cite>flatten</cite> is True) before the FC head.</p></li>
+<li><p>Forward through the FC head.</p></li>
+<li><p>Compute loss with respect to targets.</p></li>
+<li><p>Backpropagate and update parameters.</p></li>
+<li><p>Compute metrics and log them.</p></li>
+<li><p>Return loss. <cite>train_loss</cite>, <cite>val_loss</cite>, and <cite>test_loss</cite> are always
+logged, along with any additional metrics specified in the
+<cite>train_metrics</cite>, <cite>val_metrics</cite>, and <cite>test_metrics</cite> dictionaries.</p></li>
+</ol>
+<p>This wrapper is especially useful to quickly set up supervised models for
+various tasks, such as image classification, object detection, and
+segmentation. It is designed to be flexible and extensible, allowing users
+to easily swap out components like the backbone, adapter, and FC head as
+needed. The model is built with a focus on simplicity and modularity, making
+it easy to adapt to different use cases and requirements.
+The model is designed to be used with PyTorch Lightning and is compatible
+with its training loop.</p>
+<p><strong>Note</strong>: For more complex architectures that does not follow the above
+structure should not inherit from this class.</p>
+<p><strong>Note</strong>: Input batches must be tuples (input_tensor, target_tensor).</p>
+<p>Initializes the supervised model with training components and configs.</p>
+<section id="parameters">
+<h3>Parameters<a class="headerlink" href="#parameters" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt>backbone<span class="classifier">torch.nn.Module or LoadableModule</span></dt><dd><p>The backbone (feature extractor) model.</p>
+</dd>
+<dt>fc<span class="classifier">torch.nn.Module or LoadableModule</span></dt><dd><p>The fully connected head. Use nn.Identity() if not required.</p>
+</dd>
+<dt>loss_fn<span class="classifier">torch.nn.Module</span></dt><dd><p>Loss function to optimize during training.</p>
+</dd>
+<dt>adapter<span class="classifier">Callable, optional</span></dt><dd><p>Function to transform backbone outputs before feeding into <cite>fc</cite>.</p>
+</dd>
+<dt>learning_rate<span class="classifier">float, default=1e-3</span></dt><dd><p>Learning rate used for optimization.</p>
+</dd>
+<dt>flatten<span class="classifier">bool, default=True</span></dt><dd><p>If True, flattens backbone outputs before <cite>fc</cite>.</p>
+</dd>
+<dt>train_metrics<span class="classifier">dict, optional</span></dt><dd><p>TorchMetrics dictionary for training evaluation.</p>
+</dd>
+<dt>val_metrics<span class="classifier">dict, optional</span></dt><dd><p>TorchMetrics dictionary for validation evaluation.</p>
+</dd>
+<dt>test_metrics<span class="classifier">dict, optional</span></dt><dd><p>TorchMetrics dictionary for test evaluation.</p>
+</dd>
+<dt>freeze_backbone<span class="classifier">bool, default=False</span></dt><dd><p>If True, backbone parameters are frozen during training.</p>
+</dd>
+<dt>optimizer: type</dt><dd><p>Optimizer class to be instantiated. By default, it is set to
+<cite>torch.optim.Adam</cite>. Should be a subclass of
+<cite>torch.optim.Optimizer</cite> (e.g., <cite>torch.optim.SGD</cite>).</p>
+</dd>
+<dt>optimizer_kwargs<span class="classifier">dict, optional</span></dt><dd><p>Additional kwargs passed to the optimizer constructor.</p>
+</dd>
+<dt>lr_scheduler<span class="classifier">type, optional</span></dt><dd><p>Learning rate scheduler class to be instantiated. By default, it is
+set to None, which means no scheduler will be used. Should be a
+subclass of <cite>torch.optim.lr_scheduler.LRScheduler</cite> (e.g.,
+<cite>torch.optim.lr_scheduler.StepLR</cite>).</p>
+</dd>
+<dt>lr_scheduler_kwargs<span class="classifier">dict, optional</span></dt><dd><p>Additional kwargs passed to the scheduler constructor.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.image.wisenet.WiseNet._single_step">
+<span class="sig-name descname"><span class="pre">_single_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_idx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/wisenet.html#WiseNet._single_step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.wisenet.WiseNet._single_step" title="Link to this definition"></a></dt>
+<dd><p>Perform a single train/validation/test step. It consists in making a
+forward pass with the input data on the backbone model, computing the
+loss between the output and the input data, and logging the loss.</p>
+<section id="id1">
+<h4>Parameters<a class="headerlink" href="#id1" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt>batch<span class="classifier">torch.Tensor</span></dt><dd><p>The input data. It must be a 2-element tuple of tensors, where the
+first tensor is the input data and the second tensor is the mask.</p>
+</dd>
+<dt>batch_idx<span class="classifier">int</span></dt><dd><p>The index of the batch.</p>
+</dd>
+<dt>step_name<span class="classifier">str</span></dt><dd><p>The name of the step. It will be used to log the loss. The possible
+values are: “train”, “val” and “test”. The loss will be logged as
+“{step_name}_loss”.</p>
+</dd>
+</dl>
+</section>
+<section id="returns">
+<h4>Returns<a class="headerlink" href="#returns" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt>torch.Tensor</dt><dd><p>A tensor with the loss value.</p>
+</dd>
+</dl>
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>batch</strong> (<em>torch.Tensor</em>)</p></li>
+<li><p><strong>batch_idx</strong> (<em>int</em>)</p></li>
+<li><p><strong>step_name</strong> (<em>str</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>torch.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.image.wisenet.WiseNet.predict_step">
+<span class="sig-name descname"><span class="pre">predict_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_idx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataloader_idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/wisenet.html#WiseNet.predict_step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.wisenet.WiseNet.predict_step" title="Link to this definition"></a></dt>
+<dd><p>Step function called during <code class="xref py py-meth docutils literal notranslate"><span class="pre">predict()</span></code>. By default, it calls
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">forward()</span></code>. Override to add any processing logic.</p>
+<p>The <code class="xref py py-meth docutils literal notranslate"><span class="pre">predict_step()</span></code> is used
+to scale inference on multi-devices.</p>
+<p>To prevent an OOM error, it is possible to use <code class="xref py py-class docutils literal notranslate"><span class="pre">BasePredictionWriter</span></code>
+callback to write the predictions to disk or database after each batch or on epoch end.</p>
+<p>The <code class="xref py py-class docutils literal notranslate"><span class="pre">BasePredictionWriter</span></code> should be used while using a spawn
+based accelerator. This happens for <code class="docutils literal notranslate"><span class="pre">Trainer(strategy=&quot;ddp_spawn&quot;)</span></code>
+or training on 8 TPU cores with <code class="docutils literal notranslate"><span class="pre">Trainer(accelerator=&quot;tpu&quot;,</span> <span class="pre">devices=8)</span></code> as predictions won’t be returned.</p>
+<dl>
+<dt>Args:</dt><dd><p>batch: The output of your data iterable, normally a <code class="xref py py-class docutils literal notranslate"><span class="pre">DataLoader</span></code>.
+batch_idx: The index of this batch.
+dataloader_idx: The index of the dataloader that produced this batch.</p>
+<blockquote>
+<div><p>(only if multiple dataloaders used)</p>
+</div></blockquote>
+</dd>
+<dt>Return:</dt><dd><p>Predicted output (optional).</p>
+</dd>
+</dl>
+<p>Example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">MyModel</span><span class="p">(</span><span class="n">LightningModule</span><span class="p">):</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">predict_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">,</span> <span class="n">dataloader_idx</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span>
+
+<span class="n">dm</span> <span class="o">=</span> <span class="o">...</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">MyModel</span><span class="p">()</span>
+<span class="n">trainer</span> <span class="o">=</span> <span class="n">Trainer</span><span class="p">(</span><span class="n">accelerator</span><span class="o">=</span><span class="s2">&quot;gpu&quot;</span><span class="p">,</span> <span class="n">devices</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">predictions</span> <span class="o">=</span> <span class="n">trainer</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">dm</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>in_channels</strong> (<em>int</em>)</p></li>
+<li><p><strong>out_channels</strong> (<em>int</em>)</p></li>
+<li><p><strong>loss_fn</strong> (<em>torch.nn.Module</em>)</p></li>
+<li><p><strong>learning_rate</strong> (<em>float</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.models.nets.image.wisenet._WiseNet">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.models.nets.image.wisenet.</span></span><span class="sig-name descname"><span class="pre">_WiseNet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/wisenet.html#_WiseNet"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.wisenet._WiseNet" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>Base class for all neural network modules.</p>
+<p>Your models should also subclass this class.</p>
+<p>Modules can also contain other Modules, allowing them to be nested in
+a tree structure. You can assign the submodules as regular attributes:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn.functional</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">F</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Model</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conv1</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conv2</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conv1</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">F</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conv2</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Submodules assigned in this way will be registered, and will also have their
+parameters converted when you call <code class="xref py py-meth docutils literal notranslate"><span class="pre">to()</span></code>, etc.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>As per the example above, an <code class="docutils literal notranslate"><span class="pre">__init__()</span></code> call to the parent class
+must be made before assignment on the child.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Variables<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>training</strong> (<em>bool</em>) – Boolean represents whether this module is in training or
+evaluation mode.</p>
+</dd>
+</dl>
+<p>Initialize internal Module state, shared by both nn.Module and ScriptModule.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.wisenet._WiseNet.conv1">
+<span class="sig-name descname"><span class="pre">conv1</span></span><a class="headerlink" href="#minerva.models.nets.image.wisenet._WiseNet.conv1" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.wisenet._WiseNet.conv2">
+<span class="sig-name descname"><span class="pre">conv2</span></span><a class="headerlink" href="#minerva.models.nets.image.wisenet._WiseNet.conv2" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.wisenet._WiseNet.conv3">
+<span class="sig-name descname"><span class="pre">conv3</span></span><a class="headerlink" href="#minerva.models.nets.image.wisenet._WiseNet.conv3" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.wisenet._WiseNet.conv4">
+<span class="sig-name descname"><span class="pre">conv4</span></span><a class="headerlink" href="#minerva.models.nets.image.wisenet._WiseNet.conv4" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.wisenet._WiseNet.conv5">
+<span class="sig-name descname"><span class="pre">conv5</span></span><a class="headerlink" href="#minerva.models.nets.image.wisenet._WiseNet.conv5" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.wisenet._WiseNet.conv6">
+<span class="sig-name descname"><span class="pre">conv6</span></span><a class="headerlink" href="#minerva.models.nets.image.wisenet._WiseNet.conv6" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.wisenet._WiseNet.conv7">
+<span class="sig-name descname"><span class="pre">conv7</span></span><a class="headerlink" href="#minerva.models.nets.image.wisenet._WiseNet.conv7" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.wisenet._WiseNet.conv8">
+<span class="sig-name descname"><span class="pre">conv8</span></span><a class="headerlink" href="#minerva.models.nets.image.wisenet._WiseNet.conv8" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.image.wisenet._WiseNet.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/wisenet.html#_WiseNet.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.wisenet._WiseNet.forward" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.wisenet._WiseNet.in_channels">
+<span class="sig-name descname"><span class="pre">in_channels</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#minerva.models.nets.image.wisenet._WiseNet.in_channels" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.wisenet._WiseNet.out_channels">
+<span class="sig-name descname"><span class="pre">out_channels</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#minerva.models.nets.image.wisenet._WiseNet.out_channels" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.wisenet._WiseNet.pool1">
+<span class="sig-name descname"><span class="pre">pool1</span></span><a class="headerlink" href="#minerva.models.nets.image.wisenet._WiseNet.pool1" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.wisenet._WiseNet.pool2">
+<span class="sig-name descname"><span class="pre">pool2</span></span><a class="headerlink" href="#minerva.models.nets.image.wisenet._WiseNet.pool2" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.wisenet._WiseNet.pool3">
+<span class="sig-name descname"><span class="pre">pool3</span></span><a class="headerlink" href="#minerva.models.nets.image.wisenet._WiseNet.pool3" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.wisenet._WiseNet.pool4">
+<span class="sig-name descname"><span class="pre">pool4</span></span><a class="headerlink" href="#minerva.models.nets.image.wisenet._WiseNet.pool4" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.wisenet._WiseNet.relu">
+<span class="sig-name descname"><span class="pre">relu</span></span><a class="headerlink" href="#minerva.models.nets.image.wisenet._WiseNet.relu" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Unicamp.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

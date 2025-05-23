@@ -1,0 +1,21 @@
+minerva.losses
+==============
+
+.. py:module:: minerva.losses
+
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   /autoapi/minerva/losses/_functional/index
+   /autoapi/minerva/losses/batchwise_barlowtwins_loss/index
+   /autoapi/minerva/losses/dice/index
+   /autoapi/minerva/losses/negative_cossine_similatiry/index
+   /autoapi/minerva/losses/ntxent_loss_poly/index
+   /autoapi/minerva/losses/topological_loss/index
+   /autoapi/minerva/losses/xtent_loss/index
+
+

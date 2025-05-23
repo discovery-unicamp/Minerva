@@ -1,0 +1,624 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>minerva.data.readers.patched_array_reader &mdash; minerva  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" />
+    <link rel="next" title="minerva.data.readers.png_reader" href="../png_reader/index.html" />
+    <link rel="prev" title="minerva.data.readers.multi_reader" href="../multi_reader/index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../../index.html" class="icon icon-home">
+            minerva
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../design.html">Minerva Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../tutorials.html">Examples and Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../contributing.html">Contributing to Minerva</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../../../../api.html">Programming Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../../../index.html">minerva</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="../../../index.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="../../../analysis/index.html">minerva.analysis</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="../../index.html">minerva.data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../losses/index.html">minerva.losses</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../models/index.html">minerva.models</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../optimizers/index.html">minerva.optimizers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../pipelines/index.html">minerva.pipelines</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../samplers/index.html">minerva.samplers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../transforms/index.html">minerva.transforms</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../../utils/index.html">minerva.utils</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../../index.html">minerva</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../../../api.html">Programming Reference</a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">minerva</a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">minerva.data</a></li>
+          <li class="breadcrumb-item"><a href="../index.html">minerva.data.readers</a></li>
+      <li class="breadcrumb-item active">minerva.data.readers.patched_array_reader</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../../../_sources/autoapi/minerva/data/readers/patched_array_reader/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-minerva.data.readers.patched_array_reader">
+<span id="minerva-data-readers-patched-array-reader"></span><h1>minerva.data.readers.patched_array_reader<a class="headerlink" href="#module-minerva.data.readers.patched_array_reader" title="Link to this heading"></a></h1>
+<section id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Link to this heading"></a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#minerva.data.readers.patched_array_reader.LazyPaddedPatchedArrayReader" title="minerva.data.readers.patched_array_reader.LazyPaddedPatchedArrayReader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LazyPaddedPatchedArrayReader</span></code></a></p></td>
+<td><p>Reads patches from a NumPy array.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#minerva.data.readers.patched_array_reader.NumpyArrayReader" title="minerva.data.readers.patched_array_reader.NumpyArrayReader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">NumpyArrayReader</span></code></a></p></td>
+<td><p>This class is used to read data from a NumPy array. It is designed to generate</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#minerva.data.readers.patched_array_reader.PatchedArrayReader" title="minerva.data.readers.patched_array_reader.PatchedArrayReader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PatchedArrayReader</span></code></a></p></td>
+<td><p>This class is used to read data from a NumPy array. It is designed to generate</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.data.readers.patched_array_reader.LazyPaddedPatchedArrayReader">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.data.readers.patched_array_reader.</span></span><span class="sig-name descname"><span class="pre">LazyPaddedPatchedArrayReader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stride</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad_width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'constant'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/minerva/data/readers/patched_array_reader.html#LazyPaddedPatchedArrayReader"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.data.readers.patched_array_reader.LazyPaddedPatchedArrayReader" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#minerva.data.readers.patched_array_reader.PatchedArrayReader" title="minerva.data.readers.patched_array_reader.PatchedArrayReader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PatchedArrayReader</span></code></a></p>
+<p>Reads patches from a NumPy array.
+This class is a subclass of <cite>PatchedArrayReader</cite> and is designed to perform padding only when the patch
+consumed by <cite>__get_item__</cite> is in a region that uses the padding (boundary regions).
+If no padding is necessary, use PatchedArrayReader.</p>
+<p>Reads data from a NumPy array and generates patches from it.</p>
+<section id="parameters">
+<h3>Parameters<a class="headerlink" href="#parameters" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt>data<span class="classifier">ArrayLike</span></dt><dd><p>The input array from which patches are generated.</p>
+</dd>
+<dt>data_shape<span class="classifier">Tuple[int, …]</span></dt><dd><p>The shape of the patches to be extracted. This will be the shape of
+the subarray that is returned when a patch is accessed using
+__getitem__.</p>
+</dd>
+<dt>stride<span class="classifier">Tuple[int, …], optional</span></dt><dd><p>The stride between consecutive patches. If <cite>None</cite>, the stide will
+be the same as <cite>data_shape</cite>. By default None</p>
+</dd>
+<dt>pad_width<span class="classifier">Tuple[Tuple[int, int], …], optional</span></dt><dd><p>The width of padding to be applied to the data array. By default
+<cite>None</cite>, that is, no padding is applied. Check the documentation of
+<cite>numpy.pad</cite> for more information.</p>
+</dd>
+<dt>pad_mode<span class="classifier">str, optional</span></dt><dd><p>The padding mode, by default “constant”. Check the documentation of
+<cite>numpy.pad</cite> for more information.</p>
+</dd>
+<dt>pad_kwargs<span class="classifier">dict, optional</span></dt><dd><p>Additional keyword arguments for padding, by default None</p>
+</dd>
+</dl>
+</section>
+<section id="examples">
+<h3>Examples<a class="headerlink" href="#examples" title="Link to this heading"></a></h3>
+<p><a href="#id1"><span class="problematic" id="id2">``</span></a><a href="#id3"><span class="problematic" id="id4">`</span></a>python
+&gt;&gt;&gt; import numpy as np
+&gt;&gt;&gt; # Generate a 10x10 array
+&gt;&gt;&gt; data = np.arange(100).reshape(10, 10)
+&gt;&gt;&gt; # Create a reader that generates 5x5 patches with a stride of 2 in the
+&gt;&gt;&gt; # first dimension and 5 in the second dimension.
+&gt;&gt;&gt; reader = PatchedArrayReader(
+&gt;&gt;&gt;    data,
+&gt;&gt;&gt;    data_shape=(5, 5),
+&gt;&gt;&gt;    stride=(2, 5),
+&gt;&gt;&gt; )
+&gt;&gt;&gt; # Printing the number of patches that can be extracted from the data
+&gt;&gt;&gt; print(len(reader))
+6
+&gt;&gt;&gt; # Printing the indices of the patches
+&gt;&gt;&gt; print(reader.indices)
+[(0, 0), (0, 5), (2, 0), (2, 5), (4, 0), (4, 5)]
+&gt;&gt;&gt; # Fetch the first patch and print its shape
+&gt;&gt;&gt; print(reader[0].shape)
+(5, 5)
+&gt;&gt;&gt; # Fetch the third patch and print its content
+&gt;&gt;&gt; print(reader[2])
+[[20 21 22 23 24]</p>
+<blockquote>
+<div><p>[30 31 32 33 34]
+[40 41 42 43 44]
+[50 51 52 53 54]
+[60 61 62 63 64]]</p>
+</div></blockquote>
+<p><a href="#id5"><span class="problematic" id="id6">``</span></a><a href="#id7"><span class="problematic" id="id8">`</span></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.data.readers.patched_array_reader.LazyPaddedPatchedArrayReader.__getitem__">
+<span class="sig-name descname"><span class="pre">__getitem__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/minerva/data/readers/patched_array_reader.html#LazyPaddedPatchedArrayReader.__getitem__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.data.readers.patched_array_reader.LazyPaddedPatchedArrayReader.__getitem__" title="Link to this definition"></a></dt>
+<dd><p>Fetch a patch from the data array.</p>
+<section id="id9">
+<h4>Parameters<a class="headerlink" href="#id9" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt>idx<span class="classifier">int</span></dt><dd><p>The index of the patch to be fetched.</p>
+</dd>
+</dl>
+</section>
+<section id="returns">
+<h4>Returns<a class="headerlink" href="#returns" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt>np.ndarray</dt><dd><p>The patch that was fetched from the data array with shape
+<cite>data_shape</cite></p>
+</dd>
+</dl>
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>idx</strong> (<em>int</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.data.readers.patched_array_reader.LazyPaddedPatchedArrayReader._get_patches">
+<span class="sig-name descname"><span class="pre">_get_patches</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/minerva/data/readers/patched_array_reader.html#LazyPaddedPatchedArrayReader._get_patches"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.data.readers.patched_array_reader.LazyPaddedPatchedArrayReader._get_patches" title="Link to this definition"></a></dt>
+<dd><p>Compute the left upper corner indices of the patches that will be
+extracted from the data array. The patches are extracted with a stride
+between them. A list of indices is returned, where each index is a tuple
+of integers representing the coordinates of the left upper corner of the
+patches.</p>
+<section id="id10">
+<h4>Returns<a class="headerlink" href="#id10" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt>List[Tuple[int, …]]</dt><dd><p>A list of indices (coordinates) representing the left upper corner
+of the patches.</p>
+</dd>
+</dl>
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[Tuple[str, Tuple[int, Ellipsis]]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.data.readers.patched_array_reader.LazyPaddedPatchedArrayReader._pad_data">
+<span class="sig-name descname"><span class="pre">_pad_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pad_width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'constant'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/minerva/data/readers/patched_array_reader.html#LazyPaddedPatchedArrayReader._pad_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.data.readers.patched_array_reader.LazyPaddedPatchedArrayReader._pad_data" title="Link to this definition"></a></dt>
+<dd><p>Apply padding to the data array.</p>
+<section id="id11">
+<h4>Parameters<a class="headerlink" href="#id11" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt>pad_width<span class="classifier">Tuple[Tuple[int, int], …]</span></dt><dd><p>The width of padding to be applied to the data array</p>
+</dd>
+<dt>mode<span class="classifier">str, optional</span></dt><dd><p>The padding mode, by default “constant”</p>
+</dd>
+</dl>
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pad_width</strong> (<em>Tuple</em><em>[</em><em>Tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>]</em><em>, </em><em>Ellipsis</em><em>]</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>numpy.typing.ArrayLike</em>)</p></li>
+<li><p><strong>data_shape</strong> (<em>Tuple</em><em>[</em><em>int</em><em>, </em><em>Ellipsis</em><em>]</em>)</p></li>
+<li><p><strong>stride</strong> (<em>Optional</em><em>[</em><em>Tuple</em><em>[</em><em>int</em><em>, </em><em>Ellipsis</em><em>]</em><em>]</em>)</p></li>
+<li><p><strong>pad_width</strong> (<em>Optional</em><em>[</em><em>Tuple</em><em>[</em><em>Tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>]</em><em>, </em><em>Ellipsis</em><em>]</em><em>]</em>)</p></li>
+<li><p><strong>pad_mode</strong> (<em>str</em>)</p></li>
+<li><p><strong>pad_kwargs</strong> (<em>Optional</em><em>[</em><em>Dict</em><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.data.readers.patched_array_reader.NumpyArrayReader">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.data.readers.patched_array_reader.</span></span><span class="sig-name descname"><span class="pre">NumpyArrayReader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stride</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad_width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'constant'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">allow_pickle</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">npz_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/minerva/data/readers/patched_array_reader.html#NumpyArrayReader"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.data.readers.patched_array_reader.NumpyArrayReader" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#minerva.data.readers.patched_array_reader.PatchedArrayReader" title="minerva.data.readers.patched_array_reader.PatchedArrayReader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PatchedArrayReader</span></code></a></p>
+<p>This class is used to read data from a NumPy array. It is designed to generate
+patches from the data and provides sequential access to them. This class can
+serve as a base class for other readers.</p>
+<p>Assumptions:
+- The input data is expected to be a NumPy-like array, that is, it should</p>
+<blockquote>
+<div><p>support NumPy-like indexing.</p>
+</div></blockquote>
+<ul class="simple">
+<li><p>Patches are fixed-size subarrays of the data.</p></li>
+<li><p>Patches can have overlap between them.</p></li>
+</ul>
+<p>Reads data from a NumPy array and generates patches from it.</p>
+<section id="id12">
+<h3>Parameters<a class="headerlink" href="#id12" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt>data<span class="classifier">ArrayLike</span></dt><dd><p>The input array from which patches are generated.</p>
+</dd>
+<dt>data_shape<span class="classifier">Tuple[int, …]</span></dt><dd><p>The shape of the patches to be extracted. This will be the shape of
+the subarray that is returned when a patch is accessed using
+__getitem__.</p>
+</dd>
+<dt>stride<span class="classifier">Tuple[int, …], optional</span></dt><dd><p>The stride between consecutive patches. If <cite>None</cite>, the stide will
+be the same as <cite>data_shape</cite>. By default None</p>
+</dd>
+<dt>pad_width<span class="classifier">Tuple[Tuple[int, int], …], optional</span></dt><dd><p>The width of padding to be applied to the data array. By default
+<cite>None</cite>, that is, no padding is applied. Check the documentation of
+<cite>numpy.pad</cite> for more information.</p>
+</dd>
+<dt>pad_mode<span class="classifier">str, optional</span></dt><dd><p>The padding mode, by default “constant”. Check the documentation of
+<cite>numpy.pad</cite> for more information.</p>
+</dd>
+<dt>pad_kwargs<span class="classifier">dict, optional</span></dt><dd><p>Additional keyword arguments for padding, by default None</p>
+</dd>
+</dl>
+</section>
+<section id="id13">
+<h3>Examples<a class="headerlink" href="#id13" title="Link to this heading"></a></h3>
+<p><a href="#id14"><span class="problematic" id="id15">``</span></a><a href="#id16"><span class="problematic" id="id17">`</span></a>python
+&gt;&gt;&gt; import numpy as np
+&gt;&gt;&gt; # Generate a 10x10 array
+&gt;&gt;&gt; data = np.arange(100).reshape(10, 10)
+&gt;&gt;&gt; # Create a reader that generates 5x5 patches with a stride of 2 in the
+&gt;&gt;&gt; # first dimension and 5 in the second dimension.
+&gt;&gt;&gt; reader = PatchedArrayReader(
+&gt;&gt;&gt;    data,
+&gt;&gt;&gt;    data_shape=(5, 5),
+&gt;&gt;&gt;    stride=(2, 5),
+&gt;&gt;&gt; )
+&gt;&gt;&gt; # Printing the number of patches that can be extracted from the data
+&gt;&gt;&gt; print(len(reader))
+6
+&gt;&gt;&gt; # Printing the indices of the patches
+&gt;&gt;&gt; print(reader.indices)
+[(0, 0), (0, 5), (2, 0), (2, 5), (4, 0), (4, 5)]
+&gt;&gt;&gt; # Fetch the first patch and print its shape
+&gt;&gt;&gt; print(reader[0].shape)
+(5, 5)
+&gt;&gt;&gt; # Fetch the third patch and print its content
+&gt;&gt;&gt; print(reader[2])
+[[20 21 22 23 24]</p>
+<blockquote>
+<div><p>[30 31 32 33 34]
+[40 41 42 43 44]
+[50 51 52 53 54]
+[60 61 62 63 64]]</p>
+</div></blockquote>
+<p><a href="#id18"><span class="problematic" id="id19">``</span></a><a href="#id20"><span class="problematic" id="id21">`</span></a></p>
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>Union</em><em>[</em><em>numpy.typing.ArrayLike</em><em>, </em><em>minerva.utils.typing.PathLike</em><em>]</em>)</p></li>
+<li><p><strong>data_shape</strong> (<em>Tuple</em><em>[</em><em>int</em><em>, </em><em>Ellipsis</em><em>]</em>)</p></li>
+<li><p><strong>stride</strong> (<em>Optional</em><em>[</em><em>Tuple</em><em>[</em><em>int</em><em>, </em><em>Ellipsis</em><em>]</em><em>]</em>)</p></li>
+<li><p><strong>pad_width</strong> (<em>Optional</em><em>[</em><em>Tuple</em><em>[</em><em>Tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>]</em><em>, </em><em>Ellipsis</em><em>]</em><em>]</em>)</p></li>
+<li><p><strong>pad_mode</strong> (<em>str</em>)</p></li>
+<li><p><strong>pad_kwargs</strong> (<em>Optional</em><em>[</em><em>Dict</em><em>]</em>)</p></li>
+<li><p><strong>allow_pickle</strong> (<em>bool</em>)</p></li>
+<li><p><strong>npz_key</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.data.readers.patched_array_reader.PatchedArrayReader">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.data.readers.patched_array_reader.</span></span><span class="sig-name descname"><span class="pre">PatchedArrayReader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stride</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad_width</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'constant'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad_kwargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/minerva/data/readers/patched_array_reader.html#PatchedArrayReader"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.data.readers.patched_array_reader.PatchedArrayReader" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="../reader/index.html#minerva.data.readers.reader._Reader" title="minerva.data.readers.reader._Reader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">minerva.data.readers.reader._Reader</span></code></a></p>
+<p>This class is used to read data from a NumPy array. It is designed to generate
+patches from the data and provides sequential access to them. This class can
+serve as a base class for other readers.</p>
+<p>Assumptions:
+- The input data is expected to be a NumPy-like array, that is, it should</p>
+<blockquote>
+<div><p>support NumPy-like indexing.</p>
+</div></blockquote>
+<ul class="simple">
+<li><p>Patches are fixed-size subarrays of the data.</p></li>
+<li><p>Patches can have overlap between them.</p></li>
+</ul>
+<p>Reads data from a NumPy array and generates patches from it.</p>
+<section id="id22">
+<h3>Parameters<a class="headerlink" href="#id22" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt>data<span class="classifier">ArrayLike</span></dt><dd><p>The input array from which patches are generated.</p>
+</dd>
+<dt>data_shape<span class="classifier">Tuple[int, …]</span></dt><dd><p>The shape of the patches to be extracted. This will be the shape of
+the subarray that is returned when a patch is accessed using
+__getitem__.</p>
+</dd>
+<dt>stride<span class="classifier">Tuple[int, …], optional</span></dt><dd><p>The stride between consecutive patches. If <cite>None</cite>, the stide will
+be the same as <cite>data_shape</cite>. By default None</p>
+</dd>
+<dt>pad_width<span class="classifier">Tuple[Tuple[int, int], …], optional</span></dt><dd><p>The width of padding to be applied to the data array. By default
+<cite>None</cite>, that is, no padding is applied. Check the documentation of
+<cite>numpy.pad</cite> for more information.</p>
+</dd>
+<dt>pad_mode<span class="classifier">str, optional</span></dt><dd><p>The padding mode, by default “constant”. Check the documentation of
+<cite>numpy.pad</cite> for more information.</p>
+</dd>
+<dt>pad_kwargs<span class="classifier">dict, optional</span></dt><dd><p>Additional keyword arguments for padding, by default None</p>
+</dd>
+</dl>
+</section>
+<section id="id23">
+<h3>Examples<a class="headerlink" href="#id23" title="Link to this heading"></a></h3>
+<p><a href="#id24"><span class="problematic" id="id25">``</span></a><a href="#id26"><span class="problematic" id="id27">`</span></a>python
+&gt;&gt;&gt; import numpy as np
+&gt;&gt;&gt; # Generate a 10x10 array
+&gt;&gt;&gt; data = np.arange(100).reshape(10, 10)
+&gt;&gt;&gt; # Create a reader that generates 5x5 patches with a stride of 2 in the
+&gt;&gt;&gt; # first dimension and 5 in the second dimension.
+&gt;&gt;&gt; reader = PatchedArrayReader(
+&gt;&gt;&gt;    data,
+&gt;&gt;&gt;    data_shape=(5, 5),
+&gt;&gt;&gt;    stride=(2, 5),
+&gt;&gt;&gt; )
+&gt;&gt;&gt; # Printing the number of patches that can be extracted from the data
+&gt;&gt;&gt; print(len(reader))
+6
+&gt;&gt;&gt; # Printing the indices of the patches
+&gt;&gt;&gt; print(reader.indices)
+[(0, 0), (0, 5), (2, 0), (2, 5), (4, 0), (4, 5)]
+&gt;&gt;&gt; # Fetch the first patch and print its shape
+&gt;&gt;&gt; print(reader[0].shape)
+(5, 5)
+&gt;&gt;&gt; # Fetch the third patch and print its content
+&gt;&gt;&gt; print(reader[2])
+[[20 21 22 23 24]</p>
+<blockquote>
+<div><p>[30 31 32 33 34]
+[40 41 42 43 44]
+[50 51 52 53 54]
+[60 61 62 63 64]]</p>
+</div></blockquote>
+<p><a href="#id28"><span class="problematic" id="id29">``</span></a><a href="#id30"><span class="problematic" id="id31">`</span></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.data.readers.patched_array_reader.PatchedArrayReader.__getitem__">
+<span class="sig-name descname"><span class="pre">__getitem__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/minerva/data/readers/patched_array_reader.html#PatchedArrayReader.__getitem__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.data.readers.patched_array_reader.PatchedArrayReader.__getitem__" title="Link to this definition"></a></dt>
+<dd><p>Fetch a patch from the data array.</p>
+<section id="id32">
+<h4>Parameters<a class="headerlink" href="#id32" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt>idx<span class="classifier">int</span></dt><dd><p>The index of the patch to be fetched.</p>
+</dd>
+</dl>
+</section>
+<section id="id33">
+<h4>Returns<a class="headerlink" href="#id33" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt>np.ndarray</dt><dd><p>The patch that was fetched from the data array with shape
+<cite>data_shape</cite></p>
+</dd>
+</dl>
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>idx</strong> (<em>int</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.data.readers.patched_array_reader.PatchedArrayReader.__len__">
+<span class="sig-name descname"><span class="pre">__len__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/minerva/data/readers/patched_array_reader.html#PatchedArrayReader.__len__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.data.readers.patched_array_reader.PatchedArrayReader.__len__" title="Link to this definition"></a></dt>
+<dd><p>Return the number of patches that can be extracted from the data
+array.</p>
+<section id="id34">
+<h4>Returns<a class="headerlink" href="#id34" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt>int</dt><dd><p>The number of patches that can be extracted from the data array.</p>
+</dd>
+</dl>
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.data.readers.patched_array_reader.PatchedArrayReader.__str__">
+<span class="sig-name descname"><span class="pre">__str__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/minerva/data/readers/patched_array_reader.html#PatchedArrayReader.__str__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.data.readers.patched_array_reader.PatchedArrayReader.__str__" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.data.readers.patched_array_reader.PatchedArrayReader._get_patches">
+<span class="sig-name descname"><span class="pre">_get_patches</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/minerva/data/readers/patched_array_reader.html#PatchedArrayReader._get_patches"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.data.readers.patched_array_reader.PatchedArrayReader._get_patches" title="Link to this definition"></a></dt>
+<dd><p>Compute the left upper corner indices of the patches that will be
+extracted from the data array. The patches are extracted with a stride
+between them. A list of indices is returned, where each index is a tuple
+of integers representing the coordinates of the left upper corner of the
+patches.</p>
+<section id="id35">
+<h4>Returns<a class="headerlink" href="#id35" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt>List[Tuple[int, …]]</dt><dd><p>A list of indices (coordinates) representing the left upper corner
+of the patches.</p>
+</dd>
+</dl>
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[Tuple[int, Ellipsis]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.data.readers.patched_array_reader.PatchedArrayReader._pad_data">
+<span class="sig-name descname"><span class="pre">_pad_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pad_width</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'constant'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../_modules/minerva/data/readers/patched_array_reader.html#PatchedArrayReader._pad_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.data.readers.patched_array_reader.PatchedArrayReader._pad_data" title="Link to this definition"></a></dt>
+<dd><p>Apply padding to the data array.</p>
+<section id="id36">
+<h4>Parameters<a class="headerlink" href="#id36" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt>pad_width<span class="classifier">Tuple[Tuple[int, int], …]</span></dt><dd><p>The width of padding to be applied to the data array</p>
+</dd>
+<dt>mode<span class="classifier">str, optional</span></dt><dd><p>The padding mode, by default “constant”</p>
+</dd>
+</dl>
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pad_width</strong> (<em>Tuple</em><em>[</em><em>Tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>]</em><em>, </em><em>Ellipsis</em><em>]</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.data.readers.patched_array_reader.PatchedArrayReader.data">
+<span class="sig-name descname"><span class="pre">data</span></span><a class="headerlink" href="#minerva.data.readers.patched_array_reader.PatchedArrayReader.data" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.data.readers.patched_array_reader.PatchedArrayReader.data_shape">
+<span class="sig-name descname"><span class="pre">data_shape</span></span><a class="headerlink" href="#minerva.data.readers.patched_array_reader.PatchedArrayReader.data_shape" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.data.readers.patched_array_reader.PatchedArrayReader.indices">
+<span class="sig-name descname"><span class="pre">indices</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[]</span></em><a class="headerlink" href="#minerva.data.readers.patched_array_reader.PatchedArrayReader.indices" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.data.readers.patched_array_reader.PatchedArrayReader.pad_kwargs">
+<span class="sig-name descname"><span class="pre">pad_kwargs</span></span><a class="headerlink" href="#minerva.data.readers.patched_array_reader.PatchedArrayReader.pad_kwargs" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.data.readers.patched_array_reader.PatchedArrayReader.pad_mode">
+<span class="sig-name descname"><span class="pre">pad_mode</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'constant'</span></em><a class="headerlink" href="#minerva.data.readers.patched_array_reader.PatchedArrayReader.pad_mode" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.data.readers.patched_array_reader.PatchedArrayReader.pad_width">
+<span class="sig-name descname"><span class="pre">pad_width</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#minerva.data.readers.patched_array_reader.PatchedArrayReader.pad_width" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.data.readers.patched_array_reader.PatchedArrayReader.shape">
+<span class="sig-name descname"><span class="pre">shape</span></span><a class="headerlink" href="#minerva.data.readers.patched_array_reader.PatchedArrayReader.shape" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.data.readers.patched_array_reader.PatchedArrayReader.stride">
+<span class="sig-name descname"><span class="pre">stride</span></span><a class="headerlink" href="#minerva.data.readers.patched_array_reader.PatchedArrayReader.stride" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>numpy.typing.ArrayLike</em>)</p></li>
+<li><p><strong>data_shape</strong> (<em>Tuple</em><em>[</em><em>int</em><em>, </em><em>Ellipsis</em><em>]</em>)</p></li>
+<li><p><strong>stride</strong> (<em>Optional</em><em>[</em><em>Tuple</em><em>[</em><em>int</em><em>, </em><em>Ellipsis</em><em>]</em><em>]</em>)</p></li>
+<li><p><strong>pad_width</strong> (<em>Optional</em><em>[</em><em>Tuple</em><em>[</em><em>Tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>]</em><em>, </em><em>Ellipsis</em><em>]</em><em>]</em>)</p></li>
+<li><p><strong>pad_mode</strong> (<em>str</em>)</p></li>
+<li><p><strong>pad_kwargs</strong> (<em>Optional</em><em>[</em><em>Dict</em><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../multi_reader/index.html" class="btn btn-neutral float-left" title="minerva.data.readers.multi_reader" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../png_reader/index.html" class="btn btn-neutral float-right" title="minerva.data.readers.png_reader" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Unicamp.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

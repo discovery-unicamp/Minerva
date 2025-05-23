@@ -1,0 +1,1406 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>minerva.models.nets.image.vit &mdash; minerva  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../../../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../../../index.html" class="icon icon-home">
+            minerva
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../design.html">Minerva Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../tutorials.html">Examples and Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../contributing.html">Contributing to Minerva</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../../api.html">Programming Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../../../index.html">minerva</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">minerva.models.nets.image.vit</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../../../../_sources/autoapi/minerva/models/nets/image/vit/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-minerva.models.nets.image.vit">
+<span id="minerva-models-nets-image-vit"></span><h1>minerva.models.nets.image.vit<a class="headerlink" href="#module-minerva.models.nets.image.vit" title="Link to this heading"></a></h1>
+<section id="attributes">
+<h2>Attributes<a class="headerlink" href="#attributes" title="Link to this heading"></a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#minerva.models.nets.image.vit.mae_vit_base_patch16" title="minerva.models.nets.image.vit.mae_vit_base_patch16"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mae_vit_base_patch16</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#minerva.models.nets.image.vit.mae_vit_base_patch16D4d256" title="minerva.models.nets.image.vit.mae_vit_base_patch16D4d256"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mae_vit_base_patch16D4d256</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#minerva.models.nets.image.vit.mae_vit_huge_patch14" title="minerva.models.nets.image.vit.mae_vit_huge_patch14"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mae_vit_huge_patch14</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#minerva.models.nets.image.vit.mae_vit_large_patch16" title="minerva.models.nets.image.vit.mae_vit_large_patch16"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mae_vit_large_patch16</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#minerva.models.nets.image.vit.mae_vit_large_patch16D4d256" title="minerva.models.nets.image.vit.mae_vit_large_patch16D4d256"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mae_vit_large_patch16D4d256</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#minerva.models.nets.image.vit.mae_vit_small_patch16" title="minerva.models.nets.image.vit.mae_vit_small_patch16"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mae_vit_small_patch16</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Link to this heading"></a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#minerva.models.nets.image.vit.Conv2dReLU" title="minerva.models.nets.image.vit.Conv2dReLU"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Conv2dReLU</span></code></a></p></td>
+<td><p>A sequential container.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#minerva.models.nets.image.vit.DecoderBlock" title="minerva.models.nets.image.vit.DecoderBlock"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DecoderBlock</span></code></a></p></td>
+<td><p>Base class for all neural network modules.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#minerva.models.nets.image.vit.DecoderCup" title="minerva.models.nets.image.vit.DecoderCup"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DecoderCup</span></code></a></p></td>
+<td><p>Base class for all neural network modules.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#minerva.models.nets.image.vit.MLAHead" title="minerva.models.nets.image.vit.MLAHead"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MLAHead</span></code></a></p></td>
+<td><p>Base class for all neural network modules.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#minerva.models.nets.image.vit.MaskedAutoencoderViT" title="minerva.models.nets.image.vit.MaskedAutoencoderViT"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MaskedAutoencoderViT</span></code></a></p></td>
+<td><p>Masked Autoencoder with VisionTransformer backbone.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#minerva.models.nets.image.vit.SFM_BasePatch16_Downstream" title="minerva.models.nets.image.vit.SFM_BasePatch16_Downstream"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SFM_BasePatch16_Downstream</span></code></a></p></td>
+<td><p>A modular Lightning model wrapper for supervised learning tasks.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#minerva.models.nets.image.vit.SegmentationHead" title="minerva.models.nets.image.vit.SegmentationHead"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SegmentationHead</span></code></a></p></td>
+<td><p>A sequential container.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#minerva.models.nets.image.vit.VIT_MLAHead" title="minerva.models.nets.image.vit.VIT_MLAHead"><code class="xref py py-obj docutils literal notranslate"><span class="pre">VIT_MLAHead</span></code></a></p></td>
+<td><p>Vision Transformer with support for patch or hybrid CNN input stage</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#minerva.models.nets.image.vit.VisionTransformer" title="minerva.models.nets.image.vit.VisionTransformer"><code class="xref py py-obj docutils literal notranslate"><span class="pre">VisionTransformer</span></code></a></p></td>
+<td><p>Vision Transformer with support for global average pooling</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#minerva.models.nets.image.vit._Encoder" title="minerva.models.nets.image.vit._Encoder"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_Encoder</span></code></a></p></td>
+<td><p>Transformer Model Encoder for sequence to sequence translation.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#minerva.models.nets.image.vit._VisionTransformerBackbone" title="minerva.models.nets.image.vit._VisionTransformerBackbone"><code class="xref py py-obj docutils literal notranslate"><span class="pre">_VisionTransformerBackbone</span></code></a></p></td>
+<td><p>Vision Transformer as per <a class="reference external" href="https://arxiv.org/abs/2010.11929">https://arxiv.org/abs/2010.11929</a>.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Link to this heading"></a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#minerva.models.nets.image.vit.interpolate_pos_embed" title="minerva.models.nets.image.vit.interpolate_pos_embed"><code class="xref py py-obj docutils literal notranslate"><span class="pre">interpolate_pos_embed</span></code></a>(model, checkpoint_model[, ...])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#minerva.models.nets.image.vit.vit_base_patch16_downstream_regression" title="minerva.models.nets.image.vit.vit_base_patch16_downstream_regression"><code class="xref py py-obj docutils literal notranslate"><span class="pre">vit_base_patch16_downstream_regression</span></code></a>(**kwargs)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#minerva.models.nets.image.vit.vit_huge_patch14_downstream_regression" title="minerva.models.nets.image.vit.vit_huge_patch14_downstream_regression"><code class="xref py py-obj docutils literal notranslate"><span class="pre">vit_huge_patch14_downstream_regression</span></code></a>(**kwargs)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#minerva.models.nets.image.vit.vit_large_patch16_downstream_regression" title="minerva.models.nets.image.vit.vit_large_patch16_downstream_regression"><code class="xref py py-obj docutils literal notranslate"><span class="pre">vit_large_patch16_downstream_regression</span></code></a>(**kwargs)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.Conv2dReLU">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.models.nets.image.vit.</span></span><span class="sig-name descname"><span class="pre">Conv2dReLU</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">padding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stride</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_batchnorm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/vit.html#Conv2dReLU"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.vit.Conv2dReLU" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Sequential</span></code></p>
+<p>A sequential container.</p>
+<p>Modules will be added to it in the order they are passed in the
+constructor. Alternatively, an <code class="docutils literal notranslate"><span class="pre">OrderedDict</span></code> of modules can be
+passed in. The <code class="docutils literal notranslate"><span class="pre">forward()</span></code> method of <code class="docutils literal notranslate"><span class="pre">Sequential</span></code> accepts any
+input and forwards it to the first module it contains. It then
+“chains” outputs to inputs sequentially for each subsequent module,
+finally returning the output of the last module.</p>
+<p>The value a <code class="docutils literal notranslate"><span class="pre">Sequential</span></code> provides over manually calling a sequence
+of modules is that it allows treating the whole container as a
+single module, such that performing a transformation on the
+<code class="docutils literal notranslate"><span class="pre">Sequential</span></code> applies to each of the modules it stores (which are
+each a registered submodule of the <code class="docutils literal notranslate"><span class="pre">Sequential</span></code>).</p>
+<p>What’s the difference between a <code class="docutils literal notranslate"><span class="pre">Sequential</span></code> and a
+<code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.ModuleList</span></code>? A <code class="docutils literal notranslate"><span class="pre">ModuleList</span></code> is exactly what it
+sounds like–a list for storing <code class="docutils literal notranslate"><span class="pre">Module</span></code> s! On the other hand,
+the layers in a <code class="docutils literal notranslate"><span class="pre">Sequential</span></code> are connected in a cascading way.</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Using Sequential to create a small model. When `model` is run,</span>
+<span class="c1"># input will first be passed to `Conv2d(1,20,5)`. The output of</span>
+<span class="c1"># `Conv2d(1,20,5)` will be used as the input to the first</span>
+<span class="c1"># `ReLU`; the output of the first `ReLU` will become the input</span>
+<span class="c1"># for `Conv2d(20,64,5)`. Finally, the output of</span>
+<span class="c1"># `Conv2d(20,64,5)` will be used as input to the second `ReLU`</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+          <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">20</span><span class="p">,</span><span class="mi">5</span><span class="p">),</span>
+          <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span>
+          <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span><span class="mi">64</span><span class="p">,</span><span class="mi">5</span><span class="p">),</span>
+          <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">()</span>
+        <span class="p">)</span>
+
+<span class="c1"># Using Sequential with OrderedDict. This is functionally the</span>
+<span class="c1"># same as the above code</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="n">OrderedDict</span><span class="p">([</span>
+          <span class="p">(</span><span class="s1">&#39;conv1&#39;</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">20</span><span class="p">,</span><span class="mi">5</span><span class="p">)),</span>
+          <span class="p">(</span><span class="s1">&#39;relu1&#39;</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">()),</span>
+          <span class="p">(</span><span class="s1">&#39;conv2&#39;</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span><span class="mi">64</span><span class="p">,</span><span class="mi">5</span><span class="p">)),</span>
+          <span class="p">(</span><span class="s1">&#39;relu2&#39;</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">())</span>
+        <span class="p">]))</span>
+</pre></div>
+</div>
+<p>Initialize internal Module state, shared by both nn.Module and ScriptModule.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.DecoderBlock">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.models.nets.image.vit.</span></span><span class="sig-name descname"><span class="pre">DecoderBlock</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_batchnorm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/vit.html#DecoderBlock"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.vit.DecoderBlock" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>Base class for all neural network modules.</p>
+<p>Your models should also subclass this class.</p>
+<p>Modules can also contain other Modules, allowing them to be nested in
+a tree structure. You can assign the submodules as regular attributes:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn.functional</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">F</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Model</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conv1</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conv2</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conv1</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">F</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conv2</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Submodules assigned in this way will be registered, and will also have their
+parameters converted when you call <code class="xref py py-meth docutils literal notranslate"><span class="pre">to()</span></code>, etc.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>As per the example above, an <code class="docutils literal notranslate"><span class="pre">__init__()</span></code> call to the parent class
+must be made before assignment on the child.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Variables<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>training</strong> (<em>bool</em>) – Boolean represents whether this module is in training or
+evaluation mode.</p>
+</dd>
+</dl>
+<p>Initialize internal Module state, shared by both nn.Module and ScriptModule.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.DecoderBlock.conv1">
+<span class="sig-name descname"><span class="pre">conv1</span></span><a class="headerlink" href="#minerva.models.nets.image.vit.DecoderBlock.conv1" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.DecoderBlock.conv2">
+<span class="sig-name descname"><span class="pre">conv2</span></span><a class="headerlink" href="#minerva.models.nets.image.vit.DecoderBlock.conv2" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.DecoderBlock.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/vit.html#DecoderBlock.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.vit.DecoderBlock.forward" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.DecoderBlock.up">
+<span class="sig-name descname"><span class="pre">up</span></span><a class="headerlink" href="#minerva.models.nets.image.vit.DecoderBlock.up" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.DecoderCup">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.models.nets.image.vit.</span></span><span class="sig-name descname"><span class="pre">DecoderCup</span></span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/vit.html#DecoderCup"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.vit.DecoderCup" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>Base class for all neural network modules.</p>
+<p>Your models should also subclass this class.</p>
+<p>Modules can also contain other Modules, allowing them to be nested in
+a tree structure. You can assign the submodules as regular attributes:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn.functional</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">F</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Model</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conv1</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conv2</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conv1</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">F</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conv2</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Submodules assigned in this way will be registered, and will also have their
+parameters converted when you call <code class="xref py py-meth docutils literal notranslate"><span class="pre">to()</span></code>, etc.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>As per the example above, an <code class="docutils literal notranslate"><span class="pre">__init__()</span></code> call to the parent class
+must be made before assignment on the child.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Variables<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>training</strong> (<em>bool</em>) – Boolean represents whether this module is in training or
+evaluation mode.</p>
+</dd>
+</dl>
+<p>Initialize internal Module state, shared by both nn.Module and ScriptModule.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.DecoderCup.TransShape">
+<span class="sig-name descname"><span class="pre">TransShape</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">head_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">512</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">up</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/vit.html#DecoderCup.TransShape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.vit.DecoderCup.TransShape" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.DecoderCup.blocks">
+<span class="sig-name descname"><span class="pre">blocks</span></span><a class="headerlink" href="#minerva.models.nets.image.vit.DecoderCup.blocks" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.DecoderCup.conv_feature1">
+<span class="sig-name descname"><span class="pre">conv_feature1</span></span><a class="headerlink" href="#minerva.models.nets.image.vit.DecoderCup.conv_feature1" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.DecoderCup.conv_feature2">
+<span class="sig-name descname"><span class="pre">conv_feature2</span></span><a class="headerlink" href="#minerva.models.nets.image.vit.DecoderCup.conv_feature2" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.DecoderCup.conv_feature3">
+<span class="sig-name descname"><span class="pre">conv_feature3</span></span><a class="headerlink" href="#minerva.models.nets.image.vit.DecoderCup.conv_feature3" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.DecoderCup.conv_feature4">
+<span class="sig-name descname"><span class="pre">conv_feature4</span></span><a class="headerlink" href="#minerva.models.nets.image.vit.DecoderCup.conv_feature4" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.DecoderCup.conv_more">
+<span class="sig-name descname"><span class="pre">conv_more</span></span><a class="headerlink" href="#minerva.models.nets.image.vit.DecoderCup.conv_more" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.DecoderCup.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hidden_states</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">features</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/vit.html#DecoderCup.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.vit.DecoderCup.forward" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.DecoderCup.up2">
+<span class="sig-name descname"><span class="pre">up2</span></span><a class="headerlink" href="#minerva.models.nets.image.vit.DecoderCup.up2" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.DecoderCup.up3">
+<span class="sig-name descname"><span class="pre">up3</span></span><a class="headerlink" href="#minerva.models.nets.image.vit.DecoderCup.up3" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.DecoderCup.up4">
+<span class="sig-name descname"><span class="pre">up4</span></span><a class="headerlink" href="#minerva.models.nets.image.vit.DecoderCup.up4" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.MLAHead">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.models.nets.image.vit.</span></span><span class="sig-name descname"><span class="pre">MLAHead</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mla_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">256</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mlahead_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">128</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm_cfg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/vit.html#MLAHead"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.vit.MLAHead" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>Base class for all neural network modules.</p>
+<p>Your models should also subclass this class.</p>
+<p>Modules can also contain other Modules, allowing them to be nested in
+a tree structure. You can assign the submodules as regular attributes:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn.functional</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">F</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Model</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conv1</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conv2</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conv1</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">F</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conv2</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Submodules assigned in this way will be registered, and will also have their
+parameters converted when you call <code class="xref py py-meth docutils literal notranslate"><span class="pre">to()</span></code>, etc.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>As per the example above, an <code class="docutils literal notranslate"><span class="pre">__init__()</span></code> call to the parent class
+must be made before assignment on the child.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Variables<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>training</strong> (<em>bool</em>) – Boolean represents whether this module is in training or
+evaluation mode.</p>
+</dd>
+</dl>
+<p>Initialize internal Module state, shared by both nn.Module and ScriptModule.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.MLAHead.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mla_p2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mla_p3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mla_p4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mla_p5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/vit.html#MLAHead.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.vit.MLAHead.forward" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.MLAHead.head2">
+<span class="sig-name descname"><span class="pre">head2</span></span><a class="headerlink" href="#minerva.models.nets.image.vit.MLAHead.head2" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.MLAHead.head3">
+<span class="sig-name descname"><span class="pre">head3</span></span><a class="headerlink" href="#minerva.models.nets.image.vit.MLAHead.head3" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.MLAHead.head4">
+<span class="sig-name descname"><span class="pre">head4</span></span><a class="headerlink" href="#minerva.models.nets.image.vit.MLAHead.head4" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.MLAHead.head5">
+<span class="sig-name descname"><span class="pre">head5</span></span><a class="headerlink" href="#minerva.models.nets.image.vit.MLAHead.head5" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.MaskedAutoencoderViT">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.models.nets.image.vit.</span></span><span class="sig-name descname"><span class="pre">MaskedAutoencoderViT</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">224</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_chans</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embed_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1024</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">24</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_heads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decoder_embed_dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">512</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decoder_depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decoder_num_heads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">16</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mlp_ratio</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm_layer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">nn.LayerNorm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm_pix_loss</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/vit.html#MaskedAutoencoderViT"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.vit.MaskedAutoencoderViT" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">lightning.LightningModule</span></code></p>
+<p>Masked Autoencoder with VisionTransformer backbone.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>img_size (int): Size of input image.
+patch_size (int): Size of image patch.
+in_chans (int): Number of input channels.
+embed_dim (int): Dimension of token embeddings.
+depth (int): Number of transformer blocks.
+num_heads (int): Number of attention heads.
+decoder_embed_dim (int): Dimension of decoder embeddings.
+decoder_depth (int): Number of decoder transformer blocks.
+decoder_num_heads (int): Number of decoder attention heads.
+mlp_ratio (float): Ratio of MLP hidden layer size to embedding size.
+norm_layer (torch.nn.LayerNorm): Normalization layer.
+norm_pix_loss (bool): Whether to normalize pixel loss.</p>
+</dd>
+<dt>References:</dt><dd><ul class="simple">
+<li><p>timm: <a class="reference external" href="https://github.com/rwightman/pytorch-image-models/tree/master/timm">https://github.com/rwightman/pytorch-image-models/tree/master/timm</a></p></li>
+<li><p>DeiT: <a class="reference external" href="https://github.com/facebookresearch/deit">https://github.com/facebookresearch/deit</a></p></li>
+</ul>
+</dd>
+</dl>
+<p>Initialize internal Module state, shared by both nn.Module and ScriptModule.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.MaskedAutoencoderViT._init_weights">
+<span class="sig-name descname"><span class="pre">_init_weights</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/vit.html#MaskedAutoencoderViT._init_weights"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.vit.MaskedAutoencoderViT._init_weights" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.MaskedAutoencoderViT.blocks">
+<span class="sig-name descname"><span class="pre">blocks</span></span><a class="headerlink" href="#minerva.models.nets.image.vit.MaskedAutoencoderViT.blocks" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.MaskedAutoencoderViT.cls_token">
+<span class="sig-name descname"><span class="pre">cls_token</span></span><a class="headerlink" href="#minerva.models.nets.image.vit.MaskedAutoencoderViT.cls_token" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.MaskedAutoencoderViT.configure_optimizers">
+<span class="sig-name descname"><span class="pre">configure_optimizers</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/vit.html#MaskedAutoencoderViT.configure_optimizers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.vit.MaskedAutoencoderViT.configure_optimizers" title="Link to this definition"></a></dt>
+<dd><p>Configure optimizer.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>torch.optim.Optimizer: Optimizer.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.MaskedAutoencoderViT.decoder_blocks">
+<span class="sig-name descname"><span class="pre">decoder_blocks</span></span><a class="headerlink" href="#minerva.models.nets.image.vit.MaskedAutoencoderViT.decoder_blocks" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.MaskedAutoencoderViT.decoder_embed">
+<span class="sig-name descname"><span class="pre">decoder_embed</span></span><a class="headerlink" href="#minerva.models.nets.image.vit.MaskedAutoencoderViT.decoder_embed" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.MaskedAutoencoderViT.decoder_norm">
+<span class="sig-name descname"><span class="pre">decoder_norm</span></span><a class="headerlink" href="#minerva.models.nets.image.vit.MaskedAutoencoderViT.decoder_norm" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.MaskedAutoencoderViT.decoder_pos_embed">
+<span class="sig-name descname"><span class="pre">decoder_pos_embed</span></span><a class="headerlink" href="#minerva.models.nets.image.vit.MaskedAutoencoderViT.decoder_pos_embed" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.MaskedAutoencoderViT.decoder_pred">
+<span class="sig-name descname"><span class="pre">decoder_pred</span></span><a class="headerlink" href="#minerva.models.nets.image.vit.MaskedAutoencoderViT.decoder_pred" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.MaskedAutoencoderViT.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">imgs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_ratio</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.75</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/vit.html#MaskedAutoencoderViT.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.vit.MaskedAutoencoderViT.forward" title="Link to this definition"></a></dt>
+<dd><p>Forward pass.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>imgs (torch.Tensor): Input images of shape (N, C, H, W).
+mask_ratio (float): Ratio of values to mask.</p>
+</dd>
+<dt>Returns:</dt><dd><p>Tuple[torch.Tensor, torch.Tensor, torch.Tensor]: Loss value,
+predicted output, binary mask.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.MaskedAutoencoderViT.forward_decoder">
+<span class="sig-name descname"><span class="pre">forward_decoder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ids_restore</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/vit.html#MaskedAutoencoderViT.forward_decoder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.vit.MaskedAutoencoderViT.forward_decoder" title="Link to this definition"></a></dt>
+<dd><p>Forward pass through the decoder.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x (torch.Tensor): Input tensor of shape (N, L, D).
+ids_restore (torch.Tensor): Indices to restore the original order
+of patches.</p>
+</dd>
+<dt>Returns:</dt><dd><p>torch.Tensor: Decoded output tensor of shape (N, L, patch_size^2 * in_chans).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.MaskedAutoencoderViT.forward_encoder">
+<span class="sig-name descname"><span class="pre">forward_encoder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_ratio</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/vit.html#MaskedAutoencoderViT.forward_encoder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.vit.MaskedAutoencoderViT.forward_encoder" title="Link to this definition"></a></dt>
+<dd><p>Forward pass through the encoder.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x (torch.Tensor): Input tensor of shape (N, C, H, W).
+mask_ratio (float): Ratio of values to mask.</p>
+</dd>
+<dt>Returns:</dt><dd><p>Tuple[torch.Tensor, torch.Tensor, torch.Tensor]: Encoded
+representation, binary mask, shuffled indices.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.MaskedAutoencoderViT.forward_loss">
+<span class="sig-name descname"><span class="pre">forward_loss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">imgs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pred</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/vit.html#MaskedAutoencoderViT.forward_loss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.vit.MaskedAutoencoderViT.forward_loss" title="Link to this definition"></a></dt>
+<dd><p>Calculate the loss.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>imgs (torch.Tensor): Input images of shape (N, C, H, W).
+pred (torch.Tensor): Predicted output of shape (N, L, patch_size^2 * in_chans).
+mask (torch.Tensor): Binary mask of shape (N, L).</p>
+</dd>
+<dt>Returns:</dt><dd><p>torch.Tensor: Computed loss value.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.MaskedAutoencoderViT.in_chans">
+<span class="sig-name descname"><span class="pre">in_chans</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#minerva.models.nets.image.vit.MaskedAutoencoderViT.in_chans" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.MaskedAutoencoderViT.initialize_weights">
+<span class="sig-name descname"><span class="pre">initialize_weights</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/vit.html#MaskedAutoencoderViT.initialize_weights"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.vit.MaskedAutoencoderViT.initialize_weights" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.MaskedAutoencoderViT.mask_token">
+<span class="sig-name descname"><span class="pre">mask_token</span></span><a class="headerlink" href="#minerva.models.nets.image.vit.MaskedAutoencoderViT.mask_token" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.MaskedAutoencoderViT.norm">
+<span class="sig-name descname"><span class="pre">norm</span></span><a class="headerlink" href="#minerva.models.nets.image.vit.MaskedAutoencoderViT.norm" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.MaskedAutoencoderViT.norm_pix_loss">
+<span class="sig-name descname"><span class="pre">norm_pix_loss</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#minerva.models.nets.image.vit.MaskedAutoencoderViT.norm_pix_loss" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.MaskedAutoencoderViT.patch_embed">
+<span class="sig-name descname"><span class="pre">patch_embed</span></span><a class="headerlink" href="#minerva.models.nets.image.vit.MaskedAutoencoderViT.patch_embed" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.MaskedAutoencoderViT.patchify">
+<span class="sig-name descname"><span class="pre">patchify</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">imgs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/vit.html#MaskedAutoencoderViT.patchify"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.vit.MaskedAutoencoderViT.patchify" title="Link to this definition"></a></dt>
+<dd><p>Extract patches from input images.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>imgs (torch.Tensor): Input images of shape (N, C, H, W).</p>
+</dd>
+<dt>Returns:</dt><dd><p>torch.Tensor: Patches of shape (N, num_patches, patch_size^2 * in_chans).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.MaskedAutoencoderViT.pos_embed">
+<span class="sig-name descname"><span class="pre">pos_embed</span></span><a class="headerlink" href="#minerva.models.nets.image.vit.MaskedAutoencoderViT.pos_embed" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.MaskedAutoencoderViT.random_masking">
+<span class="sig-name descname"><span class="pre">random_masking</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask_ratio</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/vit.html#MaskedAutoencoderViT.random_masking"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.vit.MaskedAutoencoderViT.random_masking" title="Link to this definition"></a></dt>
+<dd><p>Perform per-sample random masking by per-sample shuffling.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x (torch.Tensor): Input tensor of shape (N, L, D).
+mask_ratio (float): Ratio of values to mask.</p>
+</dd>
+<dt>Returns:</dt><dd><p>Tuple[torch.Tensor, torch.Tensor, torch.Tensor]: Masked input,
+binary mask, shuffled indices.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.MaskedAutoencoderViT.training_step">
+<span class="sig-name descname"><span class="pre">training_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_idx</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/vit.html#MaskedAutoencoderViT.training_step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.vit.MaskedAutoencoderViT.training_step" title="Link to this definition"></a></dt>
+<dd><p>Training step.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>batch (Tuple[torch.Tensor]): Input batch of images and corresponding labels.
+batch_idx (int): Index of the current batch.</p>
+</dd>
+<dt>Returns:</dt><dd><p>Dict[str, torch.Tensor]: Dictionary containing the loss value for
+the current step.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.MaskedAutoencoderViT.unpatchify">
+<span class="sig-name descname"><span class="pre">unpatchify</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/vit.html#MaskedAutoencoderViT.unpatchify"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.vit.MaskedAutoencoderViT.unpatchify" title="Link to this definition"></a></dt>
+<dd><p>Reconstruct images from patches.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x (torch.Tensor): Patches of shape (N, L, patch_size^2 * in_chans).</p>
+</dd>
+<dt>Returns:</dt><dd><p>torch.Tensor: Reconstructed images of shape (N, C, H, W).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.MaskedAutoencoderViT.validation_step">
+<span class="sig-name descname"><span class="pre">validation_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_idx</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/vit.html#MaskedAutoencoderViT.validation_step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.vit.MaskedAutoencoderViT.validation_step" title="Link to this definition"></a></dt>
+<dd><p>Validation step.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>batch (Tuple[torch.Tensor]): Input batch of images and
+corresponding labels.
+batch_idx (int): Index of the current batch.</p>
+</dd>
+<dt>Returns:</dt><dd><p>Dict[str, torch.Tensor]: Dictionary containing the loss value for
+the current step.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.SFM_BasePatch16_Downstream">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.models.nets.image.vit.</span></span><span class="sig-name descname"><span class="pre">SFM_BasePatch16_Downstream</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(512,</span> <span class="pre">512)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_classes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">in_chans</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss_fn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">learning_rate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/vit.html#SFM_BasePatch16_Downstream"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.vit.SFM_BasePatch16_Downstream" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="../../base/index.html#minerva.models.nets.base.SimpleSupervisedModel" title="minerva.models.nets.base.SimpleSupervisedModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">minerva.models.nets.base.SimpleSupervisedModel</span></code></a></p>
+<p>A modular Lightning model wrapper for supervised learning tasks.</p>
+<p>This class enables the construction of supervised models by combining a
+backbone (feature extractor), an optional adapter, and a fully connected
+(FC) head. It provides a clean interface for setting up custom training,
+validation, and testing pipelines with pluggable loss functions, metrics,
+optimizers, and learning rate schedulers.</p>
+<p>The architecture is structured as follows:</p>
+<blockquote>
+<div><table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p>Backbone Model</p></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<div><div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p>v</p>
+</div></blockquote>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p>Adapter (Optional)</p></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<div><blockquote>
+<div><div class="line-block">
+<div class="line"><br /></div>
+</div>
+</div></blockquote>
+<dl class="simple">
+<dt>(Flatten if needed)</dt><dd><p>v</p>
+</dd>
+</dl>
+</div></blockquote>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p>Fully Connected Head</p></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<div><div class="line-block">
+<div class="line"><br /></div>
+</div>
+<p>v</p>
+</div></blockquote>
+<table class="docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p>Loss Function</p></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+<p>Training and validation steps comprise the following steps:</p>
+<ol class="arabic simple">
+<li><p>Forward pass input through the backbone.</p></li>
+<li><p>Pass through adapter (if provided).</p></li>
+<li><p>Flatten the output (if <cite>flatten</cite> is True) before the FC head.</p></li>
+<li><p>Forward through the FC head.</p></li>
+<li><p>Compute loss with respect to targets.</p></li>
+<li><p>Backpropagate and update parameters.</p></li>
+<li><p>Compute metrics and log them.</p></li>
+<li><p>Return loss. <cite>train_loss</cite>, <cite>val_loss</cite>, and <cite>test_loss</cite> are always
+logged, along with any additional metrics specified in the
+<cite>train_metrics</cite>, <cite>val_metrics</cite>, and <cite>test_metrics</cite> dictionaries.</p></li>
+</ol>
+<p>This wrapper is especially useful to quickly set up supervised models for
+various tasks, such as image classification, object detection, and
+segmentation. It is designed to be flexible and extensible, allowing users
+to easily swap out components like the backbone, adapter, and FC head as
+needed. The model is built with a focus on simplicity and modularity, making
+it easy to adapt to different use cases and requirements.
+The model is designed to be used with PyTorch Lightning and is compatible
+with its training loop.</p>
+<p><strong>Note</strong>: For more complex architectures that does not follow the above
+structure should not inherit from this class.</p>
+<p><strong>Note</strong>: Input batches must be tuples (input_tensor, target_tensor).</p>
+<p>Create a SFM model with a ViT base backbone. The ViT-Base-16 backbone
+has the following configuration:
+- Patch size: 16
+- Embedding dimension: 768
+- Depth: 12
+- Number of heads: 12</p>
+<section id="parameters">
+<h3>Parameters<a class="headerlink" href="#parameters" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt>img_size<span class="classifier">Union[int, Tuple[int, …]]</span></dt><dd><p>Size of the input image. Note that, to use default pre-trained SFM
+model, the size should be (512, 512).</p>
+</dd>
+<dt>num_classes<span class="classifier">int</span></dt><dd><p>Number of classes for segmentation head. Default is 6.</p>
+</dd>
+<dt>in_chans<span class="classifier">int</span></dt><dd><p>Number of input channels. Default is 1.</p>
+</dd>
+<dt>loss_fn<span class="classifier">Optional[torch.nn.Module], optional</span></dt><dd><p>Loss function, by default None</p>
+</dd>
+<dt>learning_rate<span class="classifier">float, optional</span></dt><dd><p>Learning rate value, by default 1e-3</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.SFM_BasePatch16_Downstream._single_step">
+<span class="sig-name descname"><span class="pre">_single_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_idx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/vit.html#SFM_BasePatch16_Downstream._single_step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.vit.SFM_BasePatch16_Downstream._single_step" title="Link to this definition"></a></dt>
+<dd><p>Perform a single train/validation/test step. It consists in making a
+forward pass with the input data on the backbone model, computing the
+loss between the output and the input data, and logging the loss.</p>
+<section id="id1">
+<h4>Parameters<a class="headerlink" href="#id1" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt>batch<span class="classifier">torch.Tensor</span></dt><dd><p>The input data. It must be a 2-element tuple of tensors, where the
+first tensor is the input data and the second tensor is the mask.</p>
+</dd>
+<dt>batch_idx<span class="classifier">int</span></dt><dd><p>The index of the batch.</p>
+</dd>
+<dt>step_name<span class="classifier">str</span></dt><dd><p>The name of the step. It will be used to log the loss. The possible
+values are: “train”, “val” and “test”. The loss will be logged as
+“{step_name}_loss”.</p>
+</dd>
+</dl>
+</section>
+<section id="returns">
+<h4>Returns<a class="headerlink" href="#returns" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt>torch.Tensor</dt><dd><p>A tensor with the loss value.</p>
+</dd>
+</dl>
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>batch</strong> (<em>torch.Tensor</em>)</p></li>
+<li><p><strong>batch_idx</strong> (<em>int</em>)</p></li>
+<li><p><strong>step_name</strong> (<em>str</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>torch.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.SFM_BasePatch16_Downstream.predict_step">
+<span class="sig-name descname"><span class="pre">predict_step</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_idx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataloader_idx</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/vit.html#SFM_BasePatch16_Downstream.predict_step"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.vit.SFM_BasePatch16_Downstream.predict_step" title="Link to this definition"></a></dt>
+<dd><p>Step function called during <code class="xref py py-meth docutils literal notranslate"><span class="pre">predict()</span></code>. By default, it calls
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">forward()</span></code>. Override to add any processing logic.</p>
+<p>The <code class="xref py py-meth docutils literal notranslate"><span class="pre">predict_step()</span></code> is used
+to scale inference on multi-devices.</p>
+<p>To prevent an OOM error, it is possible to use <code class="xref py py-class docutils literal notranslate"><span class="pre">BasePredictionWriter</span></code>
+callback to write the predictions to disk or database after each batch or on epoch end.</p>
+<p>The <code class="xref py py-class docutils literal notranslate"><span class="pre">BasePredictionWriter</span></code> should be used while using a spawn
+based accelerator. This happens for <code class="docutils literal notranslate"><span class="pre">Trainer(strategy=&quot;ddp_spawn&quot;)</span></code>
+or training on 8 TPU cores with <code class="docutils literal notranslate"><span class="pre">Trainer(accelerator=&quot;tpu&quot;,</span> <span class="pre">devices=8)</span></code> as predictions won’t be returned.</p>
+<dl>
+<dt>Args:</dt><dd><p>batch: The output of your data iterable, normally a <code class="xref py py-class docutils literal notranslate"><span class="pre">DataLoader</span></code>.
+batch_idx: The index of this batch.
+dataloader_idx: The index of the dataloader that produced this batch.</p>
+<blockquote>
+<div><p>(only if multiple dataloaders used)</p>
+</div></blockquote>
+</dd>
+<dt>Return:</dt><dd><p>Predicted output (optional).</p>
+</dd>
+</dl>
+<p>Example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">MyModel</span><span class="p">(</span><span class="n">LightningModule</span><span class="p">):</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">predict_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">,</span> <span class="n">dataloader_idx</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span>
+
+<span class="n">dm</span> <span class="o">=</span> <span class="o">...</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">MyModel</span><span class="p">()</span>
+<span class="n">trainer</span> <span class="o">=</span> <span class="n">Trainer</span><span class="p">(</span><span class="n">accelerator</span><span class="o">=</span><span class="s2">&quot;gpu&quot;</span><span class="p">,</span> <span class="n">devices</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">predictions</span> <span class="o">=</span> <span class="n">trainer</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">dm</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>batch</strong> (<em>torch.Tensor</em>)</p></li>
+<li><p><strong>batch_idx</strong> (<em>int</em>)</p></li>
+<li><p><strong>dataloader_idx</strong> (<em>int</em>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>torch.Tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>img_size</strong> (<em>Union</em><em>[</em><em>int</em><em>, </em><em>Tuple</em><em>[</em><em>int</em><em>, </em><em>Ellipsis</em><em>]</em><em>]</em>)</p></li>
+<li><p><strong>num_classes</strong> (<em>int</em>)</p></li>
+<li><p><strong>in_chans</strong> (<em>int</em>)</p></li>
+<li><p><strong>loss_fn</strong> (<em>Optional</em><em>[</em><em>torch.nn.Module</em><em>]</em>)</p></li>
+<li><p><strong>learning_rate</strong> (<em>float</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.SegmentationHead">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.models.nets.image.vit.</span></span><span class="sig-name descname"><span class="pre">SegmentationHead</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">in_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_channels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kernel_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upsampling</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/vit.html#SegmentationHead"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.vit.SegmentationHead" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Sequential</span></code></p>
+<p>A sequential container.</p>
+<p>Modules will be added to it in the order they are passed in the
+constructor. Alternatively, an <code class="docutils literal notranslate"><span class="pre">OrderedDict</span></code> of modules can be
+passed in. The <code class="docutils literal notranslate"><span class="pre">forward()</span></code> method of <code class="docutils literal notranslate"><span class="pre">Sequential</span></code> accepts any
+input and forwards it to the first module it contains. It then
+“chains” outputs to inputs sequentially for each subsequent module,
+finally returning the output of the last module.</p>
+<p>The value a <code class="docutils literal notranslate"><span class="pre">Sequential</span></code> provides over manually calling a sequence
+of modules is that it allows treating the whole container as a
+single module, such that performing a transformation on the
+<code class="docutils literal notranslate"><span class="pre">Sequential</span></code> applies to each of the modules it stores (which are
+each a registered submodule of the <code class="docutils literal notranslate"><span class="pre">Sequential</span></code>).</p>
+<p>What’s the difference between a <code class="docutils literal notranslate"><span class="pre">Sequential</span></code> and a
+<code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.ModuleList</span></code>? A <code class="docutils literal notranslate"><span class="pre">ModuleList</span></code> is exactly what it
+sounds like–a list for storing <code class="docutils literal notranslate"><span class="pre">Module</span></code> s! On the other hand,
+the layers in a <code class="docutils literal notranslate"><span class="pre">Sequential</span></code> are connected in a cascading way.</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Using Sequential to create a small model. When `model` is run,</span>
+<span class="c1"># input will first be passed to `Conv2d(1,20,5)`. The output of</span>
+<span class="c1"># `Conv2d(1,20,5)` will be used as the input to the first</span>
+<span class="c1"># `ReLU`; the output of the first `ReLU` will become the input</span>
+<span class="c1"># for `Conv2d(20,64,5)`. Finally, the output of</span>
+<span class="c1"># `Conv2d(20,64,5)` will be used as input to the second `ReLU`</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+          <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">20</span><span class="p">,</span><span class="mi">5</span><span class="p">),</span>
+          <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(),</span>
+          <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span><span class="mi">64</span><span class="p">,</span><span class="mi">5</span><span class="p">),</span>
+          <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">()</span>
+        <span class="p">)</span>
+
+<span class="c1"># Using Sequential with OrderedDict. This is functionally the</span>
+<span class="c1"># same as the above code</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="n">OrderedDict</span><span class="p">([</span>
+          <span class="p">(</span><span class="s1">&#39;conv1&#39;</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">20</span><span class="p">,</span><span class="mi">5</span><span class="p">)),</span>
+          <span class="p">(</span><span class="s1">&#39;relu1&#39;</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">()),</span>
+          <span class="p">(</span><span class="s1">&#39;conv2&#39;</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span><span class="mi">64</span><span class="p">,</span><span class="mi">5</span><span class="p">)),</span>
+          <span class="p">(</span><span class="s1">&#39;relu2&#39;</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">())</span>
+        <span class="p">]))</span>
+</pre></div>
+</div>
+<p>Initialize internal Module state, shared by both nn.Module and ScriptModule.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.VIT_MLAHead">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.models.nets.image.vit.</span></span><span class="sig-name descname"><span class="pre">VIT_MLAHead</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">768</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mla_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">256</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mlahead_channels</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">128</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_classes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">6</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm_layer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">nn.BatchNorm2d</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm_cfg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/vit.html#VIT_MLAHead"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.vit.VIT_MLAHead" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>Vision Transformer with support for patch or hybrid CNN input stage</p>
+<p>Initialize internal Module state, shared by both nn.Module and ScriptModule.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.VIT_MLAHead.BatchNorm">
+<span class="sig-name descname"><span class="pre">BatchNorm</span></span><a class="headerlink" href="#minerva.models.nets.image.vit.VIT_MLAHead.BatchNorm" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.VIT_MLAHead.cls">
+<span class="sig-name descname"><span class="pre">cls</span></span><a class="headerlink" href="#minerva.models.nets.image.vit.VIT_MLAHead.cls" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.VIT_MLAHead.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">14</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">w</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">14</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/vit.html#VIT_MLAHead.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.vit.VIT_MLAHead.forward" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.VIT_MLAHead.img_size">
+<span class="sig-name descname"><span class="pre">img_size</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">768</span></em><a class="headerlink" href="#minerva.models.nets.image.vit.VIT_MLAHead.img_size" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.VIT_MLAHead.mla_channels">
+<span class="sig-name descname"><span class="pre">mla_channels</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">256</span></em><a class="headerlink" href="#minerva.models.nets.image.vit.VIT_MLAHead.mla_channels" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.VIT_MLAHead.mlahead">
+<span class="sig-name descname"><span class="pre">mlahead</span></span><a class="headerlink" href="#minerva.models.nets.image.vit.VIT_MLAHead.mlahead" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.VIT_MLAHead.mlahead_channels">
+<span class="sig-name descname"><span class="pre">mlahead_channels</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">128</span></em><a class="headerlink" href="#minerva.models.nets.image.vit.VIT_MLAHead.mlahead_channels" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.VIT_MLAHead.norm_cfg">
+<span class="sig-name descname"><span class="pre">norm_cfg</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#minerva.models.nets.image.vit.VIT_MLAHead.norm_cfg" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.VIT_MLAHead.num_classes">
+<span class="sig-name descname"><span class="pre">num_classes</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">6</span></em><a class="headerlink" href="#minerva.models.nets.image.vit.VIT_MLAHead.num_classes" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.VisionTransformer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.models.nets.image.vit.</span></span><span class="sig-name descname"><span class="pre">VisionTransformer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">global_pool</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/vit.html#VisionTransformer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.vit.VisionTransformer" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">timm.models.vision_transformer.VisionTransformer</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">lightning.LightningModule</span></code></p>
+<p>Vision Transformer with support for global average pooling</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>img_size: Input image size.
+patch_size: Patch size.
+in_chans: Number of image input channels.
+num_classes: Number of classes for classification head.
+global_pool: Type of global pooling for final sequence (default: ‘token’).
+embed_dim: Transformer embedding dimension.
+depth: Depth of transformer.
+num_heads: Number of attention heads.
+mlp_ratio: Ratio of mlp hidden dim to embedding dim.
+qkv_bias: Enable bias for qkv projections if True.
+init_values: Layer-scale init values (layer-scale enabled if not None).
+class_token: Use class token.
+no_embed_class: Don’t include position embeddings for class (or reg) tokens.
+reg_tokens: Number of register tokens.
+pre_norm: Enable norm after embeddings, before transformer blocks (standard in CLIP ViT).
+final_norm: Enable norm after transformer blocks, before head (standard in most ViT).
+fc_norm: Move final norm after pool (instead of before), if None, enabled when global_pool == ‘avg’.
+drop_rate: Head dropout rate.
+pos_drop_rate: Position embedding dropout rate.
+attn_drop_rate: Attention dropout rate.
+drop_path_rate: Stochastic depth rate.
+weight_init: Weight initialization scheme.
+fix_init: Apply weight initialization fix (scaling w/ layer index).
+embed_layer: Patch embedding layer.
+embed_norm_layer: Normalization layer to use / override in patch embed module.
+norm_layer: Normalization layer.
+act_layer: MLP activation layer.
+block_fn: Transformer block layer.</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.VisionTransformer.decoder">
+<span class="sig-name descname"><span class="pre">decoder</span></span><a class="headerlink" href="#minerva.models.nets.image.vit.VisionTransformer.decoder" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.VisionTransformer.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/vit.html#VisionTransformer.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.vit.VisionTransformer.forward" title="Link to this definition"></a></dt>
+<dd><p>Same as <code class="xref py py-meth docutils literal notranslate"><span class="pre">torch.nn.Module.forward()</span></code>.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p><a href="#id2"><span class="problematic" id="id3">*</span></a>args: Whatever you decide to pass into the forward method.
+<a href="#id4"><span class="problematic" id="id5">**</span></a>kwargs: Keyword arguments are also possible.</p>
+</dd>
+<dt>Return:</dt><dd><p>Your model’s output</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.VisionTransformer.forward_features">
+<span class="sig-name descname"><span class="pre">forward_features</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/vit.html#VisionTransformer.forward_features"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.vit.VisionTransformer.forward_features" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.VisionTransformer.global_pool">
+<span class="sig-name descname"><span class="pre">global_pool</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#minerva.models.nets.image.vit.VisionTransformer.global_pool" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.VisionTransformer.loss_fn">
+<span class="sig-name descname"><span class="pre">loss_fn</span></span><a class="headerlink" href="#minerva.models.nets.image.vit.VisionTransformer.loss_fn" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.VisionTransformer.segmentation_head">
+<span class="sig-name descname"><span class="pre">segmentation_head</span></span><a class="headerlink" href="#minerva.models.nets.image.vit.VisionTransformer.segmentation_head" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit._Encoder">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.models.nets.image.vit.</span></span><span class="sig-name descname"><span class="pre">_Encoder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seq_length</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_layers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_heads</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hidden_dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mlp_dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropout</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attention_dropout</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aux_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aux_output_layers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm_layer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">partial(nn.LayerNorm,</span> <span class="pre">eps=1e-06)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/vit.html#_Encoder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.vit._Encoder" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>Transformer Model Encoder for sequence to sequence translation.</p>
+<p>Initialize internal Module state, shared by both nn.Module and ScriptModule.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>seq_length</strong> (<em>int</em>)</p></li>
+<li><p><strong>num_layers</strong> (<em>int</em>)</p></li>
+<li><p><strong>num_heads</strong> (<em>int</em>)</p></li>
+<li><p><strong>hidden_dim</strong> (<em>int</em>)</p></li>
+<li><p><strong>mlp_dim</strong> (<em>int</em>)</p></li>
+<li><p><strong>dropout</strong> (<em>float</em>)</p></li>
+<li><p><strong>attention_dropout</strong> (<em>float</em>)</p></li>
+<li><p><strong>aux_output</strong> (<em>bool</em>)</p></li>
+<li><p><strong>aux_output_layers</strong> (<em>Optional</em><em>[</em><em>List</em><em>[</em><em>int</em><em>]</em><em>]</em>)</p></li>
+<li><p><strong>norm_layer</strong> (<em>Callable</em><em>[</em><em>Ellipsis</em><em>, </em><em>torch.nn.Module</em><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit._Encoder.aux_output">
+<span class="sig-name descname"><span class="pre">aux_output</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#minerva.models.nets.image.vit._Encoder.aux_output" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit._Encoder.aux_output_layers">
+<span class="sig-name descname"><span class="pre">aux_output_layers</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#minerva.models.nets.image.vit._Encoder.aux_output_layers" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit._Encoder.dropout">
+<span class="sig-name descname"><span class="pre">dropout</span></span><a class="headerlink" href="#minerva.models.nets.image.vit._Encoder.dropout" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit._Encoder.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/vit.html#_Encoder.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.vit._Encoder.forward" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>input</strong> (<em>torch.Tensor</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit._Encoder.layers">
+<span class="sig-name descname"><span class="pre">layers</span></span><a class="headerlink" href="#minerva.models.nets.image.vit._Encoder.layers" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit._Encoder.ln">
+<span class="sig-name descname"><span class="pre">ln</span></span><a class="headerlink" href="#minerva.models.nets.image.vit._Encoder.ln" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit._Encoder.pos_embedding">
+<span class="sig-name descname"><span class="pre">pos_embedding</span></span><a class="headerlink" href="#minerva.models.nets.image.vit._Encoder.pos_embedding" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit._VisionTransformerBackbone">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.models.nets.image.vit.</span></span><span class="sig-name descname"><span class="pre">_VisionTransformerBackbone</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_layers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_heads</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hidden_dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mlp_dim</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">original_resolution</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dropout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attention_dropout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_classes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aux_output</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aux_output_layers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">norm_layer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">partial(nn.LayerNorm,</span> <span class="pre">eps=1e-06)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conv_stem_configs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/vit.html#_VisionTransformerBackbone"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.vit._VisionTransformerBackbone" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>Vision Transformer as per <a class="reference external" href="https://arxiv.org/abs/2010.11929">https://arxiv.org/abs/2010.11929</a>.</p>
+<p>Initializes a Vision Transformer (ViT) model.</p>
+<section id="id6">
+<h3>Parameters<a class="headerlink" href="#id6" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt>image_size<span class="classifier">int or Tuple[int, int]</span></dt><dd><p>The size of the input image. If an int is provided, it is assumed
+to be a square image. If a tuple of ints is provided, it represents
+the height and width of the image.</p>
+</dd>
+<dt>patch_size<span class="classifier">int</span></dt><dd><p>The size of each patch in the image.</p>
+</dd>
+<dt>num_layers<span class="classifier">int</span></dt><dd><p>The number of transformer layers in the model.</p>
+</dd>
+<dt>num_heads<span class="classifier">int</span></dt><dd><p>The number of attention heads in the transformer layers.</p>
+</dd>
+<dt>hidden_dim<span class="classifier">int</span></dt><dd><p>The dimensionality of the hidden layers in the transformer.</p>
+</dd>
+<dt>mlp_dim<span class="classifier">int</span></dt><dd><p>The dimensionality of the feed-forward MLP layers in the transformer</p>
+</dd>
+<dt>original_resolution<span class="classifier">Tuple[int, int], optional</span></dt><dd><p>The original resolution of the input image in the pre-training
+weights. When None, positional embeddings will not be interpolated.
+Defaults to None.</p>
+</dd>
+<dt>dropout<span class="classifier">float, optional</span></dt><dd><p>The dropout rate to apply. Defaults to 0.0.</p>
+</dd>
+<dt>attention_dropout<span class="classifier">float, optional</span></dt><dd><p>The dropout rate to apply to the attention weights. Defaults to 0.0</p>
+</dd>
+<dt>num_classes<span class="classifier">int, optional</span></dt><dd><p>The number of output classes. Defaults to 1000.</p>
+</dd>
+<dt>norm_layer<span class="classifier">Callable[…, torch.nn.Module], optional</span></dt><dd><p>The normalization layer to use. Defaults to nn.LayerNorm with
+epsilon=1e-6.</p>
+</dd>
+<dt>conv_stem_configs<span class="classifier">List[ConvStemConfig], optional</span></dt><dd><p>The configuration for the convolutional stem layers.
+If provided, the input image will be processed by these
+convolutional layers before being passed to the transformer.
+Defaults to None.</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit._VisionTransformerBackbone._process_input">
+<span class="sig-name descname"><span class="pre">_process_input</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/vit.html#_VisionTransformerBackbone._process_input"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.vit._VisionTransformerBackbone._process_input" title="Link to this definition"></a></dt>
+<dd><p>Process the input tensor and return the reshaped tensor and dimensions.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x (torch.Tensor): The input tensor.</p>
+</dd>
+<dt>Returns:</dt><dd><p>Tuple[torch.Tensor, int, int]: The reshaped tensor, number of rows,
+and number of columns.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>torch.Tensor</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Tuple[torch.Tensor, int, int]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit._VisionTransformerBackbone.attention_dropout">
+<span class="sig-name descname"><span class="pre">attention_dropout</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.0</span></em><a class="headerlink" href="#minerva.models.nets.image.vit._VisionTransformerBackbone.attention_dropout" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit._VisionTransformerBackbone.aux_output">
+<span class="sig-name descname"><span class="pre">aux_output</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#minerva.models.nets.image.vit._VisionTransformerBackbone.aux_output" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit._VisionTransformerBackbone.aux_output_layers">
+<span class="sig-name descname"><span class="pre">aux_output_layers</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#minerva.models.nets.image.vit._VisionTransformerBackbone.aux_output_layers" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit._VisionTransformerBackbone.class_token">
+<span class="sig-name descname"><span class="pre">class_token</span></span><a class="headerlink" href="#minerva.models.nets.image.vit._VisionTransformerBackbone.class_token" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit._VisionTransformerBackbone.dropout">
+<span class="sig-name descname"><span class="pre">dropout</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.0</span></em><a class="headerlink" href="#minerva.models.nets.image.vit._VisionTransformerBackbone.dropout" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit._VisionTransformerBackbone.encoder">
+<span class="sig-name descname"><span class="pre">encoder</span></span><a class="headerlink" href="#minerva.models.nets.image.vit._VisionTransformerBackbone.encoder" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit._VisionTransformerBackbone.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/vit.html#_VisionTransformerBackbone.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.vit._VisionTransformerBackbone.forward" title="Link to this definition"></a></dt>
+<dd><p>Forward pass of the Vision Transformer Backbone.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>x (torch.Tensor): The input tensor.</p>
+</dd>
+<dt>Returns:</dt><dd><p>torch.Tensor: The output tensor.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>x</strong> (<em>torch.Tensor</em>)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit._VisionTransformerBackbone.hidden_dim">
+<span class="sig-name descname"><span class="pre">hidden_dim</span></span><a class="headerlink" href="#minerva.models.nets.image.vit._VisionTransformerBackbone.hidden_dim" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit._VisionTransformerBackbone.image_size">
+<span class="sig-name descname"><span class="pre">image_size</span></span><a class="headerlink" href="#minerva.models.nets.image.vit._VisionTransformerBackbone.image_size" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit._VisionTransformerBackbone.interpolate_pos_embeddings">
+<span class="sig-name descname"><span class="pre">interpolate_pos_embeddings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pretrained_pos_embed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_img_size</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/vit.html#_VisionTransformerBackbone.interpolate_pos_embeddings"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.vit._VisionTransformerBackbone.interpolate_pos_embeddings" title="Link to this definition"></a></dt>
+<dd><p>Interpolate encoder’s positional embeddings to fit a new input size.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>pretrained_pos_embed (torch.Tensor): Pretrained positional embeddings.
+new_img_size (Tuple[int, int]): New height and width of the input image.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit._VisionTransformerBackbone.load_backbone">
+<span class="sig-name descname"><span class="pre">load_backbone</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freeze</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/vit.html#_VisionTransformerBackbone.load_backbone"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.vit._VisionTransformerBackbone.load_backbone" title="Link to this definition"></a></dt>
+<dd><p>Loads pretrained weights and handles positional embedding resizing
+if necessary.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>path</strong> (<em>str</em>)</p></li>
+<li><p><strong>freeze</strong> (<em>bool</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit._VisionTransformerBackbone.load_weights">
+<span class="sig-name descname"><span class="pre">load_weights</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">weights_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freeze</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/vit.html#_VisionTransformerBackbone.load_weights"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.vit._VisionTransformerBackbone.load_weights" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>weights_path</strong> (<em>str</em>)</p></li>
+<li><p><strong>freeze</strong> (<em>bool</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit._VisionTransformerBackbone.mlp_dim">
+<span class="sig-name descname"><span class="pre">mlp_dim</span></span><a class="headerlink" href="#minerva.models.nets.image.vit._VisionTransformerBackbone.mlp_dim" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit._VisionTransformerBackbone.norm_layer">
+<span class="sig-name descname"><span class="pre">norm_layer</span></span><a class="headerlink" href="#minerva.models.nets.image.vit._VisionTransformerBackbone.norm_layer" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit._VisionTransformerBackbone.num_classes">
+<span class="sig-name descname"><span class="pre">num_classes</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1000</span></em><a class="headerlink" href="#minerva.models.nets.image.vit._VisionTransformerBackbone.num_classes" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit._VisionTransformerBackbone.original_resolution">
+<span class="sig-name descname"><span class="pre">original_resolution</span></span><a class="headerlink" href="#minerva.models.nets.image.vit._VisionTransformerBackbone.original_resolution" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit._VisionTransformerBackbone.patch_size">
+<span class="sig-name descname"><span class="pre">patch_size</span></span><a class="headerlink" href="#minerva.models.nets.image.vit._VisionTransformerBackbone.patch_size" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit._VisionTransformerBackbone.seq_length">
+<span class="sig-name descname"><span class="pre">seq_length</span></span><a class="headerlink" href="#minerva.models.nets.image.vit._VisionTransformerBackbone.seq_length" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image_size</strong> (<em>Union</em><em>[</em><em>int</em><em>, </em><em>Tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>]</em><em>]</em>)</p></li>
+<li><p><strong>patch_size</strong> (<em>int</em>)</p></li>
+<li><p><strong>num_layers</strong> (<em>int</em>)</p></li>
+<li><p><strong>num_heads</strong> (<em>int</em>)</p></li>
+<li><p><strong>hidden_dim</strong> (<em>int</em>)</p></li>
+<li><p><strong>mlp_dim</strong> (<em>int</em>)</p></li>
+<li><p><strong>original_resolution</strong> (<em>Optional</em><em>[</em><em>Tuple</em><em>[</em><em>int</em><em>, </em><em>int</em><em>]</em><em>]</em>)</p></li>
+<li><p><strong>dropout</strong> (<em>float</em>)</p></li>
+<li><p><strong>attention_dropout</strong> (<em>float</em>)</p></li>
+<li><p><strong>num_classes</strong> (<em>int</em>)</p></li>
+<li><p><strong>aux_output</strong> (<em>bool</em>)</p></li>
+<li><p><strong>aux_output_layers</strong> (<em>Optional</em><em>[</em><em>List</em><em>[</em><em>int</em><em>]</em><em>]</em>)</p></li>
+<li><p><strong>norm_layer</strong> (<em>Callable</em><em>[</em><em>Ellipsis</em><em>, </em><em>torch.nn.Module</em><em>]</em>)</p></li>
+<li><p><strong>conv_stem_configs</strong> (<em>Optional</em><em>[</em><em>List</em><em>[</em><em>torchvision.models.vision_transformer.ConvStemConfig</em><em>]</em><em>]</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.interpolate_pos_embed">
+<span class="sig-prename descclassname"><span class="pre">minerva.models.nets.image.vit.</span></span><span class="sig-name descname"><span class="pre">interpolate_pos_embed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">checkpoint_model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">newsize1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">newsize2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/vit.html#interpolate_pos_embed"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.vit.interpolate_pos_embed" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.mae_vit_base_patch16">
+<span class="sig-prename descclassname"><span class="pre">minerva.models.nets.image.vit.</span></span><span class="sig-name descname"><span class="pre">mae_vit_base_patch16</span></span><a class="headerlink" href="#minerva.models.nets.image.vit.mae_vit_base_patch16" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.mae_vit_base_patch16D4d256">
+<span class="sig-prename descclassname"><span class="pre">minerva.models.nets.image.vit.</span></span><span class="sig-name descname"><span class="pre">mae_vit_base_patch16D4d256</span></span><a class="headerlink" href="#minerva.models.nets.image.vit.mae_vit_base_patch16D4d256" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.mae_vit_huge_patch14">
+<span class="sig-prename descclassname"><span class="pre">minerva.models.nets.image.vit.</span></span><span class="sig-name descname"><span class="pre">mae_vit_huge_patch14</span></span><a class="headerlink" href="#minerva.models.nets.image.vit.mae_vit_huge_patch14" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.mae_vit_large_patch16">
+<span class="sig-prename descclassname"><span class="pre">minerva.models.nets.image.vit.</span></span><span class="sig-name descname"><span class="pre">mae_vit_large_patch16</span></span><a class="headerlink" href="#minerva.models.nets.image.vit.mae_vit_large_patch16" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.mae_vit_large_patch16D4d256">
+<span class="sig-prename descclassname"><span class="pre">minerva.models.nets.image.vit.</span></span><span class="sig-name descname"><span class="pre">mae_vit_large_patch16D4d256</span></span><a class="headerlink" href="#minerva.models.nets.image.vit.mae_vit_large_patch16D4d256" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.mae_vit_small_patch16">
+<span class="sig-prename descclassname"><span class="pre">minerva.models.nets.image.vit.</span></span><span class="sig-name descname"><span class="pre">mae_vit_small_patch16</span></span><a class="headerlink" href="#minerva.models.nets.image.vit.mae_vit_small_patch16" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.vit_base_patch16_downstream_regression">
+<span class="sig-prename descclassname"><span class="pre">minerva.models.nets.image.vit.</span></span><span class="sig-name descname"><span class="pre">vit_base_patch16_downstream_regression</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/vit.html#vit_base_patch16_downstream_regression"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.vit.vit_base_patch16_downstream_regression" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.vit_huge_patch14_downstream_regression">
+<span class="sig-prename descclassname"><span class="pre">minerva.models.nets.image.vit.</span></span><span class="sig-name descname"><span class="pre">vit_huge_patch14_downstream_regression</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/vit.html#vit_huge_patch14_downstream_regression"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.vit.vit_huge_patch14_downstream_regression" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="minerva.models.nets.image.vit.vit_large_patch16_downstream_regression">
+<span class="sig-prename descclassname"><span class="pre">minerva.models.nets.image.vit.</span></span><span class="sig-name descname"><span class="pre">vit_large_patch16_downstream_regression</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../../../_modules/minerva/models/nets/image/vit.html#vit_large_patch16_downstream_regression"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.models.nets.image.vit.vit_large_patch16_downstream_regression" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Unicamp.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

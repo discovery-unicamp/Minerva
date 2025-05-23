@@ -1,0 +1,24 @@
+minerva.losses._functional
+==========================
+
+.. py:module:: minerva.losses._functional
+
+.. autoapi-nested-parse::
+
+   Functional API for losses.
+
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   minerva.losses._functional.dice_score
+
+
+Module Contents
+---------------
+
+.. py:function:: dice_score(y_hat, y, smooth = 0.0, eps = 1e-07, dims=None)
+

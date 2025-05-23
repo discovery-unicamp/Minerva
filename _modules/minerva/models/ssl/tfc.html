@@ -1,0 +1,569 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>minerva.models.ssl.tfc &mdash; minerva  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            minerva
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../design.html">Minerva Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorials.html">Examples and Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../contributing.html">Contributing to Minerva</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api.html">Programming Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">minerva</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">minerva.models.ssl.tfc</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for minerva.models.ssl.tfc</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torch</span><span class="w"> </span><span class="kn">import</span> <span class="n">nn</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">lightning</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pl</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Dict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">minerva.transforms.tfc</span><span class="w"> </span><span class="kn">import</span> <span class="n">TFC_Transforms</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">minerva.models.nets.tfc</span><span class="w"> </span><span class="kn">import</span> <span class="n">TFC_Backbone</span><span class="p">,</span> <span class="n">TFC_PredicionHead</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">minerva.losses.ntxent_loss_poly</span><span class="w"> </span><span class="kn">import</span> <span class="n">NTXentLoss_poly</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">minerva.transforms.transform</span><span class="w"> </span><span class="kn">import</span> <span class="n">_Transform</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torch.nn.modules.loss</span><span class="w"> </span><span class="kn">import</span> <span class="n">_Loss</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torch.optim</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optimizer</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torchmetrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">F1Score</span><span class="p">,</span> <span class="n">Accuracy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">minerva.models.loaders</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoadableModule</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torchmetrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">Metric</span>
+
+
+<div class="viewcode-block" id="TFC_Model">
+<a class="viewcode-back" href="../../../../autoapi/minerva/models/ssl/tfc/index.html#minerva.models.ssl.tfc.TFC_Model">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TFC_Model</span><span class="p">(</span><span class="n">pl</span><span class="o">.</span><span class="n">LightningModule</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Main class for the Temporal-Frequency Convolutional (TFC) model.</span>
+<span class="sd">    The model is composed of a backbone and a prediction head. The backbone is (by default) a Convolutional Neural Network (CNN) that extracts features</span>
+<span class="sd">    from the input data in the time domain and frequency domain. The prediction head is a fully connected layer that classifies the features extracted</span>
+<span class="sd">    by the backbone in the given classes.</span>
+<span class="sd">    This class can be trained with a supervised learning approach or with a self-supervised learning approach, or even with single pipelines.</span>
+<span class="sd">    This class implements the training and validation steps for the model, as well as the forward method and the configuration of the optimizer, as</span>
+<span class="sd">    requeired by pytorch-lightning.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">input_channels</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">TS_length</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">num_classes</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">single_encoding_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">128</span><span class="p">,</span>
+        <span class="n">backbone</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">TFC_Backbone</span><span class="p">,</span> <span class="n">LoadableModule</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">pred_head</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">loss</span><span class="p">:</span> <span class="n">_Loss</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">learning_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">3e-4</span><span class="p">,</span>
+        <span class="n">transform</span><span class="p">:</span> <span class="n">_Transform</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">device</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;cuda&quot;</span><span class="p">,</span>
+        <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">42</span><span class="p">,</span>
+        <span class="n">pipeline</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;both&quot;</span><span class="p">,</span>
+        <span class="n">time_encoder</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">frequency_encoder</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">time_projector</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">frequency_projector</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">train_metrics</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Metric</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">val_metrics</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Metric</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">test_metrics</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Metric</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">batch_1_correction</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The constructor of the TFC_Model class.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        - input_channels: int</span>
+<span class="sd">            The number of channels in the input data</span>
+<span class="sd">        - TS_length: int</span>
+<span class="sd">            The number of time steps in the input data</span>
+<span class="sd">        - num_classes: Optional[int]</span>
+<span class="sd">            The number of downstream classes in the dataset, if none, the model is trained in a self-supervised learning approach</span>
+<span class="sd">        - single_encoding_size: int</span>
+<span class="sd">            The size of the encoding in the latent space of frequency or time domain individually</span>
+<span class="sd">        - backbone: Optional[Union[TFC_Backbone, LoadableModule]]</span>
+<span class="sd">            The backbone of the model. If None, a default backbone is created with the encoders and projectors provided. If a LoadableModule is provided, it is used as the backbone.</span>
+<span class="sd">            If provided, make sure you really know what you are doing.</span>
+<span class="sd">        - pred_head: Union[bool, nn.Module]</span>
+<span class="sd">            If True, a prediction head (MLP) is added to the model. If False or None, the model is trained in a self-supervised learning approach. If a nn.Module is provided, it is used as the prediction head</span>
+<span class="sd">        - loss: _Loss</span>
+<span class="sd">            The loss function to be used in the training step. If None, the ntxent_poly is used for pretrain or the CrossEntropyLoss is used for downstream</span>
+<span class="sd">        - learning_rate: float</span>
+<span class="sd">            The learning rate of the optimizer</span>
+<span class="sd">        - transform: _Transform</span>
+<span class="sd">            The transformation to be applied to the input data. If None, a default transformation is applied that includes data augmentation and frequency domain transformation</span>
+<span class="sd">        - device: str</span>
+<span class="sd">            The device to be used in the training of the model, default is &#39;cuda&#39;</span>
+<span class="sd">        - batch_size: int</span>
+<span class="sd">            The batch size of the model</span>
+<span class="sd">        - pipeline: str</span>
+<span class="sd">            The pipeline to be used in the training of the model. It can be &#39;both&#39;, &#39;time&#39; or &#39;freq&#39;. Default is &#39;both&#39;. If &#39;both&#39;, the model is trained with both time and frequency domain data as default described in tfc paper.</span>
+<span class="sd">             If &#39;time&#39;, the model is trained with only time domain data. If &#39;freq&#39;, the model is trained with only frequency domain data obtained by fft. At these scenarios, the input data must have the time and frequency domain</span>
+<span class="sd">             but the prediction head will be used only for the selected one. Also is necesssary to adapt the prediction head input half size of expected (only single_encoding_size instead of single_encoding_size*2)</span>
+<span class="sd">        - time_encoder: Optional[nn.Module]</span>
+<span class="sd">            The encoder to be used in the time domain. If None, a default encoder is used. time_encoder can not be passed if backbone is passed.</span>
+<span class="sd">        - frequency_encoder: Optional[nn.Module]</span>
+<span class="sd">            The encoder to be used in the frequency domain. If None, a default encoder is used. frequency_encoder can not be passed if backbone is passed.</span>
+<span class="sd">        - time_projector: Optional[nn.Module]</span>
+<span class="sd">            The projector to be used in the time domain. If None, a default projector is used. time_projector can not be passed if backbone is passed.</span>
+<span class="sd">        - frequency_projector: Optional[nn.Module]</span>
+<span class="sd">            The projector to be used in the frequency domain. If None, a default projector is used. frequency_projector can not be passed if backbone is passed.</span>
+<span class="sd">        - train_metrics : Dict[str, Metric], optional</span>
+<span class="sd">            The metrics to be used during training, by default None</span>
+<span class="sd">        - val_metrics : Dict[str, Metric], optional</span>
+<span class="sd">            The metrics to be used during validation, by default None</span>
+<span class="sd">        - test_metrics : Dict[str, Metric], optional</span>
+<span class="sd">            The metrics to be used during testing, by default None</span>
+<span class="sd">        - batch_1_correction: bool</span>
+<span class="sd">            If True, some parts of the architecture are adapted to</span>
+<span class="sd">            work with batch size 1. Default is False, which means</span>
+<span class="sd">            that the model is not adapted to work with batch size 1.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">TFC_Model</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_classes</span> <span class="o">=</span> <span class="n">num_classes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pipeline</span> <span class="o">=</span> <span class="n">pipeline</span>
+
+        <span class="k">if</span> <span class="n">test_metrics</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="n">num_classes</span>
+            <span class="p">):</span>  <span class="c1"># If num_classes is not provided, the model is trained in a self-supervised learning approach, so there is no test metrics</span>
+                <span class="n">test_metrics</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s2">&quot;f1&quot;</span><span class="p">:</span> <span class="n">F1Score</span><span class="p">(</span><span class="n">task</span><span class="o">=</span><span class="s2">&quot;multiclass&quot;</span><span class="p">,</span> <span class="n">num_classes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_classes</span><span class="p">),</span>
+                    <span class="s2">&quot;accuracy&quot;</span><span class="p">:</span> <span class="n">Accuracy</span><span class="p">(</span>
+                        <span class="n">task</span><span class="o">=</span><span class="s2">&quot;multiclass&quot;</span><span class="p">,</span> <span class="n">num_classes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_classes</span>
+                    <span class="p">),</span>
+                <span class="p">}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;train&quot;</span><span class="p">:</span> <span class="n">train_metrics</span><span class="p">,</span>
+            <span class="s2">&quot;val&quot;</span><span class="p">:</span> <span class="n">val_metrics</span><span class="p">,</span>
+            <span class="s2">&quot;test&quot;</span><span class="p">:</span> <span class="n">test_metrics</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="n">backbone</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">backbone</span> <span class="o">=</span> <span class="n">backbone</span>
+            <span class="k">assert</span> <span class="p">(</span>
+                <span class="n">time_encoder</span> <span class="ow">is</span> <span class="kc">None</span>
+                <span class="ow">and</span> <span class="n">frequency_encoder</span> <span class="ow">is</span> <span class="kc">None</span>
+                <span class="ow">and</span> <span class="n">time_projector</span> <span class="ow">is</span> <span class="kc">None</span>
+                <span class="ow">and</span> <span class="n">frequency_projector</span> <span class="ow">is</span> <span class="kc">None</span>
+            <span class="p">),</span> <span class="s2">&quot;If a backbone is provided, the encoders and projectors must be None&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">backbone</span> <span class="o">=</span> <span class="n">TFC_Backbone</span><span class="p">(</span>
+                <span class="n">input_channels</span><span class="p">,</span>
+                <span class="n">TS_length</span><span class="p">,</span>
+                <span class="n">single_encoding_size</span><span class="o">=</span><span class="n">single_encoding_size</span><span class="p">,</span>
+                <span class="n">time_encoder</span><span class="o">=</span><span class="n">time_encoder</span><span class="p">,</span>
+                <span class="n">frequency_encoder</span><span class="o">=</span><span class="n">frequency_encoder</span><span class="p">,</span>
+                <span class="n">time_projector</span><span class="o">=</span><span class="n">time_projector</span><span class="p">,</span>
+                <span class="n">frequency_projector</span><span class="o">=</span><span class="n">frequency_projector</span><span class="p">,</span>
+                <span class="n">batch_1_correction</span><span class="o">=</span><span class="n">batch_1_correction</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">pred_head</span> <span class="ow">and</span> <span class="n">num_classes</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">pred_head</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="n">conections</span> <span class="o">=</span> <span class="mi">2</span> <span class="k">if</span> <span class="n">pipeline</span> <span class="o">==</span> <span class="s2">&quot;both&quot;</span> <span class="k">else</span> <span class="mi">1</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pred_head</span> <span class="o">=</span> <span class="n">TFC_PredicionHead</span><span class="p">(</span>
+                    <span class="n">num_classes</span><span class="o">=</span><span class="n">num_classes</span><span class="p">,</span>
+                    <span class="n">single_encoding_size</span><span class="o">=</span><span class="n">single_encoding_size</span><span class="p">,</span>
+                    <span class="n">connections</span><span class="o">=</span><span class="n">conections</span><span class="p">,</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pred_head</span> <span class="o">=</span> <span class="n">pred_head</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pred_head</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="n">loss</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">loss_fn</span> <span class="o">=</span> <span class="n">loss</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pred_head</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">loss_fn</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">CrossEntropyLoss</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">device</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">&quot;cuda&quot;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">device</span> <span class="o">==</span> <span class="s2">&quot;cuda&quot;</span>
+                    <span class="k">else</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
+                <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">loss_fn</span> <span class="o">=</span> <span class="n">NTXentLoss_poly</span><span class="p">(</span><span class="n">device</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">learning_rate</span> <span class="o">=</span> <span class="n">learning_rate</span>
+        <span class="k">if</span> <span class="n">transform</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">transform</span> <span class="o">=</span> <span class="n">transform</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">transform</span> <span class="o">=</span> <span class="n">TFC_Transforms</span><span class="p">()</span>
+
+<div class="viewcode-block" id="TFC_Model._compute_metrics">
+<a class="viewcode-back" href="../../../../autoapi/minerva/models/ssl/tfc/index.html#minerva.models.ssl.tfc.TFC_Model._compute_metrics">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_compute_metrics</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">y_hat</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">step_name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the metrics for the given step.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        y_hat : torch.Tensor</span>
+<span class="sd">            The output data from the forward pass.</span>
+<span class="sd">        y : torch.Tensor</span>
+<span class="sd">            The input data/label.</span>
+<span class="sd">        step_name : str</span>
+<span class="sd">            Name of the step. It will be used to get the metrics from the</span>
+<span class="sd">            `self.metrics` attribute.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Dict[str, torch.Tensor]</span>
+<span class="sd">            A dictionary with the metrics values.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span><span class="p">[</span><span class="n">step_name</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{}</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">step_name</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">metric_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">:</span> <span class="n">metric</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)(</span><span class="n">y_hat</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">metric_name</span><span class="p">,</span> <span class="n">metric</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span><span class="p">[</span><span class="n">step_name</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="TFC_Model.forward">
+<a class="viewcode-back" href="../../../../autoapi/minerva/models/ssl/tfc/index.html#minerva.models.ssl.tfc.TFC_Model.forward">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="nb">all</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>  <span class="c1"># &quot;all&quot; is useful for validation of acurracy and latent space</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The forward method of the model. It receives the input data in the time domain and frequency domain and returns the prediction of the model.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        - x: torch.Tensor</span>
+<span class="sd">            The input data</span>
+<span class="sd">        - all: bool</span>
+<span class="sd">            If True, the method returns the prediction of the model and the features extracted by the backbone. If False, only the prediction is returned</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        - torch.Tensor</span>
+<span class="sd">            If the model has a prediction head and parameter &quot;all&quot; is False, the method returns the prediction of the model, a tensor with the shape (batch_size, num_classes)</span>
+<span class="sd">        - tuple</span>
+<span class="sd">            If the model has not a prediction head, the method returns a tuple with the features extracted by the backbone, h_t, z_t, h_f, z_f respectively.</span>
+<span class="sd">        - tuple</span>
+<span class="sd">            If the model has a prediction head and parameter &quot;all&quot; is True, the method returns a tuple with the prediction of the model and the features extracted by the backbone, following the format prediction, h_t, z_t, h_f, z_f.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">backbone</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">h_t</span><span class="p">,</span> <span class="n">z_t</span><span class="p">,</span> <span class="n">h_f</span><span class="p">,</span> <span class="n">z_f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backbone</span><span class="o">.</span><span class="n">get_representations</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pred_head</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pipeline</span> <span class="o">==</span> <span class="s2">&quot;both&quot;</span><span class="p">:</span>
+                <span class="n">fea_concat</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">z_t</span><span class="p">,</span> <span class="n">z_f</span><span class="p">),</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">pipeline</span> <span class="o">==</span> <span class="s2">&quot;time&quot;</span><span class="p">:</span>
+                <span class="n">fea_concat</span> <span class="o">=</span> <span class="n">z_t</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">pipeline</span> <span class="o">==</span> <span class="s2">&quot;freq&quot;</span><span class="p">:</span>
+                <span class="n">fea_concat</span> <span class="o">=</span> <span class="n">z_f</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid pipeline&quot;</span><span class="p">)</span>
+            <span class="n">pred</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pred_head</span><span class="p">(</span><span class="n">fea_concat</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">all</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">pred</span><span class="p">,</span> <span class="n">h_t</span><span class="p">,</span> <span class="n">z_t</span><span class="p">,</span> <span class="n">h_f</span><span class="p">,</span> <span class="n">z_f</span>
+            <span class="k">return</span> <span class="n">pred</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">h_t</span><span class="p">,</span> <span class="n">z_t</span><span class="p">,</span> <span class="n">h_f</span><span class="p">,</span> <span class="n">z_f</span></div>
+
+
+<div class="viewcode-block" id="TFC_Model.training_step">
+<a class="viewcode-back" href="../../../../autoapi/minerva/models/ssl/tfc/index.html#minerva.models.ssl.tfc.TFC_Model.training_step">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">training_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">batch_index</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The training step of the model. It receives a batch of data and returns the loss of the model.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        - batch: Tuple[torch.Tensor, torch.Tensor]</span>
+<span class="sd">            A tuple with the input data and its labels as X, Y</span>
+<span class="sd">        - batch_index: int</span>
+<span class="sd">            The index of the batch in the dataset (not used in this method)</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        - loss</span>
+<span class="sd">            The loss of the model in this training step</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">data</span><span class="p">,</span> <span class="n">aug1</span><span class="p">,</span> <span class="n">data_f</span><span class="p">,</span> <span class="n">aug1_f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pred_head</span><span class="p">:</span>
+            <span class="n">pred</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+            <span class="n">labels</span> <span class="o">=</span> <span class="n">labels</span><span class="o">.</span><span class="n">long</span><span class="p">()</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_fn</span><span class="p">(</span><span class="n">pred</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;train&quot;</span><span class="p">]:</span>
+                <span class="n">metrics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_metrics</span><span class="p">(</span><span class="n">pred</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="s2">&quot;train&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log_dict</span><span class="p">(</span><span class="n">metrics</span><span class="p">,</span> <span class="n">prog_bar</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">h_t</span><span class="p">,</span> <span class="n">z_t</span><span class="p">,</span> <span class="n">h_f</span><span class="p">,</span> <span class="n">z_f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+            <span class="n">h_t_aug</span><span class="p">,</span> <span class="n">z_t_aug</span><span class="p">,</span> <span class="n">h_f_aug</span><span class="p">,</span> <span class="n">z_f_aug</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">aug1</span><span class="p">)</span>
+            <span class="n">loss_t</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_fn</span><span class="p">(</span><span class="n">h_t</span><span class="p">,</span> <span class="n">h_t_aug</span><span class="p">)</span>
+            <span class="n">loss_f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_fn</span><span class="p">(</span><span class="n">h_f</span><span class="p">,</span> <span class="n">h_f_aug</span><span class="p">)</span>
+            <span class="n">l_TF</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_fn</span><span class="p">(</span><span class="n">z_t</span><span class="p">,</span> <span class="n">z_f</span><span class="p">)</span>
+            <span class="n">l_1</span><span class="p">,</span> <span class="n">l_2</span><span class="p">,</span> <span class="n">l_3</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">loss_fn</span><span class="p">(</span><span class="n">z_t</span><span class="p">,</span> <span class="n">z_f_aug</span><span class="p">),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">loss_fn</span><span class="p">(</span><span class="n">z_t_aug</span><span class="p">,</span> <span class="n">z_f</span><span class="p">),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">loss_fn</span><span class="p">(</span><span class="n">z_t_aug</span><span class="p">,</span> <span class="n">z_f_aug</span><span class="p">),</span>
+            <span class="p">)</span>
+            <span class="n">loss_c</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">l_TF</span> <span class="o">-</span> <span class="n">l_1</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">l_TF</span> <span class="o">-</span> <span class="n">l_2</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">l_TF</span> <span class="o">-</span> <span class="n">l_3</span><span class="p">)</span>
+            <span class="n">lam</span> <span class="o">=</span> <span class="mf">0.2</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="n">lam</span> <span class="o">*</span> <span class="p">(</span><span class="n">loss_t</span> <span class="o">+</span> <span class="n">loss_f</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">lam</span><span class="p">)</span> <span class="o">*</span> <span class="n">loss_c</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s2">&quot;train_loss&quot;</span><span class="p">,</span> <span class="n">loss</span><span class="p">,</span> <span class="n">prog_bar</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">loss</span></div>
+
+
+<div class="viewcode-block" id="TFC_Model.validation_step">
+<a class="viewcode-back" href="../../../../autoapi/minerva/models/ssl/tfc/index.html#minerva.models.ssl.tfc.TFC_Model.validation_step">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">validation_step</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">batch_index</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The validation step of the model. It receives a batch of data and returns the loss of the model.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        - batch: Tuple[torch.Tensor, torch.Tensor]</span>
+<span class="sd">            A tuple with the input data and its labels as X, Y</span>
+<span class="sd">        - batch_index: int</span>
+<span class="sd">            The index of the batch in the dataset (not used in this method)</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        - loss</span>
+<span class="sd">            The loss of the model in this validation step</span>
+
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">data</span><span class="p">,</span> <span class="n">aug1</span><span class="p">,</span> <span class="n">data_f</span><span class="p">,</span> <span class="n">aug1_f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pred_head</span><span class="p">:</span>
+            <span class="n">pred</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+            <span class="n">labels</span> <span class="o">=</span> <span class="n">labels</span><span class="o">.</span><span class="n">long</span><span class="p">()</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_fn</span><span class="p">(</span><span class="n">pred</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;val&quot;</span><span class="p">]:</span>
+                <span class="n">metrics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_metrics</span><span class="p">(</span><span class="n">pred</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="s2">&quot;val&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">log_dict</span><span class="p">(</span><span class="n">metrics</span><span class="p">,</span> <span class="n">prog_bar</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">h_t</span><span class="p">,</span> <span class="n">z_t</span><span class="p">,</span> <span class="n">h_f</span><span class="p">,</span> <span class="n">z_f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+            <span class="n">h_t_aug</span><span class="p">,</span> <span class="n">z_t_aug</span><span class="p">,</span> <span class="n">h_f_aug</span><span class="p">,</span> <span class="n">z_f_aug</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">aug1</span><span class="p">)</span>
+            <span class="n">loss_t</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_fn</span><span class="p">(</span><span class="n">h_t</span><span class="p">,</span> <span class="n">h_t_aug</span><span class="p">)</span>
+            <span class="n">loss_f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_fn</span><span class="p">(</span><span class="n">h_f</span><span class="p">,</span> <span class="n">h_f_aug</span><span class="p">)</span>
+            <span class="n">l_TF</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_fn</span><span class="p">(</span><span class="n">z_t</span><span class="p">,</span> <span class="n">z_f</span><span class="p">)</span>
+            <span class="n">l_1</span><span class="p">,</span> <span class="n">l_2</span><span class="p">,</span> <span class="n">l_3</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">loss_fn</span><span class="p">(</span><span class="n">z_t</span><span class="p">,</span> <span class="n">z_f_aug</span><span class="p">),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">loss_fn</span><span class="p">(</span><span class="n">z_t_aug</span><span class="p">,</span> <span class="n">z_f</span><span class="p">),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">loss_fn</span><span class="p">(</span><span class="n">z_t_aug</span><span class="p">,</span> <span class="n">z_f_aug</span><span class="p">),</span>
+            <span class="p">)</span>
+            <span class="n">loss_c</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">l_TF</span> <span class="o">-</span> <span class="n">l_1</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">l_TF</span> <span class="o">-</span> <span class="n">l_2</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">l_TF</span> <span class="o">-</span> <span class="n">l_3</span><span class="p">)</span>
+            <span class="n">lam</span> <span class="o">=</span> <span class="mf">0.2</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="n">lam</span> <span class="o">*</span> <span class="p">(</span><span class="n">loss_t</span> <span class="o">+</span> <span class="n">loss_f</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">lam</span><span class="p">)</span> <span class="o">*</span> <span class="n">loss_c</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s2">&quot;val_loss&quot;</span><span class="p">,</span> <span class="n">loss</span><span class="p">,</span> <span class="n">prog_bar</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">loss</span></div>
+
+
+<div class="viewcode-block" id="TFC_Model.test_step">
+<a class="viewcode-back" href="../../../../autoapi/minerva/models/ssl/tfc/index.html#minerva.models.ssl.tfc.TFC_Model.test_step">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">test_step</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">batch_index</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The test step of the model. It receives a batch of data and returns the loss of the model and f1 score and accuracy if a prediction head is provided.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        - batch: Tuple[torch.Tensor, torch.Tensor]</span>
+<span class="sd">            A tuple with the input data and its labels as X, Y</span>
+<span class="sd">        - batch_index: int</span>
+<span class="sd">            The index of the batch in the dataset (not used in this method)</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        - loss</span>
+<span class="sd">            The loss of the model in this test step</span>
+<span class="sd">        can also return f1 score and accuracy if a prediction head is provided:</span>
+<span class="sd">        - Tuple[loss, f1, accuracy] types: Tuple[torch.Tensor, float, float]</span>
+
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">data</span><span class="p">,</span> <span class="n">aug1</span><span class="p">,</span> <span class="n">data_f</span><span class="p">,</span> <span class="n">aug1_f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+        <span class="n">f1</span><span class="p">,</span> <span class="n">acc</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pred_head</span><span class="p">:</span>
+            <span class="n">pred</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+            <span class="n">labels</span> <span class="o">=</span> <span class="n">labels</span><span class="o">.</span><span class="n">long</span><span class="p">()</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_fn</span><span class="p">(</span><span class="n">pred</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span>
+
+            <span class="n">metrics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_metrics</span><span class="p">(</span><span class="n">pred</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="s2">&quot;test&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">log_dict</span><span class="p">(</span><span class="n">metrics</span><span class="p">,</span> <span class="n">prog_bar</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">h_t</span><span class="p">,</span> <span class="n">z_t</span><span class="p">,</span> <span class="n">h_f</span><span class="p">,</span> <span class="n">z_f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+            <span class="n">h_t_aug</span><span class="p">,</span> <span class="n">z_t_aug</span><span class="p">,</span> <span class="n">h_f_aug</span><span class="p">,</span> <span class="n">z_f_aug</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">aug1</span><span class="p">)</span>
+            <span class="n">loss_t</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_fn</span><span class="p">(</span><span class="n">h_t</span><span class="p">,</span> <span class="n">h_t_aug</span><span class="p">)</span>
+            <span class="n">loss_f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_fn</span><span class="p">(</span><span class="n">h_f</span><span class="p">,</span> <span class="n">h_f_aug</span><span class="p">)</span>
+            <span class="n">l_TF</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_fn</span><span class="p">(</span><span class="n">z_t</span><span class="p">,</span> <span class="n">z_f</span><span class="p">)</span>
+            <span class="n">l_1</span><span class="p">,</span> <span class="n">l_2</span><span class="p">,</span> <span class="n">l_3</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">loss_fn</span><span class="p">(</span><span class="n">z_t</span><span class="p">,</span> <span class="n">z_f_aug</span><span class="p">),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">loss_fn</span><span class="p">(</span><span class="n">z_t_aug</span><span class="p">,</span> <span class="n">z_f</span><span class="p">),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">loss_fn</span><span class="p">(</span><span class="n">z_t_aug</span><span class="p">,</span> <span class="n">z_f_aug</span><span class="p">),</span>
+            <span class="p">)</span>
+            <span class="n">loss_c</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">l_TF</span> <span class="o">-</span> <span class="n">l_1</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">l_TF</span> <span class="o">-</span> <span class="n">l_2</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">l_TF</span> <span class="o">-</span> <span class="n">l_3</span><span class="p">)</span>
+            <span class="n">lam</span> <span class="o">=</span> <span class="mf">0.2</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="n">lam</span> <span class="o">*</span> <span class="p">(</span><span class="n">loss_t</span> <span class="o">+</span> <span class="n">loss_f</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">lam</span><span class="p">)</span> <span class="o">*</span> <span class="n">loss_c</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="s2">&quot;test_loss&quot;</span><span class="p">,</span> <span class="n">loss</span><span class="p">,</span> <span class="n">prog_bar</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">loss</span></div>
+
+
+<div class="viewcode-block" id="TFC_Model.predict_step">
+<a class="viewcode-back" href="../../../../autoapi/minerva/models/ssl/tfc/index.html#minerva.models.ssl.tfc.TFC_Model.predict_step">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">predict_step</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">batch_index</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The predict step of the model. It receives a batch of data and returns the torch tensor of probability of prediction or the latent space if a prediction head is not provided.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        - batch: Tuple[torch.Tensor, torch.Tensor]</span>
+<span class="sd">            A tuple with the input data and its labels as X, Y</span>
+<span class="sd">        - batch_index: int</span>
+<span class="sd">            The index of the batch in the dataset (not used in this method)</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        - loss</span>
+<span class="sd">            The loss of the model in this test step</span>
+<span class="sd">        can also return f1 score and accuracy if a prediction head is provided:</span>
+<span class="sd">        - Tuple[loss, f1, accuracy] types: Tuple[torch.Tensor, float, float]</span>
+
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">batch</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+        <span class="n">data</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">data_f</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pred_head</span><span class="p">:</span>
+            <span class="n">pred</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">pred</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">z_t</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">z_f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+            <span class="n">z</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">z_t</span><span class="p">,</span> <span class="n">z_f</span><span class="p">),</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">z</span></div>
+
+
+<div class="viewcode-block" id="TFC_Model.configure_optimizers">
+<a class="viewcode-back" href="../../../../autoapi/minerva/models/ssl/tfc/index.html#minerva.models.ssl.tfc.TFC_Model.configure_optimizers">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">configure_optimizers</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optimizer</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Function that configures the optimizer of the model. It returns an Adam optimizer with the learning rate defined in the constructor.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        - Optimizer</span>
+<span class="sd">            The optimizer of the model</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span>
+            <span class="n">lr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">learning_rate</span><span class="p">,</span>
+            <span class="n">betas</span><span class="o">=</span><span class="p">(</span><span class="mf">0.9</span><span class="p">,</span> <span class="mf">0.99</span><span class="p">),</span>
+            <span class="n">weight_decay</span><span class="o">=</span><span class="mf">3e-4</span><span class="p">,</span>
+        <span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Unicamp.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

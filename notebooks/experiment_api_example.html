@@ -1,0 +1,1347 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Minerva Experimental Pipeline &mdash; minerva  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+      <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Contributing to Minerva" href="../contributing.html" />
+    <link rel="prev" title="Getting Started with Minerva for Human Activity Recognition" href="har_getting_started.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            minerva
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../design.html">Minerva Design</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../tutorials.html">Examples and Tutorials</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../tutorials.html#getting-started-notebooks">Getting Started Notebooks</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="seismic_facies_getting_started.html">Getting Started with Minerva for Seismic Facies Segmentation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="har_getting_started.html">Getting Started with Minerva for Human Activity Recognition</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Minerva Experimental Pipeline</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Overview-of-the-Experiment-class">Overview of the Experiment class</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#Example:-Using-the-Experiment-Class-for-Seismic-Facies-Segmentation">Example: Using the <code class="docutils literal notranslate"><span class="pre">Experiment</span></code> Class for Seismic Facies Segmentation</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing.html">Contributing to Minerva</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">Programming Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">minerva</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../tutorials.html">Examples and Tutorials</a></li>
+      <li class="breadcrumb-item active">Minerva Experimental Pipeline</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/notebooks/experiment_api_example.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="Minerva-Experimental-Pipeline">
+<h1>Minerva Experimental Pipeline<a class="headerlink" href="#Minerva-Experimental-Pipeline" title="Link to this heading"></a></h1>
+<p>One of Minerva’s core features are regarding reproducibility and experiment management. In this notebook, we will show how to use the <code class="docutils literal notranslate"><span class="pre">Experiment</span></code> class run and manage experiments in a structured way. This class implements a Minerva pipeline that allows you to run experiments in a reproducible manner, while also providing a convenient interface for managing and analyzing the results.</p>
+<p>We will cover the following topics:</p>
+<ol class="arabic simple">
+<li><p><strong>The ModelInstantiator Interface</strong>: Learn how to instantiate models for supervised learning, fine-tuning, or evaluation in a consistent and modular way.</p></li>
+<li><p><strong>Attaching Metadata</strong>: Add informative metadata to your experiments, such as model and dataset names.</p></li>
+<li><p><strong>Using the Experiment Class</strong>: Understand how to run, save, and reload experiments using Minerva’s <code class="docutils literal notranslate"><span class="pre">Experiment</span></code> class, which provides a unified interface for experiment lifecycle management.</p></li>
+<li><p><strong>Loading and Analyzing Results</strong>: Retrieve predictions, metrics, and other results from completed experiments for analysis and comparison.</p></li>
+</ol>
+<p>In this example, we will create a Experiment using DeepLabV3 to perform semantic segmentation on F3 dataset, based on the <a class="reference internal" href="seismic_facies_getting_started.html"><span class="doc">Seismic Facies Segmentation Getting Started example</span></a>. You may want to check that example first to understand the dataset and the model we are using here.</p>
+<section id="Overview-of-the-Experiment-class">
+<h2>Overview of the Experiment class<a class="headerlink" href="#Overview-of-the-Experiment-class" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">Experiment</span></code> class is designed to manage the lifecycle of an experiment, from instantiation to execution, evaluation and result analysis. Thus, it can be used to:</p>
+<ul class="simple">
+<li><p>Train or finetune a model.</p></li>
+<li><p>Save checkpoints and logs, as well evaluate the model on different checkpoint states.</p></li>
+<li><p>Save and load experiment results and predictions.</p></li>
+</ul>
+<p>Below is a diagram that illustrates the main components of the <code class="docutils literal notranslate"><span class="pre">Experiment</span></code> class and its interactions with other parts of the Minerva framework. There are several parameters, some of them are optional and some others were ommited in the diagram. We show the most important ones here.</p>
+<img alt="Experiment class overview" src="../_images/experiment_diagram.png" />
+<p>The <code class="docutils literal notranslate"><span class="pre">Experiment</span></code> class serves as a high-level interface for managing supervised learning and fine-tuning workflows in Minerva. It integrates model configuration, data handling, training logic, evaluation metrics, and result logging into a unified structure.</p>
+<p>The class is composed of several key components:</p>
+<ul class="simple">
+<li><p><strong>experiment_name</strong> (<code class="docutils literal notranslate"><span class="pre">str</span></code>): A unique identifier for the experiment. This is used to create a dedicated directory where logs, results, and predictions will be saved.</p></li>
+<li><p><strong>model_config</strong> (<code class="docutils literal notranslate"><span class="pre">ModelConfig</span></code>): An instance of the <code class="docutils literal notranslate"><span class="pre">ModelConfig</span></code> class containing all necessary configuration details for model creation—whether initializing from scratch or fine-tuning.</p></li>
+<li><p><strong>data_module</strong> (<code class="docutils literal notranslate"><span class="pre">MinervaDataModule</span></code>): An instance of the <code class="docutils literal notranslate"><span class="pre">MinervaDataModule</span></code> class that provides the training, validation, and test datasets.</p></li>
+<li><p><strong>pretrained_backbone_path</strong> (<code class="docutils literal notranslate"><span class="pre">str</span></code>, optional): A file path to a pretrained backbone model. If provided, the model is initialized with weights from this checkpoint via <code class="docutils literal notranslate"><span class="pre">ModelInstantiator.create_model_and_load_backbone</span></code>, enabling fine-tuning. If not provided, the model is initialized from scratch using <code class="docutils literal notranslate"><span class="pre">ModelInstantiator.create_model_randomly_initialized</span></code>, which supports training from the ground up.</p></li>
+<li><p><strong>root_log_dir</strong> (<code class="docutils literal notranslate"><span class="pre">str</span></code>, optional): The root directory where experiment-related artifacts (logs, results, checkpoints, etc.) will be saved.</p></li>
+<li><p><strong>execution_id</strong> (<code class="docutils literal notranslate"><span class="pre">str</span></code> or <code class="docutils literal notranslate"><span class="pre">int</span></code>, optional): A unique identifier for the specific execution run of the experiment. Useful for distinguishing between multiple runs of the same experiment.</p></li>
+<li><p><strong>checkpoint_metrics</strong> (<code class="docutils literal notranslate"><span class="pre">List[Dict]</span></code>, optional): A list of dictionaries defining model checkpointing behavior. It will be used to create lightning <code class="docutils literal notranslate"><span class="pre">ModelCheckpoint</span></code> callbacks. Each dictionary must include:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;monitor&quot;</span></code>: The metric to monitor (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;val_loss&quot;</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;mode&quot;</span></code>: <code class="docutils literal notranslate"><span class="pre">&quot;min&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;max&quot;</span></code>, indicating whether the monitored metric should be minimized or maximized.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;filename&quot;</span></code>: The filename for saving the checkpoint.</p></li>
+<li><p>If <code class="docutils literal notranslate"><span class="pre">&quot;monitor&quot;</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>, the checkpoint will correspond to the final model state. Defaults to <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+</ul>
+</li>
+<li><p><strong>max_epochs</strong> (<code class="docutils literal notranslate"><span class="pre">int</span></code>, optional): The maximum number of training epochs. Training will terminate once this limit is reached.</p></li>
+<li><p><strong>evaluation_metrics</strong> (<code class="docutils literal notranslate"><span class="pre">Dict[str,</span> <span class="pre">torchmetrics.Metric]</span></code>, optional): A dictionary of evaluation metrics applied globally across the entire dataset. Each metric is computed on the aggregate predictions.</p></li>
+<li><p><strong>per_sample_evaluation_metrics</strong> (<code class="docutils literal notranslate"><span class="pre">Dict[str,</span> <span class="pre">torchmetrics.Metric]</span></code>, optional): A dictionary of metrics evaluated individually per sample. Useful for tasks requiring per-instance performance monitoring.</p></li>
+<li><p><strong>save_predictions</strong> (<code class="docutils literal notranslate"><span class="pre">bool</span></code>, default=<code class="docutils literal notranslate"><span class="pre">True</span></code>): Whether to save the predictions generated during evaluation. Saved predictions will be stored in the experiment directory.</p></li>
+<li><p><strong>save_results</strong> (<code class="docutils literal notranslate"><span class="pre">bool</span></code>, default=<code class="docutils literal notranslate"><span class="pre">True</span></code>): If enabled, the final results will be saved to the log directory.</p></li>
+<li><p><strong>add_last_checkpoint</strong> (<code class="docutils literal notranslate"><span class="pre">bool</span></code>, default=<code class="docutils literal notranslate"><span class="pre">True</span></code>): If <code class="docutils literal notranslate"><span class="pre">True</span></code>, the last model checkpoint (i.e., the final state after training) will be included in the checkpoint list, even if it’s not associated with a specific monitored metric.</p></li>
+</ul>
+<p>Minerva’s <code class="docutils literal notranslate"><span class="pre">Experiment</span></code> class is built to support both training from scratch and fine-tuning workflows. By toggling the <code class="docutils literal notranslate"><span class="pre">pretrained_backbone_path</span></code>, users can seamlessly switch between initializing models with pretrained weights or random parameters. This flexibility makes the class adaptable to a wide range of machine learning scenarios.</p>
+<section id="The-ModelInstantiator-Interface">
+<h3>The <code class="docutils literal notranslate"><span class="pre">ModelInstantiator</span></code> Interface<a class="headerlink" href="#The-ModelInstantiator-Interface" title="Link to this heading"></a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">ModelInstantiator</span></code> interface is a central component in the Minerva Experimental Pipeline for enabling flexible and consistent model creation across supervised learning and fine-tuning workflows. It serves as an <strong>abstract class for lazy model instantiation</strong>, allowing models to be constructed only when needed, with or without pretrained components.</p>
+<p>Minerva assumes that all models conform to the following modular design:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>+-------------------------------+
+|     Model (LightningModule)   |
+|                               |
+|     +-----------------+       |
+|     |    Backbone     |       |   --&gt; Feature extractor
+|     +-----------------+       |
+|             |                 |
+|             v                 |
+|        +----------+           |
+|        |   Head   |           |   --&gt; Task-specific layers
+|        +----------+           |
++-------------------------------+
+</pre></div>
+</div>
+<p>This structure separates the <strong>backbone</strong> (typically a pretrained feature extractor) from the <strong>head</strong> (task-specific layers), facilitating easy reuse and fine-tuning.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">ModelInstantiator</span></code> interface defines a standardized mechanism to build models across three primary scenarios:</p>
+<ol class="arabic simple">
+<li><p><strong>Training from scratch</strong>: Both the backbone and head are randomly initialized.</p></li>
+<li><p><strong>Fine-tuning</strong>: A pretrained backbone is loaded from a checkpoint, and the head is newly initialized for the target task.</p></li>
+<li><p><strong>Inference/Evaluation</strong>: The full model (backbone and head) is loaded from a previously saved checkpoint.</p></li>
+</ol>
+<p>To support this integration, each model must implement a <code class="docutils literal notranslate"><span class="pre">ModelInstantiator</span></code> subclass that defines the following methods:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Method</p></th>
+<th class="head"><p>Parameters</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">create_model_randomly_initialized()</span></code></p></td>
+<td><p>None</p></td>
+<td><p>Instantiates a model with both backbone and head <strong>randomly initialized</strong>. Used when training from scratch.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">create_model_and_load_backbone(backbone_checkpoint_path)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">backbone_checkpoint_path</span></code> (<code class="docutils literal notranslate"><span class="pre">str</span></code>)</p></td>
+<td><p>Instantiates a model for <strong>fine-tuning</strong>. Loads the backbone from the specified checkpoint and attaches a <strong>new head</strong> initialized for the target task.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">load_model_from_checkpoint(checkpoint_path)</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">checkpoint_path</span></code> (<code class="docutils literal notranslate"><span class="pre">str</span></code>)</p></td>
+<td><p>Loads the <strong>entire model</strong> (both backbone and head) from a checkpoint. Typically used for <strong>evaluation, inference, or resuming training</strong>.</p></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<div><p><strong>NOTE</strong>: If <code class="docutils literal notranslate"><span class="pre">pretrained_backbone_path</span></code> is to <code class="docutils literal notranslate"><span class="pre">Experiment</span></code> constructor, the <code class="docutils literal notranslate"><span class="pre">create_model_and_load_backbone</span></code> method will be called with the provided path as the <code class="docutils literal notranslate"><span class="pre">backbone_checkpoint_path</span></code> argument. Else the <code class="docutils literal notranslate"><span class="pre">create_model_randomly_initialized</span></code> method will be called.</p>
+</div></blockquote>
+</section>
+<section id="The-ModelConfig-Class">
+<h3>The <code class="docutils literal notranslate"><span class="pre">ModelConfig</span></code> Class<a class="headerlink" href="#The-ModelConfig-Class" title="Link to this heading"></a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">ModelConfig</span></code> class serves as a high-level configuration object for managing model setup within the Minerva Experimental Pipeline. Instead of passing a model instance directly, the <code class="docutils literal notranslate"><span class="pre">Experiment</span></code> class expects a <code class="docutils literal notranslate"><span class="pre">ModelConfig</span></code> instance that encapsulates both <strong>model creation logic</strong> and <strong>descriptive metadata</strong>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">ModelConfig</span></code> includes two key components:</p>
+<ol class="arabic simple">
+<li><p><strong>ModelInstantiator</strong>: Responsible for <strong>creating the model instance</strong> in different scenarios—training from scratch, fine-tuning with a pretrained backbone, or loading from a checkpoint for evaluation. This interface enables lazy and flexible model instantiation, as described in the previous section.</p></li>
+<li><p><strong>ModelInformation</strong>: A metadata container that holds descriptive information about the model. This includes the model’s name, type, version, and any other relevant details that may be useful for logging, tracking, or analysis.</p></li>
+</ol>
+<p>In <code class="docutils literal notranslate"><span class="pre">ModelInformation</span></code>, the only required field is <code class="docutils literal notranslate"><span class="pre">name</span></code>, which serves as the unique identifier for the model. All other fields are optional and can be used to provide additional context. While optional in the <code class="docutils literal notranslate"><span class="pre">Experiment</span></code> class, subclasses may require certain fields in <code class="docutils literal notranslate"><span class="pre">ModelInformation</span></code> to be set, depending on the specific logic of the training or evaluation workflow.</p>
+</section>
+<section id="Experiment-Logging">
+<h3>Experiment Logging<a class="headerlink" href="#Experiment-Logging" title="Link to this heading"></a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">Experiment</span></code> class provides a structured way to save and log various artifacts related to the experiment. In general, for each execution of the experiment the following directory structure is created:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>root_log_dir/
+└── experiment_name/
+   └── data_module.name
+        └── model_information.name
+           └── execution_id/
+              ├── metrics.csv
+              ├── checkpoints/
+              ├── predictions/
+              └── results/
+</pre></div>
+</div>
+<ul class="simple">
+<li><p><strong>metrics.csv</strong>: A CSV file containing the metrics collected during training. This file serves as a summary of the experiment’s performance, logged with Lightning logger (e.g., training loss, etc.). It can be used for further analysis or visualization.</p></li>
+<li><p><strong>checkpoints/</strong>: Contains model checkpoints saved during training. Each checkpoint corresponds to a specific state of the model, allowing for easy resumption or evaluation.</p></li>
+<li><p><strong>predictions/</strong>: Contains the predictions generated by the model during evaluation. This allows for easy access to the model’s output for further analysis.</p></li>
+<li><p><strong>results/</strong>: Stores the final results of the experiment, including metrics and evaluation scores. This provides a summary of the experiment’s performance.</p></li>
+</ul>
+</section>
+</section>
+<section id="Example:-Using-the-Experiment-Class-for-Seismic-Facies-Segmentation">
+<h2>Example: Using the <code class="docutils literal notranslate"><span class="pre">Experiment</span></code> Class for Seismic Facies Segmentation<a class="headerlink" href="#Example:-Using-the-Experiment-Class-for-Seismic-Facies-Segmentation" title="Link to this heading"></a></h2>
+<p>In this example, we’ll demonstrate how to use the <code class="docutils literal notranslate"><span class="pre">Experiment</span></code> class in Minerva to perform semantic segmentation on the F3 dataset using the DeepLabV3 model. This builds upon the <a class="reference internal" href="seismic_facies_getting_started.html"><span class="doc">Seismic Facies Segmentation Getting Started example</span></a>, so it’s recommended to review that notebook first to understand the dataset and model components being reused here.</p>
+<p>In general, this notebook encapsulates the process of training a DeepLabV3 model on the F3 dataset from <a class="reference internal" href="seismic_facies_getting_started.html"><span class="doc">Seismic Facies Segmentation Getting Started example</span></a> into a structured pipeline using the <code class="docutils literal notranslate"><span class="pre">Experiment</span></code> class.</p>
+<p>The notebook is organized into the following sections:</p>
+<ol class="arabic simple">
+<li><p><strong>Data Preparation</strong>: Using the <code class="docutils literal notranslate"><span class="pre">MinervaDataModule</span></code> from the previous example</p></li>
+<li><p><strong>Model Setup</strong>: Creating the <code class="docutils literal notranslate"><span class="pre">ModelInstantiator</span></code> and <code class="docutils literal notranslate"><span class="pre">ModelConfig</span></code> classes</p></li>
+<li><p><strong>Experiment Definition</strong>: Building the custom <code class="docutils literal notranslate"><span class="pre">Experiment</span></code> class</p></li>
+<li><p><strong>Training and Evaluate Model</strong>: Running the experiment</p></li>
+<li><p><strong>Managing Results and Lifecycle</strong>: Saving and loading results, and also experiment lifecycle management</p></li>
+<li><p><strong>Cleanup</strong>: Cleaning up the experiment directory</p></li>
+</ol>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">lightning</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">L</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torchmetrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">JaccardIndex</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">minerva.data.readers.patched_array_reader</span><span class="w"> </span><span class="kn">import</span> <span class="n">NumpyArrayReader</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">minerva.transforms.transform</span><span class="w"> </span><span class="kn">import</span> <span class="n">Repeat</span><span class="p">,</span> <span class="n">Squeeze</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">minerva.data.datasets.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">SimpleDataset</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">minerva.models.nets.image.deeplabv3</span><span class="w"> </span><span class="kn">import</span> <span class="n">DeepLabV3</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">minerva.models.loaders</span><span class="w"> </span><span class="kn">import</span> <span class="n">FromPretrained</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">minerva.utils.typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">PathLike</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">minerva.data.data_modules.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">MinervaDataModule</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">minerva.pipelines.experiment</span><span class="w"> </span><span class="kn">import</span> <span class="n">ModelConfig</span><span class="p">,</span> <span class="n">ModelInstantiator</span><span class="p">,</span> <span class="n">ModelInformation</span><span class="p">,</span> <span class="n">Experiment</span>
+</pre></div>
+</div>
+</div>
+<section id="1.-Data-Preparation">
+<h3>1. Data Preparation<a class="headerlink" href="#1.-Data-Preparation" title="Link to this heading"></a></h3>
+<p>In this section, we will create a <code class="docutils literal notranslate"><span class="pre">MinervaDataModule</span></code> for the F3 dataset, as we did in the <a class="reference internal" href="seismic_facies_getting_started.html"><span class="doc">Seismic Facies Segmentation Getting Started example</span></a>, using data from the F3 dataset.</p>
+<p>Thus, it will:</p>
+<ol class="arabic simple">
+<li><p>Create the train data and labels readers and create the train dataset.</p></li>
+<li><p>Create the test data and labels readers and create the test dataset.</p></li>
+<li><p>Create a <code class="docutils literal notranslate"><span class="pre">MinervaDataModule</span></code> instance with the train and test datasets.</p></li>
+</ol>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># 1. Create the train data and labels readers and create the train dataset.</span>
+
+<span class="n">root_data_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;datasets/f3/data/&quot;</span><span class="p">)</span>
+
+<span class="c1"># ----- TRAIN DATA AND LABEL READERS -----</span>
+<span class="n">train_data_reader</span> <span class="o">=</span> <span class="n">NumpyArrayReader</span><span class="p">(</span>
+    <span class="n">data</span><span class="o">=</span><span class="n">root_data_dir</span> <span class="o">/</span> <span class="s2">&quot;train&quot;</span> <span class="o">/</span> <span class="s2">&quot;train_seismic.npy&quot;</span><span class="p">,</span>
+    <span class="n">data_shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">701</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+<span class="p">)</span>
+
+<span class="n">train_labels_reader</span> <span class="o">=</span> <span class="n">NumpyArrayReader</span><span class="p">(</span>
+    <span class="n">data</span><span class="o">=</span><span class="n">root_data_dir</span> <span class="o">/</span> <span class="s2">&quot;train&quot;</span> <span class="o">/</span> <span class="s2">&quot;train_labels.npy&quot;</span><span class="p">,</span>
+    <span class="n">data_shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">701</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+<span class="p">)</span>
+
+<span class="c1"># ----- TRAIN DATASET -----</span>
+<span class="n">train_dataset</span> <span class="o">=</span> <span class="n">SimpleDataset</span><span class="p">(</span>
+    <span class="n">readers</span><span class="o">=</span><span class="p">[</span>
+        <span class="n">train_data_reader</span><span class="p">,</span>  <span class="c1"># 1st reader is the data</span>
+        <span class="n">train_labels_reader</span> <span class="c1"># 2nd reader is the labels</span>
+    <span class="p">],</span>
+    <span class="n">transforms</span><span class="o">=</span><span class="p">[</span>
+        <span class="n">Repeat</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">n_repetitions</span><span class="o">=</span><span class="mi">3</span><span class="p">),</span>  <span class="c1"># Transforms to first reader (data)</span>
+        <span class="kc">None</span>                              <span class="c1"># Transforms to second reader (labels)</span>
+    <span class="p">],</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">train_dataset</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+==================================================
+           📂 SimpleDataset Information
+==================================================
+📌 Dataset Type: SimpleDataset
+   └── Reader 0: NumpyArrayReader(samples=401, shape=(1, 701, 255), dtype=float64)
+   │     └── Transform: Repeat(axis=0, n_repetitions=3)
+   └── Reader 1: NumpyArrayReader(samples=401, shape=(1, 701, 255), dtype=uint8)
+   │     └── Transform: None
+   │
+   └── Total Readers: 2
+==================================================
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># 2. Create the test data and labels readers and create the test dataset.</span>
+
+<span class="c1"># ----- TEST DATA AND LABEL READERS -----</span>
+<span class="n">test_data_reader</span> <span class="o">=</span> <span class="n">NumpyArrayReader</span><span class="p">(</span>
+    <span class="n">data</span><span class="o">=</span><span class="n">root_data_dir</span> <span class="o">/</span> <span class="s2">&quot;test_once&quot;</span> <span class="o">/</span> <span class="s2">&quot;test1_seismic.npy&quot;</span><span class="p">,</span>
+    <span class="n">data_shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">701</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+<span class="p">)</span>
+
+<span class="n">test_labels_reader</span> <span class="o">=</span> <span class="n">NumpyArrayReader</span><span class="p">(</span>
+    <span class="n">data</span><span class="o">=</span><span class="n">root_data_dir</span> <span class="o">/</span> <span class="s2">&quot;test_once&quot;</span> <span class="o">/</span> <span class="s2">&quot;test1_labels.npy&quot;</span><span class="p">,</span>
+    <span class="n">data_shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">701</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+<span class="p">)</span>
+
+<span class="c1"># ----- TEST DATASET -----</span>
+<span class="n">test_dataset</span> <span class="o">=</span> <span class="n">SimpleDataset</span><span class="p">(</span>
+    <span class="n">readers</span><span class="o">=</span><span class="p">[</span><span class="n">test_data_reader</span><span class="p">,</span> <span class="n">test_labels_reader</span><span class="p">],</span>
+    <span class="n">transforms</span><span class="o">=</span><span class="p">[</span><span class="n">Repeat</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">n_repetitions</span><span class="o">=</span><span class="mi">3</span><span class="p">),</span> <span class="n">Squeeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)],</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">test_dataset</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+==================================================
+           📂 SimpleDataset Information
+==================================================
+📌 Dataset Type: SimpleDataset
+   └── Reader 0: NumpyArrayReader(samples=200, shape=(1, 701, 255), dtype=float64)
+   │     └── Transform: Repeat(axis=0, n_repetitions=3)
+   └── Reader 1: NumpyArrayReader(samples=200, shape=(1, 701, 255), dtype=uint8)
+   │     └── Transform: Squeeze(axis=0)
+   │
+   └── Total Readers: 2
+==================================================
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># 3. Create a `MinervaDataModule` instance with the train and test datasets.</span>
+
+<span class="c1"># ---- DATA MODULE -----</span>
+<span class="n">data_module</span> <span class="o">=</span> <span class="n">MinervaDataModule</span><span class="p">(</span>
+    <span class="n">train_dataset</span><span class="o">=</span><span class="n">train_dataset</span><span class="p">,</span>
+    <span class="n">test_dataset</span><span class="o">=</span><span class="n">test_dataset</span><span class="p">,</span>
+    <span class="n">batch_size</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span>
+    <span class="n">num_workers</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+    <span class="n">additional_train_dataloader_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;drop_last&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;F3_Dataset&quot;</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">data_module</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+==================================================
+                    🆔 F3_Dataset
+==================================================
+└── Predict Split: test
+📂 Datasets:
+   ├── Train Dataset:
+   │      ==================================================
+   │                 📂 SimpleDataset Information
+   │      ==================================================
+   │      📌 Dataset Type: SimpleDataset
+   │         └── Reader 0: NumpyArrayReader(samples=401, shape=(1, 701, 255), dtype=float64)
+   │         │     └── Transform: Repeat(axis=0, n_repetitions=3)
+   │         └── Reader 1: NumpyArrayReader(samples=401, shape=(1, 701, 255), dtype=uint8)
+   │         │     └── Transform: None
+   │         │
+   │         └── Total Readers: 2
+   │      ==================================================
+   ├── Val Dataset:
+   │      None
+   └── Test Dataset:
+          ==================================================
+                     📂 SimpleDataset Information
+          ==================================================
+          📌 Dataset Type: SimpleDataset
+             └── Reader 0: NumpyArrayReader(samples=200, shape=(1, 701, 255), dtype=float64)
+             │     └── Transform: Repeat(axis=0, n_repetitions=3)
+             └── Reader 1: NumpyArrayReader(samples=200, shape=(1, 701, 255), dtype=uint8)
+             │     └── Transform: Squeeze(axis=0)
+             │
+             └── Total Readers: 2
+          ==================================================
+
+🛠 **Dataloader Configurations:**
+   ├── Dataloader class: &lt;class &#39;torch.utils.data.dataloader.DataLoader&#39;&gt;
+   ├── Train Dataloader Kwargs:
+         ├── batch_size: 16
+         ├── num_workers: 4
+         ├── shuffle: true
+         ├── drop_last: true
+   ├── Val Dataloader Kwargs:
+         ├── batch_size: 16
+         ├── num_workers: 4
+         ├── shuffle: false
+         ├── drop_last: false
+   └── Test Dataloader Kwargs:
+         ├── batch_size: 16
+         ├── num_workers: 4
+         ├── shuffle: false
+         ├── drop_last: false
+==================================================
+</pre></div></div>
+</div>
+</section>
+<section id="2.-Model-Setup">
+<h3>2. Model Setup<a class="headerlink" href="#2.-Model-Setup" title="Link to this heading"></a></h3>
+<p>We will use DeepLabV3 as the model for semantic segmentation. As <code class="docutils literal notranslate"><span class="pre">Experiment</span></code> class requires a <code class="docutils literal notranslate"><span class="pre">ModelConfig</span></code> instance, we will create a custom <code class="docutils literal notranslate"><span class="pre">ModelInstantiator</span></code> and <code class="docutils literal notranslate"><span class="pre">ModelConfig</span></code> classes to encapsulate the model creation logic and metadata.</p>
+<p>Thus, we will:</p>
+<ol class="arabic simple">
+<li><p>Create a custom <code class="docutils literal notranslate"><span class="pre">ModelInstantiator</span></code> class that implements the <code class="docutils literal notranslate"><span class="pre">create_model_randomly_initialized</span></code> and <code class="docutils literal notranslate"><span class="pre">load_model_from_checkpoint</span></code> methods. We will not implement the <code class="docutils literal notranslate"><span class="pre">create_model_and_load_backbone</span></code> method, as we will not use a pretrained backbone in this example.</p></li>
+<li><p>Create a <code class="docutils literal notranslate"><span class="pre">ModelInformation</span></code> instance to hold metadata about the model, such as its name and type.</p></li>
+<li><p>Create a custom <code class="docutils literal notranslate"><span class="pre">ModelConfig</span></code> class using the <code class="docutils literal notranslate"><span class="pre">ModelInstantiator</span></code> and <code class="docutils literal notranslate"><span class="pre">ModelInformation</span></code> instances. This class will be passed to the <code class="docutils literal notranslate"><span class="pre">Experiment</span></code> class to create the model.</p></li>
+</ol>
+<section id="ModelInstantiator-for-DeepLabV3">
+<h4>ModelInstantiator for DeepLabV3<a class="headerlink" href="#ModelInstantiator-for-DeepLabV3" title="Link to this heading"></a></h4>
+<p>Let’s define a custom <code class="docutils literal notranslate"><span class="pre">ModelInstantiator</span></code> class for the DeepLabV3 architecture. This class will implement the methods: <code class="docutils literal notranslate"><span class="pre">create_model_randomly_initialized</span></code>, and <code class="docutils literal notranslate"><span class="pre">load_model_from_checkpoint</span></code>. These methods allow the model to be either initialized from scratch or loaded from a checkpoint.</p>
+<p>Instantiators are designed to be reusable across multiple experiments that use the same model architecture. However, it’s common to define different instantiators when the model’s backbone is loaded in different ways, for example:</p>
+<ul class="simple">
+<li><p>One <code class="docutils literal notranslate"><span class="pre">ModelInstantiator</span></code> for a DeepLabV3 model pretrained with <strong>SimCLR</strong></p></li>
+<li><p>Another for a DeepLabV3 model pretrained with <strong>BYOL</strong></p></li>
+</ul>
+<p>This distinction is necessary whenever the loading process for the backbone differs, for instance, if the parameter names or checkpoint structures do not align. In such cases, a custom loading strategy is required, which is encapsulated in the corresponding instantiator.</p>
+<p>Let’s implement a very simple <code class="docutils literal notranslate"><span class="pre">ModelInstantiator</span></code> for the DeepLabV3 model, that can be customizable with different number of classes.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">class</span><span class="w"> </span><span class="nc">DeepLabV3_Instantiator</span><span class="p">(</span><span class="n">ModelInstantiator</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_classes</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_classes</span> <span class="o">=</span> <span class="n">num_classes</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_model_randomly_initialized</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">L</span><span class="o">.</span><span class="n">LightningModule</span><span class="p">:</span>
+        <span class="c1"># Create a DeepLabV3 model with random initialization</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">DeepLabV3</span><span class="p">(</span><span class="n">num_classes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_classes</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">model</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_model_and_load_backbone</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">backbone_checkpoint_path</span><span class="p">):</span>
+        <span class="c1"># Does nothing, just create a DeepLabV3 model with random initialization</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_model_randomly_initialized</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">load_model_from_checkpoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">checkpoint_path</span><span class="p">:</span> <span class="n">PathLike</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">L</span><span class="o">.</span><span class="n">LightningModule</span><span class="p">:</span>
+        <span class="c1"># Load whole DeepLabV3 model from a checkpoint</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">DeepLabV3</span><span class="p">(</span><span class="n">num_classes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_classes</span><span class="p">)</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">FromPretrained</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">ckpt_path</span><span class="o">=</span><span class="n">checkpoint_path</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">model</span>
+
+
+<span class="c1"># Ok, now we can create a instance of the `DeepLabV3_Instantiator` class.</span>
+<span class="n">instantiator</span> <span class="o">=</span> <span class="n">DeepLabV3_Instantiator</span><span class="p">(</span><span class="n">num_classes</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">instantiator</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;__main__.DeepLabV3_Instantiator object at 0x70280d8f7dc0&gt;
+</pre></div></div>
+</div>
+</section>
+<section id="Creating-the-ModelConfig">
+<h4>Creating the ModelConfig<a class="headerlink" href="#Creating-the-ModelConfig" title="Link to this heading"></a></h4>
+<p>Once we have the <code class="docutils literal notranslate"><span class="pre">ModelInstantiator</span></code>, we can create a <code class="docutils literal notranslate"><span class="pre">ModelConfig</span></code> instance. This instance will encapsulate the model creation logic and metadata, and will be passed to the <code class="docutils literal notranslate"><span class="pre">Experiment</span></code> class to create the model.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">information</span> <span class="o">=</span> <span class="n">ModelInformation</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;deeplabv3-crossentropy-adam&quot;</span><span class="p">,</span> <span class="c1"># Name of the model (required)</span>
+    <span class="n">backbone_name</span><span class="o">=</span><span class="s2">&quot;resnet50&quot;</span><span class="p">,</span>           <span class="c1"># Backbone name (optional)</span>
+    <span class="n">task_type</span><span class="o">=</span><span class="s2">&quot;semantic_segmentation&quot;</span><span class="p">,</span>  <span class="c1"># Task type (optional)</span>
+    <span class="n">num_classes</span><span class="o">=</span><span class="mi">6</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">information</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+ModelInformation(name=&#39;deeplabv3-crossentropy-adam&#39;, backbone_name=&#39;resnet50&#39;, task_type=&#39;semantic_segmentation&#39;, input_shape=None, output_shape=None, num_classes=6, return_logits=None)
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">model_config</span> <span class="o">=</span> <span class="n">ModelConfig</span><span class="p">(</span>
+    <span class="n">instantiator</span><span class="o">=</span><span class="n">instantiator</span><span class="p">,</span>          <span class="c1"># Model instantiator (required)</span>
+    <span class="n">information</span><span class="o">=</span><span class="n">information</span><span class="p">,</span>            <span class="c1"># Model information (required)</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">model_config</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+ModelConfig
+├── Instantiator: DeepLabV3_Instantiator
+├── name: deeplabv3-crossentropy-adam
+├── backbone_name: resnet50
+├── task_type: semantic_segmentation
+├── input_shape: None
+├── output_shape: None
+├── num_classes: 6
+└── return_logits: None
+</pre></div></div>
+</div>
+</section>
+</section>
+<section id="3.-Experiment-Definition">
+<h3>3. Experiment Definition<a class="headerlink" href="#3.-Experiment-Definition" title="Link to this heading"></a></h3>
+<p>Once data module and model configuration are set up, we can define the <code class="docutils literal notranslate"><span class="pre">Experiment</span></code> class. The experiment will be named as <code class="docutils literal notranslate"><span class="pre">f3_deeplabv3_experiment</span></code>, and will use the <code class="docutils literal notranslate"><span class="pre">ModelConfig</span></code> instance created in the previous step.</p>
+<p>We also use the following parameters:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">max_epochs</span></code>: Set to 10 for quick testing.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">root_log_dir</span></code>: Set to <code class="docutils literal notranslate"><span class="pre">./logs</span></code> to store the experiment logs.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">execution_id</span></code>: Set to <code class="docutils literal notranslate"><span class="pre">0</span></code> for the first execution.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">checkpoint_metrics</span></code>: no custom checkpoint metrics are defined, as we will not use them in this example.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">evaluation_metrics</span></code>: we calculate the mean Intersection over Union (mIoU) metric for the evaluation.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">accelerator</span></code>: Set to <code class="docutils literal notranslate"><span class="pre">gpu</span></code> to use GPU acceleration (used to create Lightning trainer).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">devices</span></code>: Set to <code class="docutils literal notranslate"><span class="pre">1</span></code> to use one GPU (used to create Lightning trainer).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">seed</span></code>: Set to <code class="docutils literal notranslate"><span class="pre">42</span></code> for reproducibility.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">save_predictions</span></code>: Set to <code class="docutils literal notranslate"><span class="pre">True</span></code> to save predictions for this example.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">add_last_checkpoint</span></code>: Set to <code class="docutils literal notranslate"><span class="pre">True</span></code> to add the last checkpoint to the list of checkpoints.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">save_results</span></code>: Set to <code class="docutils literal notranslate"><span class="pre">True</span></code> to save the results of the experiment.</p></li>
+</ul>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">experiment</span> <span class="o">=</span> <span class="n">Experiment</span><span class="p">(</span>
+    <span class="n">experiment_name</span><span class="o">=</span><span class="s2">&quot;f3_deeplabv3&quot;</span><span class="p">,</span>  <span class="c1"># Name of the experiment (required)</span>
+    <span class="n">model_config</span><span class="o">=</span><span class="n">model_config</span><span class="p">,</span>       <span class="c1"># Model configuration (required)</span>
+    <span class="n">data_module</span><span class="o">=</span><span class="n">data_module</span><span class="p">,</span>         <span class="c1"># Data module (required)</span>
+    <span class="n">root_log_dir</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;logs&quot;</span><span class="p">),</span>  <span class="c1"># Root log directory (optional)</span>
+    <span class="n">execution_id</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">checkpoint_metrics</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">accelerator</span><span class="o">=</span><span class="s2">&quot;gpu&quot;</span><span class="p">,</span>  <span class="c1"># Accelerator (optional)</span>
+    <span class="n">devices</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>          <span class="c1"># Number of devices (optional)</span>
+    <span class="n">max_epochs</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+    <span class="n">evaluation_metrics</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;mIoU&quot;</span><span class="p">:</span> <span class="n">JaccardIndex</span><span class="p">(</span><span class="n">num_classes</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span> <span class="n">task</span><span class="o">=</span><span class="s2">&quot;multiclass&quot;</span><span class="p">)},</span>
+    <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span>
+    <span class="n">save_predictions</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">save_results</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">add_last_checkpoint</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">experiment</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+================================================================================
+                          🚀 Experiment: f3_deeplabv3 🚀
+================================================================================
+
+🛠 Execution Details
+   ├── Execution ID: 0
+   ├── Log Dir: /workspaces/minerva-workspace/Minerva-Dev/docs/notebooks/logs/f3_deeplabv3/F3_Dataset/deeplabv3-crossentropy-adam/0
+   ├── Seed: 42
+   ├── Accelerator: gpu
+   ├── Devices: 1
+   ├── Max Epochs: 10
+   ├── Train Batches: all
+   ├── Val Batches: all
+   └── Test Batches: all
+
+🧠 Model Information
+   ├── Model Name: deeplabv3-crossentropy-adam
+   ├── Pretrained Backbone: FROM SCRATCH
+   ├── Input Shape: None
+   ├── Output Shape: None
+   └── Num Classes: 6
+
+📂 Dataset Information
+      ==================================================
+                          🆔 F3_Dataset
+      ==================================================
+      └── Predict Split: test
+      📂 Datasets:
+         ├── Train Dataset:
+         │      ==================================================
+         │                 📂 SimpleDataset Information
+         │      ==================================================
+         │      📌 Dataset Type: SimpleDataset
+         │         └── Reader 0: NumpyArrayReader(samples=401, shape=(1, 701, 255), dtype=float64)
+         │         │     └── Transform: Repeat(axis=0, n_repetitions=3)
+         │         └── Reader 1: NumpyArrayReader(samples=401, shape=(1, 701, 255), dtype=uint8)
+         │         │     └── Transform: None
+         │         │
+         │         └── Total Readers: 2
+         │      ==================================================
+         ├── Val Dataset:
+         │      None
+         └── Test Dataset:
+                ==================================================
+                           📂 SimpleDataset Information
+                ==================================================
+                📌 Dataset Type: SimpleDataset
+                   └── Reader 0: NumpyArrayReader(samples=200, shape=(1, 701, 255), dtype=float64)
+                   │     └── Transform: Repeat(axis=0, n_repetitions=3)
+                   └── Reader 1: NumpyArrayReader(samples=200, shape=(1, 701, 255), dtype=uint8)
+                   │     └── Transform: Squeeze(axis=0)
+                   │
+                   └── Total Readers: 2
+                ==================================================
+
+      🛠 **Dataloader Configurations:**
+         ├── Dataloader class: &lt;class &#39;torch.utils.data.dataloader.DataLoader&#39;&gt;
+         ├── Train Dataloader Kwargs:
+               ├── batch_size: 16
+               ├── num_workers: 4
+               ├── shuffle: true
+               ├── drop_last: true
+         ├── Val Dataloader Kwargs:
+               ├── batch_size: 16
+               ├── num_workers: 4
+               ├── shuffle: false
+               ├── drop_last: false
+         └── Test Dataloader Kwargs:
+               ├── batch_size: 16
+               ├── num_workers: 4
+               ├── shuffle: false
+               ├── drop_last: false
+      ==================================================
+
+</pre></div></div>
+</div>
+</section>
+<section id="4.-Training-and-Evaluate-Model">
+<h3>4. Training and Evaluate Model<a class="headerlink" href="#4.-Training-and-Evaluate-Model" title="Link to this heading"></a></h3>
+<p>Once the <code class="docutils literal notranslate"><span class="pre">Experiment</span></code> class is defined, we can run the experiment using the <code class="docutils literal notranslate"><span class="pre">run</span></code> method. The <code class="docutils literal notranslate"><span class="pre">run</span></code> method is the main entry point for executing the experiment. It handles the entire lifecycle of the experiment, including training, evaluation, and result logging.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">run</span></code> method have a <code class="docutils literal notranslate"><span class="pre">task</span></code> parameter that controls the type of task to be performed. It can be:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">fit</span></code>: To train the model</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">evaluate</span></code>: To evaluate the model</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">fit-evaluate</span></code>: To train and evaluate the model (both steps above, for convenience)</p></li>
+</ul>
+<p>for <code class="docutils literal notranslate"><span class="pre">fit</span></code> and <code class="docutils literal notranslate"><span class="pre">evaluate</span></code> tasks a lightning trainer object will be created using the parameters passed to the <code class="docutils literal notranslate"><span class="pre">Experiment</span></code> constructor (accelerator, devices, etc.).</p>
+<p>In general, the <code class="docutils literal notranslate"><span class="pre">fit</span></code> method will:</p>
+<ul class="simple">
+<li><p>Setup directories, logger, and callbacks</p></li>
+<li><p>Create the model randomly initialized (if <code class="docutils literal notranslate"><span class="pre">pretrained_backbone_path</span></code> is not provided) or create the model and load the backbone (if <code class="docutils literal notranslate"><span class="pre">pretrained_backbone_path</span></code> is provided)</p></li>
+<li><p>Create the trainer and fit the model using <code class="docutils literal notranslate"><span class="pre">trainer.fit()</span></code> method</p></li>
+<li><p>Save the model checkpoints and logs</p></li>
+<li><p>Save the metrics to a CSV file</p></li>
+</ul>
+<p>The <code class="docutils literal notranslate"><span class="pre">evaluate</span></code> method will:</p>
+<ul class="simple">
+<li><p>Setup directories and evaluation metrics</p></li>
+<li><p>Create the model using the <code class="docutils literal notranslate"><span class="pre">load_model_from_checkpoint</span></code> method</p></li>
+<li><p>Create the trainer and perform predictions using <code class="docutils literal notranslate"><span class="pre">trainer.predict()</span></code> method</p></li>
+<li><p>Save the predictions to a file</p></li>
+<li><p>Evaluate the model using the evaluation metrics, based on the predictions made</p></li>
+<li><p>Save the results to a file</p></li>
+</ul>
+<blockquote>
+<div><p><strong>NOTE</strong>: If multiple <code class="docutils literal notranslate"><span class="pre">checkpoint_metrics</span></code> are defined, the <code class="docutils literal notranslate"><span class="pre">evaluate</span></code> method will be called for each checkpoint. The results will be saved in separate files, one for each checkpoint. You may control this behaviour by passing <code class="docutils literal notranslate"><span class="pre">ckpts_to_evaluate</span></code> parameter to the <code class="docutils literal notranslate"><span class="pre">experiment.run()</span></code> method,specifying only the checkpoint to be evaluated. By default, all checkpoints will be evaluated.</p>
+</div></blockquote>
+<p>We going to use the <code class="docutils literal notranslate"><span class="pre">fit-evaluate</span></code> task for this example, so we will train and evaluate the model in one step. The result is a dictionary with the following keys, one for each checkpoint:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;predictions_path&quot;</span><span class="p">:</span> <span class="n">predictions_file</span><span class="p">,</span>   <span class="c1"># Path to the predictions file</span>
+    <span class="s2">&quot;results_path&quot;</span><span class="p">:</span> <span class="n">results_filename</span><span class="p">,</span>       <span class="c1"># Path to the results file</span>
+    <span class="s2">&quot;results_path_per_sample&quot;</span><span class="p">:</span> <span class="n">results_filename_per_sample</span><span class="p">,</span> <span class="c1"># Path to the per sample results file</span>
+    <span class="s2">&quot;results&quot;</span><span class="p">:</span> <span class="n">results</span><span class="p">,</span>                 <span class="c1"># Pandas dataframe with the results for each metric</span>
+    <span class="s2">&quot;results_per_sample&quot;</span><span class="p">:</span> <span class="n">per_sample_results</span><span class="p">,</span> <span class="c1"># Pandas dataframe with the results for each sample</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">result</span> <span class="o">=</span> <span class="n">experiment</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">task</span><span class="o">=</span><span class="s2">&quot;fit-evaluate&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Result: </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+** Seed set to: 42 **
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+GPU available: True (cuda), used: True
+TPU available: False, using: 0 TPU cores
+HPU available: False, using: 0 HPUs
+/home/vscode/.local/lib/python3.10/site-packages/lightning/pytorch/trainer/configuration_validator.py:70: You defined a `validation_step` but have no `val_dataloader`. Skipping val loop.
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+
+================================================================================
+                           Experiment: f3_deeplabv3
+================================================================================
+🧠 Model
+   ├── Name: deeplabv3-crossentropy-adam
+   ├── Finetune: No
+   ├── Resumed From: Beginning
+   ├── Expected Input Shape: None
+   ├── Expected Output Shape: None
+   ├── Total Params: 41,684,014
+   └── Trainable Params: 41,684,014 (100.00%)
+
+📊 Dataset
+   ├── Train Samples: 401
+   |   ├── Input Shape: shape=(3, 701, 255)
+   |   └── Label Shape: shape=(1, 701, 255)
+   └── Validation Dataset: None
+
+💾 Logging &amp; Checkpoints
+   ├── Log Dir: /workspaces/minerva-workspace/Minerva-Dev/docs/notebooks/logs/f3_deeplabv3/F3_Dataset/deeplabv3-crossentropy-adam/0
+   ├── Metrics Path: logs/f3_deeplabv3/F3_Dataset/deeplabv3-crossentropy-adam/0/metrics.csv
+   └── Checkpoints Dir: logs/f3_deeplabv3/F3_Dataset/deeplabv3-crossentropy-adam/0/checkpoints
+       └── Files: last.ckpt
+
+⚙️ Trainer Config
+   ├── Max Epochs: 10
+   ├── Train Batches: None
+   ├── Accelerator: gpu
+   ├── Strategy: auto
+   ├── Devices: 1
+   ├── Num Nodes: 1
+   └── Seed: 42
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+
+  | Name     | Type                    | Params | Mode
+-------------------------------------------------------------
+0 | backbone | DeepLabV3Backbone       | 25.6 M | train
+1 | fc       | DeepLabV3PredictionHead | 16.1 M | train
+2 | loss_fn  | CrossEntropyLoss        | 0      | train
+-------------------------------------------------------------
+41.7 M    Trainable params
+0         Non-trainable params
+41.7 M    Total params
+166.736   Total estimated model params size (MB)
+186       Modules in train mode
+0         Modules in eval mode
+/home/vscode/.local/lib/python3.10/site-packages/lightning/pytorch/loops/fit_loop.py:310: The number of training batches (25) is smaller than the logging interval Trainer(log_every_n_steps=50). Set a lower value for log_every_n_steps if you want to see logs for the training epoch.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Epoch 9: 100%|██████████| 25/25 [00:11&lt;00:00,  2.09it/s, v_num=0, train_loss=0.0285]
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+`Trainer.fit` stopped: `max_epochs=10` reached.
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Epoch 9: 100%|██████████| 25/25 [00:21&lt;00:00,  1.16it/s, v_num=0, train_loss=0.0285]
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+GPU available: True (cuda), used: True
+TPU available: False, using: 0 TPU cores
+HPU available: False, using: 0 HPUs
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Model loaded from logs/f3_deeplabv3/F3_Dataset/deeplabv3-crossentropy-adam/0/checkpoints/last.ckpt
+
+================================================================================
+                     Evaluation: f3_deeplabv3 (last.ckpt)
+================================================================================
+💾 Checkpoint
+   ├── Checkpoint Path: logs/f3_deeplabv3/F3_Dataset/deeplabv3-crossentropy-adam/0/checkpoints/last.ckpt
+   └── Predictions Path: logs/f3_deeplabv3/F3_Dataset/deeplabv3-crossentropy-adam/0/predictions/last.npy
+
+📊 Dataset
+   ├── Predict Samples: 200
+   ├── Input: shape=(3, 701, 255)
+   └── Label: shape=(701, 255)
+
+📈 Evaluation Metrics
+   ├── mIoU: MulticlassJaccardIndex
+
+⚙️ Trainer Config
+   ├── Max Epochs: 10
+   ├── Predict Batches: None
+   ├── Accelerator: gpu
+   ├── Strategy: auto
+   ├── Devices: 1
+   ├── Num Nodes: 1
+   └── Seed: 42
+Predicting DataLoader 0: 100%|██████████| 13/13 [00:04&lt;00:00,  3.18it/s]
+Predictions saved to logs/f3_deeplabv3/F3_Dataset/deeplabv3-crossentropy-adam/0/predictions/last.npy
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+Computing metrics: 100%|██████████| 13/13 [00:00&lt;00:00, 13.14it/s]
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Results saved to logs/f3_deeplabv3/F3_Dataset/deeplabv3-crossentropy-adam/0/results/last.csv
+No per-sample evaluation metrics provided. Skipping per-sample evaluation.
+Checkpoint last evaluated!
+Result: [&#39;last&#39;]
+</pre></div></div>
+</div>
+<p>We can get the results from the last checkpoint by using the <code class="docutils literal notranslate"><span class="pre">results</span></code> key. The results is a pandas dataframe with one column for each metric and one row for each sample.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[29]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ckpt_name</span> <span class="o">=</span> <span class="s2">&quot;last&quot;</span>
+<span class="n">result</span><span class="p">[</span><span class="n">ckpt_name</span><span class="p">][</span><span class="s2">&quot;results&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[29]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>sample</th>
+      <th>mIoU</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>all</td>
+      <td>0.691551</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+</section>
+<section id="5.-Managing-Results-and-Lifecycle">
+<h3>5. Managing Results and Lifecycle<a class="headerlink" href="#5.-Managing-Results-and-Lifecycle" title="Link to this heading"></a></h3>
+<p>Once the experiment is completed, we can use the <code class="docutils literal notranslate"><span class="pre">Experiment</span></code> class to manage the results and lifecycle of the experiment.</p>
+<p>The following methods and properties are available:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">checkpoint_paths</span></code> (property): Returns the paths to the model checkpoints saved during training. This is a dictionary with the checkpoint name as key and the path as value.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">training_metrics_path</span></code> (property): Returns the path to the training metrics CSV file.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">training_metrics</span></code> (property): Returns the training metrics as a Pandas dataframe.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">prediction_paths</span></code> (property): Returns the paths to the predictions files saved during evaluation, one for each checkpoint. This is a dictionary with the checkpoint name as key and the path as value.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">load_predictions_of_ckpt</span></code> (method): Loads the predictions for a specific checkpoint. It expects the checkpoint name as argument. Names can be achieved using the <code class="docutils literal notranslate"><span class="pre">checkpoint_paths</span></code> property.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">results_paths</span></code> (property): Returns the paths to the results files saved during evaluation, one for each checkpoint. This is a dictionary with the checkpoint name as key and the path as value.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">load_results_of_ckpt</span></code> (method): Loads the results for a specific checkpoint. It expects the checkpoint name as argument. Names can be achieved using the <code class="docutils literal notranslate"><span class="pre">results_paths</span></code> property.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">status</span></code> (property): Returns information and status of the experiment in a dictionary format. The <code class="docutils literal notranslate"><span class="pre">state</span></code> key indicates whether the experiment is: “evaluated”, “predicted”, “executed”, or “not executed”. The “not executed” means the experiment was not run yet. The “executed” means the experiment was run, but not evaluated yet. The “predicted” means the experiment was run and predictions were made, but not evaluated yet. The “evaluated” means the experiment was run and evaluated. This
+state is based on the files saved in the experiment directory. Thus, if you opt to not save predictions or results, the status will be “executed” even if the experiment was run and evaluated once.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cleanup</span></code> (method): Cleans up the experiment directory, removing all files and subdirectories.</p></li>
+</ul>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[30]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># We can check the experiment state using status funtion</span>
+
+<span class="n">experiment</span><span class="o">.</span><span class="n">status</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[30]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+{&#39;experiment_name&#39;: &#39;f3_deeplabv3&#39;,
+ &#39;log_dir&#39;: PosixPath(&#39;/workspaces/minerva-workspace/Minerva-Dev/docs/notebooks/logs/f3_deeplabv3/F3_Dataset/deeplabv3-crossentropy-adam/0&#39;),
+ &#39;checkpoints&#39;: {&#39;last&#39;: PosixPath(&#39;logs/f3_deeplabv3/F3_Dataset/deeplabv3-crossentropy-adam/0/checkpoints/last.ckpt&#39;)},
+ &#39;training_metrics&#39;: PosixPath(&#39;logs/f3_deeplabv3/F3_Dataset/deeplabv3-crossentropy-adam/0/metrics.csv&#39;),
+ &#39;prediction_paths&#39;: {&#39;last&#39;: PosixPath(&#39;logs/f3_deeplabv3/F3_Dataset/deeplabv3-crossentropy-adam/0/predictions/last.npy&#39;)},
+ &#39;results_paths&#39;: {&#39;last&#39;: PosixPath(&#39;logs/f3_deeplabv3/F3_Dataset/deeplabv3-crossentropy-adam/0/results/last.csv&#39;)},
+ &#39;state&#39;: &#39;evaluated&#39;}
+</pre></div></div>
+</div>
+<p>We can print the directory structure of the experiment directory to see the files and subdirectories created during the experiment.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[51]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">print_tree</span><span class="p">(</span><span class="n">root</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">prefix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">root</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">root</span><span class="si">}</span><span class="s2"> is not a directory.&quot;</span><span class="p">)</span>
+        <span class="k">return</span>
+
+    <span class="n">entries</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">root</span><span class="o">.</span><span class="n">iterdir</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">is_file</span><span class="p">(),</span> <span class="n">x</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">()))</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">entry</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">entries</span><span class="p">):</span>
+        <span class="n">connector</span> <span class="o">=</span> <span class="s2">&quot;└── &quot;</span> <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">entries</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span> <span class="k">else</span> <span class="s2">&quot;├── &quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">prefix</span> <span class="o">+</span> <span class="n">connector</span> <span class="o">+</span> <span class="n">entry</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">entry</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
+            <span class="n">extension</span> <span class="o">=</span> <span class="s2">&quot;    &quot;</span> <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">entries</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span> <span class="k">else</span> <span class="s2">&quot;│   &quot;</span>
+            <span class="n">print_tree</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="n">prefix</span> <span class="o">+</span> <span class="n">extension</span><span class="p">)</span>
+
+
+<span class="nb">print</span><span class="p">(</span><span class="n">experiment</span><span class="o">.</span><span class="n">root_log_dir</span><span class="p">)</span>
+<span class="n">print_tree</span><span class="p">(</span><span class="n">experiment</span><span class="o">.</span><span class="n">root_log_dir</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+logs
+└── f3_deeplabv3
+    └── F3_Dataset
+        └── deeplabv3-crossentropy-adam
+            └── 0
+                ├── checkpoints
+                │   └── last.ckpt
+                ├── predictions
+                │   └── last.npy
+                ├── results
+                │   └── last.csv
+                └── metrics.csv
+</pre></div></div>
+</div>
+<p>We can check the evaluated metrics from a specific checkpoint using the <code class="docutils literal notranslate"><span class="pre">load_results_of_ckpt</span></code> method.It is equivalent from the results returned by the <code class="docutils literal notranslate"><span class="pre">run</span></code> method (using <code class="docutils literal notranslate"><span class="pre">fit-evaluate</span></code> task).</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">results</span> <span class="o">=</span> <span class="n">experiment</span><span class="o">.</span><span class="n">load_results_of_ckpt</span><span class="p">(</span><span class="s2">&quot;last&quot;</span><span class="p">)</span>
+<span class="n">results</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>sample</th>
+      <th>mIoU</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>all</td>
+      <td>0.691551</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<p>We can check the training metrics using the <code class="docutils literal notranslate"><span class="pre">training_metrics</span></code> property. It returns a pandas dataframe with the training metrics for each epoch, based on lightning CSV Logger.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[34]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">training_metrics</span> <span class="o">=</span> <span class="n">experiment</span><span class="o">.</span><span class="n">training_metrics</span>
+<span class="n">training_metrics</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[34]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>epoch</th>
+      <th>step</th>
+      <th>train_loss</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>0</td>
+      <td>24</td>
+      <td>0.331632</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>1</td>
+      <td>49</td>
+      <td>0.085685</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>2</td>
+      <td>74</td>
+      <td>0.060906</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>3</td>
+      <td>99</td>
+      <td>0.051845</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>4</td>
+      <td>124</td>
+      <td>0.049144</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>5</td>
+      <td>149</td>
+      <td>0.041069</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>6</td>
+      <td>174</td>
+      <td>0.036828</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>7</td>
+      <td>199</td>
+      <td>0.034012</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>8</td>
+      <td>224</td>
+      <td>0.030449</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>9</td>
+      <td>249</td>
+      <td>0.028480</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<p>We can plot the training metrics using matplotlib or any other plotting library.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[46]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">training_metrics</span><span class="p">[</span><span class="s2">&quot;epoch&quot;</span><span class="p">],</span> <span class="n">training_metrics</span><span class="p">[</span><span class="s2">&quot;train_loss&quot;</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Train Loss&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;Epoch&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;Train Loss&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/notebooks_experiment_api_example_30_0.png" src="../_images/notebooks_experiment_api_example_30_0.png" />
+</div>
+</div>
+<p>If saved, we can also obtain the predictions using the <code class="docutils literal notranslate"><span class="pre">load_predictions_of_ckpt</span></code> method. It return the logits predictions for the specific checkpoint. The predictions are saved in a numpy array format, with (N, L, H, W) shape, where N is the number of samples, L is the number of classes (logits), H is the height and W is the width of the image.</p>
+<p>Let’s compare the predictions with the ground truth labels using matplotlib.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[37]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">index</span> <span class="o">=</span> <span class="mi">100</span>
+
+<span class="c1"># Get the test data and labels</span>
+<span class="n">test_labels</span> <span class="o">=</span> <span class="n">experiment</span><span class="o">.</span><span class="n">data_module</span><span class="o">.</span><span class="n">test_dataset</span><span class="p">[</span><span class="n">index</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+<span class="n">test_labels</span><span class="o">.</span><span class="n">shape</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[37]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+(701, 255)
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[40]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">predictions</span> <span class="o">=</span> <span class="n">experiment</span><span class="o">.</span><span class="n">load_predictions_of_ckpt</span><span class="p">(</span><span class="s2">&quot;last&quot;</span><span class="p">)</span>
+<span class="c1"># Calculcate the predictions from logits</span>
+<span class="n">predictions</span> <span class="o">=</span> <span class="n">predictions</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">predictions</span><span class="o">.</span><span class="n">shape</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[40]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+(701, 255)
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[41]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Lets visualize the test data, labels and predictions</span>
+
+<span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">predictions</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;Predicted&quot;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">test_labels</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;True&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/notebooks_experiment_api_example_34_0.png" src="../_images/notebooks_experiment_api_example_34_0.png" />
+</div>
+</div>
+</section>
+<section id="6.-Cleanup">
+<h3>6. Cleanup<a class="headerlink" href="#6.-Cleanup" title="Link to this heading"></a></h3>
+<p>Finally, we can clean up the experiment directory using the <code class="docutils literal notranslate"><span class="pre">cleanup</span></code> method. This will remove all files and subdirectories created during the experiment. This is useful to free up disk space and remove unnecessary files.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[52]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">experiment</span><span class="o">.</span><span class="n">cleanup</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Experiment at &#39;/workspaces/minerva-workspace/Minerva-Dev/docs/notebooks/logs/f3_deeplabv3/F3_Dataset/deeplabv3-crossentropy-adam/0&#39; cleaned up.
+</pre></div></div>
+</div>
+<p>We can print the directory structure of the experiment directory to check if files were removed.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[53]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">experiment</span><span class="o">.</span><span class="n">root_log_dir</span><span class="p">)</span>
+<span class="n">print_tree</span><span class="p">(</span><span class="n">experiment</span><span class="o">.</span><span class="n">root_log_dir</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+logs
+└── f3_deeplabv3
+    └── F3_Dataset
+        └── deeplabv3-crossentropy-adam
+</pre></div></div>
+</div>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="har_getting_started.html" class="btn btn-neutral float-left" title="Getting Started with Minerva for Human Activity Recognition" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../contributing.html" class="btn btn-neutral float-right" title="Contributing to Minerva" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Unicamp.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

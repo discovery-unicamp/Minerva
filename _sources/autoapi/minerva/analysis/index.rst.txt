@@ -1,0 +1,17 @@
+minerva.analysis
+================
+
+.. py:module:: minerva.analysis
+
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   /autoapi/minerva/analysis/complexity_performance_analysis/index
+   /autoapi/minerva/analysis/metrics/index
+   /autoapi/minerva/analysis/model_analysis/index
+
+

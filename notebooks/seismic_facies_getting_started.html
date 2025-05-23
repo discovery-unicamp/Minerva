@@ -1,0 +1,914 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Getting Started with Minerva for Seismic Facies Segmentation &mdash; minerva  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+      <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Getting Started with Minerva for Human Activity Recognition" href="har_getting_started.html" />
+    <link rel="prev" title="Examples and Tutorials" href="../tutorials.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            minerva
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../design.html">Minerva Design</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../tutorials.html">Examples and Tutorials</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../tutorials.html#getting-started-notebooks">Getting Started Notebooks</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Getting Started with Minerva for Seismic Facies Segmentation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#Imports">Imports</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#1.-Data-Preparation">1. Data Preparation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#1.1-Creating-Data-Readers-and-Dataset">1.1 Creating Data Readers and Dataset</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#2.-Creating-the-Model">2. Creating the Model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#3.-Defining-the-trainer">3. Defining the trainer</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#3.1.-Training-the-model">3.1. Training the model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#4.-Evaluating-Model">4. Evaluating Model</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="har_getting_started.html">Getting Started with Minerva for Human Activity Recognition</a></li>
+<li class="toctree-l3"><a class="reference internal" href="experiment_api_example.html">Minerva Experimental Pipeline</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing.html">Contributing to Minerva</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">Programming Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">minerva</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../tutorials.html">Examples and Tutorials</a></li>
+      <li class="breadcrumb-item active">Getting Started with Minerva for Seismic Facies Segmentation</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/notebooks/seismic_facies_getting_started.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="Getting-Started-with-Minerva-for-Seismic-Facies-Segmentation">
+<h1>Getting Started with Minerva for Seismic Facies Segmentation<a class="headerlink" href="#Getting-Started-with-Minerva-for-Seismic-Facies-Segmentation" title="Link to this heading"></a></h1>
+<p>Seismic Facies Classification is a challenging problem in the field of geophysics. The goal is to predict the lithology of the subsurface based on seismic data. In this notebook, we will use the Minerva to train and evaluate a DeepLabV3 model from scratch for seismic facies classification.</p>
+<p>Thus, this notebook is a step-by-step guide to train a DeepLabV3 model for seismic facies classification using Minerva. It comprises the following steps:</p>
+<ol class="arabic simple">
+<li><p>Data Preparation</p></li>
+<li><p>Model Creation</p></li>
+<li><p>Model Training</p></li>
+<li><p>Model Evaluation</p></li>
+</ol>
+<section id="Imports">
+<h2>Imports<a class="headerlink" href="#Imports" title="Link to this heading"></a></h2>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">minerva.data.readers.patched_array_reader</span><span class="w"> </span><span class="kn">import</span> <span class="n">NumpyArrayReader</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">minerva.data.data_modules.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">MinervaDataModule</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">minerva.transforms.transform</span><span class="w"> </span><span class="kn">import</span> <span class="n">Repeat</span><span class="p">,</span> <span class="n">Squeeze</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">minerva.data.datasets.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">SimpleDataset</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">minerva.models.nets.image.deeplabv3</span><span class="w"> </span><span class="kn">import</span> <span class="n">DeepLabV3</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">lightning</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">L</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torchmetrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">JaccardIndex</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/usr/local/lib/python3.10/dist-packages/tqdm/auto.py:21: TqdmWarning: IProgress not found. Please update jupyter and ipywidgets. See https://ipywidgets.readthedocs.io/en/stable/user_install.html
+  from .autonotebook import tqdm as notebook_tqdm
+</pre></div></div>
+</div>
+</section>
+<section id="1.-Data-Preparation">
+<h2>1. Data Preparation<a class="headerlink" href="#1.-Data-Preparation" title="Link to this heading"></a></h2>
+<p>We begin by preparing the data for training and evaluation.</p>
+<p>For this tutorial, we will use the <a class="reference external" href="https://zenodo.org/records/3755060/files/data.zip?download=1">F3 dataset</a> from the seismic facies classification benchmark, introduced in the following work:</p>
+<div class="highlight-latex notranslate"><div class="highlight"><pre><span></span>Alaudah, Y., Michałowicz, P., Alfarraj, M. and AlRegib, G., 2019. A machine-learning benchmark for facies classification. Interpretation, 7(3), pp.SE175-SE187.
+</pre></div>
+</div>
+<p>This dataset is a 3D seismic volume from the F3 block in the Netherlands North Sea. It will be downloaded and unzipped in the following cell, at <code class="docutils literal notranslate"><span class="pre">datasets/f3/</span></code> directory.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># !wget https://zenodo.org/records/3755060/files/data.zip?download=1 -O f3.zip</span>
+<span class="c1"># !mkdir -p datasets/f3</span>
+<span class="c1"># !unzip -o f3.zip -d datasets/f3</span>
+<span class="c1"># !rm f3.zip</span>
+</pre></div>
+</div>
+</div>
+<p>Once extracted, the data is organized as follows:</p>
+<div class="highlight-tree notranslate"><div class="highlight"><pre><span></span>f3/data/
+├── test_once
+│   ├── test1_labels.npy
+│   ├── test1_seismic.npy
+│   ├── test2_labels.npy
+│   └── test2_seismic.npy
+└── train
+    ├── train_labels.npy
+    └── train_seismic.npy
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">train</span></code> folder contains the training data, while the <code class="docutils literal notranslate"><span class="pre">test_once</span></code> folder holds the test data. Each sample is stored in two separate NumPy files: one for the seismic volume and one for the corresponding labels.</p>
+<p>Each <code class="docutils literal notranslate"><span class="pre">.npy</span></code> file contains a 3D volume with the following dimensions:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">train_seismic</span></code>: <code class="docutils literal notranslate"><span class="pre">(401,</span> <span class="pre">701,</span> <span class="pre">255)</span></code> — where <code class="docutils literal notranslate"><span class="pre">(401,</span> <span class="pre">701)</span></code> are the spatial dimensions, and <code class="docutils literal notranslate"><span class="pre">255</span></code> is the number of seismic traces.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">test1_seismic</span></code>: <code class="docutils literal notranslate"><span class="pre">(200,</span> <span class="pre">701,</span> <span class="pre">255)</span></code> — same trace dimension, but fewer spatial slices.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">test2_seismic</span></code>: <code class="docutils literal notranslate"><span class="pre">(601,</span> <span class="pre">200,</span> <span class="pre">255)</span></code> — different spatial dimensions from training and Test 1.</p></li>
+</ul>
+<p><strong>Note</strong>: The label volumes have the same shapes as their corresponding seismic volumes.</p>
+<p>To process the data, we iterate over the first dimension of the seismic volumes to extract 2D slices and their associated labels. For example, for the training data, we extract <code class="docutils literal notranslate"><span class="pre">401</span></code> slices of shape <code class="docutils literal notranslate"><span class="pre">(701,</span> <span class="pre">255)</span></code> each, along with their matching label slices of the same shape.</p>
+<p>It’s important to note that Test 1 samples have the same spatial dimensions as the training set, making it suitable for direct evaluation. Test 2, however, has different spatial dimensions and may require separate handling. Thus, we will focus on Test 1 for evaluation in this notebook.</p>
+<p>Each label slice is a 2D array containing 6 distinct classes, representing different lithologies.</p>
+</section>
+<section id="1.1-Creating-Data-Readers-and-Dataset">
+<h2>1.1 Creating Data Readers and Dataset<a class="headerlink" href="#1.1-Creating-Data-Readers-and-Dataset" title="Link to this heading"></a></h2>
+<p>In Minerva, we can create readers, which are responsible for loading a single unit of data in a ordered way. It is like an ordered collection of data. A Dataset is a collection of readers and transforms, associated to each reader.</p>
+<p>Let’s first create 2 readers for training data. The first reader will be responsible to iterate over the training seismic data, while the second reader will iterate over the corresponding labels.</p>
+<p>We will use <code class="docutils literal notranslate"><span class="pre">NumpyArrayReader</span></code> that allows use to read data from NumPy files. There are two required arguments for <code class="docutils literal notranslate"><span class="pre">NumpyArrayReader</span></code>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">data</span></code>: the path to the NumPy file or the NumPy array.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">data_shape</span></code>: the shape of each sample. We will use <code class="docutils literal notranslate"><span class="pre">(1,</span> <span class="pre">701,</span> <span class="pre">255)</span></code> for seismic data and <code class="docutils literal notranslate"><span class="pre">(1,</span> <span class="pre">701,</span> <span class="pre">255)</span></code> for labels. Thus, the shape of each sample will be <code class="docutils literal notranslate"><span class="pre">(1,</span> <span class="pre">701,</span> <span class="pre">255)</span></code> and we will have 401 samples for training data.</p></li>
+</ul>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">root_data_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;datasets/f3/data/&quot;</span><span class="p">)</span>
+
+<span class="n">train_data_reader</span> <span class="o">=</span> <span class="n">NumpyArrayReader</span><span class="p">(</span>
+    <span class="n">data</span><span class="o">=</span><span class="n">root_data_dir</span> <span class="o">/</span> <span class="s2">&quot;train&quot;</span> <span class="o">/</span> <span class="s2">&quot;train_seismic.npy&quot;</span><span class="p">,</span>
+    <span class="n">data_shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">701</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+<span class="p">)</span>
+
+<span class="n">train_labels_reader</span> <span class="o">=</span> <span class="n">NumpyArrayReader</span><span class="p">(</span>
+    <span class="n">data</span><span class="o">=</span><span class="n">root_data_dir</span> <span class="o">/</span> <span class="s2">&quot;train&quot;</span> <span class="o">/</span> <span class="s2">&quot;train_labels.npy&quot;</span><span class="p">,</span>
+    <span class="n">data_shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">701</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>Once the readers are set up, we can create a dataset using them. For this purpose, we’ll use the <code class="docutils literal notranslate"><span class="pre">SimpleDataset</span></code> class, which takes two main inputs:</p>
+<ul class="simple">
+<li><p>A list of <strong>readers</strong> (data sources)</p></li>
+<li><p>A list of <strong>transforms</strong> (optional preprocessing steps)</p></li>
+</ul>
+<p>When an item at index <code class="docutils literal notranslate"><span class="pre">i</span></code> is requested from the dataset (e.g., <code class="docutils literal notranslate"><span class="pre">dataset[i]</span></code>), the following steps occur:</p>
+<ol class="arabic simple">
+<li><p>The dataset retrieves the item at index <code class="docutils literal notranslate"><span class="pre">i</span></code> from <code class="docutils literal notranslate"><span class="pre">reader[0]</span></code> and applies the corresponding transform <code class="docutils literal notranslate"><span class="pre">transform[0]</span></code>.</p></li>
+<li><p>It then retrieves the item at index <code class="docutils literal notranslate"><span class="pre">i</span></code> from <code class="docutils literal notranslate"><span class="pre">reader[1]</span></code> and applies <code class="docutils literal notranslate"><span class="pre">transform[1]</span></code>.</p></li>
+<li><p>Finally, it returns a 2-element tuple containing the transformed outputs:</p>
+<ul class="simple">
+<li><p>The first element is the transformed seismic data: <code class="docutils literal notranslate"><span class="pre">transform[0](reader[0][i])</span></code></p></li>
+<li><p>The second element is the transformed label: <code class="docutils literal notranslate"><span class="pre">transform[1](reader[1][i])</span></code></p></li>
+</ul>
+</li>
+</ol>
+<p>This design enables flexible and consistent pairing of multiple data sources with their corresponding preprocessing logic-ideal for training, validation, or testing workflows.</p>
+<p>We will use the following transforms:</p>
+<ul class="simple">
+<li><p>For seismic data: as data is uni-dimensional, and our model expects RGB data, we will convert the seismic data to a 3-channel image by repeating the same data across 3 channels. Thus, we will use <code class="docutils literal notranslate"><span class="pre">Repeat</span></code> transform, and our data will be of shape <code class="docutils literal notranslate"><span class="pre">(3,</span> <span class="pre">701,</span> <span class="pre">255)</span></code>.</p></li>
+<li><p>For labels: we will use no transforms. The data will be of shape <code class="docutils literal notranslate"><span class="pre">(1,</span> <span class="pre">701,</span> <span class="pre">255)</span></code>.</p></li>
+</ul>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">train_dataset</span> <span class="o">=</span> <span class="n">SimpleDataset</span><span class="p">(</span>
+    <span class="n">readers</span><span class="o">=</span><span class="p">[</span>
+        <span class="n">train_data_reader</span><span class="p">,</span>  <span class="c1"># 1st reader is the data</span>
+        <span class="n">train_labels_reader</span> <span class="c1"># 2nd reader is the labels</span>
+    <span class="p">],</span>
+    <span class="n">transforms</span><span class="o">=</span><span class="p">[</span>
+        <span class="n">Repeat</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">n_repetitions</span><span class="o">=</span><span class="mi">3</span><span class="p">),</span>  <span class="c1"># Transforms to first reader (data)</span>
+        <span class="kc">None</span>                              <span class="c1"># Transforms to second reader (labels)</span>
+    <span class="p">],</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">train_dataset</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+==================================================
+           📂 SimpleDataset Information
+==================================================
+📌 Dataset Type: SimpleDataset
+   └── Reader 0: NumpyArrayReader(samples=401, shape=(1, 701, 255), dtype=float64)
+   │     └── Transform: Repeat(axis=0, n_repetitions=3)
+   └── Reader 1: NumpyArrayReader(samples=401, shape=(1, 701, 255), dtype=uint8)
+   │     └── Transform: None
+   │
+   └── Total Readers: 2
+==================================================
+</pre></div></div>
+</div>
+<p>The same will be done for the test data. However, the only difference will be at test label transform. We do not want the channels dimension for the labels. Thus, the shape of the label data will be <code class="docutils literal notranslate"><span class="pre">(701,</span> <span class="pre">255)</span></code>. Thus, we will use <code class="docutils literal notranslate"><span class="pre">Squeeze</span></code> transform to remove the channels dimension. For the seismic data, we will use the same transform as the training data.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">test_data_reader</span> <span class="o">=</span> <span class="n">NumpyArrayReader</span><span class="p">(</span>
+    <span class="n">data</span><span class="o">=</span><span class="n">root_data_dir</span> <span class="o">/</span> <span class="s2">&quot;test_once&quot;</span> <span class="o">/</span> <span class="s2">&quot;test1_seismic.npy&quot;</span><span class="p">,</span>
+    <span class="n">data_shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">701</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+<span class="p">)</span>
+
+<span class="n">test_labels_reader</span> <span class="o">=</span> <span class="n">NumpyArrayReader</span><span class="p">(</span>
+    <span class="n">data</span><span class="o">=</span><span class="n">root_data_dir</span> <span class="o">/</span> <span class="s2">&quot;test_once&quot;</span> <span class="o">/</span> <span class="s2">&quot;test1_labels.npy&quot;</span><span class="p">,</span>
+    <span class="n">data_shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">701</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+<span class="p">)</span>
+
+<span class="n">test_dataset</span> <span class="o">=</span> <span class="n">SimpleDataset</span><span class="p">(</span>
+    <span class="n">readers</span><span class="o">=</span><span class="p">[</span><span class="n">test_data_reader</span><span class="p">,</span> <span class="n">test_labels_reader</span><span class="p">],</span>
+    <span class="n">transforms</span><span class="o">=</span><span class="p">[</span><span class="n">Repeat</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">n_repetitions</span><span class="o">=</span><span class="mi">3</span><span class="p">),</span> <span class="n">Squeeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)],</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">test_dataset</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+==================================================
+           📂 SimpleDataset Information
+==================================================
+📌 Dataset Type: SimpleDataset
+   └── Reader 0: NumpyArrayReader(samples=200, shape=(1, 701, 255), dtype=float64)
+   │     └── Transform: Repeat(axis=0, n_repetitions=3)
+   └── Reader 1: NumpyArrayReader(samples=200, shape=(1, 701, 255), dtype=uint8)
+   │     └── Transform: Squeeze(axis=0)
+   │
+   └── Total Readers: 2
+==================================================
+</pre></div></div>
+</div>
+<section id="1.2.-Creating-the-MinervaDataModule">
+<h3>1.2. Creating the <code class="docutils literal notranslate"><span class="pre">MinervaDataModule</span></code><a class="headerlink" href="#1.2.-Creating-the-MinervaDataModule" title="Link to this heading"></a></h3>
+<p>Minerva models are implemented using Pytorch Lightning. Thus, to train a model we should create a <code class="docutils literal notranslate"><span class="pre">LightningDataModule</span></code> object that will handle the data loading and preprocessing. Minerva provides a <code class="docutils literal notranslate"><span class="pre">MinervaDataModule</span></code> class that extends Pytorch Lightning’s <code class="docutils literal notranslate"><span class="pre">LightningDataModule</span></code> class and standardizes the data loading process.</p>
+<p>We may create a <code class="docutils literal notranslate"><span class="pre">MinervaDataModule</span></code> object by passing the training, validation, and testing datasets, as well as the batch size and the number of workers for data loading.</p>
+<p>We use <code class="docutils literal notranslate"><span class="pre">drop_last</span></code> parameter to drop the last batch if it is smaller than the batch size. This is quite useful as DeepLabV3 model expects the batch is higher than 1.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">data_module</span> <span class="o">=</span> <span class="n">MinervaDataModule</span><span class="p">(</span>
+    <span class="n">train_dataset</span><span class="o">=</span><span class="n">train_dataset</span><span class="p">,</span>
+    <span class="n">test_dataset</span><span class="o">=</span><span class="n">test_dataset</span><span class="p">,</span>
+    <span class="n">batch_size</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span>
+    <span class="n">num_workers</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+    <span class="n">additional_train_dataloader_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;drop_last&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;F3 Dataset&quot;</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">data_module</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+==================================================
+                    🆔 F3 Dataset
+==================================================
+└── Predict Split: test
+📂 Datasets:
+   ├── Train Dataset:
+   │      ==================================================
+   │                 📂 SimpleDataset Information
+   │      ==================================================
+   │      📌 Dataset Type: SimpleDataset
+   │         └── Reader 0: NumpyArrayReader(samples=401, shape=(1, 701, 255), dtype=float64)
+   │         │     └── Transform: Repeat(axis=0, n_repetitions=3)
+   │         └── Reader 1: NumpyArrayReader(samples=401, shape=(1, 701, 255), dtype=uint8)
+   │         │     └── Transform: None
+   │         │
+   │         └── Total Readers: 2
+   │      ==================================================
+   ├── Val Dataset:
+   │      None
+   └── Test Dataset:
+          ==================================================
+                     📂 SimpleDataset Information
+          ==================================================
+          📌 Dataset Type: SimpleDataset
+             └── Reader 0: NumpyArrayReader(samples=200, shape=(1, 701, 255), dtype=float64)
+             │     └── Transform: Repeat(axis=0, n_repetitions=3)
+             └── Reader 1: NumpyArrayReader(samples=200, shape=(1, 701, 255), dtype=uint8)
+             │     └── Transform: Squeeze(axis=0)
+             │
+             └── Total Readers: 2
+          ==================================================
+
+🛠 **Dataloader Configurations:**
+   ├── Dataloader class: &lt;class &#39;torch.utils.data.dataloader.DataLoader&#39;&gt;
+   ├── Train Dataloader Kwargs:
+         ├── batch_size: 16
+         ├── num_workers: 4
+         ├── shuffle: true
+         ├── drop_last: true
+   ├── Val Dataloader Kwargs:
+         ├── batch_size: 16
+         ├── num_workers: 4
+         ├── shuffle: false
+         ├── drop_last: false
+   └── Test Dataloader Kwargs:
+         ├── batch_size: 16
+         ├── num_workers: 4
+         ├── shuffle: false
+         ├── drop_last: false
+==================================================
+</pre></div></div>
+</div>
+</section>
+</section>
+<section id="2.-Creating-the-Model">
+<h2>2. Creating the Model<a class="headerlink" href="#2.-Creating-the-Model" title="Link to this heading"></a></h2>
+<p>For this tutorial, we will use a DeepLabV3 model for seismic facies classification. The DeepLabV3 model is a popular architecture for semantic segmentation tasks, such as image segmentation. It is based on a deep convolutional neural network with a ResNet backbone and an Atrous Spatial Pyramid Pooling (ASPP) module. Minerva provides a <code class="docutils literal notranslate"><span class="pre">DeepLabV3</span></code> model that can be used for seismic facies classification. We just need to pass the number of classes to the model, which is 6 in this case.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">model</span> <span class="o">=</span> <span class="n">DeepLabV3</span><span class="p">(</span><span class="n">num_classes</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
+<span class="n">model</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+DeepLabV3(
+  (backbone): DeepLabV3Backbone(
+    (RN50model): ResNet(
+      (conv1): Conv2d(3, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
+      (bn1): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (relu): ReLU(inplace=True)
+      (maxpool): MaxPool2d(kernel_size=3, stride=2, padding=1, dilation=1, ceil_mode=False)
+      (layer1): Sequential(
+        (0): Bottleneck(
+          (conv1): Conv2d(64, 64, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (bn1): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+          (bn2): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (conv3): Conv2d(64, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (bn3): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (relu): ReLU(inplace=True)
+          (downsample): Sequential(
+            (0): Conv2d(64, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+            (1): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          )
+        )
+        (1): Bottleneck(
+          (conv1): Conv2d(256, 64, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (bn1): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+          (bn2): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (conv3): Conv2d(64, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (bn3): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (relu): ReLU(inplace=True)
+        )
+        (2): Bottleneck(
+          (conv1): Conv2d(256, 64, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (bn1): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+          (bn2): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (conv3): Conv2d(64, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (bn3): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (relu): ReLU(inplace=True)
+        )
+      )
+      (layer2): Sequential(
+        (0): Bottleneck(
+          (conv1): Conv2d(256, 128, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (bn1): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (conv2): Conv2d(128, 128, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False)
+          (bn2): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (conv3): Conv2d(128, 512, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (bn3): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (relu): ReLU(inplace=True)
+          (downsample): Sequential(
+            (0): Conv2d(256, 512, kernel_size=(1, 1), stride=(2, 2), bias=False)
+            (1): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          )
+        )
+        (1): Bottleneck(
+          (conv1): Conv2d(512, 128, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (bn1): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (conv2): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+          (bn2): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (conv3): Conv2d(128, 512, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (bn3): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (relu): ReLU(inplace=True)
+        )
+        (2): Bottleneck(
+          (conv1): Conv2d(512, 128, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (bn1): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (conv2): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+          (bn2): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (conv3): Conv2d(128, 512, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (bn3): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (relu): ReLU(inplace=True)
+        )
+        (3): Bottleneck(
+          (conv1): Conv2d(512, 128, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (bn1): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (conv2): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+          (bn2): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (conv3): Conv2d(128, 512, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (bn3): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (relu): ReLU(inplace=True)
+        )
+      )
+      (layer3): Sequential(
+        (0): Bottleneck(
+          (conv1): Conv2d(512, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (bn1): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (conv2): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+          (bn2): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (conv3): Conv2d(256, 1024, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (bn3): BatchNorm2d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (relu): ReLU(inplace=True)
+          (downsample): Sequential(
+            (0): Conv2d(512, 1024, kernel_size=(1, 1), stride=(1, 1), bias=False)
+            (1): BatchNorm2d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          )
+        )
+        (1): Bottleneck(
+          (conv1): Conv2d(1024, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (bn1): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (conv2): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(2, 2), dilation=(2, 2), bias=False)
+          (bn2): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (conv3): Conv2d(256, 1024, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (bn3): BatchNorm2d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (relu): ReLU(inplace=True)
+        )
+        (2): Bottleneck(
+          (conv1): Conv2d(1024, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (bn1): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (conv2): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(2, 2), dilation=(2, 2), bias=False)
+          (bn2): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (conv3): Conv2d(256, 1024, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (bn3): BatchNorm2d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (relu): ReLU(inplace=True)
+        )
+        (3): Bottleneck(
+          (conv1): Conv2d(1024, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (bn1): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (conv2): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(2, 2), dilation=(2, 2), bias=False)
+          (bn2): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (conv3): Conv2d(256, 1024, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (bn3): BatchNorm2d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (relu): ReLU(inplace=True)
+        )
+        (4): Bottleneck(
+          (conv1): Conv2d(1024, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (bn1): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (conv2): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(2, 2), dilation=(2, 2), bias=False)
+          (bn2): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (conv3): Conv2d(256, 1024, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (bn3): BatchNorm2d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (relu): ReLU(inplace=True)
+        )
+        (5): Bottleneck(
+          (conv1): Conv2d(1024, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (bn1): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (conv2): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(2, 2), dilation=(2, 2), bias=False)
+          (bn2): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (conv3): Conv2d(256, 1024, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (bn3): BatchNorm2d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (relu): ReLU(inplace=True)
+        )
+      )
+      (layer4): Sequential(
+        (0): Bottleneck(
+          (conv1): Conv2d(1024, 512, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (bn1): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (conv2): Conv2d(512, 512, kernel_size=(3, 3), stride=(1, 1), padding=(2, 2), dilation=(2, 2), bias=False)
+          (bn2): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (conv3): Conv2d(512, 2048, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (bn3): BatchNorm2d(2048, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (relu): ReLU(inplace=True)
+          (downsample): Sequential(
+            (0): Conv2d(1024, 2048, kernel_size=(1, 1), stride=(1, 1), bias=False)
+            (1): BatchNorm2d(2048, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          )
+        )
+        (1): Bottleneck(
+          (conv1): Conv2d(2048, 512, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (bn1): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (conv2): Conv2d(512, 512, kernel_size=(3, 3), stride=(1, 1), padding=(4, 4), dilation=(4, 4), bias=False)
+          (bn2): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (conv3): Conv2d(512, 2048, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (bn3): BatchNorm2d(2048, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (relu): ReLU(inplace=True)
+        )
+        (2): Bottleneck(
+          (conv1): Conv2d(2048, 512, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (bn1): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (conv2): Conv2d(512, 512, kernel_size=(3, 3), stride=(1, 1), padding=(4, 4), dilation=(4, 4), bias=False)
+          (bn2): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (conv3): Conv2d(512, 2048, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (bn3): BatchNorm2d(2048, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (relu): ReLU(inplace=True)
+        )
+      )
+      (avgpool): AdaptiveAvgPool2d(output_size=(1, 1))
+      (fc): Linear(in_features=2048, out_features=1000, bias=True)
+    )
+  )
+  (fc): DeepLabV3PredictionHead(
+    (0): ASPP(
+      (convs): ModuleList(
+        (0): Sequential(
+          (0): Conv2d(2048, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (1): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (2): ReLU()
+        )
+        (1): ASPPConv(
+          (0): Conv2d(2048, 256, kernel_size=(3, 3), stride=(1, 1), padding=(12, 12), dilation=(12, 12), bias=False)
+          (1): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (2): ReLU()
+        )
+        (2): ASPPConv(
+          (0): Conv2d(2048, 256, kernel_size=(3, 3), stride=(1, 1), padding=(24, 24), dilation=(24, 24), bias=False)
+          (1): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (2): ReLU()
+        )
+        (3): ASPPConv(
+          (0): Conv2d(2048, 256, kernel_size=(3, 3), stride=(1, 1), padding=(36, 36), dilation=(36, 36), bias=False)
+          (1): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (2): ReLU()
+        )
+        (4): ASPPPooling(
+          (0): AdaptiveAvgPool2d(output_size=1)
+          (1): Conv2d(2048, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (2): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (3): ReLU()
+        )
+      )
+      (project): Sequential(
+        (0): Conv2d(1280, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (1): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (2): ReLU()
+        (3): Dropout(p=0.5, inplace=False)
+      )
+    )
+    (1): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+    (2): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (3): ReLU()
+    (4): Conv2d(256, 6, kernel_size=(1, 1), stride=(1, 1))
+  )
+  (loss_fn): CrossEntropyLoss()
+)
+</pre></div></div>
+</div>
+</section>
+<section id="3.-Defining-the-trainer">
+<h2>3. Defining the trainer<a class="headerlink" href="#3.-Defining-the-trainer" title="Link to this heading"></a></h2>
+<p>As we are using Pytorch Lightning, we need to define a <code class="docutils literal notranslate"><span class="pre">Trainer</span></code> object to train the model. We can define the trainer by passing the following parameters:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">max_epochs</span></code>: Maximum number of epochs to train the model.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">acceleartor</span></code>: Device to use for training. It can be <code class="docutils literal notranslate"><span class="pre">cpu</span></code> or <code class="docutils literal notranslate"><span class="pre">gpu</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">devices</span></code>: the list or the number of accelerator to use for training.</p></li>
+</ul>
+<p>For this example we will disable logging and checkpointing, by setting <code class="docutils literal notranslate"><span class="pre">logger=False</span></code> and <code class="docutils literal notranslate"><span class="pre">checkpoint_callback=False</span></code>.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">trainer</span> <span class="o">=</span> <span class="n">L</span><span class="o">.</span><span class="n">Trainer</span><span class="p">(</span>
+    <span class="n">max_epochs</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+    <span class="n">accelerator</span><span class="o">=</span><span class="s2">&quot;gpu&quot;</span><span class="p">,</span>
+    <span class="n">devices</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">logger</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">enable_checkpointing</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">trainer</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+GPU available: True (cuda), used: True
+TPU available: False, using: 0 TPU cores
+HPU available: False, using: 0 HPUs
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;lightning.pytorch.trainer.trainer.Trainer at 0x79216919c460&gt;
+</pre></div></div>
+</div>
+</section>
+<section id="3.1.-Training-the-model">
+<h2>3.1. Training the model<a class="headerlink" href="#3.1.-Training-the-model" title="Link to this heading"></a></h2>
+<p>To train the model we need to have three objects: the model, the data module, and the trainer. We can train the model by calling the <code class="docutils literal notranslate"><span class="pre">fit</span></code> method from the trainer and passing the model and the data module.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">fit</span></code> method will train the model for the number of epochs defined in the trainer object. Also, training dataloader will be used for training, and validation dataloader will be used for validation.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">trainer</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">data_module</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/home/vscode/.local/lib/python3.10/site-packages/lightning/pytorch/trainer/configuration_validator.py:70: You defined a `validation_step` but have no `val_dataloader`. Skipping val loop.
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+
+  | Name     | Type                    | Params | Mode
+-------------------------------------------------------------
+0 | backbone | DeepLabV3Backbone       | 25.6 M | train
+1 | fc       | DeepLabV3PredictionHead | 16.1 M | train
+2 | loss_fn  | CrossEntropyLoss        | 0      | train
+-------------------------------------------------------------
+41.7 M    Trainable params
+0         Non-trainable params
+41.7 M    Total params
+166.736   Total estimated model params size (MB)
+186       Modules in train mode
+0         Modules in eval mode
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Epoch 0:   0%|          | 0/25 [00:00&lt;?, ?it/s]
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/home/vscode/.local/lib/python3.10/site-packages/lightning/pytorch/core/module.py:512: You called `self.log(&#39;train_loss&#39;, ..., logger=True)` but have no logger configured. You can enable one by doing `Trainer(logger=ALogger(...))`
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Epoch 99: 100%|██████████| 25/25 [00:12&lt;00:00,  2.04it/s, train_loss=0.0112]
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+`Trainer.fit` stopped: `max_epochs=100` reached.
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Epoch 99: 100%|██████████| 25/25 [00:12&lt;00:00,  2.04it/s, train_loss=0.0112]
+</pre></div></div>
+</div>
+</section>
+<section id="4.-Evaluating-Model">
+<h2>4. Evaluating Model<a class="headerlink" href="#4.-Evaluating-Model" title="Link to this heading"></a></h2>
+<p>Once model is trained, we can evaluate the performance of the model on the test dataset. The performance is evaluated using the mIoU metric.</p>
+<p>To evaluate the model, we perform the following steps:</p>
+<ol class="arabic simple">
+<li><p>Perform inference on the test dataset using the trained model. This is done using the <code class="docutils literal notranslate"><span class="pre">trainer.predict</span></code> method. The method returns the predicted logits for each sample in the test dataset.</p></li>
+<li><p>Calculate the predicted labels by taking the argmax of the logits.</p></li>
+<li><p>Obtain the labels from the test dataset.</p></li>
+<li><p>Create the accuracy metric object and pass the predicted labels and the true labels.</p></li>
+</ol>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># 1. Obtain predictions for the test set</span>
+<span class="n">predictions</span> <span class="o">=</span> <span class="n">trainer</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">data_module</span><span class="p">)</span>
+<span class="c1"># As predictions is a list of batches, we concatenate them along the first dimension</span>
+<span class="n">predictions</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">(</span><span class="n">predictions</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Predicting DataLoader 0: 100%|██████████| 13/13 [00:03&lt;00:00,  4.00it/s]
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># 2. We an use the torch.argmax function to obtain the class with the highest probability</span>
+<span class="n">predicted_classes</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">predictions</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="c1"># Let&#39;s print the predicted classes</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The shape of the predicted labels is </span><span class="si">{</span><span class="n">predicted_classes</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2"> and dtype </span><span class="si">{</span><span class="n">predicted_classes</span><span class="o">.</span><span class="n">dtype</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+The shape of the predicted labels is torch.Size([200, 701, 255]) and dtype torch.int64
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># 3. Let&#39;s obtain the true labels</span>
+<span class="n">test_samples</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">y</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">data_module</span><span class="o">.</span><span class="n">test_dataset</span><span class="p">])</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">test_samples</span><span class="p">)</span><span class="o">.</span><span class="n">long</span><span class="p">()</span>
+
+<span class="c1"># Let&#39;s print the true labels</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The shape of the true labels is </span><span class="si">{</span><span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2"> and dtype </span><span class="si">{</span><span class="n">y</span><span class="o">.</span><span class="n">dtype</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+The shape of the true labels is torch.Size([200, 701, 255]) and dtype torch.int64
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># 4. Let&#39;s create the accuracy metric object and compute the accuracy</span>
+<span class="n">jaccard</span> <span class="o">=</span> <span class="n">JaccardIndex</span><span class="p">(</span><span class="n">task</span><span class="o">=</span><span class="s2">&quot;multiclass&quot;</span><span class="p">,</span> <span class="n">num_classes</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
+<span class="n">score</span> <span class="o">=</span> <span class="n">jaccard</span><span class="p">(</span><span class="n">predicted_classes</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The mIoU of the model is </span><span class="si">{</span><span class="n">score</span><span class="o">.</span><span class="n">item</span><span class="p">()</span><span class="o">*</span><span class="mi">100</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+The mIoU of the model is 71.59%
+</pre></div></div>
+</div>
+<section id="4.1.-Visualizing-the-Predictions">
+<h3>4.1. Visualizing the Predictions<a class="headerlink" href="#4.1.-Visualizing-the-Predictions" title="Link to this heading"></a></h3>
+<p>We can also visualize the predictions made by the model on the test dataset.</p>
+<p>We will visualize inline number 100 using Matplotlib.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">index</span> <span class="o">=</span> <span class="mi">100</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">predicted_classes</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;Predicted&quot;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;True&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/notebooks_seismic_facies_getting_started_26_0.png" src="../_images/notebooks_seismic_facies_getting_started_26_0.png" />
+</div>
+</div>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../tutorials.html" class="btn btn-neutral float-left" title="Examples and Tutorials" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="har_getting_started.html" class="btn btn-neutral float-right" title="Getting Started with Minerva for Human Activity Recognition" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Unicamp.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

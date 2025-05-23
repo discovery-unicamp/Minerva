@@ -1,0 +1,505 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>minerva.data.readers.patched_array_reader &mdash; minerva  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            minerva
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../design.html">Minerva Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorials.html">Examples and Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../contributing.html">Contributing to Minerva</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api.html">Programming Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">minerva</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">minerva.data.readers.patched_array_reader</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for minerva.data.readers.patched_array_reader</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">numpy.typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">ArrayLike</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">minerva.data.readers.reader</span><span class="w"> </span><span class="kn">import</span> <span class="n">_Reader</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">minerva.utils.typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">PathLike</span>
+
+
+<div class="viewcode-block" id="PatchedArrayReader">
+<a class="viewcode-back" href="../../../../autoapi/minerva/data/readers/patched_array_reader/index.html#minerva.data.readers.PatchedArrayReader">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PatchedArrayReader</span><span class="p">(</span><span class="n">_Reader</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;This class is used to read data from a NumPy array. It is designed to generate</span>
+<span class="sd">    patches from the data and provides sequential access to them. This class can</span>
+<span class="sd">    serve as a base class for other readers.</span>
+
+<span class="sd">    Assumptions:</span>
+<span class="sd">    - The input data is expected to be a NumPy-like array, that is, it should</span>
+<span class="sd">        support NumPy-like indexing.</span>
+<span class="sd">    - Patches are fixed-size subarrays of the data.</span>
+<span class="sd">    - Patches can have overlap between them.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">data</span><span class="p">:</span> <span class="n">ArrayLike</span><span class="p">,</span>
+        <span class="n">data_shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span>
+        <span class="n">stride</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">pad_width</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="o">...</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">pad_mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;constant&quot;</span><span class="p">,</span>
+        <span class="n">pad_kwargs</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reads data from a NumPy array and generates patches from it.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        data : ArrayLike</span>
+<span class="sd">            The input array from which patches are generated.</span>
+<span class="sd">        data_shape : Tuple[int, ...]</span>
+<span class="sd">            The shape of the patches to be extracted. This will be the shape of</span>
+<span class="sd">            the subarray that is returned when a patch is accessed using</span>
+<span class="sd">            __getitem__.</span>
+<span class="sd">        stride : Tuple[int, ...], optional</span>
+<span class="sd">            The stride between consecutive patches. If `None`, the stide will</span>
+<span class="sd">            be the same as `data_shape`. By default None</span>
+<span class="sd">        pad_width : Tuple[Tuple[int, int], ...], optional</span>
+<span class="sd">            The width of padding to be applied to the data array. By default</span>
+<span class="sd">            `None`, that is, no padding is applied. Check the documentation of</span>
+<span class="sd">            `numpy.pad` for more information.</span>
+<span class="sd">        pad_mode : str, optional</span>
+<span class="sd">            The padding mode, by default &quot;constant&quot;. Check the documentation of</span>
+<span class="sd">            `numpy.pad` for more information.</span>
+<span class="sd">        pad_kwargs : dict, optional</span>
+<span class="sd">            Additional keyword arguments for padding, by default None</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+
+<span class="sd">        ```python</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; # Generate a 10x10 array</span>
+<span class="sd">        &gt;&gt;&gt; data = np.arange(100).reshape(10, 10)</span>
+<span class="sd">        &gt;&gt;&gt; # Create a reader that generates 5x5 patches with a stride of 2 in the</span>
+<span class="sd">        &gt;&gt;&gt; # first dimension and 5 in the second dimension.</span>
+<span class="sd">        &gt;&gt;&gt; reader = PatchedArrayReader(</span>
+<span class="sd">        &gt;&gt;&gt;    data,</span>
+<span class="sd">        &gt;&gt;&gt;    data_shape=(5, 5),</span>
+<span class="sd">        &gt;&gt;&gt;    stride=(2, 5),</span>
+<span class="sd">        &gt;&gt;&gt; )</span>
+<span class="sd">        &gt;&gt;&gt; # Printing the number of patches that can be extracted from the data</span>
+<span class="sd">        &gt;&gt;&gt; print(len(reader))</span>
+<span class="sd">        6</span>
+<span class="sd">        &gt;&gt;&gt; # Printing the indices of the patches</span>
+<span class="sd">        &gt;&gt;&gt; print(reader.indices)</span>
+<span class="sd">        [(0, 0), (0, 5), (2, 0), (2, 5), (4, 0), (4, 5)]</span>
+<span class="sd">        &gt;&gt;&gt; # Fetch the first patch and print its shape</span>
+<span class="sd">        &gt;&gt;&gt; print(reader[0].shape)</span>
+<span class="sd">        (5, 5)</span>
+<span class="sd">        &gt;&gt;&gt; # Fetch the third patch and print its content</span>
+<span class="sd">        &gt;&gt;&gt; print(reader[2])</span>
+<span class="sd">        [[20 21 22 23 24]</span>
+<span class="sd">         [30 31 32 33 34]</span>
+<span class="sd">         [40 41 42 43 44]</span>
+<span class="sd">         [50 51 52 53 54]</span>
+<span class="sd">         [60 61 62 63 64]]</span>
+<span class="sd">        ```</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_shape</span> <span class="o">=</span> <span class="n">data_shape</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data_shape</span>
+        <span class="p">),</span> <span class="s2">&quot;Data shape and Patch shape must have same number of dimensions&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stride</span> <span class="o">=</span> <span class="n">stride</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_shape</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stride</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data_shape</span>
+        <span class="p">),</span> <span class="s2">&quot;Stride shape and Patch shape must have same number of dimensions&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pad_width</span> <span class="o">=</span> <span class="n">pad_width</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pad_mode</span> <span class="o">=</span> <span class="n">pad_mode</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pad_kwargs</span> <span class="o">=</span> <span class="n">pad_kwargs</span> <span class="ow">or</span> <span class="p">{}</span>
+
+        <span class="c1"># Should we pad the data?</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pad_width</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pad_width</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span>
+            <span class="p">),</span> <span class="s2">&quot;Padding width and data shape must have same length&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_pad_data</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pad_width</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pad_mode</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">pad_kwargs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_patches</span><span class="p">()</span>
+
+<div class="viewcode-block" id="PatchedArrayReader._pad_data">
+<a class="viewcode-back" href="../../../../autoapi/minerva/data/readers/patched_array_reader/index.html#minerva.data.readers.PatchedArrayReader._pad_data">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_pad_data</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">pad_width</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="o">...</span><span class="p">],</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;constant&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Apply padding to the data array.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        pad_width : Tuple[Tuple[int, int], ...]</span>
+<span class="sd">            The width of padding to be applied to the data array</span>
+<span class="sd">        mode : str, optional</span>
+<span class="sd">            The padding mode, by default &quot;constant&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">pad_width</span><span class="o">=</span><span class="n">pad_width</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span></div>
+
+
+<div class="viewcode-block" id="PatchedArrayReader._get_patches">
+<a class="viewcode-back" href="../../../../autoapi/minerva/data/readers/patched_array_reader/index.html#minerva.data.readers.PatchedArrayReader._get_patches">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_patches</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute the left upper corner indices of the patches that will be</span>
+<span class="sd">        extracted from the data array. The patches are extracted with a stride</span>
+<span class="sd">        between them. A list of indices is returned, where each index is a tuple</span>
+<span class="sd">        of integers representing the coordinates of the left upper corner of the</span>
+<span class="sd">        patches.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        List[Tuple[int, ...]]</span>
+<span class="sd">            A list of indices (coordinates) representing the left upper corner</span>
+<span class="sd">            of the patches.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">indices</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># Calculate the maximum index in each dimension</span>
+        <span class="n">max_indices</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span>
+            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_shape</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">//</span> <span class="bp">self</span><span class="o">.</span><span class="n">stride</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Generate indices for left upper corner of patches</span>
+        <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">ndindex</span><span class="p">(</span><span class="o">*</span><span class="n">max_indices</span><span class="p">):</span>
+            <span class="n">corner_index</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">index</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">stride</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">index</span><span class="p">)))</span>
+            <span class="n">indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">corner_index</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">indices</span></div>
+
+
+<div class="viewcode-block" id="PatchedArrayReader.__len__">
+<a class="viewcode-back" href="../../../../autoapi/minerva/data/readers/patched_array_reader/index.html#minerva.data.readers.PatchedArrayReader.__len__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the number of patches that can be extracted from the data</span>
+<span class="sd">        array.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        int</span>
+<span class="sd">            The number of patches that can be extracted from the data array.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="PatchedArrayReader.__getitem__">
+<a class="viewcode-back" href="../../../../autoapi/minerva/data/readers/patched_array_reader/index.html#minerva.data.readers.PatchedArrayReader.__getitem__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Fetch a patch from the data array.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        idx : int</span>
+<span class="sd">            The index of the patch to be fetched.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        np.ndarray</span>
+<span class="sd">            The patch that was fetched from the data array with shape</span>
+<span class="sd">            `data_shape`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">left_upper_corner</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+        <span class="n">slice_obj</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span>
+            <span class="nb">slice</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">i</span> <span class="o">+</span> <span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">left_upper_corner</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_shape</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">slice_obj</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="PatchedArrayReader.__str__">
+<a class="viewcode-back" href="../../../../autoapi/minerva/data/readers/patched_array_reader/index.html#minerva.data.readers.PatchedArrayReader.__str__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">(samples=</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">)</span><span class="si">}</span><span class="s2">, shape=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">data_shape</span><span class="si">}</span><span class="s2">, dtype=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="si">}</span><span class="s2">)&quot;</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="NumpyArrayReader">
+<a class="viewcode-back" href="../../../../autoapi/minerva/data/readers/patched_array_reader/index.html#minerva.data.readers.NumpyArrayReader">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">NumpyArrayReader</span><span class="p">(</span><span class="n">PatchedArrayReader</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">data</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">ArrayLike</span><span class="p">,</span> <span class="n">PathLike</span><span class="p">],</span>
+        <span class="n">data_shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span>
+        <span class="n">stride</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">pad_width</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="o">...</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">pad_mode</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;constant&quot;</span><span class="p">,</span>
+        <span class="n">pad_kwargs</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">allow_pickle</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">npz_key</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">PathLike</span><span class="p">):</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">data</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+                <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;File not found: </span><span class="si">{</span><span class="n">data</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">suffix</span> <span class="o">==</span> <span class="s2">&quot;.npy&quot;</span><span class="p">:</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">allow_pickle</span><span class="o">=</span><span class="n">allow_pickle</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">data</span><span class="o">.</span><span class="n">suffix</span> <span class="o">==</span> <span class="s2">&quot;.npz&quot;</span><span class="p">:</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">allow_pickle</span><span class="o">=</span><span class="n">allow_pickle</span><span class="p">)[</span><span class="n">npz_key</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unsupported file format: </span><span class="si">{</span><span class="n">data</span><span class="o">.</span><span class="n">suffix</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span>
+            <span class="n">data_shape</span><span class="o">=</span><span class="n">data_shape</span><span class="p">,</span>
+            <span class="n">stride</span><span class="o">=</span><span class="n">stride</span><span class="p">,</span>
+            <span class="n">pad_width</span><span class="o">=</span><span class="n">pad_width</span><span class="p">,</span>
+            <span class="n">pad_mode</span><span class="o">=</span><span class="n">pad_mode</span><span class="p">,</span>
+            <span class="n">pad_kwargs</span><span class="o">=</span><span class="n">pad_kwargs</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="LazyPaddedPatchedArrayReader">
+<a class="viewcode-back" href="../../../../autoapi/minerva/data/readers/patched_array_reader/index.html#minerva.data.readers.LazyPaddedPatchedArrayReader">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LazyPaddedPatchedArrayReader</span><span class="p">(</span><span class="n">PatchedArrayReader</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Reads patches from a NumPy array.</span>
+<span class="sd">    This class is a subclass of `PatchedArrayReader` and is designed to perform padding only when the patch</span>
+<span class="sd">    consumed by `__get_item__` is in a region that uses the padding (boundary regions).</span>
+<span class="sd">    If no padding is necessary, use PatchedArrayReader.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="LazyPaddedPatchedArrayReader._pad_data">
+<a class="viewcode-back" href="../../../../autoapi/minerva/data/readers/patched_array_reader/index.html#minerva.data.readers.LazyPaddedPatchedArrayReader._pad_data">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_pad_data</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">pad_width</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="o">...</span><span class="p">],</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;constant&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Apply padding to the data array.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        pad_width : Tuple[Tuple[int, int], ...]</span>
+<span class="sd">            The width of padding to be applied to the data array</span>
+<span class="sd">        mode : str, optional</span>
+<span class="sd">            The padding mode, by default &quot;constant&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">mode</span> <span class="ow">in</span> <span class="p">[</span>
+            <span class="s2">&quot;maximum&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;mean&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;median&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;minimum&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;wrap&quot;</span><span class="p">,</span>
+        <span class="p">]:</span>  <span class="c1"># TODO: add support if necessary</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Pad mode not supported: </span><span class="si">{</span><span class="n">mode</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">pad_width</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="LazyPaddedPatchedArrayReader._get_patches">
+<a class="viewcode-back" href="../../../../autoapi/minerva/data/readers/patched_array_reader/index.html#minerva.data.readers.LazyPaddedPatchedArrayReader._get_patches">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_patches</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute the left upper corner indices of the patches that will be</span>
+<span class="sd">        extracted from the data array. The patches are extracted with a stride</span>
+<span class="sd">        between them. A list of indices is returned, where each index is a tuple</span>
+<span class="sd">        of integers representing the coordinates of the left upper corner of the</span>
+<span class="sd">        patches.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        List[Tuple[int, ...]]</span>
+<span class="sd">            A list of indices (coordinates) representing the left upper corner</span>
+<span class="sd">            of the patches.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">indices</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># Calculate the maximum index in each dimension</span>
+        <span class="n">max_indices</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span>
+            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_shape</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">//</span> <span class="bp">self</span><span class="o">.</span><span class="n">stride</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+        <span class="p">)</span>
+        <span class="n">pad_loc_opt</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s2">&quot;n&quot;</span><span class="p">,</span>  <span class="c1"># no padding necessary</span>
+            <span class="s2">&quot;l&quot;</span><span class="p">,</span>  <span class="c1"># lower padding</span>
+            <span class="s2">&quot;u&quot;</span><span class="p">,</span>  <span class="c1"># upper padding</span>
+            <span class="s2">&quot;b&quot;</span><span class="p">,</span>  <span class="c1"># both lower and upper paddings</span>
+        <span class="p">]</span>
+        <span class="c1"># Generate indices for left upper corner of patches</span>
+        <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">ndindex</span><span class="p">(</span><span class="o">*</span><span class="n">max_indices</span><span class="p">):</span>
+            <span class="n">corner_index</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">index</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">stride</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">index</span><span class="p">)))</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pad_width</span><span class="p">:</span>
+                <span class="n">pad_loc</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;n&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">corner_index</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">ci</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span>
+                    <span class="nb">zip</span><span class="p">(</span><span class="n">corner_index</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pad_width</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_shape</span><span class="p">)</span>
+                <span class="p">):</span>
+                    <span class="n">cur</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="k">if</span> <span class="n">ci</span> <span class="o">-</span> <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># lower boundary check</span>
+                        <span class="n">cur</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">ci</span> <span class="o">-</span> <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">s</span> <span class="o">&gt;=</span> <span class="n">d</span><span class="p">:</span>  <span class="c1"># upper boundary check</span>
+                        <span class="n">cur</span> <span class="o">+=</span> <span class="mi">2</span>
+                    <span class="n">pad_loc</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">pad_loc_opt</span><span class="p">[</span><span class="n">cur</span><span class="p">]</span>
+                <span class="n">pad_loc</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pad_loc</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">pad_loc</span> <span class="o">=</span> <span class="s2">&quot;n&quot;</span>
+            <span class="n">indices</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">pad_loc</span><span class="p">,</span> <span class="n">corner_index</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">indices</span></div>
+
+
+<div class="viewcode-block" id="LazyPaddedPatchedArrayReader.__getitem__">
+<a class="viewcode-back" href="../../../../autoapi/minerva/data/readers/patched_array_reader/index.html#minerva.data.readers.LazyPaddedPatchedArrayReader.__getitem__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Fetch a patch from the data array.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        idx : int</span>
+<span class="sd">            The index of the patch to be fetched.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        np.ndarray</span>
+<span class="sd">            The patch that was fetched from the data array with shape</span>
+<span class="sd">            `data_shape`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pad_loc</span><span class="p">,</span> <span class="n">padded_left_upper_corner</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pad_width</span><span class="p">:</span>
+            <span class="n">data_pad_width</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pad_width</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="s2">&quot;Padding is not being used! Non-LazyPadded class is recommended, e.g., PatchedArrayReader&quot;</span>
+            <span class="p">)</span>
+            <span class="n">data_pad_width</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_shape</span><span class="p">)</span>
+
+        <span class="n">original_left_upper_corner</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span>
+            <span class="nb">max</span><span class="p">(</span><span class="n">i</span> <span class="o">-</span> <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">padded_left_upper_corner</span><span class="p">,</span> <span class="n">data_pad_width</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">slice_base</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span>
+            <span class="nb">slice</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">i</span> <span class="o">+</span> <span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">original_left_upper_corner</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_shape</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">base_patch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">slice_base</span><span class="p">]</span>
+
+        <span class="c1"># no padding necessary</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="s2">&quot;l&quot;</span> <span class="ow">in</span> <span class="n">pad_loc</span> <span class="ow">or</span> <span class="s2">&quot;u&quot;</span> <span class="ow">in</span> <span class="n">pad_loc</span> <span class="ow">or</span> <span class="s2">&quot;b&quot;</span> <span class="ow">in</span> <span class="n">pad_loc</span><span class="p">):</span>
+            <span class="n">item</span> <span class="o">=</span> <span class="n">base_patch</span>
+
+        <span class="c1"># padding cases</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">pad_mode</span> <span class="ow">in</span> <span class="p">[</span>
+            <span class="s2">&quot;constant&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;edge&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;linear_ramp&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;empty&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;reflect&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;symmetric&quot;</span><span class="p">,</span>
+        <span class="p">]:</span>
+            <span class="n">pad_width</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">opt</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">pad_loc</span><span class="p">,</span> <span class="n">data_pad_width</span><span class="p">):</span>
+                <span class="n">cur_pad_l</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">opt</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;l&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">]</span> <span class="k">else</span> <span class="mi">0</span>
+                <span class="n">cur_pad_u</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">opt</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;u&quot;</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">]</span> <span class="k">else</span> <span class="mi">0</span>
+                <span class="n">pad_width</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">cur_pad_l</span><span class="p">,</span> <span class="n">cur_pad_u</span><span class="p">))</span>
+            <span class="n">padded_patch</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span>
+                <span class="n">base_patch</span><span class="p">,</span> <span class="n">pad_width</span><span class="o">=</span><span class="n">pad_width</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">pad_mode</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">pad_kwargs</span>
+            <span class="p">)</span>
+            <span class="n">adjusted_left_upper_corner</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span>
+                <span class="p">(</span><span class="mi">0</span> <span class="k">if</span> <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">i</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">p</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">padded_left_upper_corner</span><span class="p">,</span> <span class="n">pad_width</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="n">slice_obj</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span>
+                <span class="nb">slice</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">i</span> <span class="o">+</span> <span class="n">s</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">adjusted_left_upper_corner</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_shape</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="n">item</span> <span class="o">=</span> <span class="n">padded_patch</span><span class="p">[</span><span class="n">slice_obj</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid Value for pad_mode: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">pad_mode</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">item</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Unicamp.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

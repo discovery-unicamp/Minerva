@@ -1,0 +1,142 @@
+minerva.losses.dice
+===================
+
+.. py:module:: minerva.losses.dice
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   minerva.losses.dice.BINARY_MODE
+   minerva.losses.dice.MULTICLASS_MODE
+   minerva.losses.dice.MULTILABEL_MODE
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   minerva.losses.dice.DiceLoss
+
+
+Module Contents
+---------------
+
+.. py:data:: BINARY_MODE
+   :value: 'binary'
+
+
+.. py:class:: DiceLoss(mode, classes = None, log_loss = False, from_logits = True, smooth = 0.0, ignore_index = None, eps = 1e-07)
+
+   Bases: :py:obj:`torch.nn.modules.loss._Loss`
+
+
+   Base class for all neural network modules.
+
+   Your models should also subclass this class.
+
+   Modules can also contain other Modules, allowing them to be nested in
+   a tree structure. You can assign the submodules as regular attributes::
+
+       import torch.nn as nn
+       import torch.nn.functional as F
+
+       class Model(nn.Module):
+           def __init__(self) -> None:
+               super().__init__()
+               self.conv1 = nn.Conv2d(1, 20, 5)
+               self.conv2 = nn.Conv2d(20, 20, 5)
+
+           def forward(self, x):
+               x = F.relu(self.conv1(x))
+               return F.relu(self.conv2(x))
+
+   Submodules assigned in this way will be registered, and will also have their
+   parameters converted when you call :meth:`to`, etc.
+
+   .. note::
+       As per the example above, an ``__init__()`` call to the parent class
+       must be made before assignment on the child.
+
+   :ivar training: Boolean represents whether this module is in training or
+                   evaluation mode.
+   :vartype training: bool
+
+   Initialize the DiceLoss class.
+
+   Parameters
+   ----------
+   mode : str
+       Loss mode. Valid options are 'binary', 'multiclass', or 'multilabel'.
+   classes : Optional[List[int]], optional
+       List of classes that contribute in loss computation. By default, all channels are included. By default None
+   log_loss : bool, optional
+       If True, loss is computed as `- log(dice_coeff)`. If False, loss is computed as `1 - dice_coeff`, by default False
+   from_logits : bool, optional
+       If True, assumes input is raw logits. If False, assumes input is probabilities., by default True
+   smooth : float, optional
+       Smoothness constant for dice coefficient (a), by default 0.0
+   ignore_index : Optional[int], optional
+       Label that indicates ignored pixels (does not contribute to loss), by default None
+   eps : float, optional
+       A small epsilon for numerical stability to avoid zero division error (denominator will be always greater or equal to eps), by default 1e-7
+
+   Raises
+   ------
+   AssertionError
+       If the mode is not one of 'binary', 'multiclass', or 'multilabel' and classes are being masked with mode='binary'.
+
+
+   .. py:method:: aggregate_loss(loss)
+
+
+   .. py:attribute:: classes
+      :value: None
+
+
+
+   .. py:method:: compute_score(output, target, smooth=0.0, eps=1e-07, dims=None)
+
+
+   .. py:attribute:: eps
+      :value: 1e-07
+
+
+
+   .. py:method:: forward(y_pred, y_true)
+
+
+   .. py:attribute:: from_logits
+      :value: True
+
+
+
+   .. py:attribute:: ignore_index
+      :value: None
+
+
+
+   .. py:attribute:: log_loss
+      :value: False
+
+
+
+   .. py:attribute:: mode
+
+
+   .. py:attribute:: smooth
+      :value: 0.0
+
+
+
+.. py:data:: MULTICLASS_MODE
+   :value: 'multiclass'
+
+
+.. py:data:: MULTILABEL_MODE
+   :value: 'multilabel'
+
+

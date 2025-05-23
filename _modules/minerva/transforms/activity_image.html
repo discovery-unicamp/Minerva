@@ -1,0 +1,231 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>minerva.transforms.activity_image &mdash; minerva  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            minerva
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../design.html">Minerva Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials.html">Examples and Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing to Minerva</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">Programming Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">minerva</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">minerva.transforms.activity_image</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for minerva.transforms.activity_image</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">signal</span>
+
+
+<div class="viewcode-block" id="ActivityImageTransforms">
+<a class="viewcode-back" href="../../../autoapi/minerva/transforms/activity_image/index.html#minerva.transforms.activity_image.ActivityImageTransforms">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ActivityImageTransforms</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A class to transform signals into images for Human Activity Recognition (HAR),</span>
+<span class="sd">    based on the methodology presented in the paper</span>
+<span class="sd">    &quot;Human Activity Recognition using Wearable Sensors by Deep Convolutional Neural Networks.&quot;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">signal_sequences</span><span class="o">=</span><span class="mi">9</span><span class="p">,</span> <span class="n">signal_samples</span><span class="o">=</span><span class="mi">68</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializes the ActivityImageTransforms class with the given number of signal sequences and samples.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">        -----------</span>
+<span class="sd">        signal_sequences: int, optional</span>
+<span class="sd">            The number of signal sequences. Defaults to 9</span>
+<span class="sd">        signal_samples: int, optional</span>
+<span class="sd">            The number of samples per signal sequence. Defaults to 68.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">signal_sequences</span> <span class="o">=</span> <span class="n">signal_sequences</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">signal_samples</span> <span class="o">=</span> <span class="n">signal_samples</span>
+
+<div class="viewcode-block" id="ActivityImageTransforms.get_signal_image">
+<a class="viewcode-back" href="../../../autoapi/minerva/transforms/activity_image/index.html#minerva.transforms.activity_image.ActivityImageTransforms.get_signal_image">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_signal_image</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">raw_signals</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Constructs a signal image from the raw signals by arranging them in a specific order.</span>
+
+<span class="sd">        This method follows the approach of combining sensor signals to form a 2D image, which is then</span>
+<span class="sd">        suitable for CNN processing. The image is constructed by iteratively selecting signal sequences</span>
+<span class="sd">        in a way that maximizes the spatial correlation between different sequences.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">        -----------</span>
+<span class="sd">        raw_signals: np.ndarray</span>
+<span class="sd">            The raw signal sequences from wearable sensors.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        signal_image: np.ndarray</span>
+<span class="sd">            The constructed signal image, ready for further processing by a CNN.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">j</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">signal_image</span> <span class="o">=</span> <span class="p">[</span><span class="n">raw_signals</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]]</span>
+        <span class="n">signal_index_string</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+        <span class="k">while</span> <span class="n">i</span> <span class="o">!=</span> <span class="n">j</span><span class="p">:</span>
+            <span class="n">keys1</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+            <span class="n">keys2</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">j</span><span class="p">)</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">j</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">signal_sequences</span><span class="p">:</span>
+                <span class="n">j</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="ow">not</span> <span class="n">keys1</span> <span class="ow">in</span> <span class="n">signal_index_string</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span>
+                <span class="ow">not</span> <span class="n">keys2</span> <span class="ow">in</span> <span class="n">signal_index_string</span>
+            <span class="p">):</span>
+                <span class="n">signal_image</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">raw_signals</span><span class="p">[</span><span class="n">j</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span>
+                <span class="n">signal_index_string</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+                <span class="n">i</span> <span class="o">=</span> <span class="n">j</span>
+                <span class="n">j</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">j</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">signal_image</span></div>
+
+
+<div class="viewcode-block" id="ActivityImageTransforms.resample_signals">
+<a class="viewcode-back" href="../../../autoapi/minerva/transforms/activity_image/index.html#minerva.transforms.activity_image.ActivityImageTransforms.resample_signals">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">resample_signals</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Resamples the signals to a fixed number of samples.</span>
+
+<span class="sd">        This resampling step ensures that all signal sequences have the same length, which is necessary</span>
+<span class="sd">        for constructing a consistent 2D image for CNN input.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">        -----------</span>
+<span class="sd">        x: np.array</span>
+<span class="sd">            The raw signal sequences from wearable sensors.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">        resample_signal: List[np.ndarray]</span>
+<span class="sd">            The resampled signals, all having the same number of samples.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">resample_signal</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">raw_signal</span> <span class="ow">in</span> <span class="n">x</span><span class="p">:</span>
+            <span class="n">resample_signal</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="n">raw_signal</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">signal_samples</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">resample_signal</span></div>
+
+
+<div class="viewcode-block" id="ActivityImageTransforms.__call__">
+<a class="viewcode-back" href="../../../autoapi/minerva/transforms/activity_image/index.html#minerva.transforms.activity_image.ActivityImageTransforms.__call__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Transforms the input signals into activity images suitable for CNN processing.</span>
+
+<span class="sd">        This method performs the following steps:</span>
+<span class="sd">        1. Resamples the input signals to ensure consistent sample length.</span>
+<span class="sd">        2. Constructs a 2D signal image from the resampled signals.</span>
+<span class="sd">        3. Applies a 2D Fast Fourier Transform (FFT) to convert the signal image to the frequency domain.</span>
+<span class="sd">        4. Shifts the zero-frequency component to the center of the spectrum.</span>
+<span class="sd">        5. Computes the magnitude of the frequency domain representation to form the final activity image.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">        -----------</span>
+<span class="sd">        x: (List[np.ndarray])</span>
+<span class="sd">            The raw signal sequences from wearable sensors.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        --------</span>
+<span class="sd">            tuple: A tuple containing the original signals and the corresponding activity images.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">raw_signals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">resample_signals</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">signal_image</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_signal_image</span><span class="p">(</span><span class="n">raw_signals</span><span class="p">))</span>
+        <span class="n">dft_image</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">fft2</span><span class="p">(</span><span class="n">signal_image</span><span class="p">,</span> <span class="n">axes</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="n">dft_image_shifted</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">fftshift</span><span class="p">(</span><span class="n">dft_image</span><span class="p">)</span>
+        <span class="n">activity_image</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">dft_image_shifted</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">activity_image</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Unicamp.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

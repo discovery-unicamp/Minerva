@@ -1,0 +1,371 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Minerva Design &mdash; minerva  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Examples and Tutorials" href="tutorials.html" />
+    <link rel="prev" title="Getting Started" href="getting_started.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            minerva
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Minerva Design</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#data-handling">Data Handling</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#structure">Structure</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#why-not-just-use-lightningdatamodule">Why Not Just Use <code class="docutils literal notranslate"><span class="pre">LightningDataModule</span></code>?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#minerva-datasets-and-readers">Minerva Datasets and Readers</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#models">Models</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#the-simplesupervisedmodel-class">The <code class="docutils literal notranslate"><span class="pre">SimpleSupervisedModel</span></code> Class</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#model-organization">Model Organization</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#self-supervised-learning-ssl">Self-Supervised Learning (SSL)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#constructor-based-initialization">Constructor-Based Initialization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#training-loop">Training Loop</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#loading-models-partially">Loading Models Partially</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#examples">Examples</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials.html">Examples and Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to Minerva</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">Programming Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">minerva</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Minerva Design</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/design.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="minerva-design">
+<h1>Minerva Design<a class="headerlink" href="#minerva-design" title="Link to this heading"></a></h1>
+<p>Minerva is a flexible framework built on PyTorch and PyTorch Lightning to support machine learning tasks involving time-series, seismic data, and self-supervised learning.
+It offers tools for data management, training, evaluation, and reproducibility in ML pipelines.</p>
+<section id="data-handling">
+<h2>Data Handling<a class="headerlink" href="#data-handling" title="Link to this heading"></a></h2>
+<p>Minerva simplifies data management using a custom wrapper around PyTorch Lightning’s <code class="docutils literal notranslate"><span class="pre">LightningDataModule</span></code>.
+This class, called <code class="docutils literal notranslate"><span class="pre">MinervaDataModule</span></code>, provides structured access to both datasets and dataloaders.</p>
+<p>In fact, this class:</p>
+<ul class="simple">
+<li><p>Integrates seamlessly with PyTorch Lightning’s <code class="docutils literal notranslate"><span class="pre">Trainer</span></code>.</p></li>
+<li><p>Supports any map-style PyTorch dataset.</p></li>
+<li><p>Allows full access to both datasets and dataloaders, useful for analysis purposes.</p></li>
+<li><p>Configurations using YAML or other external config files as well as using Python code.</p></li>
+</ul>
+<section id="structure">
+<h3>Structure<a class="headerlink" href="#structure" title="Link to this heading"></a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">MinervaDataModule</span></code> organizes training, validation, and testing datasets, and provides corresponding dataloaders.
+Thus, user must instantiate a <code class="docutils literal notranslate"><span class="pre">MinervaDataModule</span></code> by passing the datasets and other configurations (e.g., batch size, shuffling, etc.).</p>
+<p>For instance, to create a <code class="docutils literal notranslate"><span class="pre">MinervaDataModule</span></code> with a torch-like map-style dataset, using train, validation, and test datasets, the user can do the following:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">minerva.data.data_modules.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">MinervaDataModule</span>
+
+<span class="n">train_ds</span> <span class="o">=</span> <span class="n">MyTrainDataset</span><span class="p">()</span>
+<span class="n">val_ds</span> <span class="o">=</span> <span class="n">MyValDataset</span><span class="p">()</span>
+<span class="n">test_ds</span> <span class="o">=</span> <span class="n">MyTestDataset</span><span class="p">()</span>
+
+<span class="n">data_module</span> <span class="o">=</span> <span class="n">MinervaDataModule</span><span class="p">(</span>
+    <span class="n">train_dataset</span><span class="o">=</span><span class="n">train_ds</span><span class="p">,</span>
+    <span class="n">val_dataset</span><span class="o">=</span><span class="n">val_ds</span><span class="p">,</span>
+    <span class="n">test_dataset</span><span class="o">=</span><span class="n">test_ds</span><span class="p">,</span>
+    <span class="n">batch_size</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span>
+    <span class="n">drop_last</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>User can acess the datasets and dataloaders using the following methods and properties:</p>
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Method/Property</p></th>
+<th class="head"><p>Purpose</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">train_dataset</span></code></p></td>
+<td><p>Dataset used for training</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">val_dataset</span></code></p></td>
+<td><p>Dataset used for validation</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">test_dataset</span></code></p></td>
+<td><p>Dataset used for testing</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">train_dataloader()</span></code></p></td>
+<td><p>Returns training dataloader</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">val_dataloader()</span></code></p></td>
+<td><p>Returns validation dataloader</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">test_dataloader()</span></code></p></td>
+<td><p>Returns testing dataloader</p></td>
+</tr>
+</tbody>
+</table>
+<p>The dataloaders are create using configurations passed to the <code class="docutils literal notranslate"><span class="pre">MinervaDataModule</span></code> constructor.
+You may check the <code class="docutils literal notranslate"><span class="pre">MinervaDataModule</span></code> class for more details on the available configurations.</p>
+</section>
+<section id="why-not-just-use-lightningdatamodule">
+<h3>Why Not Just Use <code class="docutils literal notranslate"><span class="pre">LightningDataModule</span></code>?<a class="headerlink" href="#why-not-just-use-lightningdatamodule" title="Link to this heading"></a></h3>
+<p>While <code class="docutils literal notranslate"><span class="pre">LightningDataModule</span></code> provides access only to dataloaders, <code class="docutils literal notranslate"><span class="pre">MinervaDataModule</span></code> also exposes the underlying datasets. This makes it easier to:</p>
+<ul class="simple">
+<li><p>Apply dataset-level transformations or analysis</p></li>
+<li><p>Visualize raw samples</p></li>
+<li><p>Customize data preparation logic</p></li>
+</ul>
+</section>
+<section id="minerva-datasets-and-readers">
+<h3>Minerva Datasets and Readers<a class="headerlink" href="#minerva-datasets-and-readers" title="Link to this heading"></a></h3>
+<p>Minerva’s design philosophy emphasizes modularity and reusability. This is particularly important when dealing with datasets that may have different storage formats or structures.
+Minerva uses <code class="docutils literal notranslate"><span class="pre">MinervaDataModule</span></code> to allow training and evaluating models, create pipelines, and conduct experiments.
+As shown above, this class is instantiated passing the datasets and other configurations.
+The dataset can be any map-style PyTorch dataset, which is a common format for datasets in PyTorch.</p>
+<p>Although Minerva supports any map-style dataset, it also provides a custom dataset class called <code class="docutils literal notranslate"><span class="pre">SimpleDataset</span></code> that is designed to be minimal and modular.
+This class is a wrapper around the <code class="docutils literal notranslate"><span class="pre">torch.utils.data.Dataset</span></code> class and allows users to create datasets easily by specifying a list of readers and transformations, as illustrate in the example below.</p>
+<p><img alt="Dataset and Readers" src="_images/dataset_readers_2.png" /></p>
+<p>A Reader can be viewed as a component that loads a single data unit (e.g., an image, label, or time series) from a source (e.g., disk, memory, network, table, table column, numpy array, folder, etc.) in a pre-defined order. In the example above, the <code class="docutils literal notranslate"><span class="pre">SimpleDataset</span></code> class uses two readers: one for loading images (<code class="docutils literal notranslate"><span class="pre">PNGReader</span></code>) and another for the labels (<code class="docutils literal notranslate"><span class="pre">TiffReader</span></code>). Also, each reader can be associated with a transformation (e.g., <code class="docutils literal notranslate"><span class="pre">ToTensor</span></code>, <code class="docutils literal notranslate"><span class="pre">Normalize</span></code>) that is applied to the data unit after it is loaded.
+Once a <code class="docutils literal notranslate"><span class="pre">__getitem__</span></code> method is called, the <code class="docutils literal notranslate"><span class="pre">SimpleDataset</span></code> class will load the data units from the readers in the order specified and apply the transformations to each data unit. Finally, it returns a tuple of the transformed data units.
+Thus, we can instantiate a <code class="docutils literal notranslate"><span class="pre">SimpleDataset</span></code> class by passing a list of readers and transformations, as shown in the example below.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">minerva.data.readers.patched_array_reader</span><span class="w"> </span><span class="kn">import</span> <span class="n">NumpyArrayReader</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">minerva.transforms.transform</span><span class="w"> </span><span class="kn">import</span> <span class="n">Repeat</span><span class="p">,</span> <span class="n">Squeeze</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">minerva.data.datasets.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">SimpleDataset</span>
+
+<span class="n">root_data_dir</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;f3/data/&quot;</span><span class="p">)</span>
+
+<span class="n">train_data_reader</span> <span class="o">=</span> <span class="n">NumpyArrayReader</span><span class="p">(</span>
+    <span class="n">data</span><span class="o">=</span><span class="n">root_data_dir</span> <span class="o">/</span> <span class="s2">&quot;train&quot;</span> <span class="o">/</span> <span class="s2">&quot;train_seismic.npy&quot;</span><span class="p">,</span>
+    <span class="n">data_shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">701</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+<span class="p">)</span>
+
+<span class="n">train_labels_reader</span> <span class="o">=</span> <span class="n">NumpyArrayReader</span><span class="p">(</span>
+    <span class="n">data</span><span class="o">=</span><span class="n">root_data_dir</span> <span class="o">/</span> <span class="s2">&quot;train&quot;</span> <span class="o">/</span> <span class="s2">&quot;train_labels.npy&quot;</span><span class="p">,</span>
+    <span class="n">data_shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">701</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+<span class="p">)</span>
+
+<span class="n">train_dataset</span> <span class="o">=</span> <span class="n">SimpleDataset</span><span class="p">(</span>
+    <span class="n">readers</span><span class="o">=</span><span class="p">[</span><span class="n">train_data_reader</span><span class="p">,</span> <span class="n">train_labels_reader</span><span class="p">],</span>
+    <span class="n">transforms</span><span class="o">=</span><span class="p">[</span><span class="n">Repeat</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">n_repetitions</span><span class="o">=</span><span class="mi">3</span><span class="p">),</span> <span class="kc">None</span><span class="p">],</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">train_dataset</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>We will get the following output:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>==================================================
+           📂 SimpleDataset Information            
+==================================================
+📌 Dataset Type: SimpleDataset
+   └── Reader 0: NumpyArrayReader(samples=401, shape=(1, 701, 255), dtype=float64)
+   │     └── Transform: Repeat(axis=0, n_repetitions=3)
+   └── Reader 1: NumpyArrayReader(samples=401, shape=(1, 701, 255), dtype=uint8)
+   │     └── Transform: None
+   │
+   └── Total Readers: 2
+==================================================
+</pre></div>
+</div>
+<p>Thus, in the example above, where we have two readers, the <code class="docutils literal notranslate"><span class="pre">SimpleDataset</span></code> class will load the data units from the first reader (the seismic data) and apply the <code class="docutils literal notranslate"><span class="pre">Repeat</span></code> transformation to it. Then, it will load the data units from the second reader (the labels) without applying any transformation. The resulting dataset will contain tuples of the form <code class="docutils literal notranslate"><span class="pre">(seismic_data,</span> <span class="pre">labels)</span></code>. The pseudocode below illustrates how the <code class="docutils literal notranslate"><span class="pre">SimpleDataset</span></code> class works:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mf">1.</span> <span class="n">Load</span> <span class="n">the</span> <span class="n">i</span><span class="o">-</span><span class="n">th</span> <span class="n">data</span> <span class="n">unit</span> <span class="kn">from</span><span class="w"> </span><span class="nn">first</span> <span class="n">reader</span>
+<span class="mf">2.</span> <span class="n">Apply</span> <span class="n">the</span> <span class="n">first</span> <span class="nb">list</span> <span class="n">of</span> <span class="n">transformation</span> <span class="n">to</span> <span class="n">the</span> <span class="n">data</span> <span class="n">unit</span>
+<span class="mf">3.</span> <span class="n">Load</span> <span class="n">the</span> <span class="n">i</span><span class="o">-</span><span class="n">th</span> <span class="n">data</span> <span class="n">unit</span> <span class="kn">from</span><span class="w"> </span><span class="nn">second</span> <span class="n">reader</span>
+<span class="mf">4.</span> <span class="n">Apply</span> <span class="n">the</span> <span class="n">second</span> <span class="nb">list</span> <span class="n">of</span> <span class="n">transformation</span> <span class="n">to</span> <span class="n">the</span> <span class="n">data</span> <span class="n">unit</span>
+<span class="mf">5.</span> <span class="n">Return</span> <span class="n">the</span> <span class="nb">tuple</span> <span class="n">of</span> <span class="n">the</span> <span class="n">two</span> <span class="n">data</span> <span class="n">units</span>
+</pre></div>
+</div>
+<blockquote>
+<div><p><strong>NOTE</strong>: The <code class="docutils literal notranslate"><span class="pre">SimpleDataset</span></code> class is not mandatory, but it is a good practice to use it for maintainability and flexibility. It allows you to create datasets easily by specifying a list of readers and transformations, making your data pipeline clean and consistent.</p>
+</div></blockquote>
+<p>The example above shows how to create a <code class="docutils literal notranslate"><span class="pre">SimpleDataset</span></code> class using two readers, which could be two images, that may be used for training a model for image segmentation, for instance.
+However, this is easilly extensible to any other type of data. Minerva provides a set of readers for loading data from different sources, such as:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">NumpyArrayReader</span></code>: Loads data from a numpy array.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TabularReader</span></code>: Loads data from a tabular format with predefined columns, in row-order.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">CSVReader</span></code>: Loads data from a CSV file, with predefined columns, in row-order.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TiffReader</span></code>: Loads data from a TIFF file.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">PNGReader</span></code>: Loads data from a PNG file.</p></li>
+<li><p>Among others.</p></li>
+</ul>
+</section>
+</section>
+<section id="models">
+<h2>Models<a class="headerlink" href="#models" title="Link to this heading"></a></h2>
+<p>Minerva offers a collection of pre-defined models and architectures for supervised learning. Each model typically consists of two primary components (but is not mandatory):</p>
+<ul class="simple">
+<li><p><strong>Backbone</strong>: Responsible for feature extraction.</p></li>
+<li><p><strong>Head</strong>: Performs the task-specific prediction (e.g., classification, regression).</p></li>
+</ul>
+<p>These components are usually implemented as separate classes to encourage flexibility and reusability, though this separation is not strictly required. All components can be built using either PyTorch or PyTorch Lightning modules and are fully compatible with standard PyTorch workflows.</p>
+<p>The final model (used for training and evaluation) is generally a combination of a backbone and a head. This composite model is always implemented as a <code class="docutils literal notranslate"><span class="pre">LightningModule</span></code>, and it expects a <code class="docutils literal notranslate"><span class="pre">MinervaDataModule</span></code> instance as its data source. Thus, the Lightning <code class="docutils literal notranslate"><span class="pre">Trainer</span></code> can be used to train and evaluate the model, passing the <code class="docutils literal notranslate"><span class="pre">LightningModule</span></code> and <code class="docutils literal notranslate"><span class="pre">MinervaDataModule</span></code> instances to it.</p>
+<section id="the-simplesupervisedmodel-class">
+<h3>The <code class="docutils literal notranslate"><span class="pre">SimpleSupervisedModel</span></code> Class<a class="headerlink" href="#the-simplesupervisedmodel-class" title="Link to this heading"></a></h3>
+<p>To simplify the creation of supervised learning models, Minerva provides the <code class="docutils literal notranslate"><span class="pre">SimpleSupervisedModel</span></code> class, a high-level composition utility that allows users to define a model by simply passing in the backbone and head.</p>
+<p><code class="docutils literal notranslate"><span class="pre">SimpleSupervisedModel</span></code> is a subclass of <code class="docutils literal notranslate"><span class="pre">LightningModule</span></code> and internally follows this structure:</p>
+<p><img alt="SimpleSupervisedModel Structure" src="_images/simple_supervised_model.png" /></p>
+<p>The key components and parameters of <code class="docutils literal notranslate"><span class="pre">SimpleSupervisedModel</span></code> are:</p>
+<ul class="simple">
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">backbone</span></code></strong>: A PyTorch or PyTorch Lightning module that extracts features from the input. It can be randomly initialized or pre-trained.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">head</span> <span class="pre">(fc)</span></code></strong>: A task-specific fully connected (FC) head module. It can also be initialized from scratch or pre-trained.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">loss</span></code></strong>: A PyTorch-compatible loss function (e.g., <code class="docutils literal notranslate"><span class="pre">CrossEntropyLoss</span></code>, <code class="docutils literal notranslate"><span class="pre">MSELoss</span></code>). Used to compute the training loss.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">adapter</span></code></strong> <em>(optional)</em>: A callable that transforms the output of the backbone to a suitable format for the head. This is useful when there’s a mismatch between backbone output and head input. The adapter can be a lambda, function, or module that receives the backbone output tensor and returns a tensor and returns the transformed tensor.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">flatten</span></code></strong> <em>(optional, boolean)</em>: If <code class="docutils literal notranslate"><span class="pre">True</span></code> (default), flattens the backbone (or adapter, if any) output before feeding it into the head. This is commonly needed when the output is multi-dimensional.</p></li>
+</ul>
+<p>In addition to these, you can optionally pass optimizers, learning rate schedulers, and evaluation metrics to customize training behavior.</p>
+<p><code class="docutils literal notranslate"><span class="pre">SimpleSupervisedModel</span></code> supports a wide range of use cases, including transfer learning, and its modular structure makes it easy to extend or integrate with other components.</p>
+</section>
+<section id="model-organization">
+<h3>Model Organization<a class="headerlink" href="#model-organization" title="Link to this heading"></a></h3>
+<p>Models in Minerva reside in the <code class="docutils literal notranslate"><span class="pre">minerva.models.nets</span></code> module and are further organized into domain-specific submodules:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">minerva.models.nets.time_series</span></code>: Models for time-series data.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">minerva.models.nets.image</span></code>: Models for image data.</p></li>
+</ul>
+<p>Many of these models implement the <code class="docutils literal notranslate"><span class="pre">SimpleSupervisedModel</span></code> interface. While the backbone and head are often defined as separate classes in same file, this is not a strict requirement.</p>
+</section>
+</section>
+<section id="self-supervised-learning-ssl">
+<h2>Self-Supervised Learning (SSL)<a class="headerlink" href="#self-supervised-learning-ssl" title="Link to this heading"></a></h2>
+<p>Minerva also includes a suite of self-supervised learning (SSL) techniques, available in the <code class="docutils literal notranslate"><span class="pre">minerva.models.ssl</span></code> module.</p>
+<p>In order to interoperate with Lightning Trainer and other components, all SSL methods are implemented as subclasses of <code class="docutils literal notranslate"><span class="pre">LightningModule</span></code>. Thus, they are all considered models and are compatible with the <code class="docutils literal notranslate"><span class="pre">MinervaDataModule</span></code> class, which is used to load the data for training and evaluation.
+Wherever possible, SSL models follow a compositional design, allowing users to pass backbone modules during initialization for greater flexibility and reusability, although this is not a strict requirement.</p>
+</section>
+<section id="constructor-based-initialization">
+<h2>Constructor-Based Initialization<a class="headerlink" href="#constructor-based-initialization" title="Link to this heading"></a></h2>
+<p>Minerva uses a constructor-based approach to initialize its core components, such as models, datasets, and data modules. Wherever possible, components are configured via constructors that accept parameters, enabling flexible customization and consistent behavior.</p>
+<p>This design makes it easy to instantiate components programmatically or from configuration files (e.g., YAML). As a result, Minerva components often expose a large number of parameters. To maintain usability, we prioritize clear documentation of all parameters and their default values.</p>
+</section>
+<section id="training-loop">
+<h2>Training Loop<a class="headerlink" href="#training-loop" title="Link to this heading"></a></h2>
+<p>Minerva uses PyTorch Lightning’s <code class="docutils literal notranslate"><span class="pre">Trainer</span></code> class to handle the training loop. Thus, any customizations or configurations for the training loop can be done using the <code class="docutils literal notranslate"><span class="pre">Trainer</span></code> class. From supervised learning to self-supervised learning, Minerva’s models are designed to be compatible with the <code class="docutils literal notranslate"><span class="pre">Trainer</span></code> class, using <code class="docutils literal notranslate"><span class="pre">MinervaDataModule</span></code> for data loading.</p>
+<p>This design allows using PyTorch Lightning’s built-in features, such as:</p>
+<ul class="simple">
+<li><p>Lightning callbacks</p></li>
+<li><p>Logging</p></li>
+<li><p>Gradient accumulation and clipping</p></li>
+<li><p>Mixed precision training</p></li>
+<li><p>Distributed training</p></li>
+<li><p>Automatic accelerator and device placement</p></li>
+</ul>
+</section>
+<section id="loading-models-partially">
+<h2>Loading Models Partially<a class="headerlink" href="#loading-models-partially" title="Link to this heading"></a></h2>
+<p>In PyTorch, checkpoints store a model’s <code class="docutils literal notranslate"><span class="pre">state_dict</span></code>, an <strong>ordered dictionary</strong> containing all of the model’s parameters (typically derived from class attributes). This structure allows for selective loading of specific components, making it particularly useful for tasks such as transfer learning or fine-tuning.</p>
+<p>For instance, when training a SimCLR SSL model with a DeepLabV3 backbone, the checkpoint usually includes the full model, both the backbone and the projection heads. However, when reusing the backbone for a different task, it’s often desirable to load only the backbone parameters and exclude the rest (e.g., the projection heads). This selective loading is crucial for transfer learning, where you want to leverage pre-trained weights without carrying over task-specific parameters.</p>
+<p>Minerva provides a utility class called <code class="docutils literal notranslate"><span class="pre">FromPretrained</span></code> to facilitate this selective loading process. This class allows loading a model from a checkpoint while filtering out unwanted parameters (e.g., those belonging to projection heads). It uses regular expressions to filter and rename <code class="docutils literal notranslate"><span class="pre">state_dict</span></code> keys, enabling fine-grained control over what gets loaded.</p>
+<p>Since <code class="docutils literal notranslate"><span class="pre">FromPretrained</span></code> is a class, it uses a constructor-based approach for model initialization. You simply provide the model instance and the checkpoint path, no additional wrapper functions or external logic are required. This encapsulated design promotes reusability, readability, and maintainability. It also integrates seamlessly with other Minerva components such as the <code class="docutils literal notranslate"><span class="pre">SimpleSupervisedModel</span></code> class and YAML-based configuration files.</p>
+<p>Below is a simple example using the <code class="docutils literal notranslate"><span class="pre">FromPretrained</span></code> class, where we load a <code class="docutils literal notranslate"><span class="pre">DeepLabV3</span></code> model and selectively initialize only its <code class="docutils literal notranslate"><span class="pre">backbone</span></code> from a checkpoint file.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">minerva.models.nets.image.deeplabv3</span><span class="w"> </span><span class="kn">import</span> <span class="n">DeepLabV3</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">minerva.models.loaders</span><span class="w"> </span><span class="kn">import</span> <span class="n">FromPretrained</span>
+
+<span class="n">checkpoint_path</span> <span class="o">=</span> <span class="s2">&quot;path/to/checkpoint.pth&quot;</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">DeepLabV3</span><span class="p">()</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">FromPretrained</span><span class="p">(</span>
+    <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span>
+    <span class="n">ckpt_path</span><span class="o">=</span><span class="n">checkpoint_path</span><span class="p">,</span>
+    <span class="n">filter_keys</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;^backbone.*&quot;</span><span class="p">],</span>
+    <span class="n">keys_to_rename</span><span class="o">=</span><span class="kc">None</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>In this example, <code class="docutils literal notranslate"><span class="pre">FromPretrained</span></code> loads only the parameters from the checkpoint  whose keys match the regular expression <code class="docutils literal notranslate"><span class="pre">^backbone.*</span></code>, that is, parameters that starts with <code class="docutils literal notranslate"><span class="pre">backone.</span></code> in its name. This effectively excludes any parameters associated with the <code class="docutils literal notranslate"><span class="pre">fc</span></code> (fully connected) head. The optional <code class="docutils literal notranslate"><span class="pre">keys_to_rename</span></code> argument accepts a dictionary to rename or re-map or append keys during loading, useful when adapting checkpoints across slightly different model architectures, such as when the naming conventions differ or when you want to append a prefix or suffix to the keys. You may want to check the <code class="docutils literal notranslate"><span class="pre">FromPretrained</span></code> class for more details on how to use and the available parameters.</p>
+<blockquote>
+<div><p><strong>Note:</strong> The use of <code class="docutils literal notranslate"><span class="pre">FromPretrained</span></code> is optional but strongly recommended for improved flexibility and maintainability. It integrates well with Minerva’s <code class="docutils literal notranslate"><span class="pre">SimpleSupervisedModel</span></code> class.</p>
+</div></blockquote>
+<blockquote>
+<div><p><strong>Note:</strong> The return value of <code class="docutils literal notranslate"><span class="pre">FromPretrained</span></code> is an instance of the same type as the input model. So, if the input is a <code class="docutils literal notranslate"><span class="pre">DeepLabV3</span></code> instance, the returned object will also be a <code class="docutils literal notranslate"><span class="pre">DeepLabV3</span></code> instance.</p>
+</div></blockquote>
+</section>
+<section id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Link to this heading"></a></h2>
+<p>To see how to use Minerva for different tasks, you can check the <a class="reference internal" href="tutorials.html"><span class="std std-doc">tutorials page</span></a> for complete examples of how to use Minerva and its components to train and evaluate models.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="getting_started.html" class="btn btn-neutral float-left" title="Getting Started" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="tutorials.html" class="btn btn-neutral float-right" title="Examples and Tutorials" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Unicamp.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,385 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>minerva.losses.topological_loss &mdash; minerva  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+    <link rel="next" title="minerva.losses.xtent_loss" href="../xtent_loss/index.html" />
+    <link rel="prev" title="minerva.losses.ntxent_loss_poly" href="../ntxent_loss_poly/index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            minerva
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../design.html">Minerva Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorials.html">Examples and Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../contributing.html">Contributing to Minerva</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../../../api.html">Programming Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../../index.html">minerva</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="../../index.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="../../analysis/index.html">minerva.analysis</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../data/index.html">minerva.data</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="../index.html">minerva.losses</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../models/index.html">minerva.models</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../optimizers/index.html">minerva.optimizers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../pipelines/index.html">minerva.pipelines</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../samplers/index.html">minerva.samplers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../transforms/index.html">minerva.transforms</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../utils/index.html">minerva.utils</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">minerva</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../../api.html">Programming Reference</a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">minerva</a></li>
+          <li class="breadcrumb-item"><a href="../index.html">minerva.losses</a></li>
+      <li class="breadcrumb-item active">minerva.losses.topological_loss</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../../_sources/autoapi/minerva/losses/topological_loss/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-minerva.losses.topological_loss">
+<span id="minerva-losses-topological-loss"></span><h1>minerva.losses.topological_loss<a class="headerlink" href="#module-minerva.losses.topological_loss" title="Link to this heading"></a></h1>
+<section id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Link to this heading"></a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#minerva.losses.topological_loss.AlephPersistenHomologyCalculation" title="minerva.losses.topological_loss.AlephPersistenHomologyCalculation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">AlephPersistenHomologyCalculation</span></code></a></p></td>
+<td><p>Calculate persistent homology using aleph.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#minerva.losses.topological_loss.PersistentHomologyCalculation" title="minerva.losses.topological_loss.PersistentHomologyCalculation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">PersistentHomologyCalculation</span></code></a></p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#minerva.losses.topological_loss.TopologicalLoss" title="minerva.losses.topological_loss.TopologicalLoss"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TopologicalLoss</span></code></a></p></td>
+<td><p>Base class for all neural network modules.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#minerva.losses.topological_loss.TopologicalSignatureDistance" title="minerva.losses.topological_loss.TopologicalSignatureDistance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">TopologicalSignatureDistance</span></code></a></p></td>
+<td><p>Topological signature.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#minerva.losses.topological_loss.UnionFind" title="minerva.losses.topological_loss.UnionFind"><code class="xref py py-obj docutils literal notranslate"><span class="pre">UnionFind</span></code></a></p></td>
+<td><p>An implementation of a Union--Find class. The class performs path</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="module-contents">
+<h2>Module Contents<a class="headerlink" href="#module-contents" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.losses.topological_loss.AlephPersistenHomologyCalculation">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.losses.topological_loss.</span></span><span class="sig-name descname"><span class="pre">AlephPersistenHomologyCalculation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">compute_cycles</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sort_selected</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/losses/topological_loss.html#AlephPersistenHomologyCalculation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.losses.topological_loss.AlephPersistenHomologyCalculation" title="Link to this definition"></a></dt>
+<dd><p>Calculate persistent homology using aleph.</p>
+<dl>
+<dt>Args:</dt><dd><p>compute_cycles: Whether to compute cycles
+sort_selected: Whether to sort the selected pairs using the</p>
+<blockquote>
+<div><p>distance matrix (such that they are in the order of the
+filteration)</p>
+</div></blockquote>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.losses.topological_loss.AlephPersistenHomologyCalculation.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">distance_matrix</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/losses/topological_loss.html#AlephPersistenHomologyCalculation.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.losses.topological_loss.AlephPersistenHomologyCalculation.__call__" title="Link to this definition"></a></dt>
+<dd><p>Do PH calculation.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>distance_matrix: numpy array of distances</p>
+</dd>
+</dl>
+<p>Returns: tuple(edge_featues, cycle_features)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.losses.topological_loss.AlephPersistenHomologyCalculation.compute_cycles">
+<span class="sig-name descname"><span class="pre">compute_cycles</span></span><a class="headerlink" href="#minerva.losses.topological_loss.AlephPersistenHomologyCalculation.compute_cycles" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.losses.topological_loss.AlephPersistenHomologyCalculation.sort_selected">
+<span class="sig-name descname"><span class="pre">sort_selected</span></span><a class="headerlink" href="#minerva.losses.topological_loss.AlephPersistenHomologyCalculation.sort_selected" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.losses.topological_loss.PersistentHomologyCalculation">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.losses.topological_loss.</span></span><span class="sig-name descname"><span class="pre">PersistentHomologyCalculation</span></span><a class="reference internal" href="../../../../_modules/minerva/losses/topological_loss.html#PersistentHomologyCalculation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.losses.topological_loss.PersistentHomologyCalculation" title="Link to this definition"></a></dt>
+<dd><dl class="py method">
+<dt class="sig sig-object py" id="minerva.losses.topological_loss.PersistentHomologyCalculation.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">matrix</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/losses/topological_loss.html#PersistentHomologyCalculation.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.losses.topological_loss.PersistentHomologyCalculation.__call__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.losses.topological_loss.TopologicalLoss">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.losses.topological_loss.</span></span><span class="sig-name descname"><span class="pre">TopologicalLoss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/losses/topological_loss.html#TopologicalLoss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.losses.topological_loss.TopologicalLoss" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.modules.loss._Loss</span></code></p>
+<p>Base class for all neural network modules.</p>
+<p>Your models should also subclass this class.</p>
+<p>Modules can also contain other Modules, allowing them to be nested in
+a tree structure. You can assign the submodules as regular attributes:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn.functional</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">F</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Model</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conv1</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conv2</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conv1</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">F</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conv2</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Submodules assigned in this way will be registered, and will also have their
+parameters converted when you call <code class="xref py py-meth docutils literal notranslate"><span class="pre">to()</span></code>, etc.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>As per the example above, an <code class="docutils literal notranslate"><span class="pre">__init__()</span></code> call to the parent class
+must be made before assignment on the child.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Variables<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>training</strong> (<em>bool</em>) – Boolean represents whether this module is in training or
+evaluation mode.</p>
+</dd>
+<dt class="field-even">Parameters<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>p</strong> (<em>int</em>)</p>
+</dd>
+</dl>
+<p>Initialize the TopologicalLoss class.</p>
+<section id="parameters">
+<h3>Parameters<a class="headerlink" href="#parameters" title="Link to this heading"></a></h3>
+<dl class="simple">
+<dt>p<span class="classifier">int, optional</span></dt><dd><p>Order of norm used for distance computation, by default 2</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.losses.topological_loss.TopologicalLoss._compute_distance_matrix">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">_compute_distance_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/losses/topological_loss.html#TopologicalLoss._compute_distance_matrix"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.losses.topological_loss.TopologicalLoss._compute_distance_matrix" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.losses.topological_loss.TopologicalLoss.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_encoded</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/losses/topological_loss.html#TopologicalLoss.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.losses.topological_loss.TopologicalLoss.forward" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.losses.topological_loss.TopologicalLoss.latent_norm">
+<span class="sig-name descname"><span class="pre">latent_norm</span></span><a class="headerlink" href="#minerva.losses.topological_loss.TopologicalLoss.latent_norm" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.losses.topological_loss.TopologicalLoss.p">
+<span class="sig-name descname"><span class="pre">p</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></em><a class="headerlink" href="#minerva.losses.topological_loss.TopologicalLoss.p" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.losses.topological_loss.TopologicalLoss.topological_signature_distance">
+<span class="sig-name descname"><span class="pre">topological_signature_distance</span></span><a class="headerlink" href="#minerva.losses.topological_loss.TopologicalLoss.topological_signature_distance" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.losses.topological_loss.TopologicalSignatureDistance">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.losses.topological_loss.</span></span><span class="sig-name descname"><span class="pre">TopologicalSignatureDistance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sort_selected</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_cycles</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">match_edges</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/losses/topological_loss.html#TopologicalSignatureDistance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.losses.topological_loss.TopologicalSignatureDistance" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></p>
+<p>Topological signature.</p>
+<p>Topological signature computation.</p>
+<dl>
+<dt>Args:</dt><dd><p>p: Order of norm used for distance computation
+use_cycles: Flag to indicate whether cycles should be used</p>
+<blockquote>
+<div><p>or not.</p>
+</div></blockquote>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.losses.topological_loss.TopologicalSignatureDistance._count_matching_pairs">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">_count_matching_pairs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pairs1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pairs2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/losses/topological_loss.html#TopologicalSignatureDistance._count_matching_pairs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.losses.topological_loss.TopologicalSignatureDistance._count_matching_pairs" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.losses.topological_loss.TopologicalSignatureDistance._get_nonzero_cycles">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">_get_nonzero_cycles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pairs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/losses/topological_loss.html#TopologicalSignatureDistance._get_nonzero_cycles"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.losses.topological_loss.TopologicalSignatureDistance._get_nonzero_cycles" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.losses.topological_loss.TopologicalSignatureDistance._get_pairings">
+<span class="sig-name descname"><span class="pre">_get_pairings</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">distances</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/losses/topological_loss.html#TopologicalSignatureDistance._get_pairings"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.losses.topological_loss.TopologicalSignatureDistance._get_pairings" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.losses.topological_loss.TopologicalSignatureDistance._select_distances_from_pairs">
+<span class="sig-name descname"><span class="pre">_select_distances_from_pairs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">distance_matrix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pairs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/losses/topological_loss.html#TopologicalSignatureDistance._select_distances_from_pairs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.losses.topological_loss.TopologicalSignatureDistance._select_distances_from_pairs" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.losses.topological_loss.TopologicalSignatureDistance.forward">
+<span class="sig-name descname"><span class="pre">forward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">distances1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distances2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/losses/topological_loss.html#TopologicalSignatureDistance.forward"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.losses.topological_loss.TopologicalSignatureDistance.forward" title="Link to this definition"></a></dt>
+<dd><p>Return topological distance of two pairwise distance matrices.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>distances1: Distance matrix in space 1
+distances2: Distance matrix in space 2</p>
+</dd>
+<dt>Returns:</dt><dd><p>distance, dict(additional outputs)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.losses.topological_loss.TopologicalSignatureDistance.match_edges">
+<span class="sig-name descname"><span class="pre">match_edges</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#minerva.losses.topological_loss.TopologicalSignatureDistance.match_edges" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.losses.topological_loss.TopologicalSignatureDistance.sig_error">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">sig_error</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">signature1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signature2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/losses/topological_loss.html#TopologicalSignatureDistance.sig_error"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.losses.topological_loss.TopologicalSignatureDistance.sig_error" title="Link to this definition"></a></dt>
+<dd><p>Compute distance between two topological signatures.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.losses.topological_loss.TopologicalSignatureDistance.signature_calculator">
+<span class="sig-name descname"><span class="pre">signature_calculator</span></span><a class="headerlink" href="#minerva.losses.topological_loss.TopologicalSignatureDistance.signature_calculator" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.losses.topological_loss.TopologicalSignatureDistance.use_cycles">
+<span class="sig-name descname"><span class="pre">use_cycles</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#minerva.losses.topological_loss.TopologicalSignatureDistance.use_cycles" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.losses.topological_loss.UnionFind">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.losses.topological_loss.</span></span><span class="sig-name descname"><span class="pre">UnionFind</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n_vertices</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/losses/topological_loss.html#UnionFind"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.losses.topological_loss.UnionFind" title="Link to this definition"></a></dt>
+<dd><p>An implementation of a Union–Find class. The class performs path
+compression by default. It uses integers for storing one disjoint
+set, assuming that vertices are zero-indexed.</p>
+<p>Initializes an empty Union–Find data structure for a given
+number of vertices.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.losses.topological_loss.UnionFind._parent">
+<span class="sig-name descname"><span class="pre">_parent</span></span><a class="headerlink" href="#minerva.losses.topological_loss.UnionFind._parent" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.losses.topological_loss.UnionFind.find">
+<span class="sig-name descname"><span class="pre">find</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">u</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/losses/topological_loss.html#UnionFind.find"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.losses.topological_loss.UnionFind.find" title="Link to this definition"></a></dt>
+<dd><p>Finds and returns the parent of u with respect to the hierarchy.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.losses.topological_loss.UnionFind.merge">
+<span class="sig-name descname"><span class="pre">merge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">u</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/losses/topological_loss.html#UnionFind.merge"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.losses.topological_loss.UnionFind.merge" title="Link to this definition"></a></dt>
+<dd><p>Merges vertex u into the component of vertex v. Note the
+asymmetry of this operation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.losses.topological_loss.UnionFind.roots">
+<span class="sig-name descname"><span class="pre">roots</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/losses/topological_loss.html#UnionFind.roots"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.losses.topological_loss.UnionFind.roots" title="Link to this definition"></a></dt>
+<dd><p>Generator expression for returning roots, i.e. components that
+are their own parents.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../ntxent_loss_poly/index.html" class="btn btn-neutral float-left" title="minerva.losses.ntxent_loss_poly" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../xtent_loss/index.html" class="btn btn-neutral float-right" title="minerva.losses.xtent_loss" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Unicamp.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

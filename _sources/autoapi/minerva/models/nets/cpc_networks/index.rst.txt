@@ -1,0 +1,878 @@
+minerva.models.nets.cpc_networks
+================================
+
+.. py:module:: minerva.models.nets.cpc_networks
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   minerva.models.nets.cpc_networks.CNN
+   minerva.models.nets.cpc_networks.ConvBlock
+   minerva.models.nets.cpc_networks.Convolutional1DEncoder
+   minerva.models.nets.cpc_networks.Genc_Gar
+   minerva.models.nets.cpc_networks.HARCPCAutoregressive
+   minerva.models.nets.cpc_networks.HARPredictionHead
+   minerva.models.nets.cpc_networks.LinearClassifier
+   minerva.models.nets.cpc_networks.PredictionNetwork
+   minerva.models.nets.cpc_networks.ResNetEncoder
+
+
+Module Contents
+---------------
+
+.. py:class:: CNN
+
+   Bases: :py:obj:`lightning.LightningModule`
+
+
+   Base class for all neural network modules.
+
+   Your models should also subclass this class.
+
+   Modules can also contain other Modules, allowing them to be nested in
+   a tree structure. You can assign the submodules as regular attributes::
+
+       import torch.nn as nn
+       import torch.nn.functional as F
+
+       class Model(nn.Module):
+           def __init__(self) -> None:
+               super().__init__()
+               self.conv1 = nn.Conv2d(1, 20, 5)
+               self.conv2 = nn.Conv2d(20, 20, 5)
+
+           def forward(self, x):
+               x = F.relu(self.conv1(x))
+               return F.relu(self.conv2(x))
+
+   Submodules assigned in this way will be registered, and will also have their
+   parameters converted when you call :meth:`to`, etc.
+
+   .. note::
+       As per the example above, an ``__init__()`` call to the parent class
+       must be made before assignment on the child.
+
+   :ivar training: Boolean represents whether this module is in training or
+                   evaluation mode.
+   :vartype training: bool
+
+   Convolutional Neural Network (CNN) encoder for CPC (Contrastive Predictive Coding)
+   for Human Activity Recognition (HAR).
+
+   This class serves as a wrapper for the Convolutional1DEncoder class,
+   providing an easy-to-use interface for the CPC model.
+
+
+   .. py:attribute:: encoder
+
+
+   .. py:method:: forward(x)
+
+      Same as :meth:`torch.nn.Module.forward`.
+
+      Args:
+          *args: Whatever you decide to pass into the forward method.
+          **kwargs: Keyword arguments are also possible.
+
+      Return:
+          Your model's output
+
+
+
+
+.. py:class:: ConvBlock(in_channels=6, out_channels=128, kernel_size=1, stride=1, padding=1, padding_mode='reflect', dropout_prob=0.2)
+
+   Bases: :py:obj:`lightning.LightningModule`
+
+
+   Base class for all neural network modules.
+
+   Your models should also subclass this class.
+
+   Modules can also contain other Modules, allowing them to be nested in
+   a tree structure. You can assign the submodules as regular attributes::
+
+       import torch.nn as nn
+       import torch.nn.functional as F
+
+       class Model(nn.Module):
+           def __init__(self) -> None:
+               super().__init__()
+               self.conv1 = nn.Conv2d(1, 20, 5)
+               self.conv2 = nn.Conv2d(20, 20, 5)
+
+           def forward(self, x):
+               x = F.relu(self.conv1(x))
+               return F.relu(self.conv2(x))
+
+   Submodules assigned in this way will be registered, and will also have their
+   parameters converted when you call :meth:`to`, etc.
+
+   .. note::
+       As per the example above, an ``__init__()`` call to the parent class
+       must be made before assignment on the child.
+
+   :ivar training: Boolean represents whether this module is in training or
+                   evaluation mode.
+   :vartype training: bool
+
+   Convolutional Block for the 1D Convolutional Encoder.
+
+   This block consists of a convolutional layer followed by a ReLU activation and dropout.
+
+   Parameters
+   ----------
+   in_channels : int, optional
+       Number of input channels, by default 6.
+   out_channels : int, optional
+       Number of output channels, by default 128.
+   kernel_size : int, optional
+       Size of the convolutional kernel, by default 1.
+   stride : int, optional
+       Stride of the convolution, by default 1.
+   padding : int, optional
+       Padding for the convolution, by default 1.
+   padding_mode : str, optional
+       Padding mode for the convolution, by default 'reflect'.
+   dropout_prob : float, optional
+       Dropout probability, by default 0.2.
+
+
+   .. py:attribute:: conv
+
+
+   .. py:attribute:: dropout
+
+
+   .. py:method:: forward(inputs)
+
+      Same as :meth:`torch.nn.Module.forward`.
+
+      Args:
+          *args: Whatever you decide to pass into the forward method.
+          **kwargs: Keyword arguments are also possible.
+
+      Return:
+          Your model's output
+
+
+
+
+   .. py:attribute:: relu
+
+
+.. py:class:: Convolutional1DEncoder(input_size=6, kernel_size=3, stride=1, padding=1)
+
+   Bases: :py:obj:`lightning.LightningModule`
+
+
+   Base class for all neural network modules.
+
+   Your models should also subclass this class.
+
+   Modules can also contain other Modules, allowing them to be nested in
+   a tree structure. You can assign the submodules as regular attributes::
+
+       import torch.nn as nn
+       import torch.nn.functional as F
+
+       class Model(nn.Module):
+           def __init__(self) -> None:
+               super().__init__()
+               self.conv1 = nn.Conv2d(1, 20, 5)
+               self.conv2 = nn.Conv2d(20, 20, 5)
+
+           def forward(self, x):
+               x = F.relu(self.conv1(x))
+               return F.relu(self.conv2(x))
+
+   Submodules assigned in this way will be registered, and will also have their
+   parameters converted when you call :meth:`to`, etc.
+
+   .. note::
+       As per the example above, an ``__init__()`` call to the parent class
+       must be made before assignment on the child.
+
+   :ivar training: Boolean represents whether this module is in training or
+                   evaluation mode.
+   :vartype training: bool
+
+   1D Convolutional Encoder for CPC.
+
+   This encoder consists of a sequence of convolutional blocks that process the
+   input time series data.
+
+   Parameters
+   ----------
+   input_size : int, optional
+       Number of input channels, by default 6.
+   kernel_size : int, optional
+       Size of the convolutional kernel, by default 3.
+   stride : int, optional
+       Stride of the convolution, by default 1.
+   padding : int, optional
+       Padding for the convolution, by default 1.
+
+
+   .. py:attribute:: encoder
+
+
+   .. py:method:: forward(x)
+
+      Same as :meth:`torch.nn.Module.forward`.
+
+      Args:
+          *args: Whatever you decide to pass into the forward method.
+          **kwargs: Keyword arguments are also possible.
+
+      Return:
+          Your model's output
+
+
+
+
+.. py:class:: Genc_Gar(g_enc, g_ar)
+
+   Bases: :py:obj:`torch.nn.Module`
+
+
+   Base class for all neural network modules.
+
+   Your models should also subclass this class.
+
+   Modules can also contain other Modules, allowing them to be nested in
+   a tree structure. You can assign the submodules as regular attributes::
+
+       import torch.nn as nn
+       import torch.nn.functional as F
+
+       class Model(nn.Module):
+           def __init__(self) -> None:
+               super().__init__()
+               self.conv1 = nn.Conv2d(1, 20, 5)
+               self.conv2 = nn.Conv2d(20, 20, 5)
+
+           def forward(self, x):
+               x = F.relu(self.conv1(x))
+               return F.relu(self.conv2(x))
+
+   Submodules assigned in this way will be registered, and will also have their
+   parameters converted when you call :meth:`to`, etc.
+
+   .. note::
+       As per the example above, an ``__init__()`` call to the parent class
+       must be made before assignment on the child.
+
+   :ivar training: Boolean represents whether this module is in training or
+                   evaluation mode.
+   :vartype training: bool
+
+   Combination of the GENC (encoder) and GAR (autoregressive) networks,
+   forming the backbone of the CPC model for HAR.
+
+   Parameters
+   ----------
+   g_enc: torch.nn.Module
+       Encoder network to extract features from the input data.
+   g_ar : torch.nn.Module
+       Autoregressive network to model temporal dependencies in the feature space.
+
+
+   .. py:method:: forward(x)
+
+
+   .. py:attribute:: g_ar
+
+
+   .. py:attribute:: g_enc
+
+
+.. py:class:: HARCPCAutoregressive(input_size=128, hidden_size=256, num_layers=2, bidirectional=False, batch_first=True, dropout=0.2)
+
+   Bases: :py:obj:`lightning.LightningModule`
+
+
+   Base class for all neural network modules.
+
+   Your models should also subclass this class.
+
+   Modules can also contain other Modules, allowing them to be nested in
+   a tree structure. You can assign the submodules as regular attributes::
+
+       import torch.nn as nn
+       import torch.nn.functional as F
+
+       class Model(nn.Module):
+           def __init__(self) -> None:
+               super().__init__()
+               self.conv1 = nn.Conv2d(1, 20, 5)
+               self.conv2 = nn.Conv2d(20, 20, 5)
+
+           def forward(self, x):
+               x = F.relu(self.conv1(x))
+               return F.relu(self.conv2(x))
+
+   Submodules assigned in this way will be registered, and will also have their
+   parameters converted when you call :meth:`to`, etc.
+
+   .. note::
+       As per the example above, an ``__init__()`` call to the parent class
+       must be made before assignment on the child.
+
+   :ivar training: Boolean represents whether this module is in training or
+                   evaluation mode.
+   :vartype training: bool
+
+   Autoregressive model for CPC used in Human Activity Recognition (HAR).
+
+   This network models the temporal dependencies in the feature space.
+
+   Parameters
+   ----------
+   input_size : int, optional
+       Number of input features, by default 128.
+   hidden_size : int, optional
+       Number of hidden units, by default 256.
+   num_layers : int, optional
+       Number of recurrent layers, by default 2.
+   bidirectional : bool, optional
+       If True, becomes a bidirectional GRU, by default False.
+   batch_first : bool, optional
+       If True, the input and output tensors are provided as (batch, seq, feature), by default True.
+   dropout : float, optional
+       Dropout probability, by default 0.2.
+
+
+   .. py:method:: forward(x, hidden=None)
+
+      Same as :meth:`torch.nn.Module.forward`.
+
+      Args:
+          *args: Whatever you decide to pass into the forward method.
+          **kwargs: Keyword arguments are also possible.
+
+      Return:
+          Your model's output
+
+
+
+
+   .. py:attribute:: rnn
+
+
+.. py:class:: HARPredictionHead(num_classes = 9)
+
+   Bases: :py:obj:`lightning.LightningModule`
+
+
+   Base class for all neural network modules.
+
+   Your models should also subclass this class.
+
+   Modules can also contain other Modules, allowing them to be nested in
+   a tree structure. You can assign the submodules as regular attributes::
+
+       import torch.nn as nn
+       import torch.nn.functional as F
+
+       class Model(nn.Module):
+           def __init__(self) -> None:
+               super().__init__()
+               self.conv1 = nn.Conv2d(1, 20, 5)
+               self.conv2 = nn.Conv2d(20, 20, 5)
+
+           def forward(self, x):
+               x = F.relu(self.conv1(x))
+               return F.relu(self.conv2(x))
+
+   Submodules assigned in this way will be registered, and will also have their
+   parameters converted when you call :meth:`to`, etc.
+
+   .. note::
+       As per the example above, an ``__init__()`` call to the parent class
+       must be made before assignment on the child.
+
+   :ivar training: Boolean represents whether this module is in training or
+                   evaluation mode.
+   :vartype training: bool
+
+   Prediction head for Human Activity Recognition (HAR).
+
+   This network takes the encoded and temporally modeled features and outputs the final
+   activity classification.
+
+   Parameters
+   ----------
+   num_classes : int, optional
+       Number of activity classes to predict, by default 9 (RW_waist).
+
+
+   .. py:method:: forward(x)
+
+      Same as :meth:`torch.nn.Module.forward`.
+
+      Args:
+          *args: Whatever you decide to pass into the forward method.
+          **kwargs: Keyword arguments are also possible.
+
+      Return:
+          Your model's output
+
+
+
+
+   .. py:attribute:: model
+
+
+.. py:class:: LinearClassifier(backbone, head, num_classes = 6, learning_rate = 0.001, flatten = True, freeze_backbone = False, loss_fn = None)
+
+   Bases: :py:obj:`lightning.LightningModule`
+
+
+   Base class for all neural network modules.
+
+   Your models should also subclass this class.
+
+   Modules can also contain other Modules, allowing them to be nested in
+   a tree structure. You can assign the submodules as regular attributes::
+
+       import torch.nn as nn
+       import torch.nn.functional as F
+
+       class Model(nn.Module):
+           def __init__(self) -> None:
+               super().__init__()
+               self.conv1 = nn.Conv2d(1, 20, 5)
+               self.conv2 = nn.Conv2d(20, 20, 5)
+
+           def forward(self, x):
+               x = F.relu(self.conv1(x))
+               return F.relu(self.conv2(x))
+
+   Submodules assigned in this way will be registered, and will also have their
+   parameters converted when you call :meth:`to`, etc.
+
+   .. note::
+       As per the example above, an ``__init__()`` call to the parent class
+       must be made before assignment on the child.
+
+   :ivar training: Boolean represents whether this module is in training or
+                   evaluation mode.
+   :vartype training: bool
+
+   A linear classifier model built on top of a backbone and a head network, designed for tasks
+   such as classification. This model leverages PyTorch Lightning for easier training and
+   evaluation.
+
+   Parameters
+   ----------
+   backbone : L.LightningModule
+       The backbone network used for feature extraction.
+   head : L.LightningModule
+       The head network used for the final classification.
+   num_classes : int, optional
+       The number of output classes, by default 6.
+   learning_rate : float, optional
+       The learning rate for the optimizer, by default 0.001.
+   flatten : bool, optional
+       Whether to flatten the output of the backbone before passing it to the head, by default True.
+   freeze_backbone : bool, optional
+       Whether to freeze the backbone during training, by default False.
+   loss_fn : torch.nn.modules.loss._Loss, optional
+       The loss function to use, by default CrossEntropyLoss.
+
+
+   .. py:method:: _freeze(model)
+
+      Freezes the model, i.e. sets the requires_grad parameter of all the
+      parameters to False.
+
+      Parameters
+      ----------
+      model : type
+          The model to freeze
+
+
+
+   .. py:attribute:: backbone
+
+
+   .. py:method:: calculate_metrics(y_pred, y_true, stage_name)
+
+      Calculate metrics for the given batch.
+
+      Parameters
+      ----------
+      y_pred : torch.Tensor
+          Predicted labels.
+      y_true : torch.Tensor
+          True labels.
+
+      Returns
+      -------
+      dict
+          Dictionary of metrics.
+
+
+
+   .. py:method:: configure_optimizers()
+
+      Configures the optimizer. If `update_backbone` is True, it will
+      update the parameters of the backbone and the head. Otherwise, it will
+      only update the parameters of the head.
+
+
+
+   .. py:attribute:: flatten
+      :value: True
+
+
+
+   .. py:method:: forward(x)
+
+      Same as :meth:`torch.nn.Module.forward`.
+
+      Args:
+          *args: Whatever you decide to pass into the forward method.
+          **kwargs: Keyword arguments are also possible.
+
+      Return:
+          Your model's output
+
+
+
+
+   .. py:attribute:: freeze_backbone
+      :value: False
+
+
+
+   .. py:attribute:: head
+
+
+   .. py:attribute:: learning_rate
+      :value: 0.001
+
+
+
+   .. py:attribute:: loss_fn
+      :value: None
+
+
+
+   .. py:attribute:: num_classes
+      :value: 6
+
+
+
+   .. py:method:: test_step(batch, batch_idx)
+
+      Operates on a single batch of data from the test set. In this step you'd normally generate examples or
+      calculate anything of interest such as accuracy.
+
+      Args:
+          batch: The output of your data iterable, normally a :class:`~torch.utils.data.DataLoader`.
+          batch_idx: The index of this batch.
+          dataloader_idx: The index of the dataloader that produced this batch.
+              (only if multiple dataloaders used)
+
+      Return:
+          - :class:`~torch.Tensor` - The loss tensor
+          - ``dict`` - A dictionary. Can include any keys, but must include the key ``'loss'``.
+          - ``None`` - Skip to the next batch.
+
+      .. code-block:: python
+
+          # if you have one test dataloader:
+          def test_step(self, batch, batch_idx): ...
+
+
+          # if you have multiple test dataloaders:
+          def test_step(self, batch, batch_idx, dataloader_idx=0): ...
+
+      Examples::
+
+          # CASE 1: A single test dataset
+          def test_step(self, batch, batch_idx):
+              x, y = batch
+
+              # implement your own
+              out = self(x)
+              loss = self.loss(out, y)
+
+              # log 6 example images
+              # or generated text... or whatever
+              sample_imgs = x[:6]
+              grid = torchvision.utils.make_grid(sample_imgs)
+              self.logger.experiment.add_image('example_images', grid, 0)
+
+              # calculate acc
+              labels_hat = torch.argmax(out, dim=1)
+              test_acc = torch.sum(y == labels_hat).item() / (len(y) * 1.0)
+
+              # log the outputs!
+              self.log_dict({'test_loss': loss, 'test_acc': test_acc})
+
+      If you pass in multiple test dataloaders, :meth:`test_step` will have an additional argument. We recommend
+      setting the default value of 0 so that you can quickly switch between single and multiple dataloaders.
+
+      .. code-block:: python
+
+          # CASE 2: multiple test dataloaders
+          def test_step(self, batch, batch_idx, dataloader_idx=0):
+              # dataloader_idx tells you which dataset this is.
+              ...
+
+      Note:
+          If you don't need to test you don't need to implement this method.
+
+      Note:
+          When the :meth:`test_step` is called, the model has been put in eval mode and
+          PyTorch gradients have been disabled. At the end of the test epoch, the model goes back
+          to training mode and gradients are enabled.
+
+
+
+
+   .. py:method:: training_step(batch, batch_idx)
+
+      Here you compute and return the training loss and some additional metrics for e.g. the progress bar or
+      logger.
+
+      Args:
+          batch: The output of your data iterable, normally a :class:`~torch.utils.data.DataLoader`.
+          batch_idx: The index of this batch.
+          dataloader_idx: The index of the dataloader that produced this batch.
+              (only if multiple dataloaders used)
+
+      Return:
+          - :class:`~torch.Tensor` - The loss tensor
+          - ``dict`` - A dictionary which can include any keys, but must include the key ``'loss'`` in the case of
+            automatic optimization.
+          - ``None`` - In automatic optimization, this will skip to the next batch (but is not supported for
+            multi-GPU, TPU, or DeepSpeed). For manual optimization, this has no special meaning, as returning
+            the loss is not required.
+
+      In this step you'd normally do the forward pass and calculate the loss for a batch.
+      You can also do fancier things like multiple forward passes or something model specific.
+
+      Example::
+
+          def training_step(self, batch, batch_idx):
+              x, y, z = batch
+              out = self.encoder(x)
+              loss = self.loss(out, x)
+              return loss
+
+      To use multiple optimizers, you can switch to 'manual optimization' and control their stepping:
+
+      .. code-block:: python
+
+          def __init__(self):
+              super().__init__()
+              self.automatic_optimization = False
+
+
+          # Multiple optimizers (e.g.: GANs)
+          def training_step(self, batch, batch_idx):
+              opt1, opt2 = self.optimizers()
+
+              # do training_step with encoder
+              ...
+              opt1.step()
+              # do training_step with decoder
+              ...
+              opt2.step()
+
+      Note:
+          When ``accumulate_grad_batches`` > 1, the loss returned here will be automatically
+          normalized by ``accumulate_grad_batches`` internally.
+
+
+
+
+   .. py:method:: validation_step(batch, batch_idx)
+
+      Operates on a single batch of data from the validation set. In this step you'd might generate examples or
+      calculate anything of interest like accuracy.
+
+      Args:
+          batch: The output of your data iterable, normally a :class:`~torch.utils.data.DataLoader`.
+          batch_idx: The index of this batch.
+          dataloader_idx: The index of the dataloader that produced this batch.
+              (only if multiple dataloaders used)
+
+      Return:
+          - :class:`~torch.Tensor` - The loss tensor
+          - ``dict`` - A dictionary. Can include any keys, but must include the key ``'loss'``.
+          - ``None`` - Skip to the next batch.
+
+      .. code-block:: python
+
+          # if you have one val dataloader:
+          def validation_step(self, batch, batch_idx): ...
+
+
+          # if you have multiple val dataloaders:
+          def validation_step(self, batch, batch_idx, dataloader_idx=0): ...
+
+      Examples::
+
+          # CASE 1: A single validation dataset
+          def validation_step(self, batch, batch_idx):
+              x, y = batch
+
+              # implement your own
+              out = self(x)
+              loss = self.loss(out, y)
+
+              # log 6 example images
+              # or generated text... or whatever
+              sample_imgs = x[:6]
+              grid = torchvision.utils.make_grid(sample_imgs)
+              self.logger.experiment.add_image('example_images', grid, 0)
+
+              # calculate acc
+              labels_hat = torch.argmax(out, dim=1)
+              val_acc = torch.sum(y == labels_hat).item() / (len(y) * 1.0)
+
+              # log the outputs!
+              self.log_dict({'val_loss': loss, 'val_acc': val_acc})
+
+      If you pass in multiple val dataloaders, :meth:`validation_step` will have an additional argument. We recommend
+      setting the default value of 0 so that you can quickly switch between single and multiple dataloaders.
+
+      .. code-block:: python
+
+          # CASE 2: multiple validation dataloaders
+          def validation_step(self, batch, batch_idx, dataloader_idx=0):
+              # dataloader_idx tells you which dataset this is.
+              ...
+
+      Note:
+          If you don't need to validate you don't need to implement this method.
+
+      Note:
+          When the :meth:`validation_step` is called, the model has been put in eval mode
+          and PyTorch gradients have been disabled. At the end of validation,
+          the model goes back to training mode and gradients are enabled.
+
+
+
+
+.. py:class:: PredictionNetwork(in_channels=256, out_channels=128)
+
+   Bases: :py:obj:`lightning.LightningModule`
+
+
+   Base class for all neural network modules.
+
+   Your models should also subclass this class.
+
+   Modules can also contain other Modules, allowing them to be nested in
+   a tree structure. You can assign the submodules as regular attributes::
+
+       import torch.nn as nn
+       import torch.nn.functional as F
+
+       class Model(nn.Module):
+           def __init__(self) -> None:
+               super().__init__()
+               self.conv1 = nn.Conv2d(1, 20, 5)
+               self.conv2 = nn.Conv2d(20, 20, 5)
+
+           def forward(self, x):
+               x = F.relu(self.conv1(x))
+               return F.relu(self.conv2(x))
+
+   Submodules assigned in this way will be registered, and will also have their
+   parameters converted when you call :meth:`to`, etc.
+
+   .. note::
+       As per the example above, an ``__init__()`` call to the parent class
+       must be made before assignment on the child.
+
+   :ivar training: Boolean represents whether this module is in training or
+                   evaluation mode.
+   :vartype training: bool
+
+   Projection head for CPC used in Human Activity Recognition (HAR).
+
+   This network projects the encoded representations to a lower-dimensional space
+   to facilitate the contrastive learning process.
+
+   Parameters
+   ----------
+   in_channels : int, optional
+       Number of input channels, by default 256.
+   out_channels : int, optional
+       Number of output channels, by default 128.
+
+
+   .. py:attribute:: Wk
+
+
+   .. py:method:: forward(x)
+
+      Same as :meth:`torch.nn.Module.forward`.
+
+      Args:
+          *args: Whatever you decide to pass into the forward method.
+          **kwargs: Keyword arguments are also possible.
+
+      Return:
+          Your model's output
+
+
+
+
+.. py:class:: ResNetEncoder(permute=True, *args, **kwargs)
+
+   Bases: :py:obj:`minerva.models.nets.time_series.resnet._ResNet1D`
+
+
+   Base class for all neural network modules.
+
+   Your models should also subclass this class.
+
+   Modules can also contain other Modules, allowing them to be nested in
+   a tree structure. You can assign the submodules as regular attributes::
+
+       import torch.nn as nn
+       import torch.nn.functional as F
+
+       class Model(nn.Module):
+           def __init__(self) -> None:
+               super().__init__()
+               self.conv1 = nn.Conv2d(1, 20, 5)
+               self.conv2 = nn.Conv2d(20, 20, 5)
+
+           def forward(self, x):
+               x = F.relu(self.conv1(x))
+               return F.relu(self.conv2(x))
+
+   Submodules assigned in this way will be registered, and will also have their
+   parameters converted when you call :meth:`to`, etc.
+
+   .. note::
+       As per the example above, an ``__init__()`` call to the parent class
+       must be made before assignment on the child.
+
+   :ivar training: Boolean represents whether this module is in training or
+                   evaluation mode.
+   :vartype training: bool
+
+   Initialize internal Module state, shared by both nn.Module and ScriptModule.
+
+
+   .. py:method:: forward(x)
+
+
+   .. py:attribute:: permute
+      :value: True
+
+
+

@@ -1,0 +1,67 @@
+minerva.transforms.split_transform
+==================================
+
+.. py:module:: minerva.transforms.split_transform
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   minerva.transforms.split_transform.SplitTransform
+
+
+Module Contents
+---------------
+
+.. py:class:: SplitTransform(num_splits = 2, split_dimension = 0)
+
+   Bases: :py:obj:`minerva.transforms.transform._Transform`
+
+
+   This class is a base class for all transforms. Transforms is just a
+   fancy word for a function that takes an input and returns an output. The
+   input and output can be anything. However, transforms operates over a
+   single sample of data and does not require any additional information to
+   perform the transformation. The __call__ method should be overridden in
+   subclasses to define the transformation logic.
+
+   A transform that splits the input data along some dimension.
+   When applied to a dataset, this transform will split the input data into
+   the specified number of splits.
+
+   Parameters
+   ----------
+   num_splits : int
+       The number of splits to divide the input into.
+   split_dimension : int
+       The dimension along which to split the input data.
+
+
+   .. py:method:: __call__(x)
+
+      Split the input data into the specified number of splits.
+
+      Parameters
+      ----------
+      x : Union[np.ndarray, torch.Tensor]
+          The input data to split.
+
+      Returns
+      -------
+      Tuple
+          The split data.
+
+
+
+   .. py:attribute:: num_splits
+      :value: 2
+
+
+
+   .. py:attribute:: split_dimension
+      :value: 0
+
+
+

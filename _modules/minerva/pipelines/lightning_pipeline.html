@@ -1,0 +1,514 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>minerva.pipelines.lightning_pipeline &mdash; minerva  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            minerva
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../design.html">Minerva Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorials.html">Examples and Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing to Minerva</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">Programming Reference</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">minerva</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">minerva.pipelines.lightning_pipeline</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for minerva.pipelines.lightning_pipeline</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Literal</span><span class="p">,</span> <span class="n">Optional</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">lightning</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">L</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">yaml</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torchmetrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">Metric</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">minerva.pipelines.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">Pipeline</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">minerva.data.data_module_tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_full_data_split</span><span class="p">,</span> <span class="n">get_split_dataloader</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">minerva.utils.typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">PathLike</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">minerva.analysis.model_analysis</span><span class="w"> </span><span class="kn">import</span> <span class="n">_ModelAnalysis</span>
+
+
+<div class="viewcode-block" id="predict_batch">
+<a class="viewcode-back" href="../../../autoapi/minerva/pipelines/lightning_pipeline/index.html#minerva.pipelines.lightning_pipeline.predict_batch">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">predict_batch</span><span class="p">(</span><span class="n">classification_metrics</span><span class="p">,</span> <span class="n">regression_metrics</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">predict_batch_fn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">,</span> <span class="n">dataloader_idx</span><span class="p">):</span>
+        <span class="n">X</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">batch</span>
+        <span class="n">y_hat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">classification_metrics</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">y_hat</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">y_hat</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">y_hat</span><span class="p">,</span> <span class="n">y</span>
+
+    <span class="k">return</span> <span class="n">predict_batch_fn</span></div>
+
+
+
+<div class="viewcode-block" id="SimpleLightningPipeline">
+<a class="viewcode-back" href="../../../autoapi/minerva/pipelines/lightning_pipeline/index.html#minerva.pipelines.lightning_pipeline.SimpleLightningPipeline">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SimpleLightningPipeline</span><span class="p">(</span><span class="n">Pipeline</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Simple pipeline to train, test, predict and evaluate models using Pytorch</span>
+<span class="sd">    Lightning. This class is intended to be seamlessly integrated with</span>
+<span class="sd">    jsonargparse CLI.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">model</span><span class="p">:</span> <span class="n">L</span><span class="o">.</span><span class="n">LightningModule</span><span class="p">,</span>
+        <span class="n">trainer</span><span class="p">:</span> <span class="n">L</span><span class="o">.</span><span class="n">Trainer</span><span class="p">,</span>
+        <span class="n">log_dir</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">PathLike</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">save_run_status</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">classification_metrics</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Metric</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">regression_metrics</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Metric</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">model_analysis</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">_ModelAnalysis</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">apply_metrics_per_sample</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">seed</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Train/test/predict/evaluate a Pytorch Lightning model.</span>
+
+<span class="sd">        It provides 4 tasks: fit, test, predict and evaluate. The fit task</span>
+<span class="sd">        trains the model, the test task evaluates the model on the test set, the</span>
+<span class="sd">        predict task generates predictions for the predict set and the evaluate</span>
+<span class="sd">        task evaluates the model on the predict set and returns the metrics.</span>
+
+<span class="sd">        The evaluate task can calculate classification and regression metrics,</span>
+<span class="sd">        which is passed as arguments. The metrics are calculated per sample if</span>
+<span class="sd">        `apply_metrics_per_sample` is True (that generate a metric for each),</span>
+<span class="sd">        otherwise the metrics are calculated for the whole dataset (single</span>
+<span class="sd">        metric). The last option is the default.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        model : L.LightningModule</span>
+<span class="sd">            The LightningModule to be used.</span>
+<span class="sd">        trainer : L.Trainer</span>
+<span class="sd">            The Lightning Trainer to be used.</span>
+<span class="sd">        log_dir : PathLike, optional</span>
+<span class="sd">            The default logging directory where all related pipeline files</span>
+<span class="sd">            should be saved. By default None (uses current working directory)</span>
+<span class="sd">        save_run_status : bool, optional</span>
+<span class="sd">            If True, save the status of each run in a YAML file. This file will</span>
+<span class="sd">            be saved in the working directory with the name</span>
+<span class="sd">            `run_{pipeline_id}.yaml`. By default True.</span>
+<span class="sd">        classification_metrics : Dict[str, Metric], optional</span>
+<span class="sd">            The classification metrics to be used in the evaluate task. This</span>
+<span class="sd">            dictionary should have the metric name as key and the</span>
+<span class="sd">            `torchmetrics.Metric`-like object as value. The metric should be</span>
+<span class="sd">            able to receive two tensors (y_true, y_pred) and return a tensor</span>
+<span class="sd">            with the metric value. If None, no classification metrics will be</span>
+<span class="sd">            calculated. Different from regression, the torch.argmax will be</span>
+<span class="sd">            applied to the predictions before calculating the metrics.</span>
+<span class="sd">            By default None.</span>
+<span class="sd">        regression_metrics : Dict[str, Metric], optional</span>
+<span class="sd">            The regression metrics to be used in the evaluate task. This</span>
+<span class="sd">            dictionary should have the metric name as key and the</span>
+<span class="sd">            `torchmetrics.Metric`-like object as value. The metric should be</span>
+<span class="sd">            able to receive two tensors (y_true, y_pred) and return a tensor</span>
+<span class="sd">            with the metric value. If None, no regression metrics will be</span>
+<span class="sd">            calculated. By default None.</span>
+<span class="sd">        model_analysis: Dict[str, _ModelAnalysis], optional</span>
+<span class="sd">            The model analysis to be performed after the model is trained. This</span>
+<span class="sd">            dictionary should have the analysis name as key and the</span>
+<span class="sd">            `_ModelAnalysis`-like object as value. The analysis should be able</span>
+<span class="sd">            to receive the model and the data and return a result. If None, no</span>
+<span class="sd">            model analysis will be performed. By default None.</span>
+<span class="sd">        apply_metrics_per_sample : bool, optional</span>
+<span class="sd">            Apply the metrics per sample. If True, the metrics will be</span>
+<span class="sd">            calculated for each sample and the results will be a list of</span>
+<span class="sd">            metrics. If False, the metrics will be calculated for the whole</span>
+<span class="sd">            dataset and the results will be a single metric (single-element</span>
+<span class="sd">            list). By default False</span>
+<span class="sd">        seed : int, optional</span>
+<span class="sd">            The seed to be used in the pipeline. By default None.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">log_dir</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">trainer</span><span class="o">.</span><span class="n">log_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">log_dir</span> <span class="o">=</span> <span class="n">trainer</span><span class="o">.</span><span class="n">log_dir</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">log_dir</span><span class="o">=</span><span class="n">log_dir</span><span class="p">,</span>
+            <span class="n">ignore</span><span class="o">=</span><span class="p">[</span>
+                <span class="s2">&quot;model&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;trainer&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;classification_metrics&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;regression_metrics&quot;</span><span class="p">,</span>
+            <span class="p">],</span>
+            <span class="n">cache_result</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">save_run_status</span><span class="o">=</span><span class="n">save_run_status</span><span class="p">,</span>
+            <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_model</span> <span class="o">=</span> <span class="n">model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_trainer</span> <span class="o">=</span> <span class="n">trainer</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_model_analysis</span> <span class="o">=</span> <span class="n">model_analysis</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_classification_metrics</span> <span class="o">=</span> <span class="n">classification_metrics</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_regression_metrics</span> <span class="o">=</span> <span class="n">regression_metrics</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_apply_metrics_per_sample</span> <span class="o">=</span> <span class="n">apply_metrics_per_sample</span>
+
+    <span class="c1"># Public read-only properties</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">model</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">L</span><span class="o">.</span><span class="n">LightningModule</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The LightningModule used in the pipeline.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        L.LightningModule</span>
+<span class="sd">            The model used in the pipeline.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">trainer</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">L</span><span class="o">.</span><span class="n">Trainer</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The Lightning Trainer used in the pipeline.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        L.Trainer</span>
+<span class="sd">            The trainer used in the pipeline.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_trainer</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">data</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">L</span><span class="o">.</span><span class="n">LightningDataModule</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;The LightningDataModule used in the last run of the pipeline.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        L.LightningDataModule</span>
+<span class="sd">            The data used in the last run of the pipeline.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span>
+
+<div class="viewcode-block" id="SimpleLightningPipeline._calculate_metrics">
+<a class="viewcode-back" href="../../../autoapi/minerva/pipelines/lightning_pipeline/index.html#minerva.pipelines.lightning_pipeline.SimpleLightningPipeline._calculate_metrics">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_calculate_metrics</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">metrics</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Metric</span><span class="p">],</span> <span class="n">y_hat</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate the metrics for the given predictions and targets.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        metrics : Dict[str, Metric]</span>
+<span class="sd">            The metrics to be calculated. The dictionary should have the metric</span>
+<span class="sd">            name as key and the `torchmetrics.Metric`-like object as value.</span>
+<span class="sd">        y_hat : torch.Tensor</span>
+<span class="sd">            The predictions tensor.</span>
+<span class="sd">        y : torch.Tensor</span>
+<span class="sd">            The targets tensor.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Dict[str, Any]</span>
+<span class="sd">            A dictionary with the metric name as key and the list of metric</span>
+<span class="sd">            values as value. The list will have a single element if</span>
+<span class="sd">            `apply_metrics_per_sample` is False, otherwise it will have a value.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_apply_metrics_per_sample</span><span class="p">:</span>
+            <span class="n">y</span><span class="p">,</span> <span class="n">y_hat</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="n">y_hat</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">y</span><span class="p">,</span> <span class="n">y_hat</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">y_hat</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">metric_name</span><span class="p">,</span> <span class="n">metric</span> <span class="ow">in</span> <span class="n">metrics</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">final_results</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">y_i</span><span class="p">,</span> <span class="n">y_hat_i</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">y_hat</span><span class="p">)):</span>
+                <span class="n">res</span> <span class="o">=</span> <span class="n">metric</span><span class="p">(</span><span class="n">y_i</span><span class="p">,</span> <span class="n">y_hat_i</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+                <span class="n">final_results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
+            <span class="n">results</span><span class="p">[</span><span class="n">metric_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">final_results</span>
+
+        <span class="k">return</span> <span class="n">results</span></div>
+
+
+    <span class="c1"># Private methods</span>
+<div class="viewcode-block" id="SimpleLightningPipeline._fit">
+<a class="viewcode-back" href="../../../autoapi/minerva/pipelines/lightning_pipeline/index.html#minerva.pipelines.lightning_pipeline.SimpleLightningPipeline._fit">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">L</span><span class="o">.</span><span class="n">LightningDataModule</span><span class="p">,</span> <span class="n">ckpt_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">PathLike</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Fit the model using the given data.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        data : L.LightningDataModule</span>
+<span class="sd">            The data module to be used. The data module should have the</span>
+<span class="sd">            `train_dataloader` method implemented.</span>
+<span class="sd">        ckpt_path : PathLike</span>
+<span class="sd">            The checkpoint path to be used. If None, no checkpoint will be used.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_trainer</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span>
+            <span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">,</span> <span class="n">datamodule</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">ckpt_path</span><span class="o">=</span><span class="n">ckpt_path</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SimpleLightningPipeline._test">
+<a class="viewcode-back" href="../../../autoapi/minerva/pipelines/lightning_pipeline/index.html#minerva.pipelines.lightning_pipeline.SimpleLightningPipeline._test">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_test</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="n">L</span><span class="o">.</span><span class="n">LightningDataModule</span><span class="p">,</span> <span class="n">ckpt_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">PathLike</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Test the model using the given data.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        data : L.LightningDataModule</span>
+<span class="sd">            The data module to be used. The data module should have the</span>
+<span class="sd">            `test_dataloader` method implemented.</span>
+<span class="sd">        ckpt_path : PathLike</span>
+<span class="sd">            The checkpoint path to be used. If None, no checkpoint will be used.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_trainer</span><span class="o">.</span><span class="n">test</span><span class="p">(</span>
+            <span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">,</span> <span class="n">datamodule</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">ckpt_path</span><span class="o">=</span><span class="n">ckpt_path</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SimpleLightningPipeline._predict">
+<a class="viewcode-back" href="../../../autoapi/minerva/pipelines/lightning_pipeline/index.html#minerva.pipelines.lightning_pipeline.SimpleLightningPipeline._predict">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_predict</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">data</span><span class="p">:</span> <span class="n">L</span><span class="o">.</span><span class="n">LightningDataModule</span><span class="p">,</span>
+        <span class="n">ckpt_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">PathLike</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Predict using the given data.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        data : L.LightningDataModule</span>
+<span class="sd">            The data module to be used. The data module should have the</span>
+<span class="sd">            `predict_dataloader` method implemented.</span>
+<span class="sd">        ckpt_path : PathLike</span>
+<span class="sd">            The checkpoint path to be used. If None, no checkpoint will be used.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        torch.Tensor</span>
+<span class="sd">            The predictions tensor.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_trainer</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span>
+            <span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">,</span> <span class="n">datamodule</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">ckpt_path</span><span class="o">=</span><span class="n">ckpt_path</span>
+        <span class="p">)</span>  <span class="c1"># type: ignore</span></div>
+
+
+<div class="viewcode-block" id="SimpleLightningPipeline._evaluate">
+<a class="viewcode-back" href="../../../autoapi/minerva/pipelines/lightning_pipeline/index.html#minerva.pipelines.lightning_pipeline.SimpleLightningPipeline._evaluate">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_evaluate</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">data</span><span class="p">:</span> <span class="n">L</span><span class="o">.</span><span class="n">LightningDataModule</span><span class="p">,</span>
+        <span class="n">ckpt_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">PathLike</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Evaluate the model and calculate regression and/or classification</span>
+<span class="sd">        metrics.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        data : L.LightningDataModule</span>
+<span class="sd">            The data module to be used. The data module should have the</span>
+<span class="sd">            `predict_dataloader` method implemented.</span>
+<span class="sd">        ckpt_path : PathLike</span>
+<span class="sd">            The checkpoint path to be used. If None, no checkpoint will be used.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Dict[str, Dict[str, Any]</span>
+<span class="sd">            A dictionary with metrics.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">metrics</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">dict</span><span class="p">)</span>
+
+        <span class="c1"># Get the predictions and targets</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">get_full_data_split</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="s2">&quot;predict&quot;</span><span class="p">)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
+        <span class="n">y_hat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">trainer</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">,</span> <span class="n">datamodule</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">ckpt_path</span><span class="o">=</span><span class="n">ckpt_path</span><span class="p">)</span>
+        <span class="n">y_hat</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">(</span><span class="n">y_hat</span><span class="p">)</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span>  <span class="c1"># type: ignore</span>
+
+        <span class="c1"># Check if the shapes are the same</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">y_hat</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Shapes are different: y_hat shape: </span><span class="si">{</span><span class="n">y_hat</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">; y shape: </span><span class="si">{</span><span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">. Is `limit_predict_batches` set?&quot;</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Argmax and calculate metrics</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_classification_metrics</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Running classification metrics...&quot;</span><span class="p">)</span>
+            <span class="n">y_hat</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">y_hat</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;classification&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_metrics</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_classification_metrics</span><span class="p">,</span> <span class="n">y_hat</span><span class="p">,</span> <span class="n">y</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Just calculate metrics (without argmax)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_regression_metrics</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Running regression metrics...&quot;</span><span class="p">)</span>
+            <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;regression&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_metrics</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_regression_metrics</span><span class="p">,</span> <span class="n">y_hat</span><span class="p">,</span> <span class="n">y</span>
+            <span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+        <span class="c1"># Run model analysis</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model_analysis</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Running model analysis...&quot;</span><span class="p">)</span>
+            <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;analysis&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">analysis_name</span><span class="p">,</span> <span class="n">analysis</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model_analysis</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">analysis</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_log_dir</span>
+                <span class="n">metrics</span><span class="p">[</span><span class="s2">&quot;analysis&quot;</span><span class="p">][</span><span class="n">analysis_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">analysis</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+
+        <span class="c1"># Save metrics</span>
+        <span class="n">metrics</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">metrics</span><span class="p">)</span>
+
+        <span class="c1"># Save metrics to a YAML file</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_save_pipeline_info</span><span class="p">:</span>
+            <span class="n">yaml_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_log_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;metrics_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">pipeline_id</span><span class="si">}</span><span class="s2">.yaml&quot;</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">yaml_path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">yaml</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">metrics</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Metrics saved to </span><span class="si">{</span><span class="n">yaml_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">metrics</span></div>
+
+
+    <span class="c1"># Default run method (entry point)</span>
+<div class="viewcode-block" id="SimpleLightningPipeline._run">
+<a class="viewcode-back" href="../../../autoapi/minerva/pipelines/lightning_pipeline/index.html#minerva.pipelines.lightning_pipeline.SimpleLightningPipeline._run">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_run</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">data</span><span class="p">:</span> <span class="n">L</span><span class="o">.</span><span class="n">LightningDataModule</span><span class="p">,</span>
+        <span class="n">task</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;fit&quot;</span><span class="p">,</span> <span class="s2">&quot;test&quot;</span><span class="p">,</span> <span class="s2">&quot;predict&quot;</span><span class="p">,</span> <span class="s2">&quot;evaluate&quot;</span><span class="p">],</span>
+        <span class="n">ckpt_path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">PathLike</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Run the specified task on the given data.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        data : L.LightningDataModule</span>
+<span class="sd">            The LightningDataModule object containing the data for the task.</span>
+<span class="sd">        task : Literal[&quot;fit&quot;, &quot;test&quot;, &quot;predict&quot;, &quot;evaluate&quot;], optional</span>
+<span class="sd">            The task to be performed. Valid options are &quot;fit&quot;, &quot;test&quot;,</span>
+<span class="sd">            &quot;predict&quot;, and &quot;evaluate&quot;.</span>
+<span class="sd">        ckpt_path : PathLike, optional</span>
+<span class="sd">            The path to the checkpoint file to be used for resuming training or</span>
+<span class="sd">            performing inference. Defaults to None.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Any</span>
+<span class="sd">            The result of the specified task.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            If an unknown task is provided.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="n">data</span>
+
+        <span class="k">if</span> <span class="n">task</span> <span class="o">==</span> <span class="s2">&quot;fit&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fit</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">ckpt_path</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">task</span> <span class="o">==</span> <span class="s2">&quot;test&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_test</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">ckpt_path</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">task</span> <span class="o">==</span> <span class="s2">&quot;predict&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_predict</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">ckpt_path</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">task</span> <span class="o">==</span> <span class="s2">&quot;evaluate&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_evaluate</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">ckpt_path</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown task: </span><span class="si">{</span><span class="n">task</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="cli_main">
+<a class="viewcode-back" href="../../../autoapi/minerva/pipelines/lightning_pipeline/index.html#minerva.pipelines.lightning_pipeline.cli_main">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">cli_main</span><span class="p">():</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">jsonargparse</span><span class="w"> </span><span class="kn">import</span> <span class="n">CLI</span>
+
+    <span class="n">CLI</span><span class="p">(</span><span class="n">SimpleLightningPipeline</span><span class="p">,</span> <span class="n">as_positional</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># , parser_mode=&quot;omegaconf&quot;)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;✨ 🍰 ✨&quot;</span><span class="p">)</span></div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">cli_main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Unicamp.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,340 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>minerva.data.datasets &mdash; minerva  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+    <link rel="next" title="minerva.data.datasets.base" href="base/index.html" />
+    <link rel="prev" title="minerva.data.data_modules.base" href="../data_modules/base/index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            minerva
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../design.html">Minerva Design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorials.html">Examples and Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../contributing.html">Contributing to Minerva</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../../../api.html">Programming Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../../index.html">minerva</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="../../index.html#submodules">Submodules</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="../../analysis/index.html">minerva.analysis</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="../index.html">minerva.data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../losses/index.html">minerva.losses</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../models/index.html">minerva.models</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../optimizers/index.html">minerva.optimizers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../pipelines/index.html">minerva.pipelines</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../samplers/index.html">minerva.samplers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../transforms/index.html">minerva.transforms</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../../utils/index.html">minerva.utils</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">minerva</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../../api.html">Programming Reference</a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">minerva</a></li>
+          <li class="breadcrumb-item"><a href="../index.html">minerva.data</a></li>
+      <li class="breadcrumb-item active">minerva.data.datasets</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../../../_sources/autoapi/minerva/data/datasets/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-minerva.data.datasets">
+<span id="minerva-data-datasets"></span><h1>minerva.data.datasets<a class="headerlink" href="#module-minerva.data.datasets" title="Link to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="base/index.html">minerva.data.datasets.base</a></li>
+</ul>
+</div>
+</section>
+<section id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Link to this heading"></a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#minerva.data.datasets.SimpleDataset" title="minerva.data.datasets.SimpleDataset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">SimpleDataset</span></code></a></p></td>
+<td><p>Dataset is responsible for loading data from multiple readers and</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="package-contents">
+<h2>Package Contents<a class="headerlink" href="#package-contents" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="minerva.data.datasets.SimpleDataset">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">minerva.data.datasets.</span></span><span class="sig-name descname"><span class="pre">SimpleDataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">readers</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transforms</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_single</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/data/datasets/base.html#SimpleDataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.data.datasets.SimpleDataset" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-obj docutils literal notranslate"><span class="pre">torch.utils.data.Dataset</span></code></p>
+<p>Dataset is responsible for loading data from multiple readers and
+responsible for loading data from multiple readers and</p>
+<p>apply specified transforms. It is a generic implementation that can be
+used to create differents dataset, from supervised to unsupervised ones.</p>
+<p>This class implements the common pipeline for reading and transforming data.
+The __getitem__ pipeline is as follows:</p>
+<dl class="simple">
+<dt>For each reader R and transform list T:</dt><dd><ol class="arabic simple">
+<li><p>Read the data from the reader R at the index idx.</p></li>
+<li><p>Apply the transforms T to the data.</p></li>
+<li><p>Append the transformed data to the list of data.</p></li>
+</ol>
+</dd>
+</dl>
+<p>Return the tuple of transformed data.</p>
+<p>Load data from multiple sources and apply specified transforms.</p>
+<section id="parameters">
+<h3>Parameters<a class="headerlink" href="#parameters" title="Link to this heading"></a></h3>
+<dl>
+<dt>readers<span class="classifier">Union[_Reader, List[_Reader]]</span></dt><dd><p>The list of readers to load data from. It can be a single reader or
+a list of readers.</p>
+</dd>
+<dt>transforms<span class="classifier">Optional[Union[_Transform, List[_Transform]]], optional</span></dt><dd><p>The list of transforms to apply to each sample. This can be:
+-   None, in which case no transform is applied.
+-   A single transform, in which case the same transform is applied</p>
+<blockquote>
+<div><p>to data from all readers.</p>
+</div></blockquote>
+<ul class="simple">
+<li><p>A list of transforms, in which case each transform is applied
+to the corresponding reader. That is, the first transform is
+applied to the first reader, the second transform is applied to
+the second reader, and so on.</p></li>
+</ul>
+</dd>
+<dt>return_single<span class="classifier">bool, optional</span></dt><dd><p>If True, the __getitem__ method will return a single sample  when
+a single reader is used. This is useful for unsupervised datasets,
+where we usually have a single reader. If False, the __getitem__
+method will return a tuple of samples, where each sample is from a
+different reader, from same index. This is useful for supervised
+datasets, where the data from different readers are related and
+should be returned together. The default is False.</p>
+</dd>
+</dl>
+</section>
+<section id="examples">
+<h3>Examples<a class="headerlink" href="#examples" title="Link to this heading"></a></h3>
+<p>1. Supervised Dataset:
+<a href="#id1"><span class="problematic" id="id2">``</span></a><a href="#id3"><span class="problematic" id="id4">`</span></a>python
+from minerva.data.readers import ImageReader, LabelReader
+from minerva.transforms import ImageTransform, LabelTransform
+from minerva.data.datasets import SimpleDataset</p>
+<p># Create the readers
+image_reader = ImageReader(“path/to/images”)
+label_reader = LabelReader(“path/to/labels”)</p>
+<p># Create the transforms
+image_transform = ImageTransform()
+label_transform = None          # No transform for the labels
+# Create the dataset
+dataset = SimpleDataset(</p>
+<blockquote>
+<div><p>readers=[image_reader, label_reader],
+transforms=[image_transform, label_transform]</p>
+</div></blockquote>
+<p>)</p>
+<p>dataset[0]  # Returns [image, label]
+<a href="#id5"><span class="problematic" id="id6">``</span></a><a href="#id7"><span class="problematic" id="id8">`</span></a></p>
+<p>2. Unsupervised Dataset:
+<a href="#id9"><span class="problematic" id="id10">``</span></a><a href="#id11"><span class="problematic" id="id12">`</span></a>python
+from minerva.data.readers import ImageReader
+from minerva.transforms import ImageTransform
+from minerva.data.datasets import SimpleDataset</p>
+<p># Create the reader
+image_reader = ImageReader(“path/to/images”)</p>
+<p># Create the transform
+image_transform = ImageTransform()
+# Create the dataset
+dataset = SimpleDataset(</p>
+<blockquote>
+<div><p>readers=[image_reader],
+transforms=image_transform,
+return_single=True</p>
+</div></blockquote>
+<p>)
+dataset[0]  # Returns image
+<a href="#id13"><span class="problematic" id="id14">``</span></a><a href="#id15"><span class="problematic" id="id16">`</span></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.data.datasets.SimpleDataset.__getitem__">
+<span class="sig-name descname"><span class="pre">__getitem__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/data/datasets/base.html#SimpleDataset.__getitem__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.data.datasets.SimpleDataset.__getitem__" title="Link to this definition"></a></dt>
+<dd><p>Load data from multiple sources and apply specified transforms.</p>
+<section id="id17">
+<h4>Parameters<a class="headerlink" href="#id17" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt>idx<span class="classifier">int</span></dt><dd><p>The index of the sample to load.</p>
+</dd>
+</dl>
+</section>
+<section id="returns">
+<h4>Returns<a class="headerlink" href="#returns" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt>List[Any]</dt><dd><p>A list of transformed data from each reader.</p>
+</dd>
+</dl>
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>idx</strong> (<em>int</em>)</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>Union[Any, Tuple[Any, Ellipsis]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.data.datasets.SimpleDataset.__len__">
+<span class="sig-name descname"><span class="pre">__len__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/data/datasets/base.html#SimpleDataset.__len__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.data.datasets.SimpleDataset.__len__" title="Link to this definition"></a></dt>
+<dd><p>The length of the dataset is the length of the first reader.</p>
+<section id="id18">
+<h4>Returns<a class="headerlink" href="#id18" title="Link to this heading"></a></h4>
+<dl class="simple">
+<dt>int</dt><dd><p>The number of samples in the dataset.</p>
+</dd>
+</dl>
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.data.datasets.SimpleDataset.__repr__">
+<span class="sig-name descname"><span class="pre">__repr__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/data/datasets/base.html#SimpleDataset.__repr__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.data.datasets.SimpleDataset.__repr__" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="minerva.data.datasets.SimpleDataset.__str__">
+<span class="sig-name descname"><span class="pre">__str__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../../../_modules/minerva/data/datasets/base.html#SimpleDataset.__str__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#minerva.data.datasets.SimpleDataset.__str__" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.data.datasets.SimpleDataset.readers">
+<span class="sig-name descname"><span class="pre">readers</span></span><a class="headerlink" href="#minerva.data.datasets.SimpleDataset.readers" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.data.datasets.SimpleDataset.return_single">
+<span class="sig-name descname"><span class="pre">return_single</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#minerva.data.datasets.SimpleDataset.return_single" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="minerva.data.datasets.SimpleDataset.transforms">
+<span class="sig-name descname"><span class="pre">transforms</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#minerva.data.datasets.SimpleDataset.transforms" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>readers</strong> (<em>Union</em><em>[</em><a class="reference internal" href="../readers/reader/index.html#minerva.data.readers.reader._Reader" title="minerva.data.readers.reader._Reader"><em>minerva.data.readers.reader._Reader</em></a><em>, </em><em>List</em><em>[</em><a class="reference internal" href="../readers/reader/index.html#minerva.data.readers.reader._Reader" title="minerva.data.readers.reader._Reader"><em>minerva.data.readers.reader._Reader</em></a><em>]</em><em>]</em>)</p></li>
+<li><p><strong>transforms</strong> (<em>Optional</em><em>[</em><em>Union</em><em>[</em><a class="reference internal" href="../../transforms/transform/index.html#minerva.transforms.transform._Transform" title="minerva.transforms.transform._Transform"><em>minerva.transforms.transform._Transform</em></a><em>, </em><em>List</em><em>[</em><a class="reference internal" href="../../transforms/transform/index.html#minerva.transforms.transform._Transform" title="minerva.transforms.transform._Transform"><em>minerva.transforms.transform._Transform</em></a><em>]</em><em>]</em><em>]</em>)</p></li>
+<li><p><strong>return_single</strong> (<em>bool</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../data_modules/base/index.html" class="btn btn-neutral float-left" title="minerva.data.data_modules.base" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="base/index.html" class="btn btn-neutral float-right" title="minerva.data.datasets.base" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Unicamp.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

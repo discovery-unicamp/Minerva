@@ -1,0 +1,154 @@
+minerva.data.datasets.base
+==========================
+
+.. py:module:: minerva.data.datasets.base
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   minerva.data.datasets.base.SimpleDataset
+
+
+Module Contents
+---------------
+
+.. py:class:: SimpleDataset(readers, transforms = None, return_single = False)
+
+   Bases: :py:obj:`torch.utils.data.Dataset`
+
+
+   Dataset is responsible for loading data from multiple readers and
+   responsible for loading data from multiple readers and
+
+   apply specified transforms. It is a generic implementation that can be
+   used to create differents dataset, from supervised to unsupervised ones.
+
+   This class implements the common pipeline for reading and transforming data.
+   The __getitem__ pipeline is as follows:
+
+   For each reader R and transform list T:
+       1. Read the data from the reader R at the index idx.
+       2. Apply the transforms T to the data.
+       3. Append the transformed data to the list of data.
+   Return the tuple of transformed data.
+
+   Load data from multiple sources and apply specified transforms.
+
+   Parameters
+   ----------
+   readers : Union[_Reader, List[_Reader]]
+       The list of readers to load data from. It can be a single reader or
+       a list of readers.
+   transforms : Optional[Union[_Transform, List[_Transform]]], optional
+       The list of transforms to apply to each sample. This can be:
+       -   None, in which case no transform is applied.
+       -   A single transform, in which case the same transform is applied
+           to data from all readers.
+       -   A list of transforms, in which case each transform is applied
+           to the corresponding reader. That is, the first transform is
+           applied to the first reader, the second transform is applied to
+           the second reader, and so on.
+   return_single : bool, optional
+       If True, the __getitem__ method will return a single sample  when
+       a single reader is used. This is useful for unsupervised datasets,
+       where we usually have a single reader. If False, the __getitem__
+       method will return a tuple of samples, where each sample is from a
+       different reader, from same index. This is useful for supervised
+       datasets, where the data from different readers are related and
+       should be returned together. The default is False.
+
+   Examples
+   --------
+   1. Supervised Dataset:
+   ```python
+   from minerva.data.readers import ImageReader, LabelReader
+   from minerva.transforms import ImageTransform, LabelTransform
+   from minerva.data.datasets import SimpleDataset
+
+   # Create the readers
+   image_reader = ImageReader("path/to/images")
+   label_reader = LabelReader("path/to/labels")
+
+   # Create the transforms
+   image_transform = ImageTransform()
+   label_transform = None          # No transform for the labels
+   # Create the dataset
+   dataset = SimpleDataset(
+       readers=[image_reader, label_reader],
+       transforms=[image_transform, label_transform]
+   )
+
+   dataset[0]  # Returns [image, label]
+   ```
+
+   2. Unsupervised Dataset:
+   ```python
+   from minerva.data.readers import ImageReader
+   from minerva.transforms import ImageTransform
+   from minerva.data.datasets import SimpleDataset
+
+   # Create the reader
+   image_reader = ImageReader("path/to/images")
+
+   # Create the transform
+   image_transform = ImageTransform()
+   # Create the dataset
+   dataset = SimpleDataset(
+       readers=[image_reader],
+       transforms=image_transform,
+       return_single=True
+   )
+   dataset[0]  # Returns image
+   ```
+
+
+
+   .. py:method:: __getitem__(idx)
+
+      Load data from multiple sources and apply specified transforms.
+
+      Parameters
+      ----------
+      idx : int
+          The index of the sample to load.
+
+      Returns
+      -------
+      List[Any]
+          A list of transformed data from each reader.
+
+
+
+   .. py:method:: __len__()
+
+      The length of the dataset is the length of the first reader.
+
+      Returns
+      -------
+      int
+          The number of samples in the dataset.
+
+
+
+   .. py:method:: __repr__()
+
+
+   .. py:method:: __str__()
+
+
+   .. py:attribute:: readers
+
+
+   .. py:attribute:: return_single
+      :value: False
+
+
+
+   .. py:attribute:: transforms
+      :value: None
+
+
+

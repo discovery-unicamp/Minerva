@@ -1,0 +1,198 @@
+minerva.models.ssl.byol
+=======================
+
+.. py:module:: minerva.models.ssl.byol
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   minerva.models.ssl.byol.BYOL
+
+
+Module Contents
+---------------
+
+.. py:class:: BYOL(backbone = None, projection_head = None, prediction_head = None, learning_rate = 0.001, schedule = 90000, criterion = None)
+
+   Bases: :py:obj:`lightning.LightningModule`
+
+
+   Bootstrap Your Own Latent (BYOL) model for self-supervised learning.
+
+   References
+   ----------
+   Grill, J., Strub, F., Altché, F., Tallec, C., Richemond, P. H., Buchatskaya, E., ... & Valko, M. (2020).
+   "Bootstrap your own latent - a new approach to self-supervised learning." Advances in Neural Information Processing Systems, 33, 21271-21284.
+
+   Initializes the BYOL model.
+
+   Parameters
+   ----------
+   backbone : Optional[nn.Module]
+       The backbone network for feature extraction. Defaults to DeepLabV3Backbone.
+   projection_head : Optional[nn.Module]
+       Optional custom projection head module. If None, a default MLP-based projection head is used.
+   prediction_head : Optional[nn.Module]
+       Optional custom prediction head module. If None, a default MLP-based prediction head is used.
+   learning_rate : float
+       The learning rate for the optimizer. Defaults to 1e-3.
+   schedule : int
+       The total number of steps for cosine decay scheduling. Defaults to 90000.
+   criterion : Optional[Optimizer]
+       Loss function to use. Defaults to NegativeCosineSimilarity.
+
+
+   .. py:method:: _default_prediction_head()
+
+      Creates the default prediction head used in BYOL.
+
+
+
+   .. py:method:: _default_projection_head()
+
+      Creates the default projection head used in BYOL.
+
+
+
+   .. py:attribute:: backbone
+
+
+   .. py:attribute:: backbone_momentum
+
+
+   .. py:method:: configure_optimizers()
+
+      Configures the optimizer for the BYOL model.
+
+      Returns
+      -------
+      torch.optim.SGD
+          Optimizer with configured learning rate.
+
+
+
+   .. py:method:: cosine_schedule(step, max_steps, start_value, end_value, period = None)
+
+      Uses cosine decay to gradually modify `start_value` to reach `end_value`.
+
+      Parameters
+      ----------
+      step : int
+          Current step number.
+      max_steps : int
+          Total number of steps.
+      start_value : float
+          Starting value.
+      end_value : float
+          Target value.
+      period : Optional[int]
+          Steps over which cosine decay completes a full cycle. Defaults to max_steps.
+
+      Returns
+      -------
+      float
+          Cosine decay value.
+
+
+
+   .. py:attribute:: criterion
+
+
+   .. py:method:: deactivate_requires_grad(model)
+
+      Freezes the weights of the model.
+
+      Parameters
+      ----------
+      model : nn.Module
+          Model to freeze.
+
+
+
+   .. py:method:: forward(x)
+
+      Forward pass for the BYOL model.
+
+      Parameters
+      ----------
+      x : Tensor
+          Input image tensor.
+
+      Returns
+      -------
+      Tensor
+          Output tensor after passing through the backbone, projection, and prediction heads.
+
+
+
+   .. py:method:: forward_momentum(x)
+
+      Forward pass using momentum encoder.
+
+      Parameters
+      ----------
+      x : Tensor
+          Input image tensor.
+
+      Returns
+      -------
+      Tensor
+          Output tensor after passing through the momentum backbone and projection head.
+
+
+
+   .. py:attribute:: learning_rate
+      :value: 0.001
+
+
+
+   .. py:attribute:: prediction_head
+
+
+   .. py:attribute:: projection_head
+
+
+   .. py:attribute:: projection_head_momentum
+
+
+   .. py:attribute:: schedule_length
+      :value: 90000
+
+
+
+   .. py:method:: training_step(batch, batch_idx)
+
+      Performs a training step for BYOL.
+
+      Parameters
+      ----------
+      batch : Sequence[Tensor]
+          A batch of input pairs (x0, x1).
+      batch_idx : int
+          Batch index.
+
+      Returns
+      -------
+      Tensor
+          The computed loss for the current batch.
+
+
+
+   .. py:method:: update_momentum(model, model_ema, m)
+
+      Updates model weights using momentum.
+
+      Parameters
+      ----------
+      model : nn.Module
+          Original model.
+      model_ema : nn.Module
+          Momentum model.
+      m : float
+          Momentum factor.
+
+
+

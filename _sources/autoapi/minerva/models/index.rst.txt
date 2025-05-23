@@ -1,0 +1,19 @@
+minerva.models
+==============
+
+.. py:module:: minerva.models
+
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   /autoapi/minerva/models/adapters/index
+   /autoapi/minerva/models/finetune_adapters/index
+   /autoapi/minerva/models/loaders/index
+   /autoapi/minerva/models/nets/index
+   /autoapi/minerva/models/ssl/index
+
+

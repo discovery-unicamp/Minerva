@@ -1,0 +1,902 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Getting Started with Minerva for Seismic Facies Segmentation\n",
+    "\n",
+    "Seismic Facies Classification is a challenging problem in the field of geophysics. The goal is to predict the lithology of the subsurface based on seismic data. In this notebook, we will use the Minerva to train and evaluate a DeepLabV3 model from scratch for seismic facies classification.\n",
+    "\n",
+    "Thus, this notebook is a step-by-step guide to train a DeepLabV3 model for seismic facies classification using Minerva. It comprises the following steps:\n",
+    "\n",
+    "1. Data Preparation\n",
+    "2. Model Creation\n",
+    "3. Model Training\n",
+    "4. Model Evaluation"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Imports"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/usr/local/lib/python3.10/dist-packages/tqdm/auto.py:21: TqdmWarning: IProgress not found. Please update jupyter and ipywidgets. See https://ipywidgets.readthedocs.io/en/stable/user_install.html\n",
+      "  from .autonotebook import tqdm as notebook_tqdm\n"
+     ]
+    }
+   ],
+   "source": [
+    "from pathlib import Path\n",
+    "import numpy as np\n",
+    "from minerva.data.readers.patched_array_reader import NumpyArrayReader\n",
+    "from minerva.data.data_modules.base import MinervaDataModule\n",
+    "from minerva.transforms.transform import Repeat, Squeeze\n",
+    "from minerva.data.datasets.base import SimpleDataset\n",
+    "from minerva.models.nets.image.deeplabv3 import DeepLabV3\n",
+    "import lightning as L\n",
+    "import torch\n",
+    "from torchmetrics import JaccardIndex\n",
+    "import matplotlib.pyplot as plt"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## 1. Data Preparation\n",
+    "\n",
+    "We begin by preparing the data for training and evaluation.\n",
+    "\n",
+    "For this tutorial, we will use the [F3 dataset](https://zenodo.org/records/3755060/files/data.zip?download=1) from the seismic facies classification benchmark, introduced in the following work:\n",
+    "\n",
+    "```latex\n",
+    "Alaudah, Y., Michałowicz, P., Alfarraj, M. and AlRegib, G., 2019. A machine-learning benchmark for facies classification. Interpretation, 7(3), pp.SE175-SE187.\n",
+    "```\n",
+    "\n",
+    "This dataset is a 3D seismic volume from the F3 block in the Netherlands North Sea. It will be downloaded and unzipped in the following cell, at `datasets/f3/` directory."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# !wget https://zenodo.org/records/3755060/files/data.zip?download=1 -O f3.zip\n",
+    "# !mkdir -p datasets/f3\n",
+    "# !unzip -o f3.zip -d datasets/f3\n",
+    "# !rm f3.zip"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Once extracted, the data is organized as follows:\n",
+    "\n",
+    "```tree\n",
+    "f3/data/\n",
+    "├── test_once\n",
+    "│   ├── test1_labels.npy\n",
+    "│   ├── test1_seismic.npy\n",
+    "│   ├── test2_labels.npy\n",
+    "│   └── test2_seismic.npy\n",
+    "└── train\n",
+    "    ├── train_labels.npy\n",
+    "    └── train_seismic.npy\n",
+    "```\n",
+    "\n",
+    "The `train` folder contains the training data, while the `test_once` folder holds the test data. Each sample is stored in two separate NumPy files: one for the seismic volume and one for the corresponding labels.\n",
+    "\n",
+    "Each `.npy` file contains a 3D volume with the following dimensions:\n",
+    "\n",
+    "- `train_seismic`: `(401, 701, 255)` — where `(401, 701)` are the spatial dimensions, and `255` is the number of seismic traces.  \n",
+    "- `test1_seismic`: `(200, 701, 255)` — same trace dimension, but fewer spatial slices.  \n",
+    "- `test2_seismic`: `(601, 200, 255)` — different spatial dimensions from training and Test 1.\n",
+    "\n",
+    "**Note**: The label volumes have the same shapes as their corresponding seismic volumes.\n",
+    "\n",
+    "To process the data, we iterate over the first dimension of the seismic volumes to extract 2D slices and their associated labels. For example, for the training data, we extract `401` slices of shape `(701, 255)` each, along with their matching label slices of the same shape.\n",
+    "\n",
+    "It's important to note that Test 1 samples have the same spatial dimensions as the training set, making it suitable for direct evaluation. Test 2, however, has different spatial dimensions and may require separate handling. Thus, we will focus on Test 1 for evaluation in this notebook.\n",
+    "\n",
+    "Each label slice is a 2D array containing 6 distinct classes, representing different lithologies."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## 1.1 Creating Data Readers and Dataset\n",
+    "\n",
+    "In Minerva, we can create readers, which are responsible for loading a single unit of data in a ordered way. It is like an ordered collection of data. A Dataset is a collection of readers and transforms, associated to each reader.\n",
+    "\n",
+    "Let's first create 2 readers for training data. The first reader will be responsible to iterate over the training seismic data, while the second reader will iterate over the corresponding labels.\n",
+    "\n",
+    "We will use `NumpyArrayReader` that allows use to read data from NumPy files.\n",
+    "There are two required arguments for `NumpyArrayReader`:\n",
+    "- `data`: the path to the NumPy file or the NumPy array.\n",
+    "- `data_shape`: the shape of each sample. We will use `(1, 701, 255)` for seismic data and `(1, 701, 255)` for labels. Thus, the shape of each sample will be `(1, 701, 255)` and we will have 401 samples for training data."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "root_data_dir = Path(\"datasets/f3/data/\")\n",
+    "\n",
+    "train_data_reader = NumpyArrayReader(\n",
+    "    data=root_data_dir / \"train\" / \"train_seismic.npy\",\n",
+    "    data_shape=(1, 701, 255),\n",
+    ")\n",
+    "\n",
+    "train_labels_reader = NumpyArrayReader(\n",
+    "    data=root_data_dir / \"train\" / \"train_labels.npy\",\n",
+    "    data_shape=(1, 701, 255),\n",
+    ")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Once the readers are set up, we can create a dataset using them. For this purpose, we'll use the `SimpleDataset` class, which takes two main inputs:\n",
+    "\n",
+    "- A list of **readers** (data sources)  \n",
+    "- A list of **transforms** (optional preprocessing steps)\n",
+    "\n",
+    "When an item at index `i` is requested from the dataset (e.g., `dataset[i]`), the following steps occur:\n",
+    "\n",
+    "1. The dataset retrieves the item at index `i` from `reader[0]` and applies the corresponding transform `transform[0]`.\n",
+    "2. It then retrieves the item at index `i` from `reader[1]` and applies `transform[1]`.\n",
+    "3. Finally, it returns a 2-element tuple containing the transformed outputs:\n",
+    "   - The first element is the transformed seismic data: `transform[0](reader[0][i])`\n",
+    "   - The second element is the transformed label: `transform[1](reader[1][i])`\n",
+    "\n",
+    "This design enables flexible and consistent pairing of multiple data sources with their corresponding preprocessing logic-ideal for training, validation, or testing workflows.\n",
+    "\n",
+    "\n",
+    "We will use the following transforms:\n",
+    "- For seismic data: as data is uni-dimensional, and our model expects RGB data, we will convert the seismic data to a 3-channel image by repeating the same data across 3 channels. Thus, we will use `Repeat` transform, and our data will be of shape `(3, 701, 255)`.\n",
+    "- For labels: we will use no transforms. The data will be of shape `(1, 701, 255)`."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "==================================================\n",
+      "           📂 SimpleDataset Information            \n",
+      "==================================================\n",
+      "📌 Dataset Type: SimpleDataset\n",
+      "   └── Reader 0: NumpyArrayReader(samples=401, shape=(1, 701, 255), dtype=float64)\n",
+      "   │     └── Transform: Repeat(axis=0, n_repetitions=3)\n",
+      "   └── Reader 1: NumpyArrayReader(samples=401, shape=(1, 701, 255), dtype=uint8)\n",
+      "   │     └── Transform: None\n",
+      "   │\n",
+      "   └── Total Readers: 2\n",
+      "==================================================\n"
+     ]
+    }
+   ],
+   "source": [
+    "train_dataset = SimpleDataset(\n",
+    "    readers=[\n",
+    "        train_data_reader,  # 1st reader is the data\n",
+    "        train_labels_reader # 2nd reader is the labels\n",
+    "    ],\n",
+    "    transforms=[\n",
+    "        Repeat(axis=0, n_repetitions=3),  # Transforms to first reader (data)\n",
+    "        None                              # Transforms to second reader (labels)\n",
+    "    ],\n",
+    ")\n",
+    "\n",
+    "print(train_dataset)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "The same will be done for the test data. However, the only difference will be at test label transform. We do not want the channels dimension for the labels. Thus, the shape of the label data will be `(701, 255)`. Thus, we will use `Squeeze` transform to remove the channels dimension. For the seismic data, we will use the same transform as the training data."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "==================================================\n",
+      "           📂 SimpleDataset Information            \n",
+      "==================================================\n",
+      "📌 Dataset Type: SimpleDataset\n",
+      "   └── Reader 0: NumpyArrayReader(samples=200, shape=(1, 701, 255), dtype=float64)\n",
+      "   │     └── Transform: Repeat(axis=0, n_repetitions=3)\n",
+      "   └── Reader 1: NumpyArrayReader(samples=200, shape=(1, 701, 255), dtype=uint8)\n",
+      "   │     └── Transform: Squeeze(axis=0)\n",
+      "   │\n",
+      "   └── Total Readers: 2\n",
+      "==================================================\n"
+     ]
+    }
+   ],
+   "source": [
+    "test_data_reader = NumpyArrayReader(\n",
+    "    data=root_data_dir / \"test_once\" / \"test1_seismic.npy\",\n",
+    "    data_shape=(1, 701, 255),\n",
+    ")\n",
+    "\n",
+    "test_labels_reader = NumpyArrayReader(\n",
+    "    data=root_data_dir / \"test_once\" / \"test1_labels.npy\",\n",
+    "    data_shape=(1, 701, 255),\n",
+    ")\n",
+    "\n",
+    "test_dataset = SimpleDataset(\n",
+    "    readers=[test_data_reader, test_labels_reader],\n",
+    "    transforms=[Repeat(axis=0, n_repetitions=3), Squeeze(0)],\n",
+    ")\n",
+    "\n",
+    "print(test_dataset)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### 1.2. Creating the `MinervaDataModule`\n",
+    "\n",
+    "Minerva models are implemented using Pytorch Lightning. \n",
+    "Thus, to train a model we should create a `LightningDataModule` object that will handle the data loading and preprocessing.\n",
+    "Minerva provides a `MinervaDataModule` class that extends Pytorch Lightning's `LightningDataModule` class and standardizes the data loading process.\n",
+    "\n",
+    "We may create a `MinervaDataModule` object by passing the training, validation, and testing datasets, as well as the batch size and the number of workers for data loading.\n",
+    "\n",
+    "We use `drop_last` parameter to drop the last batch if it is smaller than the batch size. This is quite useful as DeepLabV3 model expects the batch is higher than 1."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "==================================================\n",
+      "                    🆔 F3 Dataset\n",
+      "==================================================\n",
+      "└── Predict Split: test\n",
+      "📂 Datasets:\n",
+      "   ├── Train Dataset:\n",
+      "   │      ==================================================\n",
+      "   │                 📂 SimpleDataset Information            \n",
+      "   │      ==================================================\n",
+      "   │      📌 Dataset Type: SimpleDataset\n",
+      "   │         └── Reader 0: NumpyArrayReader(samples=401, shape=(1, 701, 255), dtype=float64)\n",
+      "   │         │     └── Transform: Repeat(axis=0, n_repetitions=3)\n",
+      "   │         └── Reader 1: NumpyArrayReader(samples=401, shape=(1, 701, 255), dtype=uint8)\n",
+      "   │         │     └── Transform: None\n",
+      "   │         │\n",
+      "   │         └── Total Readers: 2\n",
+      "   │      ==================================================\n",
+      "   ├── Val Dataset:\n",
+      "   │      None\n",
+      "   └── Test Dataset:\n",
+      "          ==================================================\n",
+      "                     📂 SimpleDataset Information            \n",
+      "          ==================================================\n",
+      "          📌 Dataset Type: SimpleDataset\n",
+      "             └── Reader 0: NumpyArrayReader(samples=200, shape=(1, 701, 255), dtype=float64)\n",
+      "             │     └── Transform: Repeat(axis=0, n_repetitions=3)\n",
+      "             └── Reader 1: NumpyArrayReader(samples=200, shape=(1, 701, 255), dtype=uint8)\n",
+      "             │     └── Transform: Squeeze(axis=0)\n",
+      "             │\n",
+      "             └── Total Readers: 2\n",
+      "          ==================================================\n",
+      "\n",
+      "🛠 **Dataloader Configurations:**\n",
+      "   ├── Dataloader class: <class 'torch.utils.data.dataloader.DataLoader'>\n",
+      "   ├── Train Dataloader Kwargs:\n",
+      "         ├── batch_size: 16\n",
+      "         ├── num_workers: 4\n",
+      "         ├── shuffle: true\n",
+      "         ├── drop_last: true\n",
+      "   ├── Val Dataloader Kwargs:\n",
+      "         ├── batch_size: 16\n",
+      "         ├── num_workers: 4\n",
+      "         ├── shuffle: false\n",
+      "         ├── drop_last: false\n",
+      "   └── Test Dataloader Kwargs:\n",
+      "         ├── batch_size: 16\n",
+      "         ├── num_workers: 4\n",
+      "         ├── shuffle: false\n",
+      "         ├── drop_last: false\n",
+      "==================================================\n"
+     ]
+    }
+   ],
+   "source": [
+    "data_module = MinervaDataModule(\n",
+    "    train_dataset=train_dataset,\n",
+    "    test_dataset=test_dataset,\n",
+    "    batch_size=16,\n",
+    "    num_workers=4,\n",
+    "    additional_train_dataloader_kwargs={\"drop_last\": True},\n",
+    "    name=\"F3 Dataset\"\n",
+    ")\n",
+    "\n",
+    "print(data_module)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## 2. Creating the Model\n",
+    "\n",
+    "\n",
+    "For this tutorial, we will use a DeepLabV3 model for seismic facies classification. The DeepLabV3 model is a popular architecture for semantic segmentation tasks, such as image segmentation. It is based on a deep convolutional neural network with a ResNet backbone and an Atrous Spatial Pyramid Pooling (ASPP) module. Minerva provides a `DeepLabV3` model that can be used for seismic facies classification. We just need to pass the number of classes to the model, which is 6 in this case."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "DeepLabV3(\n",
+       "  (backbone): DeepLabV3Backbone(\n",
+       "    (RN50model): ResNet(\n",
+       "      (conv1): Conv2d(3, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)\n",
+       "      (bn1): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n",
+       "      (relu): ReLU(inplace=True)\n",
+       "      (maxpool): MaxPool2d(kernel_size=3, stride=2, padding=1, dilation=1, ceil_mode=False)\n",
+       "      (layer1): Sequential(\n",
+       "        (0): Bottleneck(\n",
+       "          (conv1): Conv2d(64, 64, kernel_size=(1, 1), stride=(1, 1), bias=False)\n",
+       "          (bn1): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n",
+       "          (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)\n",
+       "          (bn2): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n",
+       "          (conv3): Conv2d(64, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)\n",
+       "          (bn3): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n",
+       "          (relu): ReLU(inplace=True)\n",
+       "          (downsample): Sequential(\n",
+       "            (0): Conv2d(64, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)\n",
+       "            (1): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n",
+       "          )\n",
+       "        )\n",
+       "        (1): Bottleneck(\n",
+       "          (conv1): Conv2d(256, 64, kernel_size=(1, 1), stride=(1, 1), bias=False)\n",
+       "          (bn1): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n",
+       "          (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)\n",
+       "          (bn2): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n",
+       "          (conv3): Conv2d(64, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)\n",
+       "          (bn3): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n",
+       "          (relu): ReLU(inplace=True)\n",
+       "        )\n",
+       "        (2): Bottleneck(\n",
+       "          (conv1): Conv2d(256, 64, kernel_size=(1, 1), stride=(1, 1), bias=False)\n",
+       "          (bn1): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n",
+       "          (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)\n",
+       "          (bn2): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n",
+       "          (conv3): Conv2d(64, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)\n",
+       "          (bn3): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n",
+       "          (relu): ReLU(inplace=True)\n",
+       "        )\n",
+       "      )\n",
+       "      (layer2): Sequential(\n",
+       "        (0): Bottleneck(\n",
+       "          (conv1): Conv2d(256, 128, kernel_size=(1, 1), stride=(1, 1), bias=False)\n",
+       "          (bn1): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n",
+       "          (conv2): Conv2d(128, 128, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False)\n",
+       "          (bn2): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n",
+       "          (conv3): Conv2d(128, 512, kernel_size=(1, 1), stride=(1, 1), bias=False)\n",
+       "          (bn3): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n",
+       "          (relu): ReLU(inplace=True)\n",
+       "          (downsample): Sequential(\n",
+       "            (0): Conv2d(256, 512, kernel_size=(1, 1), stride=(2, 2), bias=False)\n",
+       "            (1): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n",
+       "          )\n",
+       "        )\n",
+       "        (1): Bottleneck(\n",
+       "          (conv1): Conv2d(512, 128, kernel_size=(1, 1), stride=(1, 1), bias=False)\n",
+       "          (bn1): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n",
+       "          (conv2): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)\n",
+       "          (bn2): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n",
+       "          (conv3): Conv2d(128, 512, kernel_size=(1, 1), stride=(1, 1), bias=False)\n",
+       "          (bn3): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n",
+       "          (relu): ReLU(inplace=True)\n",
+       "        )\n",
+       "        (2): Bottleneck(\n",
+       "          (conv1): Conv2d(512, 128, kernel_size=(1, 1), stride=(1, 1), bias=False)\n",
+       "          (bn1): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n",
+       "          (conv2): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)\n",
+       "          (bn2): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n",
+       "          (conv3): Conv2d(128, 512, kernel_size=(1, 1), stride=(1, 1), bias=False)\n",
+       "          (bn3): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n",
+       "          (relu): ReLU(inplace=True)\n",
+       "        )\n",
+       "        (3): Bottleneck(\n",
+       "          (conv1): Conv2d(512, 128, kernel_size=(1, 1), stride=(1, 1), bias=False)\n",
+       "          (bn1): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n",
+       "          (conv2): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)\n",
+       "          (bn2): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n",
+       "          (conv3): Conv2d(128, 512, kernel_size=(1, 1), stride=(1, 1), bias=False)\n",
+       "          (bn3): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n",
+       "          (relu): ReLU(inplace=True)\n",
+       "        )\n",
+       "      )\n",
+       "      (layer3): Sequential(\n",
+       "        (0): Bottleneck(\n",
+       "          (conv1): Conv2d(512, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)\n",
+       "          (bn1): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n",
+       "          (conv2): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)\n",
+       "          (bn2): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n",
+       "          (conv3): Conv2d(256, 1024, kernel_size=(1, 1), stride=(1, 1), bias=False)\n",
+       "          (bn3): BatchNorm2d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n",
+       "          (relu): ReLU(inplace=True)\n",
+       "          (downsample): Sequential(\n",
+       "            (0): Conv2d(512, 1024, kernel_size=(1, 1), stride=(1, 1), bias=False)\n",
+       "            (1): BatchNorm2d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n",
+       "          )\n",
+       "        )\n",
+       "        (1): Bottleneck(\n",
+       "          (conv1): Conv2d(1024, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)\n",
+       "          (bn1): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n",
+       "          (conv2): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(2, 2), dilation=(2, 2), bias=False)\n",
+       "          (bn2): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n",
+       "          (conv3): Conv2d(256, 1024, kernel_size=(1, 1), stride=(1, 1), bias=False)\n",
+       "          (bn3): BatchNorm2d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n",
+       "          (relu): ReLU(inplace=True)\n",
+       "        )\n",
+       "        (2): Bottleneck(\n",
+       "          (conv1): Conv2d(1024, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)\n",
+       "          (bn1): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n",
+       "          (conv2): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(2, 2), dilation=(2, 2), bias=False)\n",
+       "          (bn2): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n",
+       "          (conv3): Conv2d(256, 1024, kernel_size=(1, 1), stride=(1, 1), bias=False)\n",
+       "          (bn3): BatchNorm2d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n",
+       "          (relu): ReLU(inplace=True)\n",
+       "        )\n",
+       "        (3): Bottleneck(\n",
+       "          (conv1): Conv2d(1024, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)\n",
+       "          (bn1): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n",
+       "          (conv2): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(2, 2), dilation=(2, 2), bias=False)\n",
+       "          (bn2): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n",
+       "          (conv3): Conv2d(256, 1024, kernel_size=(1, 1), stride=(1, 1), bias=False)\n",
+       "          (bn3): BatchNorm2d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n",
+       "          (relu): ReLU(inplace=True)\n",
+       "        )\n",
+       "        (4): Bottleneck(\n",
+       "          (conv1): Conv2d(1024, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)\n",
+       "          (bn1): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n",
+       "          (conv2): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(2, 2), dilation=(2, 2), bias=False)\n",
+       "          (bn2): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n",
+       "          (conv3): Conv2d(256, 1024, kernel_size=(1, 1), stride=(1, 1), bias=False)\n",
+       "          (bn3): BatchNorm2d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n",
+       "          (relu): ReLU(inplace=True)\n",
+       "        )\n",
+       "        (5): Bottleneck(\n",
+       "          (conv1): Conv2d(1024, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)\n",
+       "          (bn1): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n",
+       "          (conv2): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(2, 2), dilation=(2, 2), bias=False)\n",
+       "          (bn2): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n",
+       "          (conv3): Conv2d(256, 1024, kernel_size=(1, 1), stride=(1, 1), bias=False)\n",
+       "          (bn3): BatchNorm2d(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n",
+       "          (relu): ReLU(inplace=True)\n",
+       "        )\n",
+       "      )\n",
+       "      (layer4): Sequential(\n",
+       "        (0): Bottleneck(\n",
+       "          (conv1): Conv2d(1024, 512, kernel_size=(1, 1), stride=(1, 1), bias=False)\n",
+       "          (bn1): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n",
+       "          (conv2): Conv2d(512, 512, kernel_size=(3, 3), stride=(1, 1), padding=(2, 2), dilation=(2, 2), bias=False)\n",
+       "          (bn2): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n",
+       "          (conv3): Conv2d(512, 2048, kernel_size=(1, 1), stride=(1, 1), bias=False)\n",
+       "          (bn3): BatchNorm2d(2048, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n",
+       "          (relu): ReLU(inplace=True)\n",
+       "          (downsample): Sequential(\n",
+       "            (0): Conv2d(1024, 2048, kernel_size=(1, 1), stride=(1, 1), bias=False)\n",
+       "            (1): BatchNorm2d(2048, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n",
+       "          )\n",
+       "        )\n",
+       "        (1): Bottleneck(\n",
+       "          (conv1): Conv2d(2048, 512, kernel_size=(1, 1), stride=(1, 1), bias=False)\n",
+       "          (bn1): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n",
+       "          (conv2): Conv2d(512, 512, kernel_size=(3, 3), stride=(1, 1), padding=(4, 4), dilation=(4, 4), bias=False)\n",
+       "          (bn2): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n",
+       "          (conv3): Conv2d(512, 2048, kernel_size=(1, 1), stride=(1, 1), bias=False)\n",
+       "          (bn3): BatchNorm2d(2048, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n",
+       "          (relu): ReLU(inplace=True)\n",
+       "        )\n",
+       "        (2): Bottleneck(\n",
+       "          (conv1): Conv2d(2048, 512, kernel_size=(1, 1), stride=(1, 1), bias=False)\n",
+       "          (bn1): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n",
+       "          (conv2): Conv2d(512, 512, kernel_size=(3, 3), stride=(1, 1), padding=(4, 4), dilation=(4, 4), bias=False)\n",
+       "          (bn2): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n",
+       "          (conv3): Conv2d(512, 2048, kernel_size=(1, 1), stride=(1, 1), bias=False)\n",
+       "          (bn3): BatchNorm2d(2048, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n",
+       "          (relu): ReLU(inplace=True)\n",
+       "        )\n",
+       "      )\n",
+       "      (avgpool): AdaptiveAvgPool2d(output_size=(1, 1))\n",
+       "      (fc): Linear(in_features=2048, out_features=1000, bias=True)\n",
+       "    )\n",
+       "  )\n",
+       "  (fc): DeepLabV3PredictionHead(\n",
+       "    (0): ASPP(\n",
+       "      (convs): ModuleList(\n",
+       "        (0): Sequential(\n",
+       "          (0): Conv2d(2048, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)\n",
+       "          (1): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n",
+       "          (2): ReLU()\n",
+       "        )\n",
+       "        (1): ASPPConv(\n",
+       "          (0): Conv2d(2048, 256, kernel_size=(3, 3), stride=(1, 1), padding=(12, 12), dilation=(12, 12), bias=False)\n",
+       "          (1): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n",
+       "          (2): ReLU()\n",
+       "        )\n",
+       "        (2): ASPPConv(\n",
+       "          (0): Conv2d(2048, 256, kernel_size=(3, 3), stride=(1, 1), padding=(24, 24), dilation=(24, 24), bias=False)\n",
+       "          (1): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n",
+       "          (2): ReLU()\n",
+       "        )\n",
+       "        (3): ASPPConv(\n",
+       "          (0): Conv2d(2048, 256, kernel_size=(3, 3), stride=(1, 1), padding=(36, 36), dilation=(36, 36), bias=False)\n",
+       "          (1): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n",
+       "          (2): ReLU()\n",
+       "        )\n",
+       "        (4): ASPPPooling(\n",
+       "          (0): AdaptiveAvgPool2d(output_size=1)\n",
+       "          (1): Conv2d(2048, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)\n",
+       "          (2): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n",
+       "          (3): ReLU()\n",
+       "        )\n",
+       "      )\n",
+       "      (project): Sequential(\n",
+       "        (0): Conv2d(1280, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)\n",
+       "        (1): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n",
+       "        (2): ReLU()\n",
+       "        (3): Dropout(p=0.5, inplace=False)\n",
+       "      )\n",
+       "    )\n",
+       "    (1): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)\n",
+       "    (2): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)\n",
+       "    (3): ReLU()\n",
+       "    (4): Conv2d(256, 6, kernel_size=(1, 1), stride=(1, 1))\n",
+       "  )\n",
+       "  (loss_fn): CrossEntropyLoss()\n",
+       ")"
+      ]
+     },
+     "execution_count": 7,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "model = DeepLabV3(num_classes=6)\n",
+    "model"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## 3. Defining the trainer\n",
+    "\n",
+    "As we are using Pytorch Lightning, we need to define a `Trainer` object to train the model.\n",
+    "We can define the trainer by passing the following parameters:\n",
+    "- `max_epochs`: Maximum number of epochs to train the model.\n",
+    "- `acceleartor`: Device to use for training. It can be `cpu` or `gpu`.\n",
+    "- `devices`: the list or the number of accelerator to use for training.\n",
+    "\n",
+    "For this example we will disable logging and checkpointing, by setting `logger=False` and `checkpoint_callback=False`."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 8,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "GPU available: True (cuda), used: True\n",
+      "TPU available: False, using: 0 TPU cores\n",
+      "HPU available: False, using: 0 HPUs\n"
+     ]
+    },
+    {
+     "data": {
+      "text/plain": [
+       "<lightning.pytorch.trainer.trainer.Trainer at 0x79216919c460>"
+      ]
+     },
+     "execution_count": 8,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "trainer = L.Trainer(\n",
+    "    max_epochs=100,\n",
+    "    accelerator=\"gpu\",\n",
+    "    devices=1,\n",
+    "    logger=False,\n",
+    "    enable_checkpointing=False,\n",
+    ")\n",
+    "\n",
+    "trainer"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## 3.1. Training the model\n",
+    "\n",
+    "To train the model we need to have three objects: the model, the data module, and the trainer.\n",
+    "We can train the model by calling the `fit` method from the trainer and passing the model and the data module.\n",
+    "\n",
+    "The `fit` method will train the model for the number of epochs defined in the trainer object. Also, training dataloader will be used for training, and validation dataloader will be used for validation."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 9,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/home/vscode/.local/lib/python3.10/site-packages/lightning/pytorch/trainer/configuration_validator.py:70: You defined a `validation_step` but have no `val_dataloader`. Skipping val loop.\n",
+      "LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]\n",
+      "\n",
+      "  | Name     | Type                    | Params | Mode \n",
+      "-------------------------------------------------------------\n",
+      "0 | backbone | DeepLabV3Backbone       | 25.6 M | train\n",
+      "1 | fc       | DeepLabV3PredictionHead | 16.1 M | train\n",
+      "2 | loss_fn  | CrossEntropyLoss        | 0      | train\n",
+      "-------------------------------------------------------------\n",
+      "41.7 M    Trainable params\n",
+      "0         Non-trainable params\n",
+      "41.7 M    Total params\n",
+      "166.736   Total estimated model params size (MB)\n",
+      "186       Modules in train mode\n",
+      "0         Modules in eval mode\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Epoch 0:   0%|          | 0/25 [00:00<?, ?it/s] "
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/home/vscode/.local/lib/python3.10/site-packages/lightning/pytorch/core/module.py:512: You called `self.log('train_loss', ..., logger=True)` but have no logger configured. You can enable one by doing `Trainer(logger=ALogger(...))`\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Epoch 99: 100%|██████████| 25/25 [00:12<00:00,  2.04it/s, train_loss=0.0112]"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "`Trainer.fit` stopped: `max_epochs=100` reached.\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Epoch 99: 100%|██████████| 25/25 [00:12<00:00,  2.04it/s, train_loss=0.0112]\n"
+     ]
+    }
+   ],
+   "source": [
+    "trainer.fit(model, data_module)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## 4. Evaluating Model\n",
+    "\n",
+    "Once model is trained, we can evaluate the performance of the model on the test dataset.\n",
+    "The performance is evaluated using the mIoU metric.\n",
+    "\n",
+    "To evaluate the model, we perform the following steps:\n",
+    "1. Perform inference on the test dataset using the trained model. This is done using the `trainer.predict` method. The method returns the predicted logits for each sample in the test dataset.\n",
+    "2. Calculate the predicted labels by taking the argmax of the logits.\n",
+    "3. Obtain the labels from the test dataset.\n",
+    "4. Create the accuracy metric object and pass the predicted labels and the true labels."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 10,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Predicting DataLoader 0: 100%|██████████| 13/13 [00:03<00:00,  4.00it/s]\n"
+     ]
+    }
+   ],
+   "source": [
+    "# 1. Obtain predictions for the test set\n",
+    "predictions = trainer.predict(model, data_module)\n",
+    "# As predictions is a list of batches, we concatenate them along the first dimension\n",
+    "predictions = torch.cat(predictions, dim=0)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 11,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "The shape of the predicted labels is torch.Size([200, 701, 255]) and dtype torch.int64\n"
+     ]
+    }
+   ],
+   "source": [
+    "# 2. We an use the torch.argmax function to obtain the class with the highest probability\n",
+    "predicted_classes = torch.argmax(predictions, dim=1)\n",
+    "# Let's print the predicted classes\n",
+    "print(f\"The shape of the predicted labels is {predicted_classes.shape} and dtype {predicted_classes.dtype}\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 12,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "The shape of the true labels is torch.Size([200, 701, 255]) and dtype torch.int64\n"
+     ]
+    }
+   ],
+   "source": [
+    "# 3. Let's obtain the true labels\n",
+    "test_samples = np.array([y for _, y in data_module.test_dataset])\n",
+    "y = torch.from_numpy(test_samples).long()\n",
+    "\n",
+    "# Let's print the true labels\n",
+    "print(f\"The shape of the true labels is {y.shape} and dtype {y.dtype}\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 13,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "The mIoU of the model is 71.59%\n"
+     ]
+    }
+   ],
+   "source": [
+    "# 4. Let's create the accuracy metric object and compute the accuracy\n",
+    "jaccard = JaccardIndex(task=\"multiclass\", num_classes=6)\n",
+    "score = jaccard(predicted_classes, y)\n",
+    "print(f\"The mIoU of the model is {score.item()*100:.2f}%\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### 4.1. Visualizing the Predictions\n",
+    "\n",
+    "We can also visualize the predictions made by the model on the test dataset. \n",
+    "\n",
+    "We will visualize inline number 100 using Matplotlib."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "image/png": "iVBORw0KGgoAAAANSUhEUgAAA0sAAADCCAYAAACYE1n7AAAAOXRFWHRTb2Z0d2FyZQBNYXRwbG90bGliIHZlcnNpb24zLjcuMSwgaHR0cHM6Ly9tYXRwbG90bGliLm9yZy/bCgiHAAAACXBIWXMAAA9hAAAPYQGoP6dpAABpnElEQVR4nO3deXwkd3ng/8+3jq7uVqu7dUujY0ZzecbH2GYMw2CwcTzYsQ2BABvMz+zaTsK1NsEhF7AJhITF2WQ3ARLWbHazkCyw3pBdAyFgYmxjcxiDL3yP574lzYxuqa+q+v7+KHVLLbWuGUndLT3v10uv10x3qVUldddTT32f7/NVWmuNEEIIIYQQQogiRrl3QAghhBBCCCEqkSRLQgghhBBCCFGCJEtCCCGEEEIIUYIkS0IIIYQQQghRgiRLQgghhBBCCFGCJEtCCCGEEEIIUYIkS0IIIYQQQghRgiRLQgghhBBCCFGCJEtCCCGEEEIIUYIkS0Issw0bNnDbbbcV/v+DH/wApRQ/+MEPyrZP003fRyGEEEIIIcmSWAO+/OUvo5QqfIXDYbZu3cqdd95Jb29vuXdvwb7zne/wx3/8x+XeDSGEEBVmaoyb66uSbtIJUS2scu+AECvlT/7kT+ju7iadTvOjH/2Ie+65h+985zs8//zzRKPRFduPq666ilQqRSgUWtT3fec73+ELX/iCJExCCCGK/K//9b+K/v8P//APPPDAAzMe3759+0rulhCrgiRLYs244YYbuOKKKwD4zd/8TRoaGvjLv/xLvvnNb/Lud797xvZjY2PU1NQs+X4YhkE4HF7y1xVCCLE2vec97yn6/09/+lMeeOCBGY9PNz4+vqI3C4WoRlKGJ9asX/qlXwLg0KFD3HbbbcRiMQ4cOMCNN95IbW0tt9xyCwC+7/PZz36Wiy66iHA4TEtLC+9///sZGBgoej2tNZ/+9Kfp6OggGo1yzTXX8MILL8z4ubPNWXr88ce58cYbqauro6amhh07dvC5z30OgNtuu40vfOELQHG5Rd5S76MQQojV5Y1vfCMXX3wxTz75JFdddRXRaJSPf/zjQBBXSlUtlJrPOjg4yF133UVnZyeO47B582b+03/6T/i+vwJHIcTKk5ElsWYdOHAAgIaGBgBc1+X666/n9a9/Pf/5P//nwt2297///Xz5y1/m9ttv57d+67c4dOgQf/M3f8PTTz/Nj3/8Y2zbBuATn/gEn/70p7nxxhu58cYbeeqpp7juuuvIZrPz7ssDDzzAm9/8Ztra2vjwhz9Ma2srL730Et/+9rf58Ic/zPvf/35OnjxZsqxipfZRCCFEdTt79iw33HADN998M+95z3toaWlZ1PePj49z9dVXc+LECd7//vfT1dXFT37yEz72sY9x6tQpPvvZzy7PjgtRTlqIVe5LX/qSBvT3v/99ffr0aX3s2DF977336oaGBh2JRPTx48f1rbfeqgH90Y9+tOh7f/jDH2pAf/WrXy16/P777y96vK+vT4dCIX3TTTdp3/cL23384x/XgL711lsLjz388MMa0A8//LDWWmvXdXV3d7dev369HhgYKPo5U1/rjjvu0KU+ssuxj0IIIapXqXhx9dVXa0B/8YtfnLE9oD/5yU/OeHz9+vVFseFP//RPdU1NjX7llVeKtvvoRz+qTdPUR48eXZL9F6KSSBmeWDP27NlDU1MTnZ2d3HzzzcRiMe677z7a29sL23zwgx8s+p6vf/3rJBIJ3vSmN3HmzJnC186dO4nFYjz88MMAfP/73yebzfKhD32oqDzurrvumne/nn76aQ4dOsRdd91FMpksem7qa81mJfZRCCFE9XMch9tvv/2cv//rX/86b3jDG6irqyuKN3v27MHzPB599NEl3FshKoOU4Yk14wtf+AJbt27FsixaWlq44IILMIzJ+wWWZdHR0VH0Pfv27WNoaIjm5uaSr9nX1wfAkSNHANiyZUvR801NTdTV1c25X/lywIsvvnhxB7SC+yiEEKL6tbe3L7oT61T79u3j2WefpampqeTz+XgjxGoiyZJYM17zmtcUuuGV4jhOUfIEQeOE5uZmvvrVr5b8ntkCxkqqhn0UQghRfpFIZFHbe55X9H/f93nTm97E7//+75fcfuvWree8b0JUKkmWhJjDpk2b+P73v8+VV145Z5BZv349ENx127hxY+Hx06dPz+hIV+pnADz//PPs2bNn1u1mK8lbiX0UQgixetXV1TE4OFj0WDab5dSpU0WPbdq0idHR0TljlRCrjcxZEmIOv/Zrv4bnefzpn/7pjOdc1y0Elz179mDbNn/913+N1rqwzUI6A73qVa+iu7ubz372szOC1dTXyq/5NH2bldhHIYQQq9emTZtmzDf627/92xkjS7/2a7/GY489xve+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fvKTOI5T7l05b6vlWOQ4KstqOQ5YPccix7H6rZbfzWo5Dlg9xyLHUVlWy3HA6jmW5TyOquyGJ4QQQgghhBDLrSpHloQQQgghhBBiuUmyJIQQQgghhBAlSLIkhBBCCCGEECVIsiSEEEIIIYQQJVRlsvSFL3yBDRs2EA6H2bVrFz/72c/KvUtFHn30Ud7ylrewbt06lFJ84xvfKHpea80nPvEJ2traiEQi7Nmzh3379hVt09/fzy233EI8HieZTPIbv/EbjI6OruBRwN13382rX/1qamtraW5u5m1vext79+4t2iadTnPHHXfQ0NBALBbjHe94B729vUXbHD16lJtuuoloNEpzczO/93u/h+u6K3Yc99xzDzt27CgsuLZ7926++93vVtUxlPJnf/ZnKKW46667Co9Vy7H88R//MUqpoq9t27ZV3XEAnDhxgve85z00NDQQiUS45JJLeOKJJwrPV8PnfcOGDTP+Hkop7rjjDqC6/h7lJLFp+a2WuAQSmyrtWCQuVdZnHSooNukqc++99+pQKKT/5//8n/qFF17Q733ve3UymdS9vb3l3rWC73znO/o//If/oP/f//t/GtD33Xdf0fN/9md/phOJhP7GN76hf/GLX+hf+ZVf0d3d3TqVShW2+eVf/mV96aWX6p/+9Kf6hz/8od68ebN+97vfvaLHcf311+svfelL+vnnn9fPPPOMvvHGG3VXV5ceHR0tbPOBD3xAd3Z26gcffFA/8cQT+rWvfa1+3eteV3jedV198cUX6z179uinn35af+c739GNjY36Yx/72Iodx7e+9S39L//yL/qVV17Re/fu1R//+Me1bdv6+eefr5pjmO5nP/uZ3rBhg96xY4f+8Ic/XHi8Wo7lk5/8pL7ooov0qVOnCl+nT5+uuuPo7+/X69ev17fddpt+/PHH9cGDB/X3vvc9vX///sI21fB57+vrK/pbPPDAAxrQDz/8sNa6ev4e5SSxaWWslriktcSmSjsWiUuV9VnXunJiU9UlS695zWv0HXfcUfi/53l63bp1+u677y7jXs1uekDyfV+3trbqv/iLvyg8Njg4qB3H0f/7f/9vrbXWL774ogb0z3/+88I23/3ud7VSSp84cWLF9n26vr4+DehHHnlEax3st23b+utf/3phm5deekkD+rHHHtNaB8HZMAzd09NT2Oaee+7R8XhcZzKZlT2AKerq6vT/+B//oyqPYWRkRG/ZskU/8MAD+uqrry4EpGo6lk9+8pP60ksvLflcNR3HH/zBH+jXv/71sz5frZ/3D3/4w3rTpk3a9/2q+nuUk8Sm8rxXV1Nc0lpiUzmPReJSZX/WtS5fbKqqMrxsNsuTTz7Jnj17Co8ZhsGePXt47LHHyrhnC3fo0CF6enqKjiGRSLBr167CMTz22GMkk0muuOKKwjZ79uzBMAwef/zxFd/nvKGhIQDq6+sBePLJJ8nlckXHsm3bNrq6uoqO5ZJLLqGlpaWwzfXXX8/w8DAvvPDCCu59wPM87r33XsbGxti9e3dVHsMdd9zBTTfdVLTPUH1/j3379rFu3To2btzILbfcwtGjR6vuOL71rW9xxRVX8G/+zb+hubmZyy+/nP/+3/974flq/Lxns1m+8pWv8Ou//usoparq71EuEpvKF5tWQ1wCiU2VciwSlyr3s17O2FRVydKZM2fwPK/ooAFaWlro6ekp014tTn4/5zqGnp4empubi563LIv6+vqyHafv+9x1111ceeWVXHzxxUCwn6FQiGQyWbTt9GMpdaz551bKc889RywWw3EcPvCBD3Dfffdx4YUXVtUxANx777089dRT3H333TOeq6Zj2bVrF1/+8pe5//77ueeeezh06BBveMMbGBkZqarjOHjwIPfccw9btmzhe9/7Hh/84Af5rd/6Lf7+7/++aF+q6fP+jW98g8HBQW677bbC/lXL36NcJDaV571a7XEJJDZV0rFIXKrczzqUNzZZ577bYi254447eP755/nRj35U7l05JxdccAHPPPMMQ0ND/NM//RO33norjzzySLl3a1GOHTvGhz/8YR544AHC4XC5d+e83HDDDYV/79ixg127drF+/Xr+8R//kUgkUsY9Wxzf97niiiv4zGc+A8Dll1/O888/zxe/+EVuvfXWMu/dufm7v/s7brjhBtatW1fuXRFiTtUel0BiUyWRuFTZyhmbqmpkqbGxEdM0Z3S66O3tpbW1tUx7tTj5/ZzrGFpbW+nr6yt63nVd+vv7y3Kcd955J9/+9rd5+OGH6ejoKDze2tpKNptlcHCwaPvpx1LqWPPPrZRQKMTmzZvZuXMnd999N5deeimf+9znquoYnnzySfr6+njVq16FZVlYlsUjjzzC5z//eSzLoqWlpWqOZbpkMsnWrVvZv39/Vf1N2trauPDCC4se2759e6F0o9o+70eOHOH73/8+v/mbv1l4rJr+HuUisWnl36urIS6BxKZKO5apJC5Vxmcdyh+bqipZCoVC7Ny5kwcffLDwmO/7PPjgg+zevbuMe7Zw3d3dtLa2Fh3D8PAwjz/+eOEYdu/ezeDgIE8++WRhm4ceegjf99m1a9eK7avWmjvvvJP77ruPhx56iO7u7qLnd+7ciW3bRceyd+9ejh49WnQszz33XNGH7oEHHiAej8/4MK8k3/fJZDJVdQzXXnstzz33HM8880zh64orruCWW24p/LtajmW60dFRDhw4QFtbW1X9Ta688soZbYtfeeUV1q9fD1TX5x3gS1/6Es3Nzdx0002Fx6rp71EuEptW7r26muMSSGwq97FMJXGpMuISVEBsWqoOFSvl3nvv1Y7j6C9/+cv6xRdf1O973/t0Mpks6nRRbiMjI/rpp5/WTz/9tAb0X/7lX+qnn35aHzlyRGsdtGxMJpP6m9/8pn722Wf1W9/61pItGy+//HL9+OOP6x/96Ed6y5YtK96y8YMf/KBOJBL6Bz/4QVHrxvHx8cI2H/jAB3RXV5d+6KGH9BNPPKF3796td+/eXXg+37bxuuuu088884y+//77dVNT04q20vzoRz+qH3nkEX3o0CH97LPP6o9+9KNaKaX/9V//tWqOYTZTOw5pXT3H8ju/8zv6Bz/4gT506JD+8Y9/rPfs2aMbGxt1X19fVR3Hz372M21Zlv6P//E/6n379umvfvWrOhqN6q985SuFbarl8+55nu7q6tJ/8Ad/MOO5avl7lJPEppWxWuKS1hKbKu1YJC5V1mc9rxJiU9UlS1pr/dd//de6q6tLh0Ih/ZrXvEb/9Kc/LfcuFXn44Yc1MOPr1ltv1VoHbRv/6I/+SLe0tGjHcfS1116r9+7dW/QaZ8+e1e9+97t1LBbT8Xhc33777XpkZGRFj6PUMQD6S1/6UmGbVCql//2///e6rq5OR6NR/au/+qv61KlTRa9z+PBhfcMNN+hIJKIbGxv17/zO7+hcLrdix/Hrv/7rev369ToUCummpiZ97bXXFoJRtRzDbKYHpGo5lne96126ra1Nh0Ih3d7ert/1rncVrQFRLcehtdb//M//rC+++GLtOI7etm2b/tu//dui56vl8/69731PAzP2Tevq+nuUk8Sm5bda4pLWEpsq7VgkLlXWZz2vEmKT0lrrhY9DCSGEEEIIIcTaUFVzloQQQgghhBBipUiyJIQQQgghhBAlSLIkhBBCCCGEECVIsiSEEEIIIYQQJUiyJIQQQgghhBAlSLIkhBBCCCGEECVIsiSEEEIIIYQQJUiyJIQQQgghhBAlSLIkhBBCCCGEECVIsiSEEEIIIYQQJUiyJIQQQgghhBAlSLIkhBBCCCGEECX8/+OqgtS+EcM/AAAAAElFTkSuQmCC",
+      "text/plain": [
+       "<Figure size 1000x500 with 2 Axes>"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    }
+   ],
+   "source": [
+    "index = 100\n",
+    "fig, axes = plt.subplots(1, 2, figsize=(10, 5))\n",
+    "axes[0].imshow(predicted_classes[index].cpu().numpy().T)\n",
+    "axes[0].set_title(\"Predicted\")\n",
+    "axes[1].imshow(y[index].cpu().numpy().T)\n",
+    "axes[1].set_title(\"True\")\n",
+    "plt.show()"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.10.6"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}

@@ -1,0 +1,116 @@
+minerva.data.readers.base_file_iterator
+=======================================
+
+.. py:module:: minerva.data.readers.base_file_iterator
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   minerva.data.readers.base_file_iterator.BaseFileIterator
+
+
+Module Contents
+---------------
+
+.. py:class:: BaseFileIterator(files, sort_method = None, delimiter = None, key_index = 0, reverse = False)
+
+   Bases: :py:obj:`minerva.data.readers.reader._Reader`
+
+
+   A base class for iterating over files in a directory in a custom sorted
+   order.
+
+   Base class for iterating over files in a directory in a custom
+   sorted order.
+
+   Parameters
+   ----------
+   files : PathLike
+       A list of file paths to iterate over.
+   sort_method : Optional[List[str]], optional
+       A list specifying how to sort each part of the filename. Each
+       element can  be either "text" (lexicographical) or "numeric"
+       (numerically). By default, None, which will use "numeric" if
+       numeric parts are detected.
+   delimiter : Optional[str], optional
+       The delimiter to split filenames into components, by default None.
+   key_index : Union[int, List[int]], optional
+       The index (or list of indices) of the part(s) of the filename to
+       use  for sorting. If a list is provided, files will be sorted
+       based on  multiple parts in sequence. Thus, first by the part at
+       index 0, then by the part at index 1, and so on. By default 0.
+   reverse : bool, optional
+       Whether to sort in reverse order, by default False.
+
+
+   .. py:method:: __getitem__(index)
+      :abstractmethod:
+
+
+      Retrieve the image file at the specified index.
+
+      Parameters
+      ----------
+      index : int
+          Index of the image file to retrieve.
+
+      Returns
+      -------
+      np.ndarray
+          The image file as a NumPy array.
+
+
+
+   .. py:method:: __len__()
+
+      Return the number of image files in the directory.
+
+      Returns
+      -------
+      int
+          The number of image files in the directory.
+
+
+
+   .. py:method:: __repr__()
+
+
+   .. py:method:: __str__()
+
+
+   .. py:method:: _get_sort_values(value, method)
+
+      Get the appropriate sorting value based on the method: 'text' or 'numeric'.
+
+
+
+   .. py:method:: _sort_files()
+
+      Sort files based on the provided sorting options.
+
+
+
+   .. py:attribute:: delimiter
+      :value: None
+
+
+
+   .. py:attribute:: files
+
+
+   .. py:attribute:: key_index
+      :value: 0
+
+
+
+   .. py:attribute:: reverse
+      :value: False
+
+
+
+   .. py:attribute:: sort_method
+
+
