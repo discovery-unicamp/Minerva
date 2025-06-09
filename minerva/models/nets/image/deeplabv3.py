@@ -1,7 +1,9 @@
 from typing import Any, Dict, Optional, Sequence, Tuple
+import os
 from collections import OrderedDict
 from torch import Tensor, nn, optim
 from torchmetrics import Metric
+from torchvision.models import ResNet50_Weights
 from torchvision.models.resnet import resnet50
 from torchvision.models.segmentation.deeplabv3 import ASPP
 import torch
@@ -24,6 +26,8 @@ class DeepLabV3(SimpleSupervisedModel):
         loss_fn: Optional[nn.Module] = None,
         learning_rate: float = 0.001,
         num_classes: int = 6,
+        pretrained: bool = False,
+        weights_path: Optional[str] = None,
         train_metrics: Optional[Dict[str, Metric]] = None,
         val_metrics: Optional[Dict[str, Metric]] = None,
         test_metrics: Optional[Dict[str, Metric]] = None,
@@ -51,6 +55,11 @@ class DeepLabV3(SimpleSupervisedModel):
             The learning rate for the optimizer. Defaults to 0.001.
         num_classes: int
             The number of classes for prediction. Defaults to 6.
+        pretrained: bool
+            Whether to use pretrained weights. Defaults to False.
+        weights_path: Optional[str]
+            Path to local pretrained weights file. If provided with pretrained=True,
+            loads weights from this path instead of downloading. Defaults to None.
         train_metrics: Optional[Dict[str, Metric]]
             The metrics to be computed during training. Defaults to None.
         val_metrics: Optional[Dict[str, Metric]]
@@ -76,7 +85,9 @@ class DeepLabV3(SimpleSupervisedModel):
             models that require a specific output shape, that is different from
             the input shape.
         """
-        backbone = backbone or DeepLabV3Backbone()
+        backbone = backbone or DeepLabV3Backbone(
+            num_classes=num_classes, pretrained=pretrained, weights_path=weights_path
+        )
         pred_head = pred_head or DeepLabV3PredictionHead(num_classes=num_classes)
         loss_fn = loss_fn or nn.CrossEntropyLoss()
         self.output_shape = output_shape
@@ -96,6 +107,18 @@ class DeepLabV3(SimpleSupervisedModel):
         )
 
     def forward(self, x: Tensor) -> Tensor:
+        """Performs the forward pass of the DeepLabV3 model.
+
+        Parameters
+        ----------
+        x : Tensor
+            Input tensor of shape (batch_size, channels, height, width)
+
+        Returns
+        -------
+        Tensor
+            Output tensor of shape (batch_size, num_classes, height, width)
+        """
         x = x.float()
         input_shape = self.output_shape or x.shape[-2:]
         h = self.backbone(x)
@@ -108,34 +131,116 @@ class DeepLabV3(SimpleSupervisedModel):
         )
 
     def _loss_func(self, y_hat: Tensor, y: Tensor) -> Tensor:
+        """Computes the loss between predictions and ground truth.
+
+        Parameters
+        ----------
+        y_hat : Tensor
+            Predicted tensor of shape (batch_size, num_classes, height, width)
+        y : Tensor
+            Ground truth tensor of shape (batch_size, 1, height, width)
+        """
         return self.loss_fn(y_hat, y.squeeze(1).long())
 
 
 class DeepLabV3Backbone(nn.Module):
     """A ResNet50 backbone for DeepLabV3"""
 
-    def __init__(self, num_classes: int = 6):
+    def __init__(
+        self,
+        num_classes: int = 6,
+        pretrained: bool = False,
+        weights_path: Optional[str] = None,
+    ):
         """
-        Initializes the DeepLabV3 model.
+        Initializes the DeepLabV3 backbone model.
 
         Parameters
         ----------
         num_classes: int
             The number of classes for classification. Default is 6.
+        pretrained: bool
+            Whether to use pretrained weights. If True and weights_path is None,
+            will attempt to download ImageNet pretrained weights. Default is False.
+        weights_path: Optional[str]
+            Path to local pretrained weights file. If provided with pretrained=True,
+            loads weights from this path instead of downloading. Default is None.
         """
         super().__init__()
-        RN50model = resnet50(replace_stride_with_dilation=[False, True, True])
+
+        if pretrained and weights_path is not None:
+            # Validate file path exists
+            if not os.path.exists(weights_path):
+                raise FileNotFoundError(f"Weights file not found: {weights_path}")
+
+            # Load from local weights file
+            RN50model = resnet50(replace_stride_with_dilation=[False, True, True])
+
+            state_dict = torch.load(weights_path, map_location="cpu")
+            # Handle different weight file formats
+            if "state_dict" in state_dict:
+                state_dict = state_dict["state_dict"]
+            elif "model" in state_dict:
+                state_dict = state_dict["model"]
+
+            # Filter out classifier weights if they exist (fc layer)
+            # since we don't use them in the backbone
+            filtered_state_dict = {
+                k: v for k, v in state_dict.items() if not k.startswith("fc.")
+            }
+
+            # Load the filtered state dict
+            missing_keys, unexpected_keys = RN50model.load_state_dict(
+                filtered_state_dict, strict=False
+            )
+
+            if missing_keys:
+                print(
+                    f"Warning: Missing keys when loading pretrained weights: {missing_keys}"
+                )
+            if unexpected_keys:
+                print(
+                    f"Warning: Unexpected keys when loading pretrained weights: {unexpected_keys}"
+                )
+
+            print(f"Successfully loaded pretrained weights from {weights_path}")
+
+        elif pretrained and weights_path is None:
+            # Use torchvision's pretrained weights (requires internet)
+            RN50model = resnet50(
+                weights=ResNet50_Weights.IMAGENET1K_V1,
+                replace_stride_with_dilation=[False, True, True],
+            )
+            print("Successfully loaded ImageNet pretrained weights from torchvision")
+        else:
+            # No pretrained weights, random initialization
+            RN50model = resnet50(replace_stride_with_dilation=[False, True, True])
+
         self.RN50model = RN50model
 
     def freeze_weights(self):
+        """Freezes all parameters in the backbone, making them non-trainable."""
         for param in self.RN50model.parameters():
             param.requires_grad = False
 
     def unfreeze_weights(self):
+        """Unfreezes all parameters in the backbone, making them trainable."""
         for param in self.RN50model.parameters():
             param.requires_grad = True
 
     def forward(self, x):
+        """Performs the forward pass of the backbone.
+
+        Parameters
+        ----------
+        x : Tensor
+            Input tensor of shape (batch_size, channels, height, width)
+
+        Returns
+        -------
+        Tensor
+            Feature map tensor from the ResNet50 backbone
+        """
         x = self.RN50model.conv1(x)
         x = self.RN50model.bn1(x)
         x = self.RN50model.relu(x)
@@ -160,7 +265,7 @@ class DeepLabV3PredictionHead(nn.Sequential):
         atrous_rates: Sequence[int] = (12, 24, 36),
     ) -> None:
         """
-        Initializes the DeepLabV3 model.
+        Initializes the DeepLabV3 prediction head.
 
         Parameters
         ----------
@@ -180,5 +285,17 @@ class DeepLabV3PredictionHead(nn.Sequential):
         )
 
     def forward(self, input) -> Tensor:
+        """Performs the forward pass of the prediction head.
+
+        Parameters
+        ----------
+        input : Tensor
+            Input tensor from the backbone
+
+        Returns
+        -------
+        Tensor
+            Output tensor with class predictions
+        """
         assert input.shape[0] > 1, "Batch size must be greater than 1 due to BatchNorm"
         return super().forward(input)
