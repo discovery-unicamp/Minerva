@@ -1,4 +1,4 @@
-FROM python:3.10-slim-bullseye
+FROM continuumio/miniconda3
 
 ARG USERNAME=vscode
 ARG USER_UID=1000
@@ -24,3 +24,10 @@ RUN chsh --shell /bin/bash $USERNAME
 
 USER $USERNAME
 WORKDIR /home/$USERNAME
+
+# Use bash as the default shell for RUN commands
+SHELL ["/bin/bash", "-c"]
+
+# Initialize conda for bash shell
+RUN conda init bash && \
+    echo "source ~/.bashrc" >> ~/.bash_profile

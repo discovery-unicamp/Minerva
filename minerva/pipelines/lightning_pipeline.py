@@ -315,7 +315,7 @@ class SimpleLightningPipeline(Pipeline):
         metrics = dict(metrics)
 
         # Save metrics to a YAML file
-        if self._save_pipeline_info:
+        if self._save_run_status:
             yaml_path = self._log_dir / f"metrics_{self.pipeline_id}.yaml"
             with open(yaml_path, "w") as f:
                 yaml.dump(metrics, f)

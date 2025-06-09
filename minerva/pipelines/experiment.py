@@ -1287,9 +1287,14 @@ class Experiment(Pipeline):
         predictions_path: Optional[PathLike] = None,
         results_path: Optional[PathLike] = None,
     ) -> None:
+        if ckpt_path is not None:
+            ckpt_path_used = ckpt_path.name  # type: ignore
+        else:
+            ckpt_path_used = "cached model (no checkpoint)"
+
         print("\n" + "=" * 80)
         print(
-            f"Evaluation: {self.experiment_name} ({ckpt_path.name}) {'(DEBUG)' if debug else ''}".center(
+            f"Evaluation: {self.experiment_name} ({ckpt_path_used}) {'(DEBUG)' if debug else ''}".center(
                 80
             )
         )
@@ -1336,23 +1341,32 @@ class Experiment(Pipeline):
         ckpts_to_evaluate: Optional[Union[str, List[str]]] = None,
         print_summary: bool = True,
         debug: bool = False,
+        cached_execution: Optional[Dict[str, Any]] = None,
     ):
-        # --------- Checkpoints -------
-        checkpoints_to_use = self.checkpoint_paths
-        # Check which checkpoints to evaluate (else, evaluate all)
-        if ckpts_to_evaluate is not None:
-            if isinstance(ckpts_to_evaluate, str):
-                ckpts_to_evaluate = [ckpts_to_evaluate]
 
-            try:
-                checkpoints_to_use = {
-                    ckpt: checkpoints_to_use[ckpt] for ckpt in ckpts_to_evaluate
-                }
-            except KeyError as e:
-                raise ValueError(f"Checkpoint {e} not found in {checkpoints_to_use}")
-        # Check if any checkpoint is found
-        if len(checkpoints_to_use) == 0:
-            raise ValueError(f"No checkpoints found in {self._checkpoint_dir}")
+        # --------- Checkpoints or cached model -------
+        cached = False
+        if cached_execution is not None:
+            checkpoints_to_use = {"last_cached": cached_execution["model"]}
+            cached = True
+        else:
+            checkpoints_to_use = self.checkpoint_paths
+            # Check which checkpoints to evaluate (else, evaluate all)
+            if ckpts_to_evaluate is not None:
+                if isinstance(ckpts_to_evaluate, str):
+                    ckpts_to_evaluate = [ckpts_to_evaluate]
+
+                try:
+                    checkpoints_to_use = {
+                        ckpt: checkpoints_to_use[ckpt] for ckpt in ckpts_to_evaluate
+                    }
+                except KeyError as e:
+                    raise ValueError(
+                        f"Checkpoint {e} not found in {checkpoints_to_use}"
+                    )
+            # Check if any checkpoint is found
+            if len(checkpoints_to_use) == 0:
+                raise ValueError(f"No checkpoints found in {self._checkpoint_dir}")
 
         # --------- Dataset -------
         checkpoint_results = {}
@@ -1362,7 +1376,9 @@ class Experiment(Pipeline):
                 "No predict dataset found in the data module. Please provide a predict dataset to perform evaluation."
             )
 
-        for ckpt_name, ckpt_path in checkpoints_to_use.items():
+        # Note: if cached_execution is provided, the model is already loaded,
+        # thus cpk_path is a L.LightningModule instance, not a path.
+        for ckpt_name, ckpt_path_or_model in checkpoints_to_use.items():
             predictions_file = None
             results_filename = None
             results_filename_per_sample = None
@@ -1379,7 +1395,12 @@ class Experiment(Pipeline):
                 )
 
             # Load the model from the checkpoint
-            model = self.model_config.instantiator.load_model_from_checkpoint(ckpt_path)
+            if cached:
+                model = ckpt_path_or_model
+            else:
+                model = self.model_config.instantiator.load_model_from_checkpoint(
+                    ckpt_path_or_model
+                )
 
             # Trainer
             trainer_params = self._trainer_parameters(
@@ -1392,7 +1413,7 @@ class Experiment(Pipeline):
                 self._print_evaluation_summary(
                     trainer_params=trainer_params,
                     debug=debug,
-                    ckpt_path=ckpt_path,
+                    ckpt_path=ckpt_path_or_model if not cached else None,
                     predictions_path=predictions_file,
                     results_path=results_filename,
                 )
@@ -1400,7 +1421,7 @@ class Experiment(Pipeline):
             # Perform prediction
             predictions = perform_predict(
                 data_module=data_module,
-                model=model,
+                model=model,  # type: ignore
                 trainer=trainer,
             )
 
@@ -1497,16 +1518,22 @@ class Experiment(Pipeline):
             )
         elif task == "fit-evaluate":
             # Train the model
-            self._train_model(
+            cached_res = self._train_model(
                 resume_from_ckpt=resume_from_ckpt,
                 print_summary=print_summary,
                 debug=debug,
             )
+
+            # If checkpoint paths exists, do not cache the results
+            if len(self.checkpoint_paths) > 0:
+                cached_res = None
+
             # Evaluate the model
             eval_results = self._evaluate_model(
                 ckpts_to_evaluate=ckpts_to_evaluate,
                 print_summary=print_summary,
                 debug=debug,
+                cached_execution=cached_res,
             )
             return eval_results
         else:

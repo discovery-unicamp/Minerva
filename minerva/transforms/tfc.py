@@ -3,7 +3,7 @@ import torch
 import torch.fft as fft
 from torch import nn
 from .transform import _Transform
-from typing import Union, Tuple
+from typing import Union, Tuple, Optional
 
 
 class TFC_Transforms(_Transform):
@@ -12,8 +12,30 @@ class TFC_Transforms(_Transform):
     It consists of time and frequency domain data augmentation.
     """
 
+    def __init__(
+        self, jitter_ratio: float = 0.08, jitter_function: Optional[callable] = None
+    ):
+        """
+        Initialize the TFC_Transforms class.
+
+        Parameters
+        ----------
+        - jitter_ratio: float
+            The ratio of the jittering transformation. Default is 0.08.
+        - jitter_function: Optional[callable]
+            A custom jittering function. If None, the default proportional jittering function is used.
+        """
+        super(TFC_Transforms, self).__init__()
+        self.jitter_ration = jitter_ratio
+        self.jitter_operation = self.proportional_jitter
+        if jitter_function is not None:
+            if callable(jitter_function):
+                self.jitter_operation = jitter_function
+            else:
+                raise TypeError("The jitter_function must be a callable function")
+
     def __call__(
-        self, x: Union[np.ndarray, torch.Tensor]
+        self, x: Union[np.ndarray, torch.Tensor], jitter_ratio: Optional[float] = None
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         """
         Method that applies the transformations to the input data.
@@ -22,6 +44,8 @@ class TFC_Transforms(_Transform):
         ----------
         - x: Union[np.ndarray, torch.Tensor]
             The input data to be transformed
+        - jitter_ratio: Optional[float]
+            The ratio of the jittering transformation. If None, the default value is used.
 
         Returns
         -------
@@ -39,7 +63,9 @@ class TFC_Transforms(_Transform):
             print("The type of the input is: ", type(x), "It is ", x)
             raise TypeError("The input data must be a numpy array or a torch tensor")
         freq = fft.fft(x).abs()
-        y1 = self.DataTransform_TD(x)
+        y1 = self.DataTransform_TD(
+            x, jitter_ratio=self.jitter_ration if jitter_ratio is None else jitter_ratio
+        )
         y2 = self.DataTransform_FD(freq)
         return (
             x.type(torch.FloatTensor).to(device),
@@ -71,7 +97,7 @@ class TFC_Transforms(_Transform):
         return b
 
     def DataTransform_TD(
-        self, sample: np.ndarray, jitter_ratio: float = 0.8
+        self, sample: np.ndarray, jitter_ratio: float = 0.08
     ) -> np.ndarray:
         """
         Weak and strong augmentations.
@@ -83,6 +109,8 @@ class TFC_Transforms(_Transform):
             The input data to be augmented
         - jitter_ratio: float
             The ratio of the jittering transformation
+        - jitter_function: Optional[function]
+            A custom jittering function. If None, the default jittering function is used.
 
         Returns
         -------
@@ -90,7 +118,8 @@ class TFC_Transforms(_Transform):
             The augmented data
 
         """
-        aug_1 = self.jitter(sample, jitter_ratio)
+
+        aug_1 = self.jitter_operation(sample, jitter_ratio)
 
         li = torch.randint(0, 4, (sample.shape[0],))
         li_onehot = self.one_hot_encoding(li)
@@ -144,6 +173,25 @@ class TFC_Transforms(_Transform):
         """
         # https://arxiv.org/pdf/1706.00527.pdf
         return x + torch.normal(0.0, sigma, x.shape)
+
+    def proportional_jitter(self, x: np.ndarray, ratio: float = 0.08):
+        """
+        Proportional jittering of the input data.
+
+        Parameters
+        ----------
+        - x: np.ndarray
+            The input data to be augmented
+        - ratio: float
+            The ratio of the jittering transformation
+
+        Returns
+        -------
+        - np.ndarray
+            The data with proportional jittering applied
+
+        """
+        return x * (1 + torch.normal(0.0, ratio, x.shape))
 
     def remove_frequency(self, x: np.ndarray, maskout_ratio: float = 0):
         """

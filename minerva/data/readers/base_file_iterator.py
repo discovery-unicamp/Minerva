@@ -3,6 +3,7 @@ from typing import Optional, Union, List
 import numpy as np
 from minerva.utils.typing import PathLike
 from minerva.data.readers.reader import _Reader
+import re
 
 
 class BaseFileIterator(_Reader):
@@ -17,6 +18,7 @@ class BaseFileIterator(_Reader):
         delimiter: Optional[str] = None,
         key_index: Union[int, List[int]] = 0,
         reverse: bool = False,
+        filters: Optional[Union[List[str], str]] = None,
     ):
         """Base class for iterating over files in a directory in a custom
         sorted order.
@@ -39,10 +41,29 @@ class BaseFileIterator(_Reader):
             index 0, then by the part at index 1, and so on. By default 0.
         reverse : bool, optional
             Whether to sort in reverse order, by default False.
+        filters: Optional[Union[List[str], str]]
+            An optional string or list of strings containing regular expressions
+            with which to filter files by their stems. Files that match at least
+            one pattern are kept, and the others are excluded. Defaults to None,
+            which means no files are excluded.
         """
         self.files = files
         if isinstance(self.files[0], str):
             self.files = [Path(f) for f in self.files]
+
+        # Change filters into list of regex patterns
+        self.filters: List[re.Pattern]
+        if filters is None:
+            self.filters = []
+        elif isinstance(filters, list):
+            self.filters = [re.compile(f) for f in filters]
+        elif isinstance(filters, str):
+            self.filters = [re.compile(filters)]
+        else:
+            raise TypeError(
+                f"Parameter `filters` must be str, list[str] or None, "
+                f"but received {type(filters)}"
+            )
 
         # Handle key_index to be a list if it's a single integer
         self.key_index = key_index if isinstance(key_index, list) else [key_index]
@@ -61,7 +82,16 @@ class BaseFileIterator(_Reader):
         self.delimiter = delimiter
         self.reverse = reverse
 
+        self._filter_files()
         self._sort_files()
+
+    def _filter_files(self):
+        "Filter files acording to provided regular expressions"
+        if len(self.filters) == 0:
+            return
+
+        filter_fn = lambda p: any(pattern.match(p.stem) for pattern in self.filters)
+        self.files = list(filter(filter_fn, self.files))
 
     def _sort_files(self):
         """Sort files based on the provided sorting options."""
@@ -90,7 +120,8 @@ class BaseFileIterator(_Reader):
                 return int(value) if value.isdigit() else float("inf")
             except ValueError:
                 print(f"Warning: Could not convert {value} to a number")
-                return float("inf")  # If not a number, treat it as a large value
+                # If not a number, treat it as a large value
+                return float("inf")
         elif method == "text":
             return value  # Return the value itself if sorting lexicographically
         else:

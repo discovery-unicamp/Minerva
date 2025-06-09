@@ -65,6 +65,8 @@ class TFC_Backbone(nn.Module):
         frequency_projector: Optional[nn.Module] = None,
         adapter: Optional[Callable[[torch.Tensor], torch.Tensor]] = None,
         batch_1_correction: bool = False,
+        jitter_ratio: Optional[float] = 0.08,
+        jitter_function: Optional[Callable[[torch.Tensor], torch.Tensor]] = None,
     ):
         """
         Constructor of the TFC_Backbone class.
@@ -93,6 +95,10 @@ class TFC_Backbone(nn.Module):
             If True, the batch normalization is ignored when the batch size is 1,
             If False, a runtime error is raised when the batch size is 1
             Standard is False
+        - jitter_ratio: Optional[float]
+            The ratio of the jittering transformation. If None, the default value is used.
+        - jitter_function: Optional[Callable[[torch.Tensor], torch.Tensor]]
+            A custom jittering function. If None, the default proportional jittering function is used.
 
         """
         super(TFC_Backbone, self).__init__()
@@ -100,7 +106,9 @@ class TFC_Backbone(nn.Module):
         self.transform = transform
 
         if transform is None:
-            self.transform = TFC_Transforms()
+            self.transform = TFC_Transforms(
+                jitter_ratio=jitter_ratio, jitter_function=jitter_function
+            )
 
         self.time_encoder = time_encoder
         if time_encoder is None:

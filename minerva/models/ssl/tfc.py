@@ -46,6 +46,8 @@ class TFC_Model(pl.LightningModule):
         val_metrics: Optional[Dict[str, Metric]] = None,
         test_metrics: Optional[Dict[str, Metric]] = None,
         batch_1_correction=False,
+        jitter_ratio: float = 0.08,
+        jitter_function: Optional[callable] = None,
     ):
         """
         The constructor of the TFC_Model class.
@@ -97,6 +99,11 @@ class TFC_Model(pl.LightningModule):
             If True, some parts of the architecture are adapted to
             work with batch size 1. Default is False, which means
             that the model is not adapted to work with batch size 1.
+        - jitter_ratio: float
+            The ratio of the jittering transformation. Default is 0.08.
+            This parameter is used in the TFC_Transforms class to apply data augmentation.
+        - jitter_function: Optional[callable]
+            A custom jittering function. If None, the default proportional jittering function is used.
         """
         super(TFC_Model, self).__init__()
         self.num_classes = num_classes
@@ -136,6 +143,9 @@ class TFC_Model(pl.LightningModule):
                 time_projector=time_projector,
                 frequency_projector=frequency_projector,
                 batch_1_correction=batch_1_correction,
+                transform=transform,
+                jitter_ratio=jitter_ratio,
+                jitter_function=jitter_function,
             )
         if pred_head and num_classes:
             if pred_head == True:
@@ -166,7 +176,9 @@ class TFC_Model(pl.LightningModule):
         if transform:
             self.transform = transform
         else:
-            self.transform = TFC_Transforms()
+            self.transform = TFC_Transforms(
+                jitter_ratio=jitter_ratio, jitter_function=jitter_function
+            )
 
     def _compute_metrics(
         self, y_hat: torch.Tensor, y: torch.Tensor, step_name: str

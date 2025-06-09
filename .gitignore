@@ -173,3 +173,6 @@ experiments/
 logs/
 lightning_logs/
 shared_data/
+docs/notebooks/datasets/
+docs/build/
+docs/autoapi/

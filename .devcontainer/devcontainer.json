@@ -10,8 +10,6 @@
         "all",
         "--shm-size",   // Set shared memory for process communication to 1G
         "1g",
-        // "--ipc",     // Allows using same network interface as host
-        // "host",     
         "--ulimit",
         "memlock=-1",
         "--ulimit",

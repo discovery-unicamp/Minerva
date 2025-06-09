@@ -19,6 +19,7 @@ This will install the latest version of Minerva and all its dependencies.
 
 ## Install Locally
 
+Installing Minerva in development mode allows you to work on the codebase and test changes without needing to reinstall the package every time you make a change. This is useful for contributors who want to develop and test Minerva. You can use pip or conda to install Minerva locally.
 
 1. Clone the repository:
 
@@ -32,6 +33,15 @@ git clone https://github.com/discovery-unicamp/Minerva.git
 cd Minerva
 pip install .
 ```
+
+Or, you can create a conda environment and install Minerva in it:
+
+```bash
+conda env create -f environment.yaml
+conda activate minerva-dev
+```
+
+
 
 ## Using Minerva DevContainer for developing with Minerva
 
@@ -72,6 +82,8 @@ git clone https://github.com/discovery-unicamp/Minerva.git
 5. Every time the container is build the `post_start.sh` script will be executed. This script will install the project dependencies and configure the environment.
 
 6. After the container is built, you will be inside the container. You can now start developing with Minerva.
+
+> **Note**: If you want a dev container with conda support, you must change the `.devcontainer/devcontainer.json` file to use the `Dockerfile.conda` instead of the default `Dockerfile`, as well as the `post_start_conda.sh` script instead of the default `post_start.sh` script. This will install Minerva in a conda environment inside the container.
 
 
 ## Testing

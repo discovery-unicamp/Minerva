@@ -16,6 +16,7 @@ class PNGReader(BaseFileIterator):
         delimiter: Optional[str] = None,
         key_index: Union[int, List[int]] = 0,
         reverse: bool = False,
+        filters: Optional[Union[List[str], str]] = None,
     ):
         """Load image files from a directory.
 
@@ -38,6 +39,11 @@ class PNGReader(BaseFileIterator):
             index 0, then by the part at index 1, and so on. By default 0.
         reverse : bool, optional
             Whether to sort in reverse order, by default False.
+        filters: Optional[Union[List[str], str]]
+            An optional string or list of strings containing regular expressions
+            with which to filter files by their stems. Files that match at least
+            one pattern are kept, and the others are excluded. Defaults to None,
+            which means no files are excluded.
 
         Raises
         ------
@@ -49,7 +55,7 @@ class PNGReader(BaseFileIterator):
             raise NotADirectoryError(f"{path} is not a directory.")
 
         files = list(self.root_dir.rglob("*.png"))
-        super().__init__(files, sort_method, delimiter, key_index, reverse)
+        super().__init__(files, sort_method, delimiter, key_index, reverse, filters)
 
     def __getitem__(self, index: int) -> np.ndarray:
         """Retrieve the PNG file at the specified index."""

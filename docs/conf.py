@@ -12,7 +12,8 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../'))
+
+sys.path.insert(0, os.path.abspath("../"))
 
 
 # -- Project information -----------------------------------------------------
@@ -37,14 +38,14 @@ exclude_patterns = ["**.ipynb_checkpoints", "**ipynb_checkpoints"]
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    "myst_parser",                      # MyST markdown parser
-    "sphinx.ext.autodoc",               # Support for automatic documentation
-    "autoapi.extension",                # Auto-generate API documentation
-    "sphinx_rtd_theme",                 # ReadTheDocs theme
-    "sphinx.ext.viewcode",              # Add "view source code" links
-    "sphinx.ext.autodoc.typehints",     # Use type hints in autodoc
-    "sphinx.ext.mathjax",               # Render math equations
-    "nbsphinx",                         # Support for Jupyter notebooks
+    "myst_parser",  # MyST markdown parser
+    "sphinx.ext.autodoc",  # Support for automatic documentation
+    "autoapi.extension",  # Auto-generate API documentation
+    "sphinx_rtd_theme",  # ReadTheDocs theme
+    "sphinx.ext.viewcode",  # Add "view source code" links
+    "sphinx.ext.autodoc.typehints",  # Use type hints in autodoc
+    "sphinx.ext.mathjax",  # Render math equations
+    "nbsphinx",  # Support for Jupyter notebooks
     "IPython.sphinxext.ipython_console_highlighting",
 ]
 
@@ -73,24 +74,22 @@ html_static_path = ["_static"]
 
 
 # -- Options for AutoAPI -----------------------------------------------------
-autoapi_type = "python"                 # The type of the API documentation
-autoapi_dirs = ["../minerva/"]          # The directories to process
-autoapi_member_order = "alphabetical"   # The order of the members in the documentation
-autoapi_python_use_implicit_namespaces = True   
+autoapi_type = "python"  # The type of the API documentation
+autoapi_dirs = ["../minerva/"]  # The directories to process
+autoapi_member_order = "alphabetical"  # The order of the members in the documentation
+autoapi_python_use_implicit_namespaces = True
 autoapi_python_class_content = "both"
-autoapi_file_patterns = ["*.py"]        # The file patterns to include
-autoapi_generate_api_docs = True        # Generate the API documentation automatically
-autoapi_add_toctree_entry = False       # Add the API documentation to the table of contents
-autodoc_typehints = "description"       # Use type hints in autodoc
+autoapi_file_patterns = ["*.py"]  # The file patterns to include
+autoapi_generate_api_docs = True  # Generate the API documentation automatically
+autoapi_add_toctree_entry = False  # Add the API documentation to the table of contents
+autodoc_typehints = "description"  # Use type hints in autodoc
 # source_suffix = '.rst'
 
 # -- Options for nbsphinx ----------------------------------------------------
-nbsphinx_execute = "never"              # Execute Jupyter notebooks during the Sphinx build. If not, the notebook and outputs should be executed before building the documentation
-nbsphinx_allow_errors = True            # Allow errors in the notebooks
-nbsphinx_codecell_lexer = "python3"     # The lexer to use for code cells
+nbsphinx_execute = "never"  # Execute Jupyter notebooks during the Sphinx build. If not, the notebook and outputs should be executed before building the documentation
+nbsphinx_allow_errors = True  # Allow errors in the notebooks
+nbsphinx_codecell_lexer = "python3"  # The lexer to use for code cells
 nbsphinx_execute_arguments = [
     "--InlineBackend.figure_formats={'svg', 'pdf'}",
     "--InlineBackend.rc={'figure.dpi': 96}",
 ]
-
-
