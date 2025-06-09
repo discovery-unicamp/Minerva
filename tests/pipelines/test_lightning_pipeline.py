@@ -6,6 +6,7 @@ from torch.utils.data import DataLoader, TensorDataset
 import lightning as L
 import torchmetrics
 from minerva.pipelines.lightning_pipeline import SimpleLightningPipeline
+from sklearn.metrics import f1_score, accuracy_score
 
 
 def generate_logits_with_n_correct(num_classes: int, size: int, num_correct: int):
@@ -75,22 +76,22 @@ class MyDataModule(L.LightningDataModule):
 
 # Separate parametrize decorators = Cartesian product
 @pytest.mark.parametrize("batch_size", [1, 2, 7])
-@pytest.mark.parametrize("num_samples", [10, 25])
-@pytest.mark.parametrize("num_correct", [3, 10])
+@pytest.mark.parametrize("num_samples", [10, 30])
+@pytest.mark.parametrize("num_correct", [0, 1, 10])
 @pytest.mark.parametrize("num_classes", [4, 6])
 def test_accuracy_pipeline(batch_size, num_samples, num_correct, num_classes):
     y_true, logits = generate_logits_with_n_correct(
         num_classes, num_samples, num_correct
     )
 
-    x = torch.arange(0, len(logits))
-    y_true_tensor = torch.Tensor(y_true)
-    logits_tensor = torch.Tensor(logits)
-    dataset = TensorDataset(x, y_true_tensor)
+    x = torch.arange(0, len(logits))  # Not used, but needed for the DataLoader
+    y_true = torch.Tensor(y_true)
+    logits = torch.Tensor(logits)
+    y_pred = np.argmax(logits.numpy(), axis=1)
 
-    model = MyModel(logits_tensor, batch_size=batch_size)
-    datamodule = MyDataModule(dataset, batch_size=batch_size)
-
+    dataset = TensorDataset(x, y_true)
+    model = MyModel(logits.numpy().tolist(), batch_size=batch_size)
+    dm = MyDataModule(dataset, batch_size=batch_size)
     trainer = L.Trainer(
         max_epochs=1,
         enable_progress_bar=False,
@@ -107,22 +108,45 @@ def test_accuracy_pipeline(batch_size, num_samples, num_correct, num_classes):
         save_run_status=False,
         classification_metrics={
             "accuracy": torchmetrics.Accuracy(
-                num_classes=num_classes, task="multiclass"
+                num_classes=num_classes, task="multiclass", average="micro"
+            ),
+            "f1-macro": torchmetrics.F1Score(
+                num_classes=num_classes, average="macro", task="multiclass"
+            ),
+            "f1-micro": torchmetrics.F1Score(
+                num_classes=num_classes, average="micro", task="multiclass"
             ),
         },
         apply_metrics_per_sample=False,
     )
 
-    result = pipeline.run(task="evaluate", data=datamodule)
+    r = pipeline.run(
+        task="evaluate",
+        data=dm,
+    )
 
-    actual_accuracy = result["classification"]["accuracy"][0]
-    expected_accuracy = num_correct / num_samples
-    np.testing.assert_almost_equal(actual_accuracy, expected_accuracy, decimal=4)
+    expected_acc = num_correct / num_samples  # just in case...
+    expected_acc_sklearn = accuracy_score(y_true, y_pred)
+    expected_f1_macro_sklearn = f1_score(y_true, y_pred, average="macro")
+    expected_f1_micro_sklearn = f1_score(y_true, y_pred, average="micro")
+
+    np.testing.assert_almost_equal(
+        np.mean(r["classification"]["accuracy"][0]), expected_acc
+    )
+    np.testing.assert_almost_equal(
+        np.mean(r["classification"]["accuracy"][0]), expected_acc_sklearn
+    )
+    np.testing.assert_almost_equal(
+        np.mean(r["classification"]["f1-macro"][0]), expected_f1_macro_sklearn
+    )
+    np.testing.assert_almost_equal(
+        np.mean(r["classification"]["f1-micro"][0]), expected_f1_micro_sklearn
+    )
 
 
 @pytest.mark.parametrize("batch_size", [1, 2, 7])
-@pytest.mark.parametrize("num_samples", [10, 25])
-@pytest.mark.parametrize("num_correct", [3, 10])
+@pytest.mark.parametrize("num_samples", [10, 30])
+@pytest.mark.parametrize("num_correct", [0, 1, 10])
 @pytest.mark.parametrize("num_classes", [4, 6])
 def test_accuracy_pipeline_per_sample(
     batch_size, num_samples, num_correct, num_classes
@@ -157,6 +181,12 @@ def test_accuracy_pipeline_per_sample(
         classification_metrics={
             "accuracy": torchmetrics.Accuracy(
                 num_classes=num_classes, task="multiclass"
+            ),
+            "f1-macro": torchmetrics.F1Score(
+                num_classes=num_classes, average="macro", task="multiclass"
+            ),
+            "f1-micro": torchmetrics.F1Score(
+                num_classes=num_classes, average="micro", task="multiclass"
             ),
         },
         apply_metrics_per_sample=True,
