@@ -1,9 +1,11 @@
 from typing import Any, Iterable, List, Optional, Tuple, Union
 
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, Subset as _Subset, ConcatDataset as _ConcatDataset
 
 from minerva.data.readers.reader import _Reader
 from minerva.transforms.transform import _Transform
+
+import random
 
 
 class SimpleDataset(Dataset):
@@ -199,3 +201,124 @@ class SimpleDataset(Dataset):
 
     def __repr__(self) -> str:
         return self.__str__()
+
+
+class Subset(_Subset):
+    def __init__(self, dataset: Dataset, indices: List[int]):
+        """Create a subset of a dataset with specified indices.
+        Parameters
+        ----------
+        dataset : Dataset
+            The dataset to create a subset from.
+        indices : List[int]
+            The indices of the samples to include in the subset.
+        """
+        super().__init__(dataset, indices)
+
+    def __str__(self) -> str:
+        return f"{self.dataset}\nSubset with {len(self.indices)} samples"
+
+
+class FractionalSubset(_Subset):
+    def __init__(self, dataset: Dataset, fraction: Union[float, int]):
+        """Create a subset of a dataset with a specified fraction or fixed number of samples.
+        Parameters
+        ----------
+        dataset : Dataset
+            The dataset to create a subset from.
+        fraction : float or int
+            The fraction can be:
+            - A float (from 0 to 1) representing the percentage of the dataset to include; or
+            - An integer from 1 to the size of the dataset representing the number of samples to include.
+        Raises
+        ------
+        ValueError
+            If the fraction is not in the valid range.
+        TypeError
+            If the fraction is not a float or an int.
+        """
+        dataset_size = len(dataset)
+
+        if isinstance(fraction, float):
+            if not (0 < fraction <= 1):
+                raise ValueError("Fraction as float must be between 0 and 1.")
+            num_samples = int(dataset_size * fraction)
+        elif isinstance(fraction, int):
+            if not (0 < fraction <= dataset_size):
+                raise ValueError(
+                    "Integer fraction must be between 1 and the size of the dataset."
+                )
+            num_samples = fraction
+        else:
+            raise TypeError("Fraction must be a float or an int.")
+
+        self.fraction = fraction
+        indices = list(range(dataset_size))
+        selected_indices = indices[:num_samples]
+        super().__init__(dataset, selected_indices)
+
+    def __str__(self) -> str:
+        desc = f"{self.dataset}\nFractional Subset with {len(self.indices)} samples"
+        if isinstance(self.fraction, float):
+            desc += f" ({self.fraction * 100:.2f}%)"
+        return desc
+
+
+class FractionalRandomSubset(_Subset):
+    def __init__(
+        self, dataset: Dataset, fraction: Union[float, int], seed: Optional[int] = None
+    ):
+        """Create a random subset of a dataset with a specified fraction or fixed number of samples.
+        Parameters
+        ----------
+        dataset : Dataset
+            The dataset to create a subset from.
+        fraction : float or int
+            The fraction can be:
+            - A float (from 0 to 1) representing the percentage of the dataset to include; or
+            - An integer from 1 to the size of the dataset representing the number of samples to include.
+        seed : Optional[int], optional
+            The random seed for reproducibility, by default None.
+        Raises
+        ------
+        ValueError
+            If the fraction is not in the valid range.
+        TypeError
+            If the fraction is not a float or an int.
+
+        """
+        dataset_size = len(dataset)
+
+        if isinstance(fraction, float):
+            if not (0 < fraction <= 1):
+                raise ValueError("Fraction as float must be between 0 and 1.")
+            num_samples = int(dataset_size * fraction)
+        elif isinstance(fraction, int):
+            if not (0 < fraction <= dataset_size):
+                raise ValueError(
+                    "Integer fraction must be between 1 and the size of the dataset."
+                )
+            num_samples = fraction
+        else:
+            raise TypeError("Fraction must be a float or an int.")
+
+        self.seed = seed
+        self.rng = random.Random(seed)
+        self.fraction = fraction
+        indices = list(range(dataset_size))
+        selected_indices = self.rng.sample(indices, num_samples)
+        super().__init__(dataset, selected_indices)
+
+    def __str__(self) -> str:
+        desc = (
+            f"{self.dataset}\nRandom Fractional Subset with {len(self.indices)} samples"
+        )
+        if isinstance(self.fraction, float):
+            desc += f" ({self.fraction * 100:.2f}%)"
+        desc += f". Using seed: {self.seed}"
+        return desc
+
+
+class ConcatDataset(_ConcatDataset):
+    def __str__(self) -> str:
+        return f"{self.datasets}\nConcatenated {len(self.datasets)}. Totaling {len(self)} samples"
