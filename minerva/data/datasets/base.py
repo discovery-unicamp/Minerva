@@ -26,7 +26,9 @@ class SimpleDataset(Dataset):
     def __init__(
         self,
         readers: Union[_Reader, List[_Reader]],
-        transforms: Optional[Union[_Transform, List[_Transform]]] = None,
+        transforms: Optional[
+            Union[Optional[_Transform], List[Optional[_Transform]]]
+        ] = None,
         return_single: bool = False,
     ):
         """Load data from multiple sources and apply specified transforms.
@@ -44,7 +46,9 @@ class SimpleDataset(Dataset):
             -   A list of transforms, in which case each transform is applied
                 to the corresponding reader. That is, the first transform is
                 applied to the first reader, the second transform is applied to
-                the second reader, and so on.
+                the second reader, and so on. The transform can also be None for
+                some readers, in which case no transform is applied to that
+                reader's data.
         return_single : bool, optional
             If True, the __getitem__ method will return a single sample  when
             a single reader is used. This is useful for unsupervised datasets,
