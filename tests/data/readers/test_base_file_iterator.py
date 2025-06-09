@@ -84,3 +84,24 @@ def test_base_file_iterator_no_custom_sorting():
     iterator = BaseFileIterator(files)
     unsorted_files = [f.name for f in iterator.files]
     assert unsorted_files == sorted(["file3.txt", "file1.txt", "file2.txt"])
+
+
+def test_base_file_iterator_single_filtering():
+    files = ["il_1.txt", "il_2.txt", "xl_1.txt", "xl_2.txt"]
+    iterator = BaseFileIterator(files, filters=r"il.*")
+    assert all(f.stem.startswith("il") for f in iterator.files)
+
+
+def test_base_file_iterator_multi_filtering():
+    files = [
+        "il_1.txt",
+        "il_2.txt",
+        "xl_1.txt",
+        "xl_2.txt",
+        "ol_1.txt",
+        "ol_2.txt",
+    ]
+    iterator = BaseFileIterator(files, filters=[r"il.*", r"ol.*"])
+    assert all(
+        f.stem.startswith("il") or f.stem.startswith("ol") for f in iterator.files
+    )
