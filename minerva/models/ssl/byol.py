@@ -1,28 +1,72 @@
 import copy
 import torch
-import torchvision
-import lightning as L
 import numpy as np
-import warnings
-
-from torch import nn
-from torch import Tensor
+from torch import nn, Tensor
 from collections import OrderedDict
-from typing import Optional, Sequence
+from typing import Optional, Sequence, Dict, Any
 
 from minerva.losses.negative_cossine_similatiry import NegativeCosineSimilarity
 from minerva.models.nets.mlp import MLP
-from torch.optim import Optimizer
 from minerva.models.nets.image.deeplabv3 import DeepLabV3Backbone
+from minerva.models.nets.base import SimpleSupervisedModel
 
 
-class BYOL(L.LightningModule):
-    """Bootstrap Your Own Latent (BYOL) model for self-supervised learning.
+class BYOL(SimpleSupervisedModel):
+    """
+    Bootstrap Your Own Latent (BYOL) model for self-supervised representation learning.
+
+    This class implements the BYOL framework [1], built on top of :class:`SimpleSupervisedModel`
+    to reuse its optimizer, logging, and training utilities. Unlike typical supervised models,
+    BYOL does not require labeled data; instead, it learns representations by predicting one
+    augmented view of an image from another, using both an online and a momentum encoder.
+
+    The model consists of:
+        - An **online encoder**: backbone + projection head + prediction head.
+        - A **momentum encoder**: backbone + projection head (no prediction head),
+          updated using an exponential moving average of the online encoder parameters.
+
+    Key features:
+        - Self-supervised loss via :class:`~minerva.losses.negative_cossine_similatiry.NegativeCosineSimilarity`
+        - Momentum update schedule using cosine decay.
+        - Default optimizer: Adam with ``weight_decay=1e-6``.
+        - Built-in hooks for momentum update and loss computation.
+
+    Parameters
+    ----------
+    backbone : nn.Module, optional
+        Feature extractor network. Defaults to :class:`~minerva.models.nets.image.deeplabv3.DeepLabV3Backbone`.
+    projection_head : nn.Module, optional
+        Projection head mapping encoder features to latent space.
+        If None, a default 3-layer MLP is used.
+    prediction_head : nn.Module, optional
+        Prediction head mapping projected features to target space.
+        If None, a default 2-layer MLP is used.
+    learning_rate : float, default=1e-3
+        Learning rate for optimizer.
+    schedule : int, default=90000
+        Number of training steps over which to apply cosine momentum schedule.
+    criterion : nn.Module, optional
+        Loss function. Defaults to :class:`~minerva.losses.negative_cossine_similatiry.NegativeCosineSimilarity`.
+    optimizer : type, optional
+        Optimizer class. Defaults to :class:`torch.optim.Adam` if not provided.
+    optimizer_kwargs : dict, optional
+        Extra keyword arguments for the optimizer. By default, uses ``{"weight_decay": 1e-6}``.
+
+    Notes
+    -----
+    - Metrics are disabled by default since BYOL is self-supervised.
+    - The ``fc`` layer from :class:`SimpleSupervisedModel` is replaced with ``nn.Identity()``
+      because BYOL uses its own projection/prediction heads.
+    - The forward pass returns predictions from the online encoder; the momentum encoder is
+      used internally for target computation only.
 
     References
     ----------
-    Grill, J., Strub, F., Altché, F., Tallec, C., Richemond, P. H., Buchatskaya, E., ... & Valko, M. (2020).
-    "Bootstrap your own latent - a new approach to self-supervised learning." Advances in Neural Information Processing Systems, 33, 21271-21284.
+    [1] Grill, J.B., Strub, F., Altché, F., Tallec, C., Richemond, P.H., Buchatskaya, E.,
+        Doersch, C., Pires, B.A., Guo, Z.D., Azar, M.G., Piot, B., Kavukcuoglu, K.,
+        Munos, R., & Valko, M. (2020).
+        Bootstrap Your Own Latent - A New Approach to Self-Supervised Learning.
+        Advances in Neural Information Processing Systems, 33, 21271–21284.
     """
 
     def __init__(
@@ -30,38 +74,47 @@ class BYOL(L.LightningModule):
         backbone: Optional[nn.Module] = None,
         projection_head: Optional[nn.Module] = None,
         prediction_head: Optional[nn.Module] = None,
-        learning_rate: Optional[float] = 1e-3,
-        schedule: Optional[int] = 90000,
-        criterion: Optional[Optimizer] = None,
+        learning_rate: float = 1e-3,
+        schedule: int = 90000,
+        criterion: Optional[nn.Module] = None,
+        optimizer: type = torch.optim.Adam,
+        optimizer_kwargs: Optional[Dict[str, Any]] = None,
     ):
-        """
-        Initializes the BYOL model.
+        backbone_model = backbone or DeepLabV3Backbone()
+        projection_head_model = projection_head or self._default_projection_head()
+        prediction_head_model = prediction_head or self._default_prediction_head()
+        loss_criterion = criterion or NegativeCosineSimilarity()
 
-        Parameters
-        ----------
-        backbone : Optional[nn.Module]
-            The backbone network for feature extraction. Defaults to DeepLabV3Backbone.
-        projection_head : Optional[nn.Module]
-            Optional custom projection head module. If None, a default MLP-based projection head is used.
-        prediction_head : Optional[nn.Module]
-            Optional custom prediction head module. If None, a default MLP-based prediction head is used.
-        learning_rate : float
-            The learning rate for the optimizer. Defaults to 1e-3.
-        schedule : int
-            The total number of steps for cosine decay scheduling. Defaults to 90000.
-        criterion : Optional[Optimizer]
-            Loss function to use. Defaults to NegativeCosineSimilarity.
-        """
-        super().__init__()
-        self.backbone = backbone or DeepLabV3Backbone()
-        self.learning_rate = learning_rate
-        self.projection_head = projection_head or self._default_projection_head()
-        self.prediction_head = prediction_head or self._default_prediction_head()
+        optimizer = optimizer or torch.optim.Adam
+        default_optimizer_kwargs = {"lr": learning_rate, "weight_decay": 1e-6}
+        if optimizer_kwargs:
+            default_optimizer_kwargs = optimizer_kwargs
+
+        super().__init__(
+            backbone=backbone_model,
+            fc=nn.Identity(),
+            loss_fn=loss_criterion,
+            adapter=None,
+            learning_rate=learning_rate,
+            flatten=False,
+            train_metrics=None,
+            val_metrics=None,
+            test_metrics=None,
+            freeze_backbone=False,
+            optimizer=optimizer,
+            optimizer_kwargs=default_optimizer_kwargs,
+        )
+
+        self.backbone = backbone_model
+        self.projection_head = projection_head_model
+        self.prediction_head = prediction_head_model
+
         self.backbone_momentum = copy.deepcopy(self.backbone)
         self.projection_head_momentum = copy.deepcopy(self.projection_head)
         self.deactivate_requires_grad(self.backbone_momentum)
         self.deactivate_requires_grad(self.projection_head_momentum)
-        self.criterion = criterion or NegativeCosineSimilarity()
+
+        self.criterion = loss_criterion
         self.schedule_length = schedule
 
     def _default_projection_head(self) -> nn.Module:
@@ -125,22 +178,17 @@ class BYOL(L.LightningModule):
         z = self.projection_head_momentum(y)
         return z.detach()
 
-    def training_step(self, batch: Sequence[Tensor], batch_idx: int) -> Tensor:
-        """
-        Performs a training step for BYOL.
+    def _loss_func(self, outputs, targets=None) -> torch.Tensor:
 
-        Parameters
-        ----------
-        batch : Sequence[Tensor]
-            A batch of input pairs (x0, x1).
-        batch_idx : int
-            Batch index.
+        (x0, x1) = outputs
+        p0 = self.forward(x0)
+        z0 = self.forward_momentum(x0)
+        p1 = self.forward(x1)
+        z1 = self.forward_momentum(x1)
+        return 0.5 * (self.criterion(p0, z1) + self.criterion(p1, z0))
 
-        Returns
-        -------
-        Tensor
-            The computed loss for the current batch.
-        """
+    def training_step(self, batch: Sequence[Tensor], batch_idx: int) -> torch.Tensor:
+        """Overrides SimpleSupervisedModel's step for BYOL."""
         momentum = self.cosine_schedule(
             self.current_epoch, self.schedule_length, 0.996, 1
         )
@@ -148,12 +196,8 @@ class BYOL(L.LightningModule):
         self.update_momentum(
             self.projection_head, self.projection_head_momentum, m=momentum
         )
-        (x0, x1) = batch
-        p0 = self.forward(x0)
-        z0 = self.forward_momentum(x0)
-        p1 = self.forward(x1)
-        z1 = self.forward_momentum(x1)
-        loss = 0.5 * (self.criterion(p0, z1) + self.criterion(p1, z0))
+
+        loss = self._loss_func(batch)
         self.log(
             "train_loss",
             loss,
@@ -164,17 +208,6 @@ class BYOL(L.LightningModule):
             sync_dist=True,
         )
         return loss
-
-    def configure_optimizers(self):
-        """
-        Configures the optimizer for the BYOL model.
-
-        Returns
-        -------
-        torch.optim.SGD
-            Optimizer with configured learning rate.
-        """
-        return torch.optim.SGD(self.parameters(), lr=self.learning_rate)
 
     @torch.no_grad()
     def update_momentum(self, model: nn.Module, model_ema: nn.Module, m: float):

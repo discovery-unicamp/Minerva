@@ -14,6 +14,7 @@ from minerva.pipelines.experiment import (
     ModelInstantiator,
     ModelInformation,
     ModelConfig,
+    InstantiatedModel,
     get_trainer,
     save_predictions,
     load_predictions,
@@ -54,6 +55,22 @@ class DummySegmentationDataset(torch.utils.data.Dataset):
         label = self.labels[index].astype(np.int64)
         dummy_features = np.random.rand(*label.shape).astype(np.float32)
         return dummy_features, label
+
+    def __len__(self):
+        return len(self.labels)
+
+
+class DummyClassificationDataset(torch.utils.data.Dataset):
+    def __init__(
+        self, num_samples: int, num_classes: int, input_shape: Tuple[int, ...] = (32,)
+    ):
+        self.data = np.random.rand(num_samples, *input_shape).astype(np.float32)
+        self.labels = np.random.randint(0, num_classes, size=num_samples).astype(
+            np.int64
+        )
+
+    def __getitem__(self, index):
+        return torch.tensor(self.data[index]), torch.tensor(self.labels[index])
 
     def __len__(self):
         return len(self.labels)
@@ -114,6 +131,12 @@ class DummyModelInstantiator(ModelInstantiator):
 
 
 @pytest.fixture
+def dummy_lightning_model():
+    """Fixture to create a dummy Lightning model."""
+    return DummyLightningModel()
+
+
+@pytest.fixture
 def dummy_instantiator():
     return DummyModelInstantiator()
 
@@ -139,6 +162,15 @@ def model_config(dummy_instantiator):
 @pytest.fixture
 def dummy_log_dir(tmp_path: Path):
     return tmp_path / "logs" / "model" / "dataset" / "experiment" / "0"
+
+
+@pytest.fixture
+def dummy_classification_data_module():
+    """Fixture to create a dummy classification data module."""
+    dataset = DummyClassificationDataset(num_samples=10, num_classes=3)
+    return MinervaDataModule(
+        train_dataset=dataset, val_dataset=dataset, test_dataset=dataset, batch_size=4
+    )
 
 
 def test_get_trainer_default():
@@ -532,6 +564,25 @@ def test_trainer_with_logging_and_checkpointing(dummy_log_dir):
     assert any("ModelCheckpoint" in str(type(cb)) for cb in trainer.callbacks)  # type: ignore
 
 
+def test_trainer_with_custom_callbacks(dummy_log_dir):
+    class CustomCallback(L.Callback):
+        def on_train_start(self, trainer, pl_module):
+            print("Training started!")
+
+    trainer = get_trainer(
+        log_dir=dummy_log_dir,
+        max_epochs=5,
+        enable_logging=True,
+        progress_bar_refresh_rate=0,
+        callbacks=[CustomCallback(), CustomCallback(), CustomCallback()],
+    )
+
+    assert isinstance(trainer, Trainer)
+    assert trainer.max_epochs == 5
+    assert trainer.logger is not False
+    assert len(trainer.callbacks) == 3 + 1  # from ModelSummary # type: ignore
+
+
 def test_trainer_with_logging_and_checkpointing_invalid(dummy_log_dir):
     # Missing "filename" key in checkpoint_metrics
     checkpoint_metrics = [{"monitor": "val_loss", "mode": "min"}]
@@ -736,6 +787,55 @@ def test_experiment_initialization(tmp_path, model_config, add_last_ckpt):
         assert experiment.checkpoint_metrics[-1]["monitor"] == None
         assert experiment.checkpoint_metrics[-1]["mode"] == "min"
         assert experiment.checkpoint_metrics[-1]["filename"] == "last"
+
+
+def test_experiment_initialization_with_instantiated_model(
+    tmp_path, dummy_lightning_model
+):
+    """Test initialization of the Experiment class."""
+    data_module = MinervaDataModule(name="dummy_dataset")
+
+    experiment = Experiment(
+        experiment_name="test_experiment",
+        model_config=dummy_lightning_model,
+        data_module=data_module,
+        root_log_dir=tmp_path,
+        max_epochs=10,
+        accelerator="cpu",
+        execution_id=1000,
+        seed=42,
+    )
+
+    assert isinstance(experiment.model_config, ModelConfig)
+    assert isinstance(experiment.model_config.instantiator, InstantiatedModel)
+    assert (
+        experiment.model_config.information.name
+        == dummy_lightning_model.__class__.__name__
+    )
+
+    exp_path = (
+        tmp_path
+        / f"test_experiment/{data_module.dataset_name}/{dummy_lightning_model.__class__.__name__}/1000"
+    )
+    assert str(experiment.log_dir) == str(exp_path)
+
+
+def test_experiment_invalid_initialization_with_instantiated_model_and_backbone_path(
+    tmp_path, dummy_lightning_model
+):
+    """Test initialization of the Experiment class."""
+    data_module = MinervaDataModule(name="dummy_dataset")
+
+    with pytest.raises(
+        ValueError, match="You passed an instance of L.LightningModule as model_config"
+    ):
+        experiment = Experiment(
+            experiment_name="test_experiment",
+            model_config=dummy_lightning_model,
+            data_module=data_module,
+            pretrained_backbone_ckpt_path=tmp_path / "backbone.ckpt",
+            root_log_dir=tmp_path,
+        )
 
 
 def test_experiment_initialization_with_invalid_ckpts(tmp_path, model_config):
@@ -1306,3 +1406,65 @@ def test_evaluate_model_no_predict_dataset(tmp_path, model_config):
 
     with pytest.raises(ValueError, match="No predict dataset found"):
         experiment._evaluate_model()
+
+
+@pytest.mark.parametrize("evaluate", [True, False])
+@pytest.mark.parametrize("add_last_checkpoint", [True, False])
+def test_run_experiment_fit_evaluate(
+    tmp_path,
+    model_config,
+    dummy_classification_data_module,
+    evaluate,
+    add_last_checkpoint,
+):
+    if evaluate:
+        evaluation_metrics = {
+            "accuracy": torchmetrics.Accuracy(task="multiclass", num_classes=3),
+        }
+    else:
+        evaluation_metrics = None
+
+    experiment = Experiment(
+        experiment_name="test_experiment",
+        model_config=model_config,
+        data_module=dummy_classification_data_module,
+        root_log_dir=tmp_path,
+        max_epochs=10,
+        accelerator="cpu",
+        execution_id=1000,
+        seed=42,
+        save_predictions=True,
+        save_results=True,
+        add_last_checkpoint=add_last_checkpoint,
+        evaluation_metrics=evaluation_metrics,
+    )
+
+    results = experiment.run(task="fit-evaluate")
+    status = experiment.status
+
+    if evaluate:
+        assert status["state"] == "evaluated"
+    else:
+        assert status["state"] == "predicted"
+
+    if add_last_checkpoint:
+        name = "last"
+    else:
+        name = "last_cached"
+
+    assert status["experiment_name"] == "test_experiment"
+    assert str(status["log_dir"]) == str(experiment.log_dir)
+    assert name in results
+
+    if add_last_checkpoint:
+        assert name in experiment.checkpoint_paths
+        assert experiment.checkpoint_paths[name].exists()
+
+    assert name in experiment.prediction_paths
+    assert experiment.prediction_paths[name].exists()
+
+    if evaluate:
+        assert name in experiment.results_paths
+        assert experiment.results_paths[name].exists()
+    else:
+        assert len(experiment.results_paths) == 0

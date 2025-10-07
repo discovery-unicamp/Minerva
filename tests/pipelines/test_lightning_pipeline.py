@@ -6,7 +6,14 @@ from torch.utils.data import DataLoader, TensorDataset
 import lightning as L
 import torchmetrics
 from minerva.pipelines.lightning_pipeline import SimpleLightningPipeline
-from sklearn.metrics import f1_score, accuracy_score
+from minerva.analysis.metrics import BalancedAccuracy
+from sklearn.metrics import (
+    f1_score,
+    accuracy_score,
+    precision_score,
+    recall_score,
+    balanced_accuracy_score,
+)
 
 
 def generate_logits_with_n_correct(num_classes: int, size: int, num_correct: int):
@@ -85,11 +92,11 @@ def test_accuracy_pipeline(batch_size, num_samples, num_correct, num_classes):
     )
 
     x = torch.arange(0, len(logits))  # Not used, but needed for the DataLoader
-    y_true = torch.Tensor(y_true)
+    y_true_tensor = torch.Tensor(y_true)
     logits = torch.Tensor(logits)
     y_pred = np.argmax(logits.numpy(), axis=1)
 
-    dataset = TensorDataset(x, y_true)
+    dataset = TensorDataset(x, y_true_tensor)
     model = MyModel(logits.numpy().tolist(), batch_size=batch_size)
     dm = MyDataModule(dataset, batch_size=batch_size)
     trainer = L.Trainer(
@@ -116,6 +123,15 @@ def test_accuracy_pipeline(batch_size, num_samples, num_correct, num_classes):
             "f1-micro": torchmetrics.F1Score(
                 num_classes=num_classes, average="micro", task="multiclass"
             ),
+            "precision": torchmetrics.Precision(
+                num_classes=num_classes, average="macro", task="multiclass"
+            ),
+            "recall": torchmetrics.Recall(
+                num_classes=num_classes, average="macro", task="multiclass"
+            ),
+            "balanced_accuracy": BalancedAccuracy(
+                num_classes=num_classes, task="multiclass"
+            ),
         },
         apply_metrics_per_sample=False,
     )
@@ -125,10 +141,17 @@ def test_accuracy_pipeline(batch_size, num_samples, num_correct, num_classes):
         data=dm,
     )
 
-    expected_acc = num_correct / num_samples  # just in case...
+    expected_acc = num_correct / num_samples
     expected_acc_sklearn = accuracy_score(y_true, y_pred)
     expected_f1_macro_sklearn = f1_score(y_true, y_pred, average="macro")
     expected_f1_micro_sklearn = f1_score(y_true, y_pred, average="micro")
+    expected_precision_sklearn = precision_score(
+        y_true, y_pred, average="macro", zero_division=0
+    )
+    expected_recall_sklearn = recall_score(
+        y_true, y_pred, average="macro", zero_division=0
+    )
+    expected_balanced_acc_sklearn = balanced_accuracy_score(y_true, y_pred)
 
     np.testing.assert_almost_equal(
         np.mean(r["classification"]["accuracy"][0]), expected_acc
@@ -142,6 +165,16 @@ def test_accuracy_pipeline(batch_size, num_samples, num_correct, num_classes):
     np.testing.assert_almost_equal(
         np.mean(r["classification"]["f1-micro"][0]), expected_f1_micro_sklearn
     )
+    np.testing.assert_almost_equal(
+        np.mean(r["classification"]["precision"][0]), expected_precision_sklearn
+    )
+    np.testing.assert_almost_equal(
+        np.mean(r["classification"]["recall"][0]), expected_recall_sklearn
+    )
+    np.testing.assert_almost_equal(
+        np.mean(r["classification"]["balanced_accuracy"][0]),
+        expected_balanced_acc_sklearn,
+    )
 
 
 @pytest.mark.parametrize("batch_size", [1, 2, 7])
@@ -151,7 +184,6 @@ def test_accuracy_pipeline(batch_size, num_samples, num_correct, num_classes):
 def test_accuracy_pipeline_per_sample(
     batch_size, num_samples, num_correct, num_classes
 ):
-    num_classes = 6
     y_true, logits = generate_logits_with_n_correct(
         num_classes, num_samples, num_correct
     )
@@ -161,7 +193,7 @@ def test_accuracy_pipeline_per_sample(
     logits_tensor = torch.Tensor(logits)
     dataset = TensorDataset(x, y_true_tensor)
 
-    model = MyModel(logits_tensor, batch_size=batch_size)
+    model = MyModel(logits_tensor.numpy().tolist(), batch_size=batch_size)
     datamodule = MyDataModule(dataset, batch_size=batch_size)
 
     trainer = L.Trainer(
@@ -187,6 +219,15 @@ def test_accuracy_pipeline_per_sample(
             ),
             "f1-micro": torchmetrics.F1Score(
                 num_classes=num_classes, average="micro", task="multiclass"
+            ),
+            "precision": torchmetrics.Precision(
+                num_classes=num_classes, average="macro", task="multiclass"
+            ),
+            "recall": torchmetrics.Recall(
+                num_classes=num_classes, average="macro", task="multiclass"
+            ),
+            "balanced_accuracy": BalancedAccuracy(
+                num_classes=num_classes, task="multiclass"
             ),
         },
         apply_metrics_per_sample=True,

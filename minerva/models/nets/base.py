@@ -123,8 +123,8 @@ class SimpleSupervisedModel(L.LightningModule):
         """
 
         super().__init__()
-        self.backbone = backbone
-        self.fc = fc
+        self.backbone = backbone or torch.nn.Identity()
+        self.fc = fc or torch.nn.Identity()
         self.loss_fn = loss_fn
         self.adapter = adapter
         self.learning_rate = learning_rate
@@ -139,6 +139,24 @@ class SimpleSupervisedModel(L.LightningModule):
         self.optimizer_kwargs = optimizer_kwargs or {}
         self.lr_scheduler = lr_scheduler
         self.lr_scheduler_kwargs = lr_scheduler_kwargs or {}
+
+        # Set trainable parameters based on freeze_backbone
+        # We set here to ensure that the parameters are frozen before
+        # training starts allowing checking #of trainable parameters
+        self._set_trainable_params()
+
+    def _set_trainable_params(self):
+        """Freeze the parameters of the backbone model if `freeze_backbone` is
+        set to True."""
+        # Freeze the backbone model based on the freeze_backbone flag
+        if hasattr(self.backbone, "parameters"):
+            for param in self.backbone.parameters():  # type: ignore
+                param.requires_grad = not self.freeze_backbone
+
+        # Unfreeze the fc model
+        if hasattr(self.fc, "parameters"):
+            for param in self.fc.parameters():  # type: ignore
+                param.requires_grad = True
 
     def _loss_func(self, y_hat: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
         """Calculate the loss between the output and the input data.
@@ -234,6 +252,7 @@ class SimpleSupervisedModel(L.LightningModule):
         x, y = batch
         y_hat = self.forward(x)
         loss = self._loss_func(y_hat, y)
+
         self.log(
             f"{step_name}_loss",
             loss,
@@ -241,6 +260,7 @@ class SimpleSupervisedModel(L.LightningModule):
             on_epoch=True,
             prog_bar=True,
             logger=True,
+            sync_dist=True,  # Add sync_dist parameter and set always true
         )
 
         metrics = self._compute_metrics(y_hat, y, step_name)
@@ -252,6 +272,7 @@ class SimpleSupervisedModel(L.LightningModule):
                 on_epoch=True,
                 prog_bar=True,
                 logger=True,
+                sync_dist=True,  # Add sync_dist parameter and set always true
             )
 
         return loss
@@ -271,12 +292,8 @@ class SimpleSupervisedModel(L.LightningModule):
         return y_hat
 
     def configure_optimizers(self):
-        # Freeze or not the backbone model
-        for param in self.backbone.parameters():
-            param.requires_grad = not self.freeze_backbone
-        # Unfreeze the fc model
-        for param in self.fc.parameters():
-            param.requires_grad = True
+        # Set trainable parameters based on freeze_backbone
+        self._set_trainable_params()
 
         optimizer = self.optimizer(
             self.parameters(), lr=self.learning_rate, **self.optimizer_kwargs

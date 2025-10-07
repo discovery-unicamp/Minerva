@@ -1,6 +1,6 @@
 from .activity_image import ActivityImageTransforms
 from .random_transform import (
-    EmptyTransform,
+    Identity,
     RandomCrop,
     RandomFlip,
     RandomGrayScale,
@@ -60,6 +60,6 @@ __all__ = [
     "RandomGrayScale",
     "RandomRotation",
     "RandomSolarize",
-    "EmptyTransform",
+    "Identity",
     "_RandomSyncedTransform",
 ]

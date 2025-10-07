@@ -1,12 +1,14 @@
-from typing import Any, Callable, Dict, Optional, overload
-
 import torch
-from torch.optim import Optimizer
+from torch.optim.optimizer import Optimizer
+from typing import Set, Optional, Callable, Any
 
 
 class LARS(Optimizer):
-    """Implements the Layer-wise Adaptive Rate Scaling (LARS) optimizer.
-    Implementation borrowed from lightly SSL library.
+    """Layer-wise Adaptive Rate Scaling (LARS) optimizer.
+
+    This optimizer implements the LARS algorithm, which adapts the learning rate
+    for each layer based on the ratio of the weight norm to the gradient norm.
+    This helps stabilize training and allows for larger learning rates.
     """
 
     def __init__(
@@ -14,121 +16,128 @@ class LARS(Optimizer):
         params: Any,
         lr: float,
         momentum: float = 0.9,
-        dampening: float = 0,
-        weight_decay: float = 0.9,
-        nesterov: bool = False,
-        trust_coefficient: float = 0.001,
-        eps: float = 1e-8,
+        weight_decay: float = 1e-6,
+        eta: float = 0.001,
+        epsilon: float = 1e-8,
+        exclude_from_layer_adaptation: Optional[Set[str]] = None,
     ):
-        """Constructs a new LARS optimizer.
+        """Layer-wise Adaptive Rate Scaling (LARS) optimizer.
+
+        This optimizer implements the LARS algorithm, which adapts the learning rate
+        for each layer based on the ratio of the weight norm to the gradient norm.
+        This helps stabilize training and allows for larger learning rates.
 
         Parameters
         ----------
         params : Any
             Parameters to optimize.
         lr : float
-            Learning rate.
-        momentum : float, optional
-            Momentum factor, by default 0.9
-        dampening : float, optional
-            Dampening for momentum, by default 0
-        weight_decay : float, optional
-            Weight decay (L2 penalty), by default 0.9
-        nesterov : bool, optional
-            Enables Nesterov momentum, by default False
-        trust_coefficient : float, optional
-            Trust coefficient for computing learning rate, by default 0.001
-        eps : float, optional
-            Eps for division denominator, by default 1e-8
+            Base learning rate.
+        momentum : float, optional, default: 0.9
+            Momentum factor.
+        weight_decay : float, optional, default: 1e-6
+            Weight decay (L2 penalty) coefficient.
+        eta : float, optional, default: 0.001
+            Trust coefficient for layer-wise rate scaling.
+        epsilon : float, optional, default: 1e-8
+            Small constant for numerical stability.
+        exclude_from_layer_adaptation : Set[str], optional
+            Set of parameter names to exclude from layer-wise adaptation
+            (e.g., batch normalization layers and biases).
+
+        Attributes
+        ----------
+        exclude_set : Set[str]
+            Set of parameter names excluded from layer-wise adaptation.
+
+        References
+        ----------
+        .. [1] You, Yang, et al. "Large batch training of convolutional networks."
+            arXiv preprint arXiv:1708.03888 (2017).
 
         """
-        if lr <= 0.0:
+        if lr < 0.0:
             raise ValueError(f"Invalid learning rate: {lr}")
-        if momentum < 0.0:
-            raise ValueError(f"Invalid momentum value: {momentum}")
-        if weight_decay < 0.0:
-            raise ValueError(f"Invalid weight_decay value: {weight_decay}")
-
         defaults = dict(
             lr=lr,
             momentum=momentum,
-            dampening=dampening,
             weight_decay=weight_decay,
-            nesterov=nesterov,
-            trust_coefficient=trust_coefficient,
-            eps=eps,
+            eta=eta,
+            epsilon=epsilon,
         )
-
-        if nesterov and (momentum <= 0 or dampening != 0):
-            raise ValueError("Nesterov momentum requires a momentum and zero dampening")
-
-        super().__init__(params, defaults)
-
-    def __setstate__(self, state: Dict[str, Any]) -> None:
-        super().__setstate__(state)
-        for group in self.param_groups:
-            group.setdefault("nesterov", False)
-
-    # Type ignore for overloads is required for Python 3.7.
-    @overload  # type: ignore[override]
-    def step(self, closure: None = None) -> None: ...
-
-    @overload
-    def step(self, closure: Callable[[], float]) -> float: ...
+        super(LARS, self).__init__(params, defaults)
+        self.exclude_set = exclude_from_layer_adaptation or set()
 
     @torch.no_grad()
-    def step(self, closure: Optional[Callable[[], float]] = None) -> Optional[float]:
-        """Performs a single optimization step.
+    def step(self, closure: Optional[Callable[[], float]] = None):
+        """
+        Performs a single optimization step.
 
-        Args:
-            closure (callable, optional): A closure that reevaluates the model
-                and returns the loss.
+        Parameters
+        ----------
+        closure : callable, optional
+            A closure that reevaluates the model and returns the loss.
+
+        Returns
+        -------
+        loss : torch.Tensor or None
+            Loss from the closure if provided, otherwise None.
+
         """
         loss = None
         if closure is not None:
             with torch.enable_grad():
                 loss = closure()
 
-        # Exclude scaling for params with 0 weight decay.
         for group in self.param_groups:
-            weight_decay = group["weight_decay"]
-            momentum = group["momentum"]
-            dampening = group["dampening"]
-            nesterov = group["nesterov"]
-
             for p in group["params"]:
                 if p.grad is None:
                     continue
 
-                d_p = p.grad
-                p_norm = torch.norm(p.data)
-                g_norm = torch.norm(p.grad.data)
+                # Extract hyperparameters
+                lr = group["lr"]
+                momentum = group["momentum"]
+                weight_decay = group["weight_decay"]
+                eta = group["eta"]
+                epsilon = group["epsilon"]
+                grad = p.grad.data
 
-                # Apply Lars scaling and weight decay.
+                # Get state
+                state = self.state[p]
+
+                # Initialize momentum buffer if needed
+                if "momentum_buffer" not in state:
+                    state["momentum_buffer"] = torch.zeros_like(p.data)
+
+                # Get parameter name for exclusion check
+                param_name = getattr(p, "param_name", "")
+
+                # ===== LARS core calculation =====
+                if param_name in self.exclude_set:
+                    # For excluded parameters (BN, bias), use standard LR
+                    trust_ratio = 1.0
+                else:
+                    # Compute weight norm and raw gradient norm
+                    w_norm = torch.norm(p.data)
+                    g_norm = torch.norm(grad)
+
+                    # Compute trust ratio (local learning rate scaling)
+                    denom = g_norm + weight_decay * w_norm + epsilon
+                    trust_ratio = (
+                        eta * w_norm / denom if w_norm > 0 and denom > 0 else 1.0
+                    )
+
+                # Calculate effective learning rate
+                effective_lr = lr * trust_ratio
+
+                # Apply weight decay to gradient
                 if weight_decay != 0:
-                    if p_norm != 0 and g_norm != 0:
-                        lars_lr = p_norm / (
-                            g_norm + p_norm * weight_decay + group["eps"]
-                        )
-                        lars_lr *= group["trust_coefficient"]
+                    grad = grad.add(p.data, alpha=weight_decay)
 
-                        d_p = d_p.add(p, alpha=weight_decay)
-                        d_p *= lars_lr
+                # Update momentum buffer
+                state["momentum_buffer"].mul_(momentum).add_(grad, alpha=effective_lr)
 
-                # Apply momentum.
-                if momentum != 0:
-                    param_state = self.state[p]
-                    if "momentum_buffer" not in param_state:
-                        buf = param_state["momentum_buffer"] = torch.clone(d_p).detach()
-                    else:
-                        buf = param_state["momentum_buffer"]
-                        buf.mul_(momentum).add_(d_p, alpha=1 - dampening)
-
-                    if nesterov:
-                        d_p = d_p.add(buf, alpha=momentum)
-                    else:
-                        d_p = buf
-
-                p.add_(d_p, alpha=-group["lr"])
+                # Update weights
+                p.data.sub_(state["momentum_buffer"])
 
         return loss

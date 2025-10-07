@@ -4,26 +4,26 @@ import numpy as np
 import pytest
 
 from minerva.transforms import (
-    _Transform,
-    TransformPipeline,
-    Flip,
-    PerlinMasker,
-    Squeeze,
-    Unsqueeze,
-    Transpose,
     CastTo,
-    Identity,
-    Indexer,
-    Repeat,
-    Normalize,
+    ColorJitter,
     ContrastiveTransform,
     Crop,
-    ColorJitter,
+    Flip,
     GrayScale,
-    Solarize,
+    Identity,
+    Indexer,
+    Normalize,
+    PerlinMasker,
+    Repeat,
     Rotation,
+    Solarize,
+    Squeeze,
+    TransformPipeline,
+    Transpose,
+    Unsqueeze,
+    _Transform,
 )
-from minerva.transforms.random_transform import EmptyTransform
+from minerva.transforms.random_transform import Identity
 
 
 def test_transform_pipeline():
@@ -228,7 +228,7 @@ def test_contrastive_transform():
     x = np.random.rand(10, 20)
 
     # Apply the contrastive transform
-    contrastive_transform = ContrastiveTransform(EmptyTransform())
+    contrastive_transform = ContrastiveTransform(Identity())
     contrastive_x = contrastive_transform(x)
 
     # Check if the contrastive transform returns a tuple of 2 elements

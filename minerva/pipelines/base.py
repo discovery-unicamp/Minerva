@@ -239,6 +239,9 @@ class Pipeline(HyperparametersMixin):
         d["cmd"] = f"{sys.executable} {' '.join(sys.argv)}"
 
         # ---------- Add pipeline information ----------
+        # environment variables
+        env_vars = {key: os.getenv(key) for key in os.environ.keys()}
+        d["environment_variables"] = env_vars
 
         # --------------------------------------------
         return d

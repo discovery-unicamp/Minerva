@@ -267,13 +267,13 @@ class FromPretrained(wrapt.ObjectProxy, LoadableModule):
                                 # If the new prefix is an empty string, all keys
                                 #  we will remove the matched part of the key
                                 if new_prefix == "":
-                                    new_k = re.sub(old_key, new_prefix, k)
+                                    new_k = re.sub(old_key, new_prefix, k, count=1)
                                     break
                                 # If the new prefix is not an empty string, we
                                 #  will add the prefix to the key
                                 else:
                                     # new_k = f"{new_prefix}{k}"
-                                    new_k = re.sub(old_key, new_prefix, k)
+                                    new_k = re.sub(old_key, new_prefix, k, count=1)
                                     break
                             else:
                                 continue

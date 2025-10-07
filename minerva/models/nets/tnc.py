@@ -16,7 +16,6 @@ class RnnEncoder(torch.nn.Module):
         encoding_size: int,
         cell_type: str = "GRU",
         num_layers: int = 1,
-        device: str = "cpu",
         dropout: int = 0,
         bidirectional: bool = True,
         permute: bool = False,
@@ -40,8 +39,6 @@ class RnnEncoder(torch.nn.Module):
             Type of RNN cell to use (default is 'GRU'). Options include 'GRU', 'LSTM', etc.
         num_layers : int, optional
             Number of RNN layers (default is 1).
-        device : str, optional
-            Device to run the model on (default is 'cpu'). Options include 'cpu' and 'cuda'.
         dropout : float, optional
             Dropout probability (default is 0.0).
         bidirectional : bool, optional
@@ -54,12 +51,11 @@ class RnnEncoder(torch.nn.Module):
 
         Examples
         --------
-        >>> device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         >>> encoder = RnnEncoder(hidden_size=100, in_channel=6, encoding_size=320,
-                                 cell_type='GRU', num_layers=1, device=device,
-                                 dropout=0.0, bidirectional=True).to(device)
+                                 cell_type='GRU', num_layers=1,
+                                 dropout=0.0, bidirectional=True)
         >>> element1 = torch.randn(32, 50, 6)  # Batch size: 32, Time steps: 50, Input channels: 6
-        >>> encoding = encoder(element1.to(device))
+        >>> encoding = encoder(element1)
         >>> print(encoding.shape)
         torch.Size([32, 320])
 
@@ -75,7 +71,6 @@ class RnnEncoder(torch.nn.Module):
         self.cell_type = cell_type
         self.encoding_size = encoding_size
         self.bidirectional = bidirectional
-        self.device = device
         self.permute = permute
         self.squeeze = squeeze
 
@@ -84,7 +79,7 @@ class RnnEncoder(torch.nn.Module):
                 self.hidden_size * (int(self.bidirectional) + 1),
                 self.encoding_size,
             )
-        ).to(self.device)
+        )
         self.rnn = torch.nn.GRU(
             input_size=in_channel,
             hidden_size=hidden_size,
@@ -92,7 +87,7 @@ class RnnEncoder(torch.nn.Module):
             batch_first=False,
             dropout=dropout,
             bidirectional=bidirectional,
-        ).to(self.device)
+        )
 
     def forward(self, x):
         """
@@ -116,9 +111,10 @@ class RnnEncoder(torch.nn.Module):
             self.num_layers * (int(self.bidirectional) + 1),
             x.shape[1],
             self.hidden_size,
-        ).to(self.device)
+            device=x.device,
+        )
         # print(f"Input tensor shape before passing to RNN \n: {x.shape}")  # Print the shape of x
-        out, _ = self.rnn(x.to(self.device), past)
+        out, _ = self.rnn(x, past)
         # print(f"Input tensor shape after passing to RNN :\n {out.shape}")
         if self.squeeze:
             encodings = self.nn(out[-1].squeeze(0))  # Process the output of the RNN

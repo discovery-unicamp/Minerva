@@ -56,6 +56,7 @@ class PatchedZarrReader(PatchedArrayReader):
 
         self.path = path
         data = zarr.open(path)
+
         super().__init__(data=data, *args, **kwargs)
 
 

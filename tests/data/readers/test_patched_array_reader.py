@@ -126,6 +126,31 @@ def test_patched_array_reader_stride_and_pad(reader_class):
     ), "The content of the last patch is incorrect"
 
 
+@pytest.mark.parametrize(
+    "reader_class", [PatchedArrayReader, LazyPaddedPatchedArrayReader]
+)
+def test_patched_array_reader_index_bounds(reader_class):
+    data = np.arange(100).reshape(10, 10)
+
+    # Define index bounds to select a 5x5 subarray starting at (2, 2)
+    index_bounds = ((2, 2), (7, 7))
+    reader = reader_class(
+        data,
+        data_shape=(1, 1),  # Smaller patch size for the subarray
+        stride=(1, 1),  # Stride of 1 for more patches
+        index_bounds=index_bounds,
+    )
+
+    # Verify the subarray was correctly selected
+    expected_subarray = data[2:7, 2:7]
+    assert reader.data.shape == (5, 5), "The subarray shape is incorrect"
+    assert np.all(reader.data == expected_subarray), "The subarray content is incorrect"
+
+    # Verify patch
+    # generation works correctly on the subarray
+    assert len(reader) == 25, "The number of patches is incorrect"
+
+
 def test_loading_numpy_array_reader(tmp_path):
     data = np.arange(100).reshape(10, 10)
 

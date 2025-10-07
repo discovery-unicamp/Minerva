@@ -9,7 +9,7 @@ def test_random_flip_single_axis_with_flip():
     x = np.random.rand(10, 20)
 
     # Apply the flip transform along the first axis
-    flip_transform = RandomFlip(possible_axis=0, num_samples=1, seed=1)
+    flip_transform = RandomFlip(possible_axis=0, num_samples=1, seed=2)
     flipped_x = flip_transform(x)
 
     # Check if the flipped data has the same shape as the input
@@ -39,7 +39,7 @@ def test_random_flip_first_axis():
     x = np.random.rand(10, 20, 30)
 
     # Apply the flip transform along multiple axes
-    flip_transform = RandomFlip(possible_axis=[0, 1], num_samples=1, seed=1)
+    flip_transform = RandomFlip(possible_axis=[0, 1], num_samples=1, seed=8)
     flipped_x = flip_transform(x)
 
     # Check if the flipped data has the same shape as the input
@@ -54,7 +54,7 @@ def test_random_flip_second_axis():
     x = np.random.rand(10, 20, 30)
 
     # Apply the flip transform along multiple axes
-    flip_transform = RandomFlip(possible_axis=[0, 1], num_samples=1, seed=3)
+    flip_transform = RandomFlip(possible_axis=[0, 1], num_samples=1, seed=0)
     flipped_x = flip_transform(x)
 
     # Check if the flipped data has the same shape as the input
@@ -84,7 +84,7 @@ def test_random__dont_flip_any_axis():
     x = np.random.rand(10, 20, 30)
 
     # Apply the flip transform along multiple axes
-    flip_transform = RandomFlip(possible_axis=[0, 1], num_samples=1, seed=0)
+    flip_transform = RandomFlip(possible_axis=[0, 1], num_samples=1, seed=5)
     flipped_x = flip_transform(x)
 
     # Check if the flipped data has the same shape as the input
