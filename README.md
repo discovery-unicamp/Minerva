@@ -5,6 +5,7 @@
 [![Release to PyPI](https://github.com/discovery-unicamp/Minerva/actions/workflows/release_to_pypi.yml/badge.svg)](https://github.com/discovery-unicamp/Minerva/actions/workflows/release_to_pypi.yml)
 
 Minerva is a Pytorch-Lightning-based framework for training machine learning models for researchers.
+Check documentation and examples in [Minerva Documentation](https://discovery-unicamp.github.io/Minerva/).
 
 ## Description
 
