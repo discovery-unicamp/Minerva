@@ -29,10 +29,10 @@ keywords = [
     "SSL",
 ]
 license = { file = "LICENSE" }
-name = "minerva-ml"
+name = "minerva"
 readme = "README.md"
 requires-python = ">=3.10"
-version = "0.3.8-beta"
+version = "0.3.9-beta"
 
 dependencies = [
     "gitpython>=3",

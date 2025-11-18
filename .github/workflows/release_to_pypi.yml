@@ -30,6 +30,6 @@ jobs:
 
       - name: Publish package to PyPI
         env:
-          PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+          PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN_MINERVA }}
         run: |
-          python -m twine upload dist/* --username __token__ --password "$PYPI_API_TOKEN"
+          python -m twine upload dist/* --username __token__ --password "$PYPI_API_TOKEN_MINERVA"
