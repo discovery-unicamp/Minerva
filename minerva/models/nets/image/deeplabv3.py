@@ -36,6 +36,11 @@ class DeepLabV3(SimpleSupervisedModel):
         lr_scheduler: Optional[type] = None,
         lr_scheduler_kwargs: Optional[Dict[str, Any]] = None,
         output_shape: Optional[Tuple[int, ...]] = None,
+        freeze_backbone: bool = False,
+        interpolate_mode: Optional[str] = "bilinear",
+        flatten: bool = False,
+        loss_squeeze: bool = True,
+        loss_long: bool = True,
     ):
         """
         Initializes a DeepLabV3 model.
@@ -84,6 +89,29 @@ class DeepLabV3(SimpleSupervisedModel):
             the same as the input shape. Defaults to None. This is useful for
             models that require a specific output shape, that is different from
             the input shape.
+        freeze_backbone: bool
+            Whether to freeze the backbone weights during training. Defaults to
+            False.
+        interpolate_mode: Optional[str]
+            The interpolation mode to use when upscaling the output to the
+            desired output shape. Defaults to "bilinear". Other options include
+            "nearest", "bicubic", etc. See PyTorch documentation for
+            `torch.nn.functional.interpolate` for all options. Use None to
+            disable upscaling.
+        flatten: bool
+            Whether to flatten the output of the backbone before passing it to
+            the prediction head. Defaults to False. Set to True for classification
+            tasks where the prediction head is a fully connected layer.
+        loss_squeeze: bool
+            Whether to squeeze the target tensor in the loss function. Defaults
+            to True. This is useful for segmentation tasks where the target tensor
+            has a singleton channel dimension (e.g., shape (B, 1, H, W)) and the
+            loss function expects shape (B, H, W).
+        loss_long: bool
+            Whether to convert the target tensor to long type in the loss
+            function. Defaults to True. This is useful for classification tasks
+            where the target tensor is of integer type.
+
         """
         backbone = backbone or DeepLabV3Backbone(
             num_classes=num_classes, pretrained=pretrained, weights_path=weights_path
@@ -91,6 +119,9 @@ class DeepLabV3(SimpleSupervisedModel):
         pred_head = pred_head or DeepLabV3PredictionHead(num_classes=num_classes)
         loss_fn = loss_fn or nn.CrossEntropyLoss()
         self.output_shape = output_shape
+        self.interpolate_mode = interpolate_mode
+        self.squeeze_loss = loss_squeeze
+        self.loss_long = loss_long
 
         super().__init__(
             backbone=backbone,
@@ -104,6 +135,8 @@ class DeepLabV3(SimpleSupervisedModel):
             optimizer_kwargs=optimizer_kwargs,
             lr_scheduler=lr_scheduler,
             lr_scheduler_kwargs=lr_scheduler_kwargs,
+            freeze_backbone=freeze_backbone,
+            flatten=flatten,
         )
 
     def forward(self, x: Tensor) -> Tensor:
@@ -124,10 +157,18 @@ class DeepLabV3(SimpleSupervisedModel):
         h = self.backbone(x)
         if isinstance(h, OrderedDict):
             h = h["out"]
+
+        if self.flatten:
+            x = x.reshape(x.size(0), -1)
+        if self.adapter is not None:
+            x = self.adapter(x)
+
         z = self.fc(h)
         # Upscaling
+        if self.interpolate_mode is None:
+            return z
         return nn.functional.interpolate(
-            z, size=input_shape, mode="bilinear", align_corners=False
+            z, size=input_shape, mode=self.interpolate_mode, align_corners=False
         )
 
     def _loss_func(self, y_hat: Tensor, y: Tensor) -> Tensor:
@@ -140,7 +181,12 @@ class DeepLabV3(SimpleSupervisedModel):
         y : Tensor
             Ground truth tensor of shape (batch_size, 1, height, width)
         """
-        return self.loss_fn(y_hat, y.squeeze(1).long())
+        if self.squeeze_loss:
+            y = y.squeeze(1)  # Remove channel dim if singleton
+        if self.loss_long:
+            y = y.long()
+
+        return self.loss_fn(y_hat, y)
 
 
 class DeepLabV3Backbone(nn.Module):
@@ -299,3 +345,36 @@ class DeepLabV3PredictionHead(nn.Sequential):
         """
         assert input.shape[0] > 1, "Batch size must be greater than 1 due to BatchNorm"
         return super().forward(input)
+
+
+class DeepLabV3RegressionHead(nn.Sequential):
+    """Regression head for DeepLabV3 (continuous per-pixel/voxel prediction)."""
+
+    def __init__(
+        self,
+        in_channels: int = 2048,
+        out_channels: int = 1,
+        atrous_rates: Sequence[int] = (12, 24, 36),
+    ):
+        """
+        Parameters
+        ----------
+        in_channels : int
+            Number of input channels from the backbone (typically 2048 for ResNet50).
+        out_channels : int
+            Number of output channels (1 for single regression target).
+        atrous_rates : Sequence[int]
+            Atrous (dilation) rates for ASPP.
+        """
+        super().__init__(
+            ASPP(in_channels, atrous_rates),
+            nn.Conv2d(256, 256, kernel_size=3, padding=1, bias=False),
+            nn.BatchNorm2d(256),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(256, out_channels, kernel_size=1),
+        )
+
+    def forward(self, x: Tensor) -> Tensor:  # type: ignore
+        """Forward pass for regression head."""
+        assert x.shape[0] > 1, "Batch size must be > 1 due to BatchNorm"
+        return super().forward(x)

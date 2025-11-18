@@ -5,6 +5,8 @@ import yaml
 from lightning import LightningDataModule
 from torch.utils.data import DataLoader, Dataset
 
+from minerva.data.data_modules.datamodule_descriptor import DataModuleDescriptor
+
 
 class MinervaDataModule(LightningDataModule):
     def __init__(
@@ -26,6 +28,7 @@ class MinervaDataModule(LightningDataModule):
         shuffle_train: bool = True,
         # Metadata
         name: str = "",
+        additional_describes: Optional[DataModuleDescriptor] = None,
     ):
         """A fully-featured data module for PyTorch Lightning with support for
         acessing train, val, test, and predict datasets and dataloaders. This
@@ -64,10 +67,13 @@ class MinervaDataModule(LightningDataModule):
             dataloader is shuffled.
         name : str, optional
             Name of the data module, by default ""
+        additional_describes : DataModuleDescriptor, optional
+            A class that you can apply custom check when load MinervaDataModule.
         """
         super().__init__()
 
         self._name = name
+        self.additional_describes = additional_describes
         self._train_dataset = train_dataset
         self._val_dataset = val_dataset
         self._test_dataset = test_dataset
@@ -216,6 +222,7 @@ class MinervaDataModule(LightningDataModule):
             f"{'=' * 50}\n"
             f"└── Predict Split: {self._predict_split}\n"
             f"📂 Datasets:\n"
+            f"{'' if self.additional_describes is None else self.additional_describes()}"
             f"   ├── Train Dataset:\n{indent_text(str(self.train_dataset))}\n"
             f"   ├── Val Dataset:\n{indent_text(str(self.val_dataset))}\n"
             f"   └── Test Dataset:\n{indent_text(str(self.test_dataset), add_line_breaks=False)}\n"

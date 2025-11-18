@@ -1,6 +1,10 @@
 from abc import ABC, abstractmethod
+from contextlib import contextmanager
 from pathlib import Path
 import shutil
+import sys
+import time
+import traceback
 from typing import Any, Dict, List, Optional, Tuple, Union
 import lightning as L
 import torch
@@ -18,6 +22,9 @@ from minerva.pipelines.base import Pipeline
 from minerva.utils.typing import PathLike
 from dataclasses import asdict, dataclass
 from minerva.utils.string_ops import tree_like_formating, indent_text
+from minerva.utils.output import Tee
+from minerva.models.loaders import FromPretrained
+import os
 
 
 class ModelInstantiator(ABC):
@@ -255,6 +262,7 @@ def get_trainer(
     profiler: Optional[str] = None,
     overfit_batches: Union[int, float] = 0.0,
     sync_batchnorm: bool = False,
+    callbacks: Optional[List[L.Callback]] = None,
 ) -> L.Trainer:
     """Creates and configures a PyTorch Lightning Trainer instance.
 
@@ -331,6 +339,10 @@ def get_trainer(
         Synchronizes batch norm layers across devices during distributed
         training.
 
+    callbacks : list of L.Callback, optional
+        List of PyTorch Lightning callbacks to be used during training. Checkpointing
+        is enabled by default if `checkpoint_metrics` is provided.
+
     Returns
     -------
     L.Trainer
@@ -346,7 +358,8 @@ def get_trainer(
     else:
         logger = False
 
-    callbacks = []
+    if callbacks is None:
+        callbacks = []
     enable_checkpointing = False
     if checkpoint_metrics:
         for ckpt_metric in checkpoint_metrics:
@@ -713,6 +726,93 @@ def perform_evaluation(
         return results_df
 
 
+class InstantiatedModel(ModelInstantiator):
+    """Encapsulates a PyTorch Lightning model into a ModelInstantiator.
+
+    This class is used to wrap an existing instance of a PyTorch Lightning
+    model (L.LightningModule) into a ModelInstantiator interface. It allows
+    to use the model randomly initialized, but does not support
+    finetuning with a pretrained backbone.
+    """
+
+    def __init__(self, model: L.LightningModule):
+        """Initialize the CachedModelInstantiator with a PyTorch Lightning model.
+
+        Parameters
+        ----------
+        model : L.LightningModule
+            The PyTorch Lightning model to be wrapped. This model should
+            already be defined and instantiated.
+        """
+        self.model = model
+
+    def create_model_randomly_initialized(self) -> L.LightningModule:
+        """Create a model with both backbone and head randomly initialized."""
+        return self.model
+
+    def create_model_and_load_backbone(
+        self, backbone_checkpoint_path: PathLike
+    ) -> L.LightningModule:
+        raise Exception(
+            "You passed an instance of L.LightningModule as model_config, and does not support "
+            + "finetuning with a pretrained backbone. Please use a ModelInstantiator "
+        )
+
+    def load_model_from_checkpoint(self, checkpoint_path):
+        return FromPretrained(
+            model=self.model,
+            ckpt_path=checkpoint_path,
+        )
+
+
+@contextmanager
+def using_redirected_outputs(
+    output_path: PathLike, error_path: PathLike, mode: str = "a", ignore: bool = False
+):
+    if ignore:
+        try:
+            yield
+        finally:
+            pass
+    else:
+        output_path = Path(output_path)
+        error_path = Path(error_path)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        error_path.parent.mkdir(parents=True, exist_ok=True)
+
+        original_stdout = sys.stdout
+        original_stderr = sys.stderr
+        tee_out = Tee(output_path, mode)
+        tee_err = Tee(error_path, mode)
+        sys.stdout = tee_out
+        sys.stderr = tee_err
+
+        try:
+            yield
+        except Exception as e:
+            traceback.print_exc(file=sys.stderr)
+            raise e
+        finally:
+            sys.stdout.flush()
+            sys.stderr.flush()
+            sys.stdout = original_stdout
+            sys.stderr = original_stderr
+            tee_out.close()
+            tee_err.close()
+
+
+def timestamp_now():
+    return time.strftime("%Y-%m-%d_%H-%M-%S", time.localtime())
+
+
+def get_run_id():
+    job_id = os.getenv("SLURM_JOB_ID", None)
+    if job_id is not None:
+        return f"_slurm_{job_id}"
+    else:
+        return f"_local_{timestamp_now()}"
+
+
 class Experiment(Pipeline):
     NUM_DEBUG_EPOCHS = 3
     NUM_DEBUG_BATCHES = 10
@@ -721,7 +821,7 @@ class Experiment(Pipeline):
         self,
         # Base parameters
         experiment_name: str,
-        model_config: ModelConfig,
+        model_config: Union[ModelConfig, L.LightningModule],
         data_module: MinervaDataModule,
         # Logging and checkpointing parameters
         pretrained_backbone_ckpt_path: Optional[PathLike] = None,
@@ -738,6 +838,7 @@ class Experiment(Pipeline):
         limit_val_batches: Optional[Union[int, float]] = None,
         limit_test_batches: Optional[Union[int, float]] = None,
         limit_predict_batches: Optional[Union[int, float]] = None,
+        callbacks: Optional[List[L.Callback]] = None,
         # Prediction parameters
         evaluation_metrics: Optional[Dict[str, torchmetrics.Metric]] = None,
         per_sample_evaluation_metrics: Optional[Dict[str, torchmetrics.Metric]] = None,
@@ -745,9 +846,11 @@ class Experiment(Pipeline):
         seed: Optional[int] = None,
         progress_bar_refresh_rate: int = 1,
         profiler: Optional[str] = None,
-        save_predictions: bool = True,
+        save_predictions: bool = False,
         save_results: bool = True,
         add_last_checkpoint: bool = True,
+        log_outputs: bool = True,
+        _run_id: Optional[str] = None,
     ):
         """An experiment is a pipeline that contains all the parameters needed
         to train and evaluate a model, as well as to manage the logging,
@@ -857,13 +960,20 @@ class Experiment(Pipeline):
             the `get_trainer` function. By default None.
         save_predictions : bool, optional
             If True, the predictions will be saved to the log directory. By
-            default True
+            default False.
         save_results : bool, optional
             If True, the results will be saved to the log directory. By
             default True
         add_last_checkpoint : bool, optional
             If True, the last checkpoint will be added to the list of checkpoint
             metrics. By default True.
+        log_outputs : bool, optional
+            If True, the standard output and error will be logged to files in the
+            log directory. By default True.
+        _run_id : Optional[str], optional
+            An internal run ID for the experiment. This is used to
+            differentiate between different runs of the same experiment. If
+            None, a timestamp will be used. By default None.
 
         Raises
         ------
@@ -881,6 +991,30 @@ class Experiment(Pipeline):
         self.experiment_name = experiment_name
         self.model_config = model_config
         self.data_module = data_module
+
+        if isinstance(model_config, L.LightningModule):
+            instantiator = InstantiatedModel(model_config)
+            self.model_config = ModelConfig(
+                instantiator=instantiator,
+                information=ModelInformation(
+                    name=instantiator.model.__class__.__name__,
+                ),
+            )
+            print(
+                f"Using an already instantiated model: {self.model_config.information.name}."
+            )
+            if pretrained_backbone_ckpt_path is not None:
+                raise ValueError(
+                    "You passed an instance of L.LightningModule as model_config, "
+                    + "as well as a pretrained_backbone_ckpt_path. "
+                    + "This is not supported. Please use a ModelInstantiator instead."
+                )
+        elif isinstance(model_config, ModelConfig):
+            self.model_config = model_config
+        else:
+            raise ValueError(
+                "model_config must be an instance of ModelConfig or L.LightningModule."
+            )
 
         # ------- Logging and checkpointing parameters -------
         self.pretrained_backbone_ckpt_path = pretrained_backbone_ckpt_path
@@ -914,6 +1048,7 @@ class Experiment(Pipeline):
         self.limit_val_batches = limit_val_batches
         self.limit_test_batches = limit_test_batches
         self.limit_predict_batches = limit_predict_batches
+        self.callbacks = callbacks
 
         # ------- Prediction parameters -------
         self.evaluation_metrics = evaluation_metrics or {}
@@ -925,6 +1060,7 @@ class Experiment(Pipeline):
         self.profiler = profiler
         self.save_predictions = save_predictions
         self.save_results = save_results
+        self.log_outputs = log_outputs
 
         # ------- Initialize the pipeline -------
         log_dir = (
@@ -947,6 +1083,22 @@ class Experiment(Pipeline):
         self._predictions_dir = log_dir / "predictions"
         self._results_dir = log_dir / "results"
         self._training_metrics_path = log_dir / "metrics.csv"
+        self._run_id = _run_id or timestamp_now()
+        self._stdout_path = log_dir / "runs" / f"stdout_{self._run_id}.log"
+        self._stderr_path = log_dir / "runs" / f"stderr_{self._run_id}.log"
+        self._stdout_path.parent.mkdir(parents=True, exist_ok=True)
+        self._stderr_path.parent.mkdir(parents=True, exist_ok=True)
+
+    @property
+    def run_id(self) -> str:
+        """Returns the run ID of the experiment.
+
+        Returns
+        -------
+        str
+            The run ID of the experiment.
+        """
+        return self._run_id
 
     # ------------ Acessors ------------
     # Here we have acess to:
@@ -1114,6 +1266,7 @@ class Experiment(Pipeline):
             "deterministic": False,
             "benchmark": True,
             "profiler": self.profiler,
+            "callbacks": self.callbacks,
         }
 
     # ---------- FIT Experiment methods ---------
@@ -1504,42 +1657,59 @@ class Experiment(Pipeline):
         print_summary: bool = True,
         ckpts_to_evaluate: Optional[Union[str, List[str]]] = None,
     ) -> Dict[str, Any]:
-        if task == "fit":
-            return self._train_model(
-                resume_from_ckpt=resume_from_ckpt,
-                print_summary=print_summary,
-                debug=debug,
-            )
-        elif task == "evaluate":
-            return self._evaluate_model(
-                ckpts_to_evaluate=ckpts_to_evaluate,
-                print_summary=print_summary,
-                debug=debug,
-            )
-        elif task == "fit-evaluate":
-            # Train the model
-            cached_res = self._train_model(
-                resume_from_ckpt=resume_from_ckpt,
-                print_summary=print_summary,
-                debug=debug,
-            )
+        stdout_path = Path(
+            str(self._stdout_path.parent / self._stdout_path.stem)
+            + f"_run_{self._run_count}"
+            + self._stdout_path.suffix
+        )
+        stderr_path = Path(
+            str(self._stderr_path.parent / self._stderr_path.stem)
+            + f"_run_{self._run_count}"
+            + self._stderr_path.suffix
+        )
 
-            # If checkpoint paths exists, do not cache the results
-            if len(self.checkpoint_paths) > 0:
-                cached_res = None
+        with using_redirected_outputs(
+            output_path=stdout_path,
+            error_path=stderr_path,
+            mode="w",
+            ignore=not self.log_outputs or debug,
+        ):
+            if task == "fit":
+                return self._train_model(
+                    resume_from_ckpt=resume_from_ckpt,
+                    print_summary=print_summary,
+                    debug=debug,
+                )
+            elif task == "evaluate":
+                return self._evaluate_model(
+                    ckpts_to_evaluate=ckpts_to_evaluate,
+                    print_summary=print_summary,
+                    debug=debug,
+                )
+            elif task == "fit-evaluate":
+                # Train the model
+                cached_res = self._train_model(
+                    resume_from_ckpt=resume_from_ckpt,
+                    print_summary=print_summary,
+                    debug=debug,
+                )
 
-            # Evaluate the model
-            eval_results = self._evaluate_model(
-                ckpts_to_evaluate=ckpts_to_evaluate,
-                print_summary=print_summary,
-                debug=debug,
-                cached_execution=cached_res,
-            )
-            return eval_results
-        else:
-            raise ValueError(
-                f"Unknown task '{task}'. Supported tasks are: 'fit', 'evaluate', or 'fit-evaluate'"
-            )
+                # If checkpoint paths exists, do not cache the results
+                if len(self.checkpoint_paths) > 0:
+                    cached_res = None
+
+                # Evaluate the model
+                eval_results = self._evaluate_model(
+                    ckpts_to_evaluate=ckpts_to_evaluate,
+                    print_summary=print_summary,
+                    debug=debug,
+                    cached_execution=cached_res,
+                )
+                return eval_results
+            else:
+                raise ValueError(
+                    f"Unknown task '{task}'. Supported tasks are: 'fit', 'evaluate', or 'fit-evaluate'"
+                )
 
     def cleanup(self):
         """Clean up the experiment by removing the log directory."""

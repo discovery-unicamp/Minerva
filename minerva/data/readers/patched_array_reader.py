@@ -1,18 +1,16 @@
-from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple
 import warnings
 
 import numpy as np
 from numpy.typing import ArrayLike
 
 from minerva.data.readers.reader import _Reader
-from minerva.utils.typing import PathLike
 
 
 class PatchedArrayReader(_Reader):
-    """This class is used to read data from a NumPy array. It is designed to generate
-    patches from the data and provides sequential access to them. This class can
-    serve as a base class for other readers.
+    """This class is used to read data from a NumPy-like array. It is designed
+    to generate patches from the data and provides sequential access to them.
+    This  class can serve as a base class for other readers.
 
     Assumptions:
     - The input data is expected to be a NumPy-like array, that is, it should
@@ -29,6 +27,7 @@ class PatchedArrayReader(_Reader):
         pad_width: Optional[Tuple[Tuple[int, int], ...]] = None,
         pad_mode: str = "constant",
         pad_kwargs: Optional[Dict] = None,
+        index_bounds: Tuple[Tuple[int, ...], Tuple[int, ...]] = None,
     ):
         """Reads data from a NumPy array and generates patches from it.
 
@@ -52,7 +51,9 @@ class PatchedArrayReader(_Reader):
             `numpy.pad` for more information.
         pad_kwargs : dict, optional
             Additional keyword arguments for padding, by default None
-
+        index_bounds : Tuple[Tuple[int, ...], Tuple[int, ...]], optional
+            A tuple of two tuples specifying the start and end indices for each dimension
+            to create a sub-region of the Zarr array. If None, the entire array is used.
         Examples
         --------
 
@@ -86,6 +87,16 @@ class PatchedArrayReader(_Reader):
         ```
 
         """
+        if index_bounds != None:
+            init_index_shape = index_bounds[0]
+            end_index_shape = index_bounds[1]
+            slices = tuple(
+                slice(start, end)
+                for start, end in zip(init_index_shape, end_index_shape)
+            )
+
+            data = data[slices]
+
         self.data = data
         self.shape = data.shape
         self.data_shape = data_shape
@@ -185,40 +196,6 @@ class PatchedArrayReader(_Reader):
 
     def __str__(self) -> str:
         return f"{self.__class__.__name__}(samples={len(self.indices)}, shape={self.data_shape}, dtype={self.data.dtype})"
-
-
-class NumpyArrayReader(PatchedArrayReader):
-    def __init__(
-        self,
-        data: Union[ArrayLike, PathLike],
-        data_shape: Tuple[int, ...],
-        stride: Optional[Tuple[int, ...]] = None,
-        pad_width: Optional[Tuple[Tuple[int, int], ...]] = None,
-        pad_mode: str = "constant",
-        pad_kwargs: Optional[Dict] = None,
-        allow_pickle: bool = True,
-        npz_key: Optional[str] = None,
-    ):
-        if isinstance(data, PathLike):
-            data = Path(data)
-            if not data.is_file():
-                raise FileNotFoundError(f"File not found: {data}")
-
-            if data.suffix == ".npy":
-                data = np.load(data, allow_pickle=allow_pickle)
-            elif data.suffix == ".npz":
-                data = np.load(data, allow_pickle=allow_pickle)[npz_key]
-            else:
-                raise ValueError(f"Unsupported file format: {data.suffix}")
-
-        super().__init__(
-            data=data,
-            data_shape=data_shape,
-            stride=stride,
-            pad_width=pad_width,
-            pad_mode=pad_mode,
-            pad_kwargs=pad_kwargs,
-        )
 
 
 class LazyPaddedPatchedArrayReader(PatchedArrayReader):

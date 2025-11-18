@@ -49,8 +49,8 @@ def test_lfr():
         y_proj.shape == expected_output_size
     ), f"Expected output shape {expected_output_size}, but got {y_proj.shape}"
 
-    # Test the _loss_func method
-    loss = model._loss_func(y_pred, y_proj)
+    # Test the loss_fn method
+    loss = model.loss_fn(y_pred, y_proj)
     assert loss is not None
     # TODO: assert the loss result
 
