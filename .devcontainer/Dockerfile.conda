@@ -6,7 +6,7 @@ ARG USER_GID=$USER_UID
 
 # Install needed apt packages
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        build-essential ca-certificates cmake curl ffmpeg git ssh unzip wget sudo && \
+        build-essential ca-certificates cmake curl ffmpeg git unzip wget sudo && \
     rm -rf /var/lib/apt/lists/* && ldconfig && apt autoremove -y && apt clean
 
 # Create user and setup sudo

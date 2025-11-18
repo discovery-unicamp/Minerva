@@ -123,6 +123,19 @@ class Head(torch.nn.Module):
         return self.fc(x)
 
 
+class NestedSimpleSupervisedModel(SimpleSupervisedModel):
+    def __init__(self):
+        super().__init__(
+            backbone=SimpleSupervisedModel(
+                backbone=torch.nn.Linear(20, 10),
+                fc=torch.nn.Linear(10, 5),
+                loss_fn=torch.nn.MSELoss(),
+            ),
+            fc=torch.nn.Linear(5, 3),
+            loss_fn=torch.nn.MSELoss(),
+        )
+
+
 ################################################################################
 
 
@@ -247,4 +260,34 @@ def test_load_from_pretrained_backbone_without_extractor(tmp_path):
 
     # Check if backbone weights are the same
     for p1, p2 in zip(model.backbone.parameters(), new_model.backbone.parameters()):
+        assert torch.allclose(p1, p2), "Weights are different!"
+
+
+def test_load_from_pretrained_nested_backbone_of_same_class(tmp_path):
+    # Create a simple model
+    checkpoint_file = tmp_path / "model.ckpt"
+
+    model = NestedSimpleSupervisedModel()
+    model.eval()
+
+    # Save the model
+    torch.save(model.state_dict(), checkpoint_file)
+
+    # *---------------------------------------------------------------*
+    backbone = SimpleSupervisedModel(
+        backbone=torch.nn.Linear(20, 10),
+        fc=torch.nn.Linear(10, 5),
+        loss_fn=torch.nn.MSELoss(),
+    )
+    backbone = FromPretrained(
+        backbone,
+        checkpoint_file,
+        filter_keys=["backbone."],
+        keys_to_rename={"backbone.": ""},
+        strict=True,
+        error_on_missing_keys=True,
+    )
+
+    # Check if backbone weights are the same
+    for p1, p2 in zip(model.backbone.parameters(), backbone.backbone.parameters()):
         assert torch.allclose(p1, p2), "Weights are different!"

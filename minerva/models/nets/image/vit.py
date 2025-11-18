@@ -12,474 +12,769 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from timm.models.vision_transformer import Block, PatchEmbed
-from torchvision.models.vision_transformer import (
-    Conv2dNormActivation,
-    ConvStemConfig,
-    EncoderBlock,
-    _log_api_usage_once,
-)
 
 from minerva.models.nets.base import SimpleSupervisedModel
 
 # Local imports
 from minerva.utils.position_embedding import get_2d_sincos_pos_embed
 
+###################################
 
-class _Encoder(nn.Module):
-    """Transformer Model Encoder for sequence to sequence translation."""
+############## SETR ###############
 
+###################################
+
+
+class MMAdaptivePadding(nn.Module):
     def __init__(
         self,
-        seq_length: int,
-        num_layers: int,
-        num_heads: int,
-        hidden_dim: int,
-        mlp_dim: int,
-        dropout: float,
-        attention_dropout: float,
-        aux_output: bool = False,
-        aux_output_layers: Optional[List[int]] = None,
-        norm_layer: Callable[..., torch.nn.Module] = partial(nn.LayerNorm, eps=1e-6),
-    ):
-        super().__init__()
-        # Note that batch_size is on the first dim because
-        # we have batch_first=True in nn.MultiAttention() by default
-
-        self.aux_output = aux_output
-        self.aux_output_layers = aux_output_layers
-
-        self.pos_embedding = nn.Parameter(
-            torch.empty(1, seq_length, hidden_dim).normal_(std=0.02)
-        )  # from BERT
-        self.dropout = nn.Dropout(dropout)
-        layers: OrderedDict[str, nn.Module] = OrderedDict()
-        for i in range(num_layers):
-            layers[f"encoder_layer_{i}"] = EncoderBlock(
-                num_heads,
-                hidden_dim,
-                mlp_dim,
-                dropout,
-                attention_dropout,
-                norm_layer,
-            )
-        self.layers = nn.Sequential(layers)
-        self.ln = norm_layer(hidden_dim)
-
-    def forward(self, input: torch.Tensor):
-        torch._assert(
-            input.dim() == 3,
-            f"Expected (batch_size, seq_length, hidden_dim) got {input.shape}",
-        )
-        input = input + self.pos_embedding
-
-        if self.aux_output:
-            aux_outputs = []
-            for i, layer in enumerate(self.layers):
-                input = layer(input)
-                if i in self.aux_output_layers:  # type: ignore
-                    aux_outputs.append(self.ln(self.dropout(input)))
-            return self.ln(self.dropout(input)), aux_outputs
-
-        return self.ln(self.layers(self.dropout(input)))
-
-
-class _VisionTransformerBackbone(nn.Module):
-    """Vision Transformer as per https://arxiv.org/abs/2010.11929."""
-
-    def __init__(
-        self,
-        image_size: Union[int, Tuple[int, int]],
-        patch_size: int,
-        num_layers: int,
-        num_heads: int,
-        hidden_dim: int,
-        mlp_dim: int,
-        original_resolution: Optional[Tuple[int, int]] = None,
-        dropout: float = 0.0,
-        attention_dropout: float = 0.0,
-        num_classes: int = 1000,
-        aux_output: bool = False,
-        aux_output_layers: Optional[List[int]] = None,
-        norm_layer: Callable[..., torch.nn.Module] = partial(nn.LayerNorm, eps=1e-6),
-        conv_stem_configs: Optional[List[ConvStemConfig]] = None,
+        kernel_size: Tuple[int, int],
+        stride: Tuple[int, int],
+        dilation: Tuple[int, int],
+        padding: str = "corner",
     ):
         """
-        Initializes a Vision Transformer (ViT) model.
+            Applies adaptive padding to the input tensor to ensure its dimensions are compatible
+        with a convolutional layer using a given kernel size, stride, and dilation.
 
         Parameters
         ----------
-        image_size : int or Tuple[int, int]
-            The size of the input image. If an int is provided, it is assumed
-            to be a square image. If a tuple of ints is provided, it represents
-            the height and width of the image.
+        kernel_size : Tuple[int, int]
+            Size of the convolution kernel.
+        stride : Tuple[int, int]
+            Stride of the convolution.
+        dilation : Tuple[int, int]
+            Dilation rate of the convolution.
+        padding : str, default="corner"
+            Padding mode. Options are "same" or "corner".
+        """
+        super().__init__()
+        assert padding in ("same", "corner")
+        self.kernel_size = kernel_size
+        self.stride = stride
+        self.dilation = dilation
+        self.padding = padding
+
+    def get_pad_shape(self, input_shape):
+        H, W = input_shape
+        kh, kw = self.kernel_size
+        sh, sw = self.stride
+        dh, dw = self.dilation
+        oh = math.ceil(H / sh)
+        ow = math.ceil(W / sw)
+        pad_h = max((oh - 1) * sh + (kh - 1) * dh + 1 - H, 0)
+        pad_w = max((ow - 1) * sw + (kw - 1) * dw + 1 - W, 0)
+        return pad_h, pad_w
+
+    def forward(self, x):
+        pad_h, pad_w = self.get_pad_shape(x.shape[-2:])
+        if pad_h > 0 or pad_w > 0:
+            if self.padding == "corner":
+                x = F.pad(x, (0, pad_w, 0, pad_h))
+            else:
+                x = F.pad(
+                    x, (pad_w // 2, pad_w - pad_w // 2, pad_h // 2, pad_h - pad_h // 2)
+                )
+        return x
+
+
+class MMPatchEmbed(nn.Module):
+    def __init__(
+        self,
+        in_channels: int,
+        embed_dims: int,
+        patch_size: int,
+        stride: Optional[int],
+        dilation: int,
+        bias: bool,
+        norm_type: Optional[type],
+        norm_params: Optional[dict],
+        patch_norm: bool,
+        padding_type: str = "corner",
+    ):
+        """
+            Converts an image into patch embeddings using a convolutional projection layer.
+
+        Parameters
+        ----------
+        in_channels : int
+            Number of input image channels.
+        embed_dims : int
+            Dimensionality of the output patch embeddings.
         patch_size : int
-            The size of each patch in the image.
-        num_layers : int
-            The number of transformer layers in the model.
+            Size of the square patches.
+        stride : Optional[int]
+            Stride for the convolution. If None, defaults to patch size.
+        dilation : int
+            Dilation applied to the convolution.
+        bias : bool
+            Whether to include a bias term in the projection.
+        norm_type : Optional[type]
+            Normalization layer class (e.g., nn.LayerNorm).
+        norm_params : Optional[dict]
+            Parameters to initialize the normalization layer.
+        patch_norm : bool
+            Whether to apply normalization after patch embedding.
+        padding_type : str, default="corner"
+            Padding strategy for adaptive padding.
+        """
+        super().__init__()
+
+        self.adapt_padding = MMAdaptivePadding(
+            kernel_size=(patch_size, patch_size),
+            stride=(stride, stride) if stride is not None else (patch_size, patch_size),
+            dilation=(dilation, dilation),
+            padding=padding_type,
+        )
+
+        self.projection = nn.Conv2d(
+            in_channels,
+            embed_dims,
+            kernel_size=(patch_size, patch_size),
+            stride=(stride, stride) if stride is not None else (patch_size, patch_size),
+            dilation=(dilation, dilation),
+            padding=0,
+            bias=bias,
+        )
+
+        if patch_norm and norm_type is not None:
+            if norm_params is None:
+                self.norm = norm_type(embed_dims)
+            else:
+                self.norm = norm_type(embed_dims, *norm_params)
+        else:
+            self.norm = None
+
+    def forward(self, x):
+        x = self.adapt_padding(x)
+        x = self.projection(x)  # (B, C, H', W')
+        out_size = tuple(
+            x.shape[2:]
+        )  # force to be a tuple (H', W'), instead torch.tensor([H', W']) (mmseg return a tuple instead a tensor)
+        x = x.flatten(2).transpose(1, 2)  # (B, N, C)
+        if self.norm:
+            x = self.norm(x)
+        return x, out_size
+
+
+class MMMultiheadAttention(nn.Module):
+    def __init__(
+        self,
+        embed_dims: int,
+        num_heads: int,
+        attn_drop: float,
+        proj_drop: float,
+        batch_first: bool,
+        bias: bool,
+    ):
+        """
+            Wrapper around `nn.MultiheadAttention` with support for dropout and residual connections.
+
+        Parameters
+        ----------
+        embed_dims : int
+            Dimensionality of each token embedding.
         num_heads : int
-            The number of attention heads in the transformer layers.
-        hidden_dim : int
-            The dimensionality of the hidden layers in the transformer.
-        mlp_dim : int
-            The dimensionality of the feed-forward MLP layers in the transformer
-        original_resolution : Tuple[int, int], optional
-            The original resolution of the input image in the pre-training
-            weights. When None, positional embeddings will not be interpolated.
-            Defaults to None.
-        dropout : float, optional
-            The dropout rate to apply. Defaults to 0.0.
-        attention_dropout : float, optional
-            The dropout rate to apply to the attention weights. Defaults to 0.0
-        num_classes : int, optional
-            The number of output classes. Defaults to 1000.
-        norm_layer : Callable[..., torch.nn.Module], optional
-            The normalization layer to use. Defaults to nn.LayerNorm with
-            epsilon=1e-6.
-        conv_stem_configs : List[ConvStemConfig], optional
-            The configuration for the convolutional stem layers.
-            If provided, the input image will be processed by these
-            convolutional layers before being passed to the transformer.
-            Defaults to None.
+            Number of attention heads.
+        attn_drop : float
+            Dropout rate for attention weights.
+        proj_drop : float
+            Dropout rate for output projection.
+        batch_first : bool
+            Whether the input is in (B, L, C) format.
+        bias : bool
+            If True, add bias terms to the query, key, and value projections.
+        """
+        super().__init__()
+        self.batch_first = batch_first
+        self.attn = nn.MultiheadAttention(
+            embed_dims, num_heads, dropout=attn_drop, bias=bias
+        )
+        self.proj_drop = nn.Dropout(proj_drop)
+        self.dropout_layer = nn.Dropout(proj_drop)
+
+    def forward(self, x, identity=None):
+        if identity is None:
+            identity = x
+
+        # MMSeg do this (transpose to (seq_len, batch, dim)):
+        if self.batch_first:
+            x = x.transpose(0, 1)
+        x = self.attn(x, x, x)[0]
+        # rollback to (batch, seq_len, dim)
+        if self.batch_first:
+            x = x.transpose(0, 1)
+
+        x = self.proj_drop(x)
+        x = identity + self.dropout_layer(x)
+        return x
+
+
+class MMFFN(nn.Module):
+
+    def __init__(
+        self,
+        embed_dims: int,
+        feedforward_channels: int,
+        dropout_type: type,
+        dropout_params: Optional[dict],
+        act_type: type,
+        act_params: Optional[dict],
+        num_fcs: int,
+        ffn_drop: float,
+    ):
+        """
+        Feed-forward network used within the Transformer encoder layer.
+
+        Parameters
+        ----------
+        embed_dims : int
+            Dimensionality of the token embeddings.
+        feedforward_channels : int
+            Number of hidden units in the feed-forward layer.
+        dropout_type : type
+            Dropout module class (e.g., nn.Dropout, DropPath).
+        dropout_params : Optional[dict]
+            Parameters for the dropout layer.
+        act_type : type
+            Activation function class (e.g., nn.GELU).
+        act_params : Optional[dict]
+            Parameters for the activation function.
+        num_fcs : int
+            Number of fully-connected layers. Only supports 2.
+        ffn_drop : float
+            Dropout rate applied after each FC layer.
+        """
+        super().__init__()
+
+        if num_fcs != 2:
+            raise ValueError(
+                "A implementação atual do FFN suporta apenas num_fcs=2 como no MMSeg."
+            )
+
+        self.activate = act_type(**act_params) if act_params else act_type()
+
+        layers = []
+
+        # first block: Linear -> GELU -> Dropout
+        first_block = nn.Sequential(
+            nn.Linear(embed_dims, feedforward_channels),
+            self.activate,
+            nn.Dropout(ffn_drop),
+        )
+        layers.append(first_block)
+
+        # second block: Linear -> Dropout
+        layers.append(nn.Linear(feedforward_channels, embed_dims))
+        layers.append(nn.Dropout(ffn_drop))
+
+        self.layers = nn.Sequential(*layers)
+
+        self.dropout_layer = (
+            dropout_type(**dropout_params) if dropout_params else dropout_type()
+        )
+
+    def forward(self, x, identity=None):
+        if identity is None:
+            identity = x
+        return identity + self.dropout_layer(self.layers(x))
+
+
+class MMTransformerEncoderLayer(nn.Module):
+    def __init__(
+        self,
+        embed_dims: int,
+        num_heads: int,
+        feedforward_channels: int,
+        drop_rate: float,
+        attn_drop_rate: float,
+        drop_path_rate: float,
+        num_fcs: int,
+        qkv_bias: bool,
+        act_type: type,
+        act_params: Optional[dict],
+        dropout_type: type,
+        dropout_params: Optional[dict],
+        norm_type: type,
+        norm_params: Optional[dict],
+        batch_first: bool,
+        with_cp: bool,
+    ):
+        """
+        Transformer encoder block consisting of multi-head attention and FFN.
+
+        Parameters
+        ----------
+        embed_dims : int
+            Token embedding dimension.
+        num_heads : int
+            Number of attention heads.
+        feedforward_channels : int
+            Hidden dimension in the FFN.
+        drop_rate : float
+            Dropout rate after attention and FFN.
+        attn_drop_rate : float
+            Dropout rate for attention weights.
+        drop_path_rate : float
+            Stochastic depth drop path rate.
+        num_fcs : int
+            Number of FC layers in FFN. Must be 2.
+        qkv_bias : bool
+            Whether to use bias in QKV projections.
+        act_type : type
+            Activation function type.
+        act_params : Optional[dict]
+            Activation function parameters.
+        dropout_type : type
+            Dropout class (e.g., nn.Dropout, DropPath).
+        dropout_params : Optional[dict]
+            Dropout parameters.
+        norm_type : type
+            Normalization layer type.
+        norm_params : Optional[dict]
+            Parameters for normalization layers.
+        batch_first : bool
+            Whether input has shape (B, L, C).
+        with_cp : bool
+            Whether to use checkpointing for memory savings.
 
         """
         super().__init__()
-        _log_api_usage_once(self)
 
-        if aux_output:
-            assert aux_output_layers is not None
-            assert all(
-                0 <= i < num_layers for i in aux_output_layers
-            ), "Invalid layer index in aux_output_layers"
-
-        if isinstance(image_size, int):
-            torch._assert(
-                image_size % patch_size == 0,
-                "Input shape indivisible by patch size!",
-            )
-        elif isinstance(image_size, tuple):
-            torch._assert(
-                image_size[0] % patch_size == 0 and image_size[1] % patch_size == 0,
-                "Input shape indivisible by patch size!",
-            )
-
-        self.image_size = image_size
-        self.patch_size = patch_size
-        self.hidden_dim = hidden_dim
-        self.mlp_dim = mlp_dim
-        self.attention_dropout = attention_dropout
-        self.dropout = dropout
-        self.num_classes = num_classes
-        self.norm_layer = norm_layer
-        self.aux_output = aux_output
-        self.aux_output_layers = aux_output_layers
-        self.original_resolution = (
-            original_resolution if original_resolution else image_size
+        self.ln1 = (
+            norm_type(embed_dims, **norm_params)
+            if norm_params
+            else norm_type(embed_dims)
+        )
+        self.ln2 = (
+            norm_type(embed_dims, **norm_params)
+            if norm_params
+            else norm_type(embed_dims)
         )
 
-        if conv_stem_configs is not None:
-            # As per https://arxiv.org/abs/2106.14881
-            seq_proj = nn.Sequential()
-            prev_channels = 3
-            for i, conv_stem_layer_config in enumerate(conv_stem_configs):
-                seq_proj.add_module(
-                    f"conv_bn_relu_{i}",
-                    Conv2dNormActivation(
-                        in_channels=prev_channels,
-                        out_channels=conv_stem_layer_config.out_channels,
-                        kernel_size=conv_stem_layer_config.kernel_size,
-                        stride=conv_stem_layer_config.stride,
-                        norm_layer=conv_stem_layer_config.norm_layer,
-                        activation_layer=conv_stem_layer_config.activation_layer,
-                    ),
-                )
-                prev_channels = conv_stem_layer_config.out_channels
-            seq_proj.add_module(
-                "conv_last",
-                nn.Conv2d(
-                    in_channels=prev_channels,
-                    out_channels=hidden_dim,
-                    kernel_size=1,
-                ),
-            )
-            self.conv_proj: nn.Module = seq_proj
-        else:
-            self.conv_proj = nn.Conv2d(
-                in_channels=3,
-                out_channels=hidden_dim,
-                kernel_size=patch_size,
-                stride=patch_size,
-            )
-
-        if isinstance(image_size, int):
-            seq_length = (image_size // patch_size) ** 2
-        elif isinstance(image_size, tuple):
-            seq_length = (image_size[0] // patch_size) * (image_size[1] // patch_size)
-
-        # Add a class token
-        self.class_token = nn.Parameter(torch.zeros(1, 1, hidden_dim))
-        seq_length += 1
-
-        self.encoder = _Encoder(
-            seq_length=seq_length,
-            num_layers=num_layers,
+        self.attn = MMMultiheadAttention(
+            embed_dims=embed_dims,
             num_heads=num_heads,
-            hidden_dim=hidden_dim,
-            mlp_dim=mlp_dim,
-            dropout=dropout,
-            attention_dropout=attention_dropout,
-            norm_layer=norm_layer,
-            aux_output=aux_output,
-            aux_output_layers=aux_output_layers,
+            attn_drop=attn_drop_rate,
+            proj_drop=drop_rate,
+            batch_first=batch_first,
+            bias=qkv_bias,
         )
-        self.seq_length = seq_length
 
-        if isinstance(self.conv_proj, nn.Conv2d):
-            # Init the patchify stem
-            fan_in = (
-                self.conv_proj.in_channels
-                * self.conv_proj.kernel_size[0]
-                * self.conv_proj.kernel_size[1]
-            )
-            nn.init.trunc_normal_(self.conv_proj.weight, std=math.sqrt(1 / fan_in))
-            if self.conv_proj.bias is not None:
-                nn.init.zeros_(self.conv_proj.bias)
-        elif self.conv_proj.conv_last is not None and isinstance(
-            self.conv_proj.conv_last, nn.Conv2d
-        ):
-            # Init the last 1x1 conv of the conv stem
-            nn.init.normal_(
-                self.conv_proj.conv_last.weight,
-                mean=0.0,
-                std=math.sqrt(2.0 / self.conv_proj.conv_last.out_channels),
-            )
-            if self.conv_proj.conv_last.bias is not None:
-                nn.init.zeros_(self.conv_proj.conv_last.bias)
+        dropout_params = (
+            dict(drop_prob=drop_path_rate)
+            if drop_path_rate > 0
+            else None if dropout_params is None else dropout_params
+        )
 
-    def _process_input(self, x: torch.Tensor) -> Tuple[torch.Tensor, int, int]:
-        """Process the input tensor and return the reshaped tensor and dimensions.
+        self.ffn = MMFFN(
+            embed_dims=embed_dims,
+            feedforward_channels=feedforward_channels,
+            num_fcs=num_fcs,
+            ffn_drop=drop_rate,
+            dropout_type=dropout_type,
+            dropout_params=dropout_params,
+            act_type=act_type,
+            act_params=act_params,
+        )
 
-        Args:
-            x (torch.Tensor): The input tensor.
+        self.with_cp = with_cp
 
-        Returns:
-            Tuple[torch.Tensor, int, int]: The reshaped tensor, number of rows,
-            and number of columns.
-        """
-        n, c, h, w = x.shape
-        p = self.patch_size
+    def forward(self, x):
+        def _inner_forward(x):
+            x = self.attn(self.ln1(x), identity=x)
+            x = self.ffn(self.ln2(x), identity=x)
+            return x
 
-        if isinstance(self.image_size, int):
-            torch._assert(
-                h == self.image_size,
-                f"Wrong image height! Expected {self.image_size} but got {h}!",
-            )
-            torch._assert(
-                w == self.image_size,
-                f"Wrong image width! Expected {self.image_size} but got {w}!",
-            )
-        elif isinstance(self.image_size, tuple):
-            torch._assert(
-                h == self.image_size[0],
-                f"Wrong image height! Expected {self.image_size[0]} but got {h}!",
-            )
-            torch._assert(
-                w == self.image_size[1],
-                f"Wrong image width! Expected {self.image_size[1]} but got {w}!",
-            )
+        if self.with_cp and x.requires_grad:
+            import torch.utils.checkpoint as cp
+
+            x = cp.checkpoint(_inner_forward, x)
         else:
-            raise ValueError("Invalid image size type!")
+            x = _inner_forward(x)
+        return x
 
-        n_h = h // p
-        n_w = w // p
 
-        # (n, c, h, w) -> (n, hidden_dim, n_h, n_w)
-        x = x.to(torch.float32)
-        x = self.conv_proj(x)
-        # (n, hidden_dim, n_h, n_w) -> (n, hidden_dim, (n_h * n_w))
-        x = x.reshape(n, self.hidden_dim, n_h * n_w)
+class SetrVitBackbone(nn.Module):
 
-        # (n, hidden_dim, (n_h * n_w)) -> (n, (n_h * n_w), hidden_dim)
-        # The self attention layer expects inputs in the format (N, S, E)
-        # where S is the source sequence length, N is the batch size, E is the
-        # embedding dimension
-        x = x.permute(0, 2, 1)
+    def __init__(
+        self,
+        original_resolution: Optional[tuple],
+        img_size: tuple,
+        patch_size: int,
+        embed_dims: int,
+        interpolate_mode: str,
+        in_channels: int,
+        patch_norm: bool,
+        stride: Optional[int],
+        dilatation: int,
+        bias: bool,
+        norm_type: type,
+        norm_params: Optional[dict],
+        padding_type: str,
+        num_layers: int,
+        num_heads: int,
+        out_indices: Union[int, List[int], Tuple[int, ...]],
+        drop_rate: float,
+        with_cls_token: bool,
+        mlp_ratio: int,
+        attn_drop_rate: float,
+        drop_path_rate: float,
+        num_fcs: int,
+        qkv_bias: bool,
+        output_cls_token: bool,
+        act_type: type,
+        act_params: dict,
+        with_cp: bool,
+        dropout_type: type,
+        dropout_params: Optional[dict],
+        batch_first: bool = True,
+    ):
+        """
+            Vision Transformer (ViT) backbone for semantic segmentation, following the SETR architecture.
 
-        return x, n_h, n_w
+        Parameters
+        ----------
+        original_resolution : Optional[tuple]
+            Original training image resolution (used for interpolating positional embeddings).
+        img_size : tuple
+            Target image size (H, W).
+        patch_size : int
+            Size of square patches.
+        embed_dims : int
+            Dimensionality of patch embeddings.
+        interpolate_mode : str
+            Interpolation method for resizing positional embeddings.
+        in_channels : int
+            Number of input channels.
+        patch_norm : bool
+            Whether to apply normalization after patch embedding.
+        stride : Optional[int]
+            Convolution stride for patch embedding.
+        dilatation : int
+            Dilation factor for convolution.
+        bias : bool
+            Whether to use bias in convolution.
+        norm_type : type
+            Normalization layer class.
+        norm_params : Optional[dict]
+            Parameters for normalization layers.
+        padding_type : str
+            Padding type for adaptive padding ("same" or "corner").
+        num_layers : int
+            Number of transformer encoder layers.
+        num_heads : int
+            Number of attention heads.
+        out_indices : Union[int, List[int], Tuple[int, ...]]
+            Indices of layers whose outputs are returned.
+        drop_rate : float
+            Dropout rate after positional encoding.
+        with_cls_token : bool
+            Whether to use a class token in the encoder.
+        mlp_ratio : int
+            Expansion ratio for the hidden layer in FFN.
+        attn_drop_rate : float
+            Dropout rate in attention.
+        drop_path_rate : float
+            Stochastic depth drop rate.
+        num_fcs : int
+            Number of FCs in FFN. Must be 2.
+        qkv_bias : bool
+            Whether to use bias in QKV projections.
+        output_cls_token : bool
+            Whether to return the class token in outputs.
+        act_type : type
+            Activation function class.
+        act_params : dict
+            Parameters for the activation function.
+        with_cp : bool
+            Whether to use checkpointing for memory savings.
+        dropout_type : type
+            Dropout class used in FFN.
+        dropout_params : Optional[dict]
+            Parameters for dropout.
+        batch_first : bool, default=True
+            If True, inputs/outputs are in shape (B, L, C).
+        """
+        super().__init__()
 
-    def interpolate_pos_embeddings(self, pretrained_pos_embed, new_img_size):
-        """Interpolate encoder's positional embeddings to fit a new input size.
+        self.original_resolution = original_resolution
+        self.img_size = img_size
+        self.patch_size = patch_size
+        self.embed_dims = embed_dims
+        self.interpolate_mode = interpolate_mode
+
+        assert (
+            len(img_size) == 2
+        ), f"The size of image should have length 1 or 2, but got {len(img_size)}"
+
+        self.patch_embed = MMPatchEmbed(
+            in_channels=in_channels,
+            embed_dims=embed_dims,
+            patch_size=patch_size,
+            patch_norm=patch_norm,
+            stride=stride,
+            dilation=dilatation,
+            bias=bias,
+            norm_type=norm_type,
+            norm_params=norm_params,
+            padding_type=padding_type,
+        )
+
+        num_patches = (img_size[0] // patch_size) * (img_size[1] // patch_size)
+
+        self.with_cls_token = with_cls_token
+        self.output_cls_token = output_cls_token
+
+        self.cls_token = nn.Parameter(torch.zeros(1, 1, embed_dims))
+        self.pos_embed = nn.Parameter(torch.zeros(1, num_patches + 1, embed_dims))
+        self.drop_after_pos = nn.Dropout(p=drop_rate)
+
+        # manipulate output indices
+        if isinstance(out_indices, int):
+            if out_indices == -1:
+                out_indices = num_layers - 1
+            self.out_indices = [out_indices]
+        elif isinstance(out_indices, list) or isinstance(out_indices, tuple):
+            self.out_indices = out_indices
+        else:
+            raise TypeError("out_indices must be type of int, list or tuple")
+
+        """
+        Generates a list of floats with num_layers elements, ranging from 0 to drop_path_rate, in a linearly spaced fashion.
+        This dpr vector is used to apply the Stochastic Depth technique. 
+        Instead of applying the same drop_path rate to all layers, this technique 
+        linearly decays the value across layers: deeper layers tend to be more likely 
+        to be "turned off" during training. This helps in regularizing the training of very deep networks.
+        """
+        dpr = [
+            x.item() for x in torch.linspace(0, drop_path_rate, num_layers)
+        ]  # stochastic depth decay rule
+
+        self.layers = nn.ModuleList()
+        for i in range(num_layers):
+            self.layers.append(
+                MMTransformerEncoderLayer(
+                    embed_dims=embed_dims,
+                    num_heads=num_heads,
+                    feedforward_channels=mlp_ratio * embed_dims,
+                    attn_drop_rate=attn_drop_rate,
+                    drop_rate=drop_rate,
+                    drop_path_rate=dpr[i],
+                    num_fcs=num_fcs,
+                    qkv_bias=qkv_bias,
+                    act_params=act_params,
+                    norm_params=norm_params,
+                    with_cp=with_cp,
+                    batch_first=batch_first,
+                    dropout_type=dropout_type,
+                    dropout_params=dropout_params,
+                    norm_type=norm_type,
+                    act_type=act_type,
+                )
+            )
+
+    #     self.init_weights()
+
+    def _pos_embeding(self, patched_img, hw_shape: tuple, pos_embed):
+        """
+        Positioning embeding method. Resize the pos_embed, if the input image size doesn't match the training size.
 
         Args:
-            pretrained_pos_embed (torch.Tensor): Pretrained positional embeddings.
-            new_img_size (Tuple[int, int]): New height and width of the input image.
+            patched_img (torch.Tensor):
+                The patched image, it should be shape of [B, L1, C].
+            hw_shape (tuple):
+                The downsampled image resolution. pos_embed (torch.Tensor): The pos_embed weighs, it should be shape of [B, L2, c].
+        Return:
+            torch.Tensor:
+                The pos encoded image feature.
         """
-        h, w = (
-            new_img_size[0] // self.patch_size,
-            new_img_size[1] // self.patch_size,
+        assert (
+            patched_img.ndim == 3 and pos_embed.ndim == 3
+        ), "the shapes of patched_img and pos_embed must be [B, L, C]"
+        x_len, pos_len = patched_img.shape[1], pos_embed.shape[1]
+        if x_len != pos_len:
+            if (
+                pos_len
+                == (self.img_size[0] // self.patch_size)
+                * (self.img_size[1] // self.patch_size)
+                + 1
+            ):
+                pos_h = self.img_size[0] // self.patch_size
+                pos_w = self.img_size[1] // self.patch_size
+            else:
+                raise ValueError(
+                    "Unexpected shape of pos_embed, got {}.".format(pos_embed.shape)
+                )
+            pos_embed = self.resize_pos_embed(
+                pos_embed, hw_shape, (pos_h, pos_w), self.interpolate_mode
+            )
+        return self.drop_after_pos(
+            patched_img + pos_embed
+        )  # sum of patched_embed and positional embed (PS: don't do this in MultiheadAttention() again!)
+
+    @staticmethod
+    def resize_pos_embed(pos_embed, input_shape, pos_shape, mode: str = "bicubic"):
+        """
+        Resize pos_embed weights. Resize pos_embed using bicubic interpolate method.
+
+        Args:
+            pos_embed (torch.Tensor):
+                Position embedding weights.
+            input_shape (tuple):
+                Tuple for (downsampled input image height,  downsampled input image width).
+            pos_shape (tuple):
+                The resolution of downsampled origin training image.
+            mode (str):
+                Algorithm used for upsampling:
+                ``'linear'`` | ``'bilinear'`` | ``'bicubic'`` | ``'trilinear'``. Default: ``'bicubic'``
+        Return:
+            torch.Tensor:
+                The resized pos_embed of shape [B, L_new, C]
+        """
+        assert pos_embed.ndim == 3, "shape of pos_embed must be [B, L, C]"
+        pos_h, pos_w = pos_shape
+        # keep dim for easy deployment
+        cls_token_weight = pos_embed[:, 0:1]
+        pos_embed_weight = pos_embed[:, (-1 * pos_h * pos_w) :]
+        pos_embed_weight = pos_embed_weight.reshape(
+            1, pos_h, pos_w, pos_embed.shape[2]
+        ).permute(0, 3, 1, 2)
+        pos_embed_weight = F.interpolate(
+            input=pos_embed_weight,
+            size=input_shape,
+            scale_factor=None,
+            mode=mode,
+            align_corners=False,
         )
-        new_grid_size = (h, w)
+        pos_embed_weight = torch.flatten(pos_embed_weight, 2).transpose(1, 2)
+        pos_embed = torch.cat((cls_token_weight, pos_embed_weight), dim=1)
+        return pos_embed
 
-        # Reshape pretrained positional embeddings to match the original grid size
+    # def init_weights(self):
+    #     print("iniciando os pesos")
+    #     self.patch_embed.init_weights()
 
-        original_resolution = (
-            self.original_resolution
-            if isinstance(self.original_resolution, Tuple)
-            else (self.original_resolution, self.original_resolution)
-        )
-
+    def interpolate_pos_embeddings(
+        self, pretrained_pos_embed, new_img_size, patch_size=16
+    ):
+        h, w = new_img_size[0] // patch_size, new_img_size[1] // patch_size
+        if self.original_resolution is None:
+            raise ValueError(
+                "original_resolution must be set to interpolate pos_embed."
+            )
+        original_h, original_w = self.original_resolution
         pos_embed_reshaped = pretrained_pos_embed[:, 1:].reshape(
-            1,
-            original_resolution[0] // self.patch_size,
-            original_resolution[1] // self.patch_size,
-            -1,
+            1, original_h // patch_size, original_w // patch_size, -1
         )
-
-        # Interpolate positional embeddings to the new grid size
         pos_embed_interpolated = (
             F.interpolate(
-                pos_embed_reshaped.permute(
-                    0, 3, 1, 2
-                ),  # (1, C, H, W) for interpolation
-                size=new_grid_size,
-                mode="bilinear",
+                pos_embed_reshaped.permute(0, 3, 1, 2),
+                size=(h, w),
+                mode=self.interpolate_mode,
                 align_corners=False,
             )
             .permute(0, 2, 3, 1)
             .reshape(1, -1, pos_embed_reshaped.shape[-1])
         )
 
-        # Concatenate the CLS token and the interpolated positional embeddings
         cls_token = pretrained_pos_embed[:, :1]
-        pos_embed_interpolated = torch.cat((cls_token, pos_embed_interpolated), dim=1)
+        return torch.cat((cls_token, pos_embed_interpolated), dim=1)
 
-        return pos_embed_interpolated
-
-        return pos_embed_interpolated
-
-    def load_backbone(self, path: str, freeze: bool = False):
+    def load_backbone(self, path: str):
         """Loads pretrained weights and handles positional embedding resizing
         if necessary."""
-        # Load the pretrained state dict
         state_dict = torch.load(path)
 
-        # Expected shape for positional embeddings based on current model image size
+        # Caso os pesos venham de um checkpoint do Lightning ou similar
+        if "state_dict" in state_dict:
+            state_dict = state_dict["state_dict"]
 
-        image_size = (
-            self.image_size
-            if isinstance(self.image_size, Tuple)
-            else (self.image_size, self.image_size)
-        )
+        # Interpola pos_embed, se necessário
+        if "pos_embed" in state_dict:
+            image_size = (
+                (self.img_size, self.img_size)
+                if isinstance(self.img_size, int)
+                else self.img_size
+            )
+            expected_shape = (
+                1,
+                (image_size[0] // self.patch_size) * (image_size[1] // self.patch_size)
+                + 1,
+                self.embed_dims,
+            )
 
-        expected_pos_embed_shape = (
-            1,
-            (image_size[0] // self.patch_size) * (image_size[1] // self.patch_size) + 1,
-            self.hidden_dim,
-        )
+            if state_dict["pos_embed"].shape != expected_shape:
+                print("🔄 Interpolando pos_embed para nova resolução...")
+                with torch.no_grad():
+                    state_dict["pos_embed"] = self.interpolate_pos_embeddings(
+                        state_dict["pos_embed"],
+                        new_img_size=image_size,
+                        patch_size=self.patch_size,
+                    )
+        else:
+            print("⚠️ Arquivo .pth não tem pos_embed; pulando interpolação.")
 
-        # Check if positional embeddings need interpolation
-        if state_dict["encoder.pos_embedding"].shape != expected_pos_embed_shape:
-            # Extract the positional embeddings from the state dict
-            pretrained_pos_embed = state_dict["encoder.pos_embedding"]
+        # Filtra apenas os pesos que estão presentes no modelo
+        model_keys = self.state_dict().keys()
+        filtered_state_dict = {k: v for k, v in state_dict.items() if k in model_keys}
 
-            # Interpolate to match the current image size
-            print("Interpolating positional embeddings to match the new image size.")
-            with torch.no_grad():
-                pos_embed_interpolated = self.interpolate_pos_embeddings(
-                    pretrained_pos_embed, (image_size[0], image_size[1])
-                )
-            state_dict["encoder.pos_embedding"] = pos_embed_interpolated
+        # Carrega com warning de chaves faltantes/inesperadas
+        missing, unexpected = self.load_state_dict(filtered_state_dict, strict=False)
+        print(f"🔍 Missing keys: {missing}")
+        print(f"🚫 Unexpected keys: {unexpected}")
 
-        # Load the (potentially modified) state dict into the encoder
-        self.encoder.load_state_dict(state_dict, strict=False)
+    def forward(self, x):
+        # apply patch embed
+        x, hw_shape = self.patch_embed(x)
+        # print(x.shape, hw_shape)
 
-        # Optionally freeze parameters
-        if freeze:
-            for param in self.encoder.parameters():
-                param.requires_grad = False
+        # apply cls token to embed
+        B = x.shape[0]
+        cls_tokens = self.cls_token.expand(B, -1, -1)  # (B, 1, 1024)
+        x = torch.cat((cls_tokens, x), dim=1)  # (B, 1025, 1024)
+        # apply droptout
+        x = self._pos_embeding(x, hw_shape, self.pos_embed)
 
-    def forward(self, x: torch.Tensor):
-        """Forward pass of the Vision Transformer Backbone.
+        if not self.with_cls_token:
+            x = x[:, 1:]  # remove class token for transformer encoder input
 
-        Args:
-            x (torch.Tensor): The input tensor.
+        outs = []
+        for i, layer in enumerate(self.layers):
+            x = layer(x)
 
-        Returns:
-            torch.Tensor: The output tensor.
-        """
-
-        # Reshape and permute the input tensor
-        x, n_h, n_w = self._process_input(x)
-        n = x.shape[0]
-
-        # Expand the class token to the full batch
-        batch_class_token = self.class_token.expand(n, -1, -1)
-        x = torch.cat([batch_class_token, x], dim=1)
-
-        if self.aux_output:
-            x, aux_outputs = self.encoder(x)
-            x = x[:, 1:]
-            B, _, C = x.shape
-            x = x.reshape(B, n_h, n_w, C).permute(0, 3, 1, 2).contiguous()
-            for i, aux_output in enumerate(aux_outputs):
-                aux_outputs[i] = aux_output[:, 1:]
-                B, _, C = aux_outputs[i].shape
-                aux_outputs[i] = (
-                    aux_outputs[i]
-                    .reshape(B, n_h, n_w, C)
+            # process output indices (default: return all indices)
+            if i in self.out_indices:
+                if self.with_cls_token:
+                    out = x[
+                        :, 1:
+                    ]  # remove class token and reshape token for decoder head
+                else:
+                    out = x
+                B, _, C = out.shape
+                out = (
+                    out.reshape(B, hw_shape[0], hw_shape[1], C)
                     .permute(0, 3, 1, 2)
                     .contiguous()
                 )
-            return x, aux_outputs
+                if self.output_cls_token:
+                    out = [out, x[:, 0]]
+                outs.append(out)
 
-        x = self.encoder(x)
+        # final return: the output of last layer, converted like intermediate layers
+        if self.with_cls_token:
+            x_final = x[:, 1:]
+        else:
+            x_final = x
 
-        # Classifier "token" as used by standard language architectures
-        x = x[:, 1:]
-
-        B, _, C = x.shape
-
-        x = x.reshape(B, n_h, n_w, C).permute(0, 3, 1, 2).contiguous()
-
-        return x
-
-    def load_weights(self, weights_path: str, freeze: bool = False):
-
-        state_dict = torch.load(weights_path)
-
-        # Get expected positional embedding shape based on current image size
-
-        image_size = (
-            self.image_size
-            if isinstance(self.image_size, Tuple)
-            else (self.image_size, self.image_size)
+        B, _, C = x_final.shape
+        x_final = (
+            x_final.reshape(B, hw_shape[0], hw_shape[1], C)
+            .permute(0, 3, 1, 2)
+            .contiguous()
         )
 
-        expected_pos_embed_shape = (
-            1,
-            (image_size[0] // self.patch_size) * (image_size[1] // self.patch_size) + 1,
-            self.hidden_dim,
-        )
-
-        # Check if positional embeddings need interpolation
-        if state_dict["encoder.pos_embedding"].shape != expected_pos_embed_shape:
-            # Extract the positional embeddings from the state dict
-            pretrained_pos_embed = state_dict["encoder.pos_embedding"]
-
-            # Interpolate to match the current image size
-            print("Interpolating positional embeddings to match the new image size.")
-            with torch.no_grad():
-                pos_embed_interpolated = self.interpolate_pos_embeddings(
-                    pretrained_pos_embed, (image_size[0], image_size[1])
-                )
-            state_dict["encoder.pos_embedding"] = pos_embed_interpolated
-
-        # Load the (potentially modified) state dict
-        self.load_state_dict(state_dict, strict=False)
-
-        # Optionally freeze parameters
-        if freeze:
-            for param in self.parameters():
-                param.requires_grad = False
+        return x_final, tuple(outs)
 
 
 ###################################

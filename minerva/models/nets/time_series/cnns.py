@@ -273,6 +273,8 @@ class CNN_PF_Backbone(torch.nn.Module):
         include_middle: bool = False,
         permute: bool = False,
         flatten: bool = False,
+        shared_part_out_channels: int = 64,
+        shared_part_stride: Tuple[int, int] = (1, 1),
     ):
         super().__init__()
         self.pad_at = pad_at
@@ -341,9 +343,9 @@ class CNN_PF_Backbone(torch.nn.Module):
                     if self.include_middle
                     else self.out_channels * 2
                 ),
-                out_channels=64,
+                out_channels=shared_part_out_channels,
                 kernel_size=(3, 5),
-                stride=(1, 1),
+                stride=shared_part_stride,
             ),
             torch.nn.ReLU(),
             torch.nn.MaxPool2d(

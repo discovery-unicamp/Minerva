@@ -189,7 +189,7 @@ class SimpleLightningPipeline(Pipeline):
         for metric_name, metric in metrics.items():
             final_results = []
             for i, (y_i, y_hat_i) in enumerate(zip(y, y_hat)):
-                res = metric(y_i, y_hat_i).float().item()
+                res = metric(y_hat_i, y_i).float().item()
                 final_results.append(res)
             results[metric_name] = final_results
 

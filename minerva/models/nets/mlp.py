@@ -81,7 +81,7 @@ class MLP(nn.Sequential):
                 )
 
         layers = []
-        for i in range(num_layers):
+        for i in range(num_layers - 1):
             in_dim, out_dim = layer_sizes[i], layer_sizes[i + 1]
             layers.append(nn.Linear(in_dim, out_dim))
 
@@ -91,6 +91,10 @@ class MLP(nn.Sequential):
             if activation_cls is not None:
                 layers.append(activation_cls(*args, **kwargs))
 
+        # Do not add activation after the last layer
+        layers.append(nn.Linear(layer_sizes[-2], layer_sizes[-1]))
+
+        # Add final operation if provided
         if final_op is not None:
             layers.append(final_op)
 

@@ -1,14 +1,16 @@
 import numpy as np
 import pytest
 
-from minerva.transforms import GrayScale, Solarize, Rotation
 from minerva.transforms import (
+    GrayScale,
     RandomCrop,
     RandomGrayScale,
-    RandomSolarize,
     RandomRotation,
+    RandomSolarize,
+    Rotation,
+    Solarize,
 )
-from minerva.transforms.random_transform import EmptyTransform
+from minerva.transforms.random_transform import Identity
 
 
 def test_random_crop_shape():
@@ -34,7 +36,7 @@ def test_random_grayscale_prob_0():
     transform = RandomGrayScale(prob=0.0, method="luminosity", seed=123)
     selected = transform.select_transform()
 
-    assert isinstance(selected, EmptyTransform)
+    assert isinstance(selected, Identity)
 
 
 def test_random_solarize_prob_1():
@@ -52,7 +54,7 @@ def test_random_solarize_prob_0():
     transform = RandomSolarize(threshold=100, prob=0.0, seed=0)
     selected = transform.select_transform()
 
-    assert isinstance(selected, EmptyTransform)
+    assert isinstance(selected, Identity)
 
 
 def test_random_rotation_applies_transform():
@@ -70,7 +72,7 @@ def test_random_rotation_skips_transform():
     transform = RandomRotation(degrees=45, prob=0.0, seed=1337)
     selected = transform.select_transform()
 
-    assert isinstance(selected, EmptyTransform)
+    assert isinstance(selected, Identity)
 
 
 def test_random_rotation_within_degree_range():
