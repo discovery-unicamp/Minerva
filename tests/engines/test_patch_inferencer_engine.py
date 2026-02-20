@@ -2,7 +2,6 @@ import torch
 from minerva.engines.patch_inferencer_engine import PatchInferencer
 from minerva.models.nets.base import SimpleSupervisedModel
 
-
 pyramid = [
     [
         [1, 1, 1, 1, 1],
