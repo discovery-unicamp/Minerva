@@ -180,7 +180,7 @@ class BYOL(SimpleSupervisedModel):
 
     def _loss_func(self, outputs, targets=None) -> torch.Tensor:
 
-        (x0, x1) = outputs
+        x0, x1 = outputs
         p0 = self.forward(x0)
         z0 = self.forward_momentum(x0)
         p1 = self.forward(x1)

@@ -2,7 +2,6 @@ import torch
 from minerva.engines.slidingwindow_inferencer_engine import SlidingWindowInferencer
 from minerva.models.nets.base import SimpleSupervisedModel
 
-
 pyramid = [
     [
         [1, 1, 1, 1, 1],

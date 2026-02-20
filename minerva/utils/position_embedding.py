@@ -1,10 +1,5 @@
-from functools import partial
-
 import numpy as np
-import pytorch_lightning as pl
 import torch
-import torch.nn as nn
-from timm.models.vision_transformer import Block, PatchEmbed
 
 
 # --------------------------------------------------------
@@ -13,21 +8,34 @@ from timm.models.vision_transformer import Block, PatchEmbed
 # Transformer: https://github.com/tensorflow/models/blob/master/official/nlp/transformer/model_utils.py
 # MoCo v3: https://github.com/facebookresearch/moco-v3
 # --------------------------------------------------------
-def get_2d_sincos_pos_embed(embed_dim: int, grid_size: int, cls_token=False):
+def get_2d_sincos_pos_embed(embed_dim, grid_size, cls_token=False):
     """
-    grid_size: int of the grid height and width
+    grid_size: int or tuple/list of (grid_h, grid_w)
+        - If int, the grid is square
+        - If tuple/list, grid_h and grid_w define a rectangular grid
     return:
-    pos_embed: [grid_size*grid_size, embed_dim] or [1+grid_size*grid_size, embed_dim] (w/ or w/o cls_token)
+        pos_embed: [grid_h*grid_w, embed_dim] or [1+grid_h*grid_w, embed_dim] (w/ cls_token)
     """
-    grid_h = np.arange(grid_size, dtype=float)
-    grid_w = np.arange(grid_size, dtype=float)
-    grid = np.meshgrid(grid_w, grid_h)  # here w goes first
-    grid = np.stack(grid, axis=0)
+    if isinstance(grid_size, int):
+        grid_h = grid_w = grid_size
+    elif isinstance(grid_size, (tuple, list)) and len(grid_size) == 2:
+        grid_h, grid_w = grid_size
+    else:
+        raise ValueError("grid_size must be an int or a tuple/list of two ints")
 
-    grid = grid.reshape([2, 1, grid_size, grid_size])
+    grid_h_coords = np.arange(grid_h, dtype=np.float32)
+    grid_w_coords = np.arange(grid_w, dtype=np.float32)
+    grid = np.meshgrid(grid_w_coords, grid_h_coords)  # w first
+    grid = np.stack(grid, axis=0)  # (2, H, W)
+
+    # reshape to (2, 1, H, W)
+    grid = grid.reshape([2, 1, grid_h, grid_w])
+
     pos_embed = get_2d_sincos_pos_embed_from_grid(embed_dim, grid)
+
     if cls_token:
         pos_embed = np.concatenate([np.zeros([1, embed_dim]), pos_embed], axis=0)
+
     return pos_embed
 
 
