@@ -873,7 +873,7 @@ class VisionTransformer(nn.Module):
             embed_args.update(dict(strict_img_size=False, output_fmt="NHWC"))
         if embed_norm_layer is not None:
             embed_args["norm_layer"] = embed_norm_layer
-        
+
         self.patch_embed = PatchEmbed(
             img_size=img_size,
             patch_size=patch_size,
@@ -906,9 +906,9 @@ class VisionTransformer(nn.Module):
             self.pos_embed = None
         else:
             self.pos_embed = nn.Parameter(torch.randn(1, embed_len, embed_dim) * 0.02)
-        
+
         self.pos_drop = nn.Dropout(p=pos_drop_rate)
-        
+
         if patch_drop_rate > 0:
             self.patch_drop = PatchDropout(
                 patch_drop_rate,
@@ -916,12 +916,12 @@ class VisionTransformer(nn.Module):
             )
         else:
             self.patch_drop = nn.Identity()
-        
+
         self.norm_pre = norm_layer(embed_dim) if pre_norm else nn.Identity()
 
-        dpr = [
-            x.item() for x in torch.linspace(0, drop_path_rate, depth)
-        ]  # stochastic depth decay rule
+        # stochastic depth decay rule
+        dpr = [x.item() for x in torch.linspace(0, drop_path_rate, depth)]
+
         self.blocks = nn.Sequential(
             *[
                 block_fn(
@@ -942,6 +942,7 @@ class VisionTransformer(nn.Module):
                 for i in range(depth)
             ]
         )
+
         self.feature_info = [
             dict(module=f"blocks.{i}", num_chs=embed_dim, reduction=reduction)
             for i in range(depth)
@@ -962,14 +963,13 @@ class VisionTransformer(nn.Module):
 
     def init_weights(self, mode: str = "") -> None:
         assert mode in ("jax", "jax_nlhb", "moco", "")
-        head_bias = -math.log(self.num_classes) if "nlhb" in mode else 0.0
         if self.pos_embed is not None:
             trunc_normal_(self.pos_embed, std=0.02)
         if self.cls_token is not None:
             nn.init.normal_(self.cls_token, std=1e-6)
         if self.reg_token is not None:
             nn.init.normal_(self.reg_token, std=1e-6)
-        named_apply(get_init_weights_vit(mode, head_bias), self)
+        named_apply(get_init_weights_vit(mode), self)
 
     def _init_weights(self, m: nn.Module) -> None:
         # this fn left here for compat with downstream users
