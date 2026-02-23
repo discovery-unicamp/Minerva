@@ -4,10 +4,10 @@ import torch.nn as nn
 
 from minerva.models.ssl.vitmae import MaskedAutoEncoderViT, VisionTransformer
 
-
 # ----------------------------
 # Fixtures
 # ----------------------------
+
 
 @pytest.fixture
 def dummy_imgs():
@@ -40,6 +40,7 @@ def mae_model(small_backbone):
 # Initialization tests
 # ----------------------------
 
+
 def test_init_default():
     model = MaskedAutoEncoderViT()
     assert model.backbone is not None
@@ -59,6 +60,7 @@ def test_mask_token_initialized(mae_model):
 # ----------------------------
 # Patchify / Unpatchify
 # ----------------------------
+
 
 def test_patchify_shape(mae_model, dummy_imgs):
     patches = mae_model.patchify(dummy_imgs)
@@ -84,6 +86,7 @@ def test_patchify_invalid_size(mae_model):
 # Random masking
 # ----------------------------
 
+
 def test_random_masking_shapes(mae_model: MaskedAutoEncoderViT):
     x = torch.randn(2, 196, 64)
     x_masked, mask, ids_restore = mae_model.random_masking(x, mask_ratio=0.5)
@@ -104,7 +107,10 @@ def test_random_masking_ratio(mae_model):
 # Encoder forward
 # ----------------------------
 
-def test_forward_encoder_shapes(mae_model: MaskedAutoEncoderViT, dummy_imgs: torch.Tensor):
+
+def test_forward_encoder_shapes(
+    mae_model: MaskedAutoEncoderViT, dummy_imgs: torch.Tensor
+):
     latent, mask, ids_restore = mae_model.forward_encoder(dummy_imgs, mask_ratio=0.5)
     assert latent.ndim == 3
     assert mask.ndim == 2
@@ -120,6 +126,7 @@ def test_forward_encoder_cls_token(mae_model, dummy_imgs):
 # ----------------------------
 # Decoder forward
 # ----------------------------
+
 
 def test_forward_decoder_shapes(mae_model, dummy_imgs):
     latent, mask, ids_restore = mae_model.forward_encoder(dummy_imgs, mask_ratio=0.5)
@@ -138,6 +145,7 @@ def test_forward_decoder_removes_cls(mae_model, dummy_imgs):
 # ----------------------------
 # Loss computation
 # ----------------------------
+
 
 def test_forward_loss_scalar(mae_model, dummy_imgs):
     latent, mask, ids_restore = mae_model.forward_encoder(dummy_imgs, mask_ratio=0.5)
@@ -165,6 +173,7 @@ def test_forward_loss_norm_pix(mae_model, dummy_imgs):
 # Full forward pass
 # ----------------------------
 
+
 def test_forward_full(mae_model, dummy_imgs):
     loss, pred, mask = mae_model(dummy_imgs, mask_ratio=0.75)
     assert loss.ndim == 0
@@ -181,6 +190,7 @@ def test_forward_different_mask_ratios(mae_model, dummy_imgs):
 # ----------------------------
 # Determinism sanity check
 # ----------------------------
+
 
 def test_random_masking_different_each_call(mae_model):
     x = torch.randn(1, 100, 32)
