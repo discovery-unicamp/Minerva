@@ -753,7 +753,6 @@ class VisionTransformer(nn.Module):
         img_size: Union[int, Tuple[int, int]] = 224,
         patch_size: Union[int, Tuple[int, int]] = 16,
         in_chans: int = 3,
-        global_pool: Literal["", "avg", "avgmax", "max", "token", "map"] = "token",
         embed_dim: int = 768,
         depth: int = 12,
         num_heads: int = 12,
@@ -767,8 +766,6 @@ class VisionTransformer(nn.Module):
         no_embed_class: bool = False,
         reg_tokens: int = 0,
         pre_norm: bool = False,
-        final_norm: bool = True,
-        fc_norm: Optional[bool] = None,
         dynamic_img_size: bool = False,
         dynamic_img_pad: bool = False,
         pos_drop_rate: float = 0.0,
@@ -797,8 +794,6 @@ class VisionTransformer(nn.Module):
             Number of input channels (e.g., 3 for RGB images).
         num_classes : int, default=1000
             Number of output classes for classification.
-        global_pool : {'', 'avg', 'avgmax', 'max', 'token', 'map'}, default='token'
-            Type of global pooling applied to obtain the final representation.
         embed_dim : int, default=768
             Dimension of the patch embeddings.
         depth : int, default=12
@@ -825,10 +820,6 @@ class VisionTransformer(nn.Module):
             Number of auxiliary regression tokens.
         pre_norm : bool, default=False
             If True, apply normalization before Transformer blocks.
-        final_norm : bool, default=True
-            If True, apply final layer normalization after all blocks.
-        fc_norm : bool, optional
-            Whether to normalize before the classifier head.
         dynamic_img_size : bool, default=False
             If True, enables dynamic image resizing during inference.
         dynamic_img_pad : bool, default=False
@@ -861,27 +852,18 @@ class VisionTransformer(nn.Module):
             Type of MLP module used in each block.
         """
         super().__init__()
-        assert global_pool in ("", "avg", "avgmax", "max", "token", "map")
-        assert class_token or global_pool != "token"
         assert pos_embed in ("", "none", "learn")
-        use_fc_norm = (
-            global_pool in ("avg", "avgmax", "max") if fc_norm is None else fc_norm
-        )
+
         norm_layer = get_norm_layer(norm_layer) or partial(nn.LayerNorm, eps=1e-6)
         embed_norm_layer = get_norm_layer(embed_norm_layer)
         act_layer = get_act_layer(act_layer) or nn.GELU
 
-        self.global_pool = global_pool
-        self.num_features = self.head_hidden_size = self.embed_dim = (
-            embed_dim  # for consistency with other models
-        )
+        self.num_features = self.head_hidden_size = self.embed_dim = embed_dim
         self.num_prefix_tokens = 1 if class_token else 0
         self.num_prefix_tokens += reg_tokens
         self.num_reg_tokens = reg_tokens
         self.has_class_token = class_token
-        self.no_embed_class = (
-            no_embed_class  # don't embed prefix positions (includes reg)
-        )
+        self.no_embed_class = no_embed_class
         self.dynamic_img_size = dynamic_img_size
         self.grad_checkpointing = False
 
@@ -891,6 +873,7 @@ class VisionTransformer(nn.Module):
             embed_args.update(dict(strict_img_size=False, output_fmt="NHWC"))
         if embed_norm_layer is not None:
             embed_args["norm_layer"] = embed_norm_layer
+        
         self.patch_embed = PatchEmbed(
             img_size=img_size,
             patch_size=patch_size,
@@ -900,6 +883,7 @@ class VisionTransformer(nn.Module):
             dynamic_img_pad=dynamic_img_pad,
             **embed_args,
         )
+
         self.patch_size = self.patch_embed.patch_size
         self.in_channels = in_chans
         num_patches = self.patch_embed.num_patches
@@ -922,7 +906,9 @@ class VisionTransformer(nn.Module):
             self.pos_embed = None
         else:
             self.pos_embed = nn.Parameter(torch.randn(1, embed_len, embed_dim) * 0.02)
+        
         self.pos_drop = nn.Dropout(p=pos_drop_rate)
+        
         if patch_drop_rate > 0:
             self.patch_drop = PatchDropout(
                 patch_drop_rate,
@@ -930,6 +916,7 @@ class VisionTransformer(nn.Module):
             )
         else:
             self.patch_drop = nn.Identity()
+        
         self.norm_pre = norm_layer(embed_dim) if pre_norm else nn.Identity()
 
         dpr = [
@@ -959,21 +946,6 @@ class VisionTransformer(nn.Module):
             dict(module=f"blocks.{i}", num_chs=embed_dim, reduction=reduction)
             for i in range(depth)
         ]
-        self.norm = (
-            norm_layer(embed_dim) if final_norm and not use_fc_norm else nn.Identity()
-        )
-
-        # Classifier Head
-        if global_pool == "map":
-            self.attn_pool = AttentionPoolLatent(
-                self.embed_dim,
-                num_heads=num_heads,
-                mlp_ratio=mlp_ratio,
-                norm_layer=norm_layer,
-                act_layer=act_layer,
-            )
-        else:
-            self.attn_pool = None
 
         if weight_init != "skip":
             self.init_weights(weight_init)
@@ -1002,42 +974,6 @@ class VisionTransformer(nn.Module):
     def _init_weights(self, m: nn.Module) -> None:
         # this fn left here for compat with downstream users
         init_weights_vit_timm(m)
-
-    @torch.jit.ignore
-    def no_weight_decay(self) -> Set:
-        return {"pos_embed", "cls_token", "dist_token"}
-
-    @torch.jit.ignore
-    def group_matcher(self, coarse: bool = False) -> Dict:
-        return dict(
-            stem=r"^cls_token|pos_embed|patch_embed",  # stem and embed
-            blocks=[(r"^blocks\.(\d+)", None), (r"^norm", (99999,))],
-        )
-
-    @torch.jit.ignore
-    def set_grad_checkpointing(self, enable: bool = True) -> None:
-        self.grad_checkpointing = enable
-        if hasattr(self.patch_embed, "set_grad_checkpointing"):
-            self.patch_embed.set_grad_checkpointing(enable)
-
-    @torch.jit.ignore
-    def get_classifier(self) -> nn.Module:
-        return self.head
-
-    def reset_classifier(self, num_classes: int, global_pool: Optional[str] = None):
-        self.num_classes = num_classes
-        if global_pool is not None:
-            assert global_pool in ("", "avg", "avgmax", "max", "token", "map")
-            if global_pool == "map" and self.attn_pool is None:
-                assert (
-                    False
-                ), "Cannot currently add attention pooling in reset_classifier()."
-            elif global_pool != "map" and self.attn_pool is not None:
-                self.attn_pool = None  # remove attention pooling
-            self.global_pool = global_pool
-        self.head = (
-            nn.Linear(self.embed_dim, num_classes) if num_classes > 0 else nn.Identity()
-        )
 
     def set_input_size(
         self,
@@ -1129,7 +1065,6 @@ class VisionTransformer(nn.Module):
             x = checkpoint_seq(self.blocks, x)
         else:
             x = self.blocks(x)
-        x = self.norm(x)
         return x
 
 
@@ -1218,4 +1153,3 @@ def resize_pos_embed(
         antialias=antialias,
         verbose=True,
     )
-
