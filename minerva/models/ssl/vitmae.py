@@ -156,7 +156,6 @@ class MaskedAutoEncoderViT(nn.Module):
 
         # apply Transformer blocks
         x = self.backbone.blocks(x)
-        x = self.backbone.norm(x)
 
         return x, mask, ids_restore
 
