@@ -17,12 +17,12 @@ class MaskedAutoEncoderViT(L.LightningModule):
         decoder_num_heads=16,
         mlp_ratio=4,
         norm_pix_loss=False,
-        learning_rate: float = 1e-4,
+        lr: float = 1e-4,
         weight_decay: float = 0
     ):
         super().__init__()
 
-        self.learning_rate = learning_rate
+        self.lr = lr
         self.weight_decay = weight_decay
 
         self.backbone = backbone or VisionTransformer()
@@ -236,7 +236,7 @@ class MaskedAutoEncoderViT(L.LightningModule):
     def configure_optimizers(self):
         return torch.optim.Adam(
             self.parameters(),
-            lr=self.learning_rate,
+            lr=self.lr,
             weight_decay=self.weight_decay,
             betas=(0.9, 0.99),
         )
