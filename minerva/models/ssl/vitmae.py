@@ -1,4 +1,5 @@
 import torch
+import lightning as L
 from torch import nn, Tensor
 from typing import Optional
 from ..nets.image.vit_local import VisionTransformer, Block
@@ -6,7 +7,7 @@ from ...utils.position_embedding import get_2d_sincos_pos_embed
 from einops import rearrange
 
 
-class MaskedAutoEncoderViT(nn.Module):
+class MaskedAutoEncoderViT(L.LightningModule):
 
     def __init__(
         self,
@@ -16,8 +17,13 @@ class MaskedAutoEncoderViT(nn.Module):
         decoder_num_heads=16,
         mlp_ratio=4,
         norm_pix_loss=False,
+        learning_rate: float = 1e-4,
+        weight_decay: float = 0
     ):
         super().__init__()
+
+        self.learning_rate = learning_rate
+        self.weight_decay = weight_decay
 
         self.backbone = backbone or VisionTransformer()
         embed_dim = self.backbone.embed_dim
@@ -212,3 +218,25 @@ class MaskedAutoEncoderViT(nn.Module):
         pred = self.forward_decoder(latent, ids_restore)  # [N, L, p*p*3]
         loss = self.forward_loss(imgs, pred, mask)
         return loss, pred, mask
+
+    def _single_step(self, batch: torch.Tensor, step_name: str) -> torch.Tensor:
+        loss, _, _ = self.forward(batch)
+        self.log(f"{step_name}_loss", loss)
+        return loss
+
+    def training_step(self, batch: torch.Tensor, batch_idx: int):
+        return self._single_step(batch, "train")
+
+    def validation_step(self, batch: torch.Tensor, batch_idx: int):
+        return self._single_step(batch, "val")
+
+    def test_step(self, batch: torch.Tensor, batch_idx: int):
+        return self._single_step(batch, "test")
+
+    def configure_optimizers(self):
+        return torch.optim.Adam(
+            self.parameters(),
+            lr=self.learning_rate,
+            weight_decay=self.weight_decay,
+            betas=(0.9, 0.99),
+        )
