@@ -18,7 +18,7 @@ class MaskedAutoEncoderViT(L.LightningModule):
         mlp_ratio=4,
         norm_pix_loss=False,
         lr: float = 1e-4,
-        weight_decay: float = 0
+        weight_decay: float = 0,
     ):
         super().__init__()
 
