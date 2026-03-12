@@ -6,6 +6,8 @@ import numpy as np
 import torch
 from perlin_noise import PerlinNoise
 
+from minerva.utils.deprecated import deprecated, deprecated_class
+
 
 class _Transform:
     """This class is a base class for all transforms. Transforms is just a
@@ -230,6 +232,7 @@ class CastTo(_Transform):
         return f"CastTo(dtype={self.dtype})"
 
 
+@deprecated_class(msg="Use PadCrop instead.", version="1.0")
 class Padding(_Transform):
     def __init__(
         self,
@@ -416,6 +419,7 @@ class ColorJitter(_Transform):
         return f"ColorJitter(brightness={self.brightness}, contrast={self.contrast}, saturation={self.saturation}, hue={self.hue})"
 
 
+@deprecated_class(msg="Use PadCrop instead.", version="1.0")
 class Crop(_Transform):
     def __init__(
         self,
