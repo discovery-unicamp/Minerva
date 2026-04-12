@@ -507,6 +507,7 @@ class Crop(_Transform):
     def __str__(self) -> str:
         return f"Crop(output_size={self.output_size}, pad_mode={self.pad_mode}, coords={self.coords})"
 
+
 class GrayScale(_Transform):
     def __init__(self, method: Literal["average", "luminosity"] = "luminosity"):
         """
