@@ -417,6 +417,11 @@ class ColorJitter(_Transform):
 
 
 class Crop(_Transform):
+    """Crop an image to a given output size, with optional padding and bounding-box support.
+
+    Expects inputs in CHW (C, H, W) or 2D (H, W) format.
+    """
+
     def __init__(
         self,
         output_size: Tuple[int, int],
@@ -441,13 +446,6 @@ class Crop(_Transform):
         bbox : Optional[Tuple[int, int, int, int]], optional
             If provided, crops the image to the bounding box defined by (y1, y2, x1, x2).
             If this parameter is set, the `coords` parameter is ignored. Defaults to None.
-
-        Returns
-        -------
-        np.ndarray
-            Cropped image of shape (C, new_h, new_w), padded as necessary.
-            Works with both 2D (H, W) and 3D (C, H, W) images.
-            Padding is applied symmetrically around the spatial dimensions.
         """
         self.output_size = output_size
         self.pad_mode = pad_mode
@@ -455,6 +453,20 @@ class Crop(_Transform):
         self.bbox = bbox
 
     def __call__(self, image: np.ndarray) -> np.ndarray:
+        """Crop the image to the configured output size.
+
+        Parameters
+        ----------
+        image : np.ndarray
+            Input array in CHW (C, H, W) or 2D (H, W) format.
+
+        Returns
+        -------
+        np.ndarray
+            Cropped array. Shape is (C, new_h, new_w) for 3D input or
+            (new_h, new_w) for 2D input. Padded symmetrically if the
+            output size exceeds the input size.
+        """
         # Always read spatial dims from the last two axes (consistent with CHW)
         h, w = image.shape[-2:]
         new_h, new_w = self.output_size
