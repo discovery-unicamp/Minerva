@@ -1,9 +1,9 @@
 # Installation
 
-Minerva is currently under development but is already usable and have a development release available at [PyPI](https://pypi.org/project/minerva-ml/). 
+Minerva is currently under development but is already usable and have a development release available at [PyPI](https://pypi.org/project/minerva/). 
 You can install minerva for development or production use.
 
-For production use, we recommend using the latest stable release available at [PyPI](https://pypi.org/project/minerva-ml/).
+For production use, we recommend using the latest stable release available at [PyPI](https://pypi.org/project/minerva/).
 For development, you can use the latest development version available at [GitHub](https://github.com/discovery-unicamp/Minerva.git) using pip or by installing the VSCode DevContainer (recommended).
 
 ## Install via PyPI
@@ -11,7 +11,7 @@ For development, you can use the latest development version available at [GitHub
 To install Minerva, you can use pip:
 
 ```bash
-pip install minerva-ml
+pip install minerva
 ```
 
 This will install the latest version of Minerva and all its dependencies.
