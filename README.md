@@ -38,7 +38,7 @@ Minerva is currently under development and not yet available as a PyPI package. 
 
 ### Install With pip
 ```bash
-pip install minerva-ml
+pip install minerva
 ```
 
 ### Install Locally

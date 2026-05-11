@@ -417,6 +417,11 @@ class ColorJitter(_Transform):
 
 
 class Crop(_Transform):
+    """Crop an image to a given output size, with optional padding and bounding-box support.
+
+    Expects inputs in CHW (C, H, W) or 2D (H, W) format.
+    """
+
     def __init__(
         self,
         output_size: Tuple[int, int],
@@ -434,20 +439,13 @@ class Crop(_Transform):
             Valid modes include: 'constant', 'edge', 'linear_ramp', 'maximum', 'mean', 'median',
             'minimum', 'reflect', 'symmetric', 'wrap', 'empty'.
         coords : Tuple[float, float], optional
-            Top-left coordinates for the crop box as (X, Y).
+            Top-left coordinates for the crop box as (row, col).
             Values must go from 0 to 1 indicating the relative position on where the
             new top-left corner can be set, taking in consideration the new size.
             Defaults to (0, 0) which corresponds to the top-left corner of the image.
         bbox : Optional[Tuple[int, int, int, int]], optional
             If provided, crops the image to the bounding box defined by (y1, y2, x1, x2).
             If this parameter is set, the `coords` parameter is ignored. Defaults to None.
-
-        Returns
-        -------
-        np.ndarray
-            Cropped image, padded as necessary. Works with both 2D (grayscale) and
-            3D (color) images. Padding is applied symmetrically around the image
-            before cropping to the desired output size.
         """
         self.output_size = output_size
         self.pad_mode = pad_mode
@@ -455,7 +453,22 @@ class Crop(_Transform):
         self.bbox = bbox
 
     def __call__(self, image: np.ndarray) -> np.ndarray:
-        h, w = image.shape[:2]
+        """Crop the image to the configured output size.
+
+        Parameters
+        ----------
+        image : np.ndarray
+            Input array in CHW (C, H, W) or 2D (H, W) format.
+
+        Returns
+        -------
+        np.ndarray
+            Cropped array. Shape is (C, new_h, new_w) for 3D input or
+            (new_h, new_w) for 2D input. Padded symmetrically if the
+            output size exceeds the input size.
+        """
+        # Always read spatial dims from the last two axes (consistent with CHW)
+        h, w = image.shape[-2:]
         new_h, new_w = self.output_size
 
         # Apply padding if output size is larger than input size
@@ -463,12 +476,13 @@ class Crop(_Transform):
             pad_h = max(new_h - h, 0)
             pad_w = max(new_w - w, 0)
 
-            # Handle both 2D and 3D arrays (grayscale and color images)
+            # 3D (C, H, W): pad only H and W, leave C untouched
+            # 2D (H, W): pad both dims directly
             if len(image.shape) == 3:
                 pad_width = (
+                    (0, 0),
                     (pad_h // 2, pad_h - pad_h // 2),
                     (pad_w // 2, pad_w - pad_w // 2),
-                    (0, 0),
                 )
             else:
                 pad_width = (
@@ -478,17 +492,17 @@ class Crop(_Transform):
 
             image = np.pad(image, pad_width, mode=self.pad_mode)
 
-            # Update dimensions after padding
-            h, w = image.shape[:2]
+            # Update spatial dims from last two axes after padding (CHW fix)
+            h, w = image.shape[-2:]
 
         if self.bbox is not None:
             y1, y2, x1, x2 = self.bbox
-            return image[y1:y2, x1:x2]
+            return image[..., y1:y2, x1:x2]
 
-        X, Y = self.coords
-        x = int((h - new_h) * X)
-        y = int((w - new_w) * Y)
-        return image[x : x + new_h, y : y + new_w]
+        row, col = self.coords
+        r = int((h - new_h) * row)
+        c = int((w - new_w) * col)
+        return image[..., r : r + new_h, c : c + new_w]
 
     def __str__(self) -> str:
         return f"Crop(output_size={self.output_size}, pad_mode={self.pad_mode}, coords={self.coords})"

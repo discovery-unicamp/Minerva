@@ -14,12 +14,13 @@ from minerva.transforms.random_transform import Identity
 
 
 def test_random_crop_shape():
-    x = np.random.randint(0, 256, size=(50, 50, 3), dtype=np.uint8)
+    # CHW format: (C, H, W)
+    x = np.random.randint(0, 256, size=(3, 50, 50), dtype=np.uint8)
     transform = RandomCrop(crop_size=(30, 30), seed=42)
     crop_transform = transform.select_transform()
     y = crop_transform(x)
 
-    assert y.shape == (30, 30, 3)
+    assert y.shape == (3, 30, 30)
 
 
 def test_random_grayscale_prob_1():

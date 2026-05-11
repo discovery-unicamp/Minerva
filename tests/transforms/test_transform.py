@@ -357,19 +357,41 @@ def test_color_jitter_output_shape_and_effect():
 
 
 def test_crop_output_shape():
-    x = np.random.randint(0, 256, size=(50, 50, 3), dtype=np.uint8)
+    # CHW format: (C, H, W)
+    x = np.random.randint(0, 256, size=(3, 50, 50), dtype=np.uint8)
     transform = Crop(output_size=(30, 30), coords=(0.5, 0.5))
     y = transform(x)
 
-    assert y.shape == (30, 30, 3)
+    assert y.shape == (3, 30, 30)
 
 
 def test_crop_with_padding():
-    x = np.random.randint(0, 256, size=(20, 20, 3), dtype=np.uint8)
+    # CHW format: (C, H, W) — output larger than input triggers padding
+    x = np.random.randint(0, 256, size=(3, 20, 20), dtype=np.uint8)
     transform = Crop(output_size=(40, 40), coords=(0.0, 0.0))
     y = transform(x)
 
-    assert y.shape == (40, 40, 3)
+    assert y.shape == (3, 40, 40)
+
+
+def test_crop_2d_input():
+    # 2D (H, W) arrays should also work
+    x = np.random.randint(0, 256, size=(50, 50), dtype=np.uint8)
+    transform = Crop(output_size=(30, 30), coords=(0.0, 0.0))
+    y = transform(x)
+
+    assert y.shape == (30, 30)
+
+
+def test_crop_bbox():
+    # bbox=(y1, y2, x1, x2) selects that region regardless of coords
+    x = np.zeros((3, 50, 50), dtype=np.uint8)
+    x[:, 10:20, 10:20] = 255
+    transform = Crop(output_size=(10, 10), bbox=(10, 20, 10, 20))
+    y = transform(x)
+
+    assert y.shape == (3, 10, 10)
+    assert np.all(y == 255)
 
 
 def test_grayscale_output():
