@@ -1,10 +1,11 @@
+from typing import Callable, Optional
+
 import lightning as L
-from torch.nn import CrossEntropyLoss
-from torch.optim import Adam
 import torch
 from torch import nn
-from typing import Optional, Callable
-import torch
+from torch.nn import CrossEntropyLoss
+from torch.optim import Adam
+
 from minerva.schedulers.warmup_cosine_annealing import WarmupCosineAnnealingLR
 
 

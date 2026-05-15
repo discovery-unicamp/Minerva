@@ -1,4 +1,5 @@
 from torch import nn
+
 from minerva.models.ssl.lfr import RepeatedModuleList
 
 

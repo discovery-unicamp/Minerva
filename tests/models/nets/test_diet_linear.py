@@ -1,5 +1,6 @@
-from minerva.models.nets.diet_linear import DIETLinear, AdaptedHead
 import torch
+
+from minerva.models.nets.diet_linear import AdaptedHead, DIETLinear
 
 
 def test_diet_linear():

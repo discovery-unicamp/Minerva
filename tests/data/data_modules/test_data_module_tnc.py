@@ -1,8 +1,10 @@
-import pytest
-import numpy as np
 from pathlib import Path
-from minerva.data.datasets.har_xu_23 import TNCDataset, HarDataset
+
+import numpy as np
+import pytest
+
 from minerva.data.data_modules.har_xu_23 import HarDataModule
+from minerva.data.datasets.har_xu_23 import HarDataset, TNCDataset
 
 
 @pytest.mark.parametrize("use_val_with_train", [True, False])

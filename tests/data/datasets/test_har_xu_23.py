@@ -1,16 +1,15 @@
-import numpy as np
-from torch.utils.data import Dataset
-from statsmodels.tsa.stattools import adfuller
-from sklearn.metrics.pairwise import cosine_similarity
-import torch
-from minerva.utils.typing import PathLike
-from typing import List, Tuple
 import os
+from typing import List, Tuple
 
-import pytest
 import numpy as np
+import pytest
 import torch
-from minerva.data.datasets.har_xu_23 import TNCDataset, HarDataset
+from sklearn.metrics.pairwise import cosine_similarity
+from statsmodels.tsa.stattools import adfuller
+from torch.utils.data import Dataset
+
+from minerva.data.datasets.har_xu_23 import HarDataset, TNCDataset
+from minerva.utils.typing import PathLike
 
 #################### TNC DATASET ####################
 

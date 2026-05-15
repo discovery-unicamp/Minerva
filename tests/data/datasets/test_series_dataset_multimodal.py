@@ -1,14 +1,15 @@
-from typing import Callable, List, Dict, Optional, Tuple, Union
-from pathlib import Path
+import contextlib
 from collections.abc import Iterable
+from pathlib import Path
+from typing import Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
-import contextlib
-from torch.utils.data import Dataset
 import pytest
-from minerva.transforms.transform import _Transform
+from torch.utils.data import Dataset
+
 from minerva.data.datasets.series_dataset import MultiModalSeriesCSVDataset
+from minerva.transforms.transform import _Transform
 
 
 @pytest.fixture

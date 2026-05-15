@@ -1,13 +1,15 @@
-import pytest
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
+import pytest
 import torch
-from pathlib import Path
+
 from minerva.data.datasets.har_rodrigues_24 import (
     HARDatasetCPC,
     norm_shape,
-    sliding_window,
     opp_sliding_window,
+    sliding_window,
 )
 
 

@@ -1,11 +1,12 @@
-from typing import List, Dict, Optional, Tuple, Union
+import contextlib
 from pathlib import Path
-from minerva.transforms.transform import _Transform
+from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
-import contextlib
 from torch.utils.data import Dataset
+
+from minerva.transforms.transform import _Transform
 
 
 class MultiModalSeriesCSVDataset(Dataset):

@@ -1,8 +1,9 @@
-import torch
-from tests.pipelines.test_lightning_pipeline import MyDataModule
-from minerva.models.ssl.diet import DIET
-import pytest
 import lightning as L
+import pytest
+import torch
+
+from minerva.models.ssl.diet import DIET
+from tests.pipelines.test_lightning_pipeline import MyDataModule
 
 
 @pytest.mark.parametrize("num_samples", [100, 200])

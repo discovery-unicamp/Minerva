@@ -1,13 +1,14 @@
-import pytest
+from pathlib import Path
+from tempfile import NamedTemporaryFile, TemporaryDirectory
+from unittest.mock import MagicMock, patch
+
 import numpy as np
 import pandas as pd
-from pathlib import Path
-from unittest.mock import patch, MagicMock
-from tempfile import TemporaryDirectory, NamedTemporaryFile
+import pytest
+
 from minerva.data.datasets.series_dataset import (
     SeriesFolderCSVDataset,
 )
-
 from minerva.transforms.transform import _Transform
 
 

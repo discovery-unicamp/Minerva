@@ -1,6 +1,8 @@
 from typing import List, Optional, Union
-from torch.utils.data import DataLoader
+
 from lightning import LightningDataModule
+from torch.utils.data import DataLoader
+
 from minerva.data.datasets.har_rodrigues_24 import HARDatasetCPC
 from minerva.utils.typing import PathLike
 

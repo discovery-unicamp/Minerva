@@ -1,19 +1,18 @@
+import os
+import random
+from collections import defaultdict
+from pathlib import Path
+from typing import Callable, Dict, List, Optional, Tuple, Union
+
+import lightning as L
+from torch.utils.data import ConcatDataset, DataLoader, Subset
+
 from minerva.data.datasets.series_dataset import (
     MultiModalSeriesCSVDataset,
     SeriesFolderCSVDataset,
 )
-
-from torch.utils.data import DataLoader, ConcatDataset, Subset
-from typing import Callable, Dict, Optional, Tuple, Union, List
-import random
-import lightning as L
-from pathlib import Path
-
-import os
-
-from minerva.utils.typing import PathLike
 from minerva.samplers.domain_sampler import RandomDomainSampler
-from collections import defaultdict
+from minerva.utils.typing import PathLike
 
 
 def parse_transforms(
@@ -527,13 +526,6 @@ class MultiModalHARSeriesDataModule(L.LightningDataModule):
                     )
                 sampled_indices += indices[: self.samples_per_class]
             subset_ = Subset(dataset, sampled_indices)
-            x_list=[]
-            y_list=[]
-            for i in range(len(subset_)):
-                x,y = subset_[i]
-                x_list.append(x)
-                y_list.append(y)
-            print(f'\n\ny list is {y_list} \n\n\n')
 
             return subset_
 
@@ -543,7 +535,6 @@ class MultiModalHARSeriesDataModule(L.LightningDataModule):
             self.rng.shuffle(indices)
             indices = indices[: int(self.data_percentage * len(dataset))]
             subset_ = Subset(dataset, indices)
-
 
             return subset_
         else:

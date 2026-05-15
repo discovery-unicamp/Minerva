@@ -1,11 +1,13 @@
 import os
 from pathlib import Path
+from typing import List
+
 import lightning as L
 import numpy as np
 from torch.utils.data import DataLoader
+
+from minerva.data.datasets.har_xu_23 import HarDataset, TNCDataset
 from minerva.utils.typing import PathLike
-from minerva.data.datasets.har_xu_23 import TNCDataset, HarDataset
-from typing import List
 
 
 class HarDataModule(L.LightningDataModule):

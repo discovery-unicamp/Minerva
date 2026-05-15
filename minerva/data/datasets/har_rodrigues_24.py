@@ -1,13 +1,14 @@
-from typing import Iterable, List, Optional, Union
-import numpy as np
 import os
-from minerva.utils.typing import PathLike
-import torch
-from torch.utils.data import Dataset
 from pathlib import Path
-import pandas as pd
+from typing import Iterable, List, Optional, Union
+
 import numpy as np
+import pandas as pd
+import torch
 from numpy.lib.stride_tricks import as_strided as ast
+from torch.utils.data import Dataset
+
+from minerva.utils.typing import PathLike
 
 
 def norm_shape(shape):
@@ -80,11 +81,8 @@ def sliding_window(a, ws, ss=None, flatten=True):
 
     # ensure that ws is smaller than a in every dimension
     if np.any(ws > shape):
-        raise ValueError(
-            "ws cannot be larger than a in any dimension.\
- a.shape was %s and ws was %s"
-            % (str(a.shape), str(ws))
-        )
+        raise ValueError("ws cannot be larger than a in any dimension.\
+ a.shape was %s and ws was %s" % (str(a.shape), str(ws)))
 
     # how many slices will there be in each dimension?
     newshape = norm_shape(((shape - ws) // ss) + 1)
