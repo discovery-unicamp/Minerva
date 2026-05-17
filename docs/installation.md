@@ -1,37 +1,51 @@
 # Installation
 
-Minerva is currently under development but is already usable and have a development release available at [PyPI](https://pypi.org/project/minerva/). 
-You can install minerva for development or production use.
+Minerva is available at [PyPI](https://pypi.org/project/minerva/) for production use, and at [GitHub](https://github.com/discovery-unicamp/Minerva.git) for development.
 
-For production use, we recommend using the latest stable release available at [PyPI](https://pypi.org/project/minerva/).
-For development, you can use the latest development version available at [GitHub](https://github.com/discovery-unicamp/Minerva.git) using pip or by installing the VSCode DevContainer (recommended).
+We recommend using [uv](https://docs.astral.sh/uv/) for all installation workflows. uv is a fast Python package and project manager that handles virtual environments, dependency locking, and tool execution in one tool. pip works as a drop-in alternative everywhere uv is shown.
+
+If you don't have uv installed, follow the [uv installation guide](https://docs.astral.sh/uv/getting-started/installation/).
 
 ## Install via PyPI
 
-To install Minerva, you can use pip:
+**With uv (recommended):**
+
+```bash
+uv pip install minerva
+```
+
+**With pip:**
 
 ```bash
 pip install minerva
 ```
 
-This will install the latest version of Minerva and all its dependencies.
+Both commands install the latest version of Minerva and all its dependencies.
 
 
 ## Install Locally
 
-Installing Minerva in development mode allows you to work on the codebase and test changes without needing to reinstall the package every time you make a change. This is useful for contributors who want to develop and test Minerva. You can use pip or conda to install Minerva locally.
+Installing Minerva in development mode lets you work on the codebase and test changes without reinstalling after each edit. This is the recommended setup for contributors.
 
 1. Clone the repository:
 
 ```bash
 git clone https://github.com/discovery-unicamp/Minerva.git
+cd Minerva
 ```
 
-2. And then navigate to the project directory and install the dependencies:
+2. Install with development dependencies.
+
+**With uv (recommended)** — creates a virtual environment and installs everything from the lock file:
 
 ```bash
-cd Minerva
-pip install .
+uv sync --extra dev
+```
+
+**With pip:**
+
+```bash
+pip install -e ".[dev]"
 ```
 
 Or, you can create a conda environment and install Minerva in it:
@@ -88,13 +102,21 @@ git clone https://github.com/discovery-unicamp/Minerva.git
 
 ## Testing
 
-Once you have Minerva installed, you can use it as any other Python package using:
+Once you have Minerva installed, you can use it as any other Python package:
 
 ```python
 import minerva
 ```
 
-You also can run the unit tests using the following command:
+Run the unit tests with:
+
+**With uv:**
+
+```bash
+uv run pytest tests/
+```
+
+**With pip (after activating your environment):**
 
 ```bash
 pytest tests/

@@ -84,7 +84,7 @@ docs = [
     "sphinx-argparse",
     "sphinx-autoapi",
     "sphinx-autodoc-typehints",
-    "sphinx-rtd-theme",
+    "furo",
     "sphinx",
 ]
 analysis = ["codecarbon>=2.8.3", "ultralytics-thop>=2.0.14"]

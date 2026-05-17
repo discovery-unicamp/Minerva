@@ -25,20 +25,17 @@ jobs:
           ref: ${{ github.head_ref }}
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set up Python 3.10
-        uses: actions/setup-python@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
         with:
           python-version: "3.10"
-
-      - name: Install black
-        run: pip install black
 
       - name: Get last commit message
         id: last_commit
         run: echo "message=$(git log -1 --pretty=%s)" >> $GITHUB_OUTPUT
 
       - name: Run black formatter
-        run: black minerva tests
+        run: uvx black minerva tests
 
       - name: Check for changes
         id: changes
