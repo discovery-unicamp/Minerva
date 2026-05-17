@@ -35,7 +35,7 @@ jobs:
         run: echo "message=$(git log -1 --pretty=%s)" >> $GITHUB_OUTPUT
 
       - name: Run black formatter
-        run: uvx black minerva tests
+        run: uv run --frozen --extra dev black minerva tests
 
       - name: Check for changes
         id: changes
