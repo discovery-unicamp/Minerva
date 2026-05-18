@@ -23,7 +23,7 @@ class _Transform:
         transformation is applied on a single sample of data.
         """
         raise NotImplementedError
-
+    
 
 class TransformPipeline(_Transform):
     """Apply a sequence of transforms to a single sample of data and return the
