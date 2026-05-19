@@ -1,11 +1,12 @@
+import torch
+
 from minerva.models.nets.lfr_har_architectures import (
     HARSCnnEncoder,
-    LFR_HAR_Projector,
     LFR_HAR_Predictor,
-    LFR_HAR_Projector_List,
     LFR_HAR_Predictor_List,
+    LFR_HAR_Projector,
+    LFR_HAR_Projector_List,
 )
-import torch
 
 
 def test_lfr_har_backbone():

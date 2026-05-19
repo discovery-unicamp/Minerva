@@ -1,4 +1,5 @@
 from torch import nn
+
 from minerva.models.ssl.lfr import RepeatedModuleList
 
 
@@ -14,6 +15,7 @@ class HARSCnnEncoder(nn.Module):
         dim: int = 128,
         input_channel: int = 9,
         inner_conv_output_dim: int = 128 * 18,
+        permute: bool = False,
     ):
         """
         Parameters
@@ -54,9 +56,12 @@ class HARSCnnEncoder(nn.Module):
         else:
             # use a linear layer to reach the latent shape
             self.mlp = nn.Linear(inner_conv_output_dim, dim)
+        self.permute = permute
 
     def forward(self, xb):
         # Flatten images into vectors
+        if self.permute:
+            xb = xb.permute(0, 2, 1)
         out = self.conv(xb)
         out = out.view(out.size(0), -1)
         out = self.mlp(out)

@@ -1,12 +1,12 @@
-from minerva.models.ssl.lfr import LearnFromRandomnessModel
-from minerva.models.nets.lfr_har_architectures import HARSCnnEncoder
 import torch
+import torch.nn.functional as F
+
 from minerva.models.nets.lfr_har_architectures import (
     HARSCnnEncoder,
-    LFR_HAR_Projector_List,
     LFR_HAR_Predictor_List,
+    LFR_HAR_Projector_List,
 )
-import torch.nn.functional as F
+from minerva.models.ssl.lfr import LearnFromRandomnessModel
 
 # These tests should ensure that the LFR implementation matches the code in https://github.com/layer6ai-labs/lfr
 
