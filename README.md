@@ -32,11 +32,18 @@ Minerva offers a wide range of features to help you with your machine learning p
 
 ## Installation
 
-Minerva is currently under development and not yet available as a PyPI package. You can install it:
-- Locally, as any other Python package.
-- Using a Docker container, if you want to use the development environment.
+Minerva is available on [PyPI](https://pypi.org/project/minerva/). We recommend installing it with [uv](https://docs.astral.sh/uv/), a fast Python package and project manager, though pip works as well.
 
-### Install With pip
+### Install with uv (Recommended)
+
+If you don't have uv, see the [uv installation guide](https://docs.astral.sh/uv/getting-started/installation/).
+
+```bash
+uv pip install minerva
+```
+
+### Install with pip
+
 ```bash
 pip install minerva
 ```
@@ -47,15 +54,20 @@ pip install minerva
 
 ```bash
 git clone https://github.com/discovery-unicamp/Minerva.git
+cd Minerva
 ```
 
-2. And then navigate to the project directory and install the dependencies:
+2. Install dependencies — with uv (recommended):
 
 ```bash
-cd Minerva
-pip install .
+uv pip install .
 ```
 
+Or with pip:
+
+```bash
+pip install .
+```
 
 ### VSCode Development Environment using DevContainer
 
@@ -87,15 +99,29 @@ For more information on how to use Minerva, check the [documentation for example
 
 ## Testing
 
-To run the tests, you must install the development dependencies:
+First, install the development dependencies.
+
+With uv (recommended):
 
 ```bash
-pip install -e .[dev]
+uv sync --extra dev
+```
+
+With pip:
+
+```bash
+pip install -e ".[dev]"
 ```
 
 ### Unit Tests
 
-Then, you can run the tests using the following command:
+With uv:
+
+```bash
+uv run pytest tests/
+```
+
+With pip (after activating your environment):
 
 ```bash
 pytest tests/
@@ -103,7 +129,13 @@ pytest tests/
 
 ### Coverage
 
-To generate a coverage report (in HTML), you can use the following command:
+With uv:
+
+```bash
+uv run pytest --cov=minerva --cov=tests --cov-report=term --cov-report=html
+```
+
+With pip:
 
 ```bash
 pytest --cov=minerva --cov=tests --cov-report=term --cov-report=html

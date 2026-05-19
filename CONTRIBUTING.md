@@ -66,9 +66,9 @@ Every code contribution should be made through a pull request. This applies to a
 You code should follow the following guidelines:
 
 * **Documentation**: Make sure to document your code. This includes docstrings for functions and classes, as well as comments in the code when necessary. For the documentation, we use the numpydoc style. Also make sure to update the `README` file or other metadata files if necessary.
-* **Tests**: Make sure to write tests for your code. We use `pytest` for testing. You can run the tests with `python -m pytest` in the root directory of the project.
+* **Tests**: Make sure to write tests for your code. We use `pytest` for testing. Install dev dependencies with `uv sync --extra dev` (recommended) or `pip install -e ".[dev]"`, then run tests with `uv run pytest` or `pytest` respectively.
 * **Commit messages**: Make sure to write clear and concise commit messages. Include the issue number if you are fixing a bug.
-* **Dependencies**: Make sure to include any new dependencies in the `requirements.txt` and `pyproject.toml` file. If you are adding a new dependency, make sure to include a brief description of why it is needed.
+* **Dependencies**: Make sure to include any new dependencies in `pyproject.toml`. If you are adding a new dependency, make sure to include a brief description of why it is needed.
 * **Code formatting**: Make sure to run a code formatter on your code before submitting the PR. We use `black` for this.
 
 You should also try to avoid rewriting functionality, or adding dependencies for functionalities that are already present on one of our dependencies. This would make the codebase more bloated and harder to maintain.

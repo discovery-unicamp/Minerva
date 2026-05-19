@@ -8,24 +8,27 @@ jobs:
   docs:
     name: Minverva documentation
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
     steps:
 
     - name: Checkout Repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
-    - name: Set up Python 3.10 with Caching
-      uses: actions/setup-python@v5
+    - name: Install uv
+      uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5.4.2
       with:
         python-version: "3.10"
-        cache: "pip"  # Cache pip packages to improve workflow runtime
 
-    - name: Install packages
+    - name: Install system dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y pandoc
-        python -m pip install --upgrade pip
-        pip install -e .[docs]  # Install dependencies from pyproject.toml (dev section)
-    
+
+    - name: Install project with docs dependencies
+      run: uv sync --extra docs
+
     - name: Build docs
       run: |
         cd docs
@@ -35,7 +38,7 @@ jobs:
     # https://github.com/peaceiris/actions-gh-pages
     - name: Deploy
       if: success()
-      uses: peaceiris/actions-gh-pages@v3
+      uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453 # v4.1.0
       with:
         publish_branch: gh-pages
         github_token: ${{ secrets.GITHUB_TOKEN }}

@@ -41,7 +41,6 @@ extensions = [
     "myst_parser",  # MyST markdown parser
     "sphinx.ext.autodoc",  # Support for automatic documentation
     "autoapi.extension",  # Auto-generate API documentation
-    "sphinx_rtd_theme",  # ReadTheDocs theme
     "sphinx.ext.viewcode",  # Add "view source code" links
     "sphinx.ext.autodoc.typehints",  # Use type hints in autodoc
     "sphinx.ext.mathjax",  # Render math equations
@@ -62,11 +61,9 @@ exclude_patterns = ["build", "Thumbs.db", ".DS_Store", ".git"]
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = "sphinx_rtd_theme"
-htmlhelp_basename = "minerva_docs"
+html_theme = "furo"
 htmlhelp_basename = "minerva_docs"
 source_encoding = "utf-8"
-
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
