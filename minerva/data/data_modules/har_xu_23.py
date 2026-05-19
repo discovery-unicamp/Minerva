@@ -163,4 +163,3 @@ class HarDataModule(L.LightningDataModule):
             shuffle=False,
             num_workers=self.num_workers,
         )
-
