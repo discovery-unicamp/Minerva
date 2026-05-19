@@ -45,7 +45,7 @@ class HARDataModuleCPC(LightningDataModule):
         batch_size : int, optional
             The batch size for the dataloaders (default is 64).
         use_val_with_train : bool
-            Whether to use the validation set as the training set.
+            Whether to use the training set with validation set togheter.
         label : Optional[str]
             The column to be used as the label. If None, no labels will be
             used. If 'return_index_as_label', the index of the data will be
