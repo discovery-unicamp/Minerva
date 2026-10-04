@@ -2,9 +2,6 @@ import torch
 import torch.nn as nn
 from typing import Optional
 from minerva.models.ssl.diffwave import DiffWave
-from minerva.models.nets.base import SimpleSupervisedModel
-
-
 
 class DiffWaveEncoder(nn.Module):
     """Feature extraction wrapper for DiffWave generative model architectures.
