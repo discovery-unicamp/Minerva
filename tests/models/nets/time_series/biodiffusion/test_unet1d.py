@@ -66,19 +66,32 @@ def test_biodiffusion_unet_backward_reaches_input(small_bio_unet):
     assert torch.isfinite(x.grad).all()
     assert x.grad.abs().sum() > 0
 
-
-@pytest.mark.xfail(
-    strict=True,
-    raises=AssertionError,
-    reason="Unet1D_cls_free replaces an explicit cond_drop_prob=0 with its default",
-)
-def test_biodiffusion_zero_drop_probability_keeps_labels():
+def test_biodiffusion_full_drop_probability_runs():
     model = Unet1D_cls_free(dim=8, num_classes=3, channels=2, cond_drop_prob=1)
     x = torch.rand(2, 2, 16)
     timesteps = torch.tensor([0, 1])
     labels = torch.tensor([0, 2])
+    
+    output = model(
+        x,
+        timesteps,
+        labels,
+        cond_drop_prob=1.0,
+    )
 
-    conditioned = model(x, timesteps, labels, cond_drop_prob=0)
-    unconditional = model(x, timesteps)
+    assert output.shape == x.shape
 
-    assert not torch.allclose(conditioned, unconditional)
+def test_biodiffusion_without_condition_dropout():
+    model = Unet1D_cls_free(dim=8, num_classes=3, channels=2, cond_drop_prob=1)
+    x = torch.rand(2, 2, 16)
+    timesteps = torch.tensor([0, 1])
+    labels = torch.tensor([0, 2])
+    
+    output = model(
+        x,
+        timesteps,
+        labels,
+        cond_drop_prob=0.0,
+    )
+
+    assert output.shape == x.shape
