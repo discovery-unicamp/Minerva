@@ -92,100 +92,95 @@ class SyntheticDataFIDCallback(Callback):
         best_checkpoint_filename: str = "best.ckpt",
         step_var_name: Optional[str] = None,
     ) -> None:
-        """Save synthetic samples and repeated TS2Vec FID at optimizer steps.
+        """Evaluate synthetic time-series quality during training.
+
+        At each configured optimizer step, the callback generates one synthetic
+        dataset from the current model and compares it with the training data in
+        a TS2Vec representation space. It trains a fresh TS2Vec encoder for every
+        repetition and reports the mean FID score. Lower FID values indicate more 
+        similar real and synthetic representations.
+
+        Generated samples and scores are saved so completed evaluations can be
+        reused after resuming training. The callback can also update a score plot
+        and copy the checkpoint with the lowest mean FID. A matching checkpoint
+        must exist before each evaluation; place ``SpecificCheckpointCallback``
+        before this callback and configure both with the same steps.
+
+        Evaluation runs synchronously on the main process. The data module must
+        provide one map-style training DataLoader and set
+        ``use_val_with_train=False``. The full training set is cached on CPU,
+        and the training random-number-generator states are restored afterward.
+        Single-device and DDP training are supported, but sharded strategies are
+        not.
 
         Parameters
         ----------
         every_n_train_steps : int, optional
-            Evaluate at positive multiples of the selected training-step counter,
-            default 100000. Uses Trainer.global_step unless step_var_name is set.
-            Gradient accumulation does not cause repeated evaluation at a step.
+            Number of optimizer steps between evaluations, by default 100000.
+            Uses ``Trainer.global_step`` unless ``step_var_name`` is set.
         generation_batch_size : int, optional
-            Maximum number of synthetic samples generated per call, default 64.
+            Maximum number of synthetic samples generated per model call, by
+            default 64.
         num_fid_runs : int, optional
-            Fresh TS2Vec trainings per evaluation, default 5. Must be at least 2.
+            Number of independent TS2Vec trainings per evaluation, by default 5.
+            Must be at least 2.
         output_dir : path-like, optional
-            Artifact directory. Defaults to trainer.log_dir / 'synthetic_data'.
-            Use a separate directory for each training run and dataset.
+            Directory for samples and evaluation results. Defaults to
+            ``trainer.log_dir / "synthetic_data"``.
         csv_filename : str, optional
-            Results filename inside output_dir, default 'synthetic_data_quality.csv'.
-            Must be a filename ending in .csv, without a directory.
+            Results filename inside ``output_dir``, by default
+            ``"synthetic_data_quality.csv"``.
         synthetic_data_prefix : str, optional
-            Prefix for sample filenames inside output_dir, default 'synthetic_data'.
-            Files are named '<prefix>_step=N.npy', or '<prefix>_epoch=-1.npy'
-            for initial weights. Must be a nonempty name without a directory.
+            Prefix for generated ``.npy`` files, by default ``"synthetic_data"``.
         num_samples : int, optional
-            Synthetic sample count. Defaults to the full training dataset size.
+            Total number of synthetic samples. By default, use the number of real
+            training samples.
         sampling_method : str, optional
-            Model method used for generation, default 'sample'. For DiffusionTS
-            use 'generate_mts'. The method must return a tensor or NumPy array.
+            Model method used to generate samples, by default ``"sample"``. For
+            Diffusion-TS, use ``"generate_mts"``.
         sample_size_arg : str, optional
-            Sampling method's sample-count argument, default 'batch_size'.
+            Name of the sample-count argument accepted by ``sampling_method``, by
+            default ``"batch_size"``. The callback supplies its value.
         sample_kwargs : dict, optional
-            Additional sampling arguments. For unconditional BioDiffusion use
-            {'activity': -1}; for DiffWave specify segment_length.
+            Additional keyword arguments passed to ``sampling_method``.
         transpose_real_data : bool, optional
-            Swap the last two axes of training inputs before FID, default True:
-            (samples, channels, time) becomes (samples, time, channels), as
-            expected by TS2Vec. Set False if the datamodule already returns
-            (samples, time, channels), including HAR with TransposeTransform.
+            If ``True``, transpose real data from ``(samples, channels, time)``
+            to ``(samples, time, channels)`` for TS2Vec, by default ``True``.
         transpose_generated_data : bool, optional
-            Swap the last two axes of generated inputs before FID, default True.
-            Set False for DiffusionTS, which generates (samples, time, channels).
-            Saved .npy files always keep the generator's original axis order.
+            Apply the same conversion to generated data, by default ``True``.
+            Set to ``False`` for Diffusion-TS output.
         data_key : int or str, optional
-            Input position/key in a tuple/list/dict batch, default 0. Tensor
-            batches are used directly.
+            Position or key containing the input data in each training batch, by
+            default 0. Tensor batches are used directly.
         fid_device : str, optional
-            TS2Vec device. Defaults to the diffusion model's device.
-        encoder_kwargs, fit_kwargs : dict, optional
-            Passed to compute_ts_fid. Defaults retain the original TS2Vec
-            hyperparameters and training budget.
+            Device used to train TS2Vec. Defaults to the diffusion model's device.
+        encoder_kwargs : dict, optional
+            Additional arguments used to initialize TS2Vec.
+        fit_kwargs : dict, optional
+            Additional arguments passed to ``TS2Vec.fit``.
         seed : int, optional
-            Fallback evaluation seed, default None. At training start, use the
-            active Lightning seed from PL_GLOBAL_SEED first, then this argument,
-            then 42. Log the selected seed and its source. Each step and
-            repetition has a separate derived seed. Training RNGs are restored.
+            Fallback evaluation seed. The callback first uses Lightning's active
+            seed, then this value, and finally 42. Separate deterministic seeds
+            are derived for generation and each FID repetition.
         evaluate_at_start : bool, optional
-            Also evaluate initial weights at step 0, default False. Uses the
-            historical identifier 'epoch=-1'. Skipped on nonzero-step resume.
+            If ``True``, also evaluate the initial weights at step 0, by default
+            ``False``. Requires an ``epoch=-1.ckpt`` checkpoint.
         save_plot : bool, optional
-            Update fid_scores.png after each evaluation, default False.
+            If ``True``, update ``fid_scores.png`` after each evaluation, by
+            default ``False``.
         checkpoint_dir : path-like, optional
-            Directory containing checkpoints saved by an earlier callback.
-            Defaults to trainer.log_dir / 'checkpoints'. A step=N.ckpt file must
-            exist before evaluating step N (epoch=-1.ckpt for initial weights).
+            Directory containing the matching checkpoints. Defaults to
+            ``trainer.log_dir / "checkpoints"``.
         save_best_checkpoint : bool, optional
-            Copy the checkpoint with the lowest FID_score_mean to the best file,
-            default True. Equal scores keep the earlier checkpoint.
+            If ``True``, copy the checkpoint with the lowest mean FID, by default
+            ``True``.
         best_checkpoint_filename : str, optional
-            Best checkpoint filename inside checkpoint_dir, default 'best.ckpt'.
-            Must end in .ckpt and must not start with step= or epoch=.
+            Filename used for the best checkpoint inside ``checkpoint_dir``, by
+            default ``"best.ckpt"``.
         step_var_name : str, optional
-            Custom step counter on the model, or on the trainer if not found on
-            the model. None uses Trainer.global_step. Set 'step_counter' for the
-            current DiffusionTS manual training loop, and use the same setting
-            in SpecificCheckpointCallback.
-
-        Notes
-        -----
-        Evaluate FID synchronously using the full training dataset, cached once
-        on CPU from a single map-style DataLoader. Use deterministic transforms
-        and set use_val_with_train=False to exclude validation and test data.
-        Dataset names come from datamodule.data_path, falling back to the
-        training dataset class.
-
-        Supports single-device training and DDP with full model replicas.
-        Only the main process evaluates; configure an adequate DDP timeout.
-        Sharded strategies are unsupported.
-
-        Each FID repetition trains a fresh encoder on the same real data and
-        evaluates fixed real and synthetic samples. FID_score_sigma is the
-        95% confidence-interval half-width; FID_score_std is the sample standard
-        deviation.
-
-        The best checkpoint is copied atomically from an existing file. Completed
-        CSV rows track the best result across resumes; retain source checkpoints.
+            Model or trainer attribute used as the step counter. By default,
+            ``Trainer.global_step`` is used. Set to ``"step_counter"`` for
+            Diffusion-TS and use the same value in ``SpecificCheckpointCallback``.
         """
         super().__init__()
         for name, value, minimum in (
@@ -696,7 +691,7 @@ class SyntheticDataFIDCallback(Callback):
         )
         axes.set(
             xlabel="Training steps",
-            ylabel="TS2Vec FID (mean and 95% CI)",
+            ylabel="TS2Vec FID",
             title=self.dataset_name,
         )
         axes.grid(alpha=0.3)
