@@ -84,18 +84,22 @@ class DiffusionTSEncoder(Transformer):
             self.additional_emb = copy.deepcopy(self.emb)
             self.additional_pos_enc = copy.deepcopy(self.pos_enc)
             self.additional_encoder_blocks = copy.deepcopy(self.encoder.blocks)
-    
+
     def forward(self, input):
         t = torch.full((len(input),), self.timestep, device=input.device).long()
         if self.pass_strategy == "single":
             # Single pass
-            embedding, _ = self.encoder_partial_forward(input, t, self.diffusion_encoder_blocks, additional=False)
+            embedding, _ = self.encoder_partial_forward(
+                input, t, self.diffusion_encoder_blocks, additional=False
+            )
         elif self.pass_strategy == "double":
             # First pass
-            z = self.model_pass_forward(input, t-1)
+            z = self.model_pass_forward(input, t - 1)
             t_0 = torch.full((len(input),), 0, device=input.device).long()
             # Second pass
-            embedding, _ = self.encoder_partial_forward(z, t_0, self.diffusion_encoder_blocks, additional=True)
+            embedding, _ = self.encoder_partial_forward(
+                z, t_0, self.diffusion_encoder_blocks, additional=True
+            )
         return embedding
 
     def encoder_partial_forward(self, input, t, encoder_block, additional=False):
@@ -115,7 +119,9 @@ class DiffusionTSEncoder(Transformer):
         return inp_enc, input_emb
 
     def model_pass_forward(self, input, t):
-        encoder_output, input_emb = self.encoder_partial_forward(input, t, self.n_layer_enc, additional=False)
+        encoder_output, input_emb = self.encoder_partial_forward(
+            input, t, self.n_layer_enc, additional=False
+        )
         inp_dec = self.pos_dec(input_emb)
         output, mean, trend, season = self.decoder(inp_dec, t, encoder_output)
         res = self.inverse(output)
@@ -125,7 +131,7 @@ class DiffusionTSEncoder(Transformer):
         )
         trend = self.combine_m(mean) + res_m + trend
         return trend + season_error
-        
+
     def decoder_forward(self, emb, enc_cond, t):
         inp_dec = self.pos_dec(emb)
         output, mean, trend, season = self.decoder(inp_dec, t, enc_cond)

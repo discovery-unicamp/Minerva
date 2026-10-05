@@ -97,7 +97,7 @@ class SyntheticDataFIDCallback(Callback):
         At each configured optimizer step, the callback generates one synthetic
         dataset from the current model and compares it with the training data in
         a TS2Vec representation space. It trains a fresh TS2Vec encoder for every
-        repetition and reports the mean FID score. Lower FID values indicate more 
+        repetition and reports the mean FID score. Lower FID values indicate more
         similar real and synthetic representations.
 
         Generated samples and scores are saved so completed evaluations can be

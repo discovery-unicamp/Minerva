@@ -66,12 +66,13 @@ def test_biodiffusion_unet_backward_reaches_input(small_bio_unet):
     assert torch.isfinite(x.grad).all()
     assert x.grad.abs().sum() > 0
 
+
 def test_biodiffusion_full_drop_probability_runs():
     model = Unet1D_cls_free(dim=8, num_classes=3, channels=2, cond_drop_prob=1)
     x = torch.rand(2, 2, 16)
     timesteps = torch.tensor([0, 1])
     labels = torch.tensor([0, 2])
-    
+
     output = model(
         x,
         timesteps,
@@ -81,12 +82,13 @@ def test_biodiffusion_full_drop_probability_runs():
 
     assert output.shape == x.shape
 
+
 def test_biodiffusion_without_condition_dropout():
     model = Unet1D_cls_free(dim=8, num_classes=3, channels=2, cond_drop_prob=1)
     x = torch.rand(2, 2, 16)
     timesteps = torch.tensor([0, 1])
     labels = torch.tensor([0, 2])
-    
+
     output = model(
         x,
         timesteps,

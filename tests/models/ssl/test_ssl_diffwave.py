@@ -19,6 +19,7 @@ def small_diffwave():
         T=4,
     )
 
+
 def test_diffwave_forward(small_diffwave):
     x = torch.rand(2, 2, 16)
     timesteps = torch.tensor([[0], [1]])
@@ -50,6 +51,7 @@ def test_diffwave_optimizer_learning_rate(small_diffwave):
     optimizer = small_diffwave.configure_optimizers()[0]
 
     assert optimizer.param_groups[0]["lr"] == small_diffwave.learning_rate
+
 
 def test_diffwave_sample(small_diffwave):
     samples = small_diffwave.sample(batch_size=2, segment_length=16)

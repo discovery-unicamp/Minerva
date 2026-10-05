@@ -3,6 +3,7 @@ from torch import nn
 from typing import Optional
 from minerva.models.ssl.ts_ldm import TSLatentDiffusion
 
+
 class TSLatentDiffusionEncoder(nn.Module):
     """Encoder wrapper for TSLatentDiffusion models to extract features.
 
@@ -29,6 +30,7 @@ class TSLatentDiffusionEncoder(nn.Module):
         depends on external usage, currently stored as an attribute).
         Default is True.
     """
+
     def __init__(
         self,
         backbone: nn.Module,
@@ -44,22 +46,23 @@ class TSLatentDiffusionEncoder(nn.Module):
         self.pass_strategy = pass_strategy
         self.flatten = flatten
         self.backbone2: TSLatentDiffusion = None
-        print(f'Initialized TSLatentDiffusion with pass_strategy={pass_strategy}')     
-        
+        print(f"Initialized TSLatentDiffusion with pass_strategy={pass_strategy}")
+
         self.is_double_pass = pass_strategy == "double"
         if self.is_double_pass:
-            print("Creating second backbone for double pass... (TSLatentDiffusionEncoder)")
+            print(
+                "Creating second backbone for double pass... (TSLatentDiffusionEncoder)"
+            )
             self.backbone2 = TSLatentDiffusion(**self.backbone.get_init_config())
             self.backbone2.load_state_dict(self.backbone.state_dict())
-        
-    
+
     def forward(self, input: torch.Tensor) -> torch.Tensor:
         """Forward pass to extract latent features from the input signal.
 
         If configured for a double pass (`pass_strategy == "double"`), the input first
         undergoes a full single-step denoising using the primary backbone at
         `diffusion_timestep`. The denoised output is then passed through the cloned
-        secondary backbone at timestep 0 to extract the block features. 
+        secondary backbone at timestep 0 to extract the block features.
         Otherwise, it performs a standard feature extraction in a single pass.
 
         Parameters
@@ -71,25 +74,21 @@ class TSLatentDiffusionEncoder(nn.Module):
         -------
         torch.Tensor
             Extracted feature representations.
-        """        
-        x = input       
-        
-        if self.is_double_pass :
-            x = self.backbone.full_forward( 
+        """
+        x = input
+
+        if self.is_double_pass:
+            x = self.backbone.full_forward(
                 x=x,
                 target_time_step=self.diffusion_timestep,
             )
-            
+
             x = self.backbone2.simple_forward(
-                x=x,
-                target_time_step=0,
-                block=self.target_block
+                x=x, target_time_step=0, block=self.target_block
             )
         else:
             x = self.backbone.simple_forward(
-                x=x,
-                target_time_step=self.diffusion_timestep,
-                block=self.target_block
+                x=x, target_time_step=self.diffusion_timestep, block=self.target_block
             )
-            
+
         return x

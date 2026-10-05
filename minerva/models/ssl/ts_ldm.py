@@ -1,5 +1,5 @@
-# Implementation of the Latent Diffusion Model (LDM) for time series data, 
-# specifically designed for multi-channel sensor signals (e.g., IMU data). 
+# Implementation of the Latent Diffusion Model (LDM) for time series data,
+# specifically designed for multi-channel sensor signals (e.g., IMU data).
 # https://github.com/compvis/latent-diffusion
 
 import torch
@@ -15,6 +15,7 @@ from minerva.models.loaders import FromPretrained
 
 from typing import Union
 
+
 def exists(val):
     """Checks whether a given value is not None.
 
@@ -29,6 +30,7 @@ def exists(val):
         True if `val` is not None, False otherwise.
     """
     return val is not None
+
 
 def default(val, d):
     """Returns the provided value if it exists, otherwise computes or returns a default.
@@ -48,6 +50,7 @@ def default(val, d):
     if exists(val):
         return val
     return d() if callable(d) else d
+
 
 def extract_into_tensor(a, t, x_shape):
     """Extracts elements from a 1D tensor `a` at indices `t` and reshapes the output
@@ -71,6 +74,7 @@ def extract_into_tensor(a, t, x_shape):
     out = a.gather(-1, t)
     return out.reshape(b, *((1,) * (len(x_shape) - 1)))
 
+
 def noise_like(shape, device, repeat=False):
     """Generates standard normal noise matching a target shape, with optional channel repeating.
 
@@ -88,11 +92,16 @@ def noise_like(shape, device, repeat=False):
     torch.Tensor
         Random normal noise tensor matching `shape`.
     """
-    repeat_noise = lambda: torch.randn((1, *shape[1:]), device=device).repeat(shape[0], *((1,) * (len(shape) - 1)))
+    repeat_noise = lambda: torch.randn((1, *shape[1:]), device=device).repeat(
+        shape[0], *((1,) * (len(shape) - 1))
+    )
     noise = lambda: torch.randn(shape, device=device)
     return repeat_noise() if repeat else noise()
 
-def make_beta_schedule(schedule, n_timestep, linear_start=1e-4, linear_end=2e-2, cosine_s=8e-3):
+
+def make_beta_schedule(
+    schedule, n_timestep, linear_start=1e-4, linear_end=2e-2, cosine_s=8e-3
+):
     """Generates variance schedule $(beta_1, dots, beta_T)$ for diffusion processes.
 
     Parameters
@@ -115,12 +124,15 @@ def make_beta_schedule(schedule, n_timestep, linear_start=1e-4, linear_end=2e-2,
     """
     if schedule == "linear":
         betas = (
-                torch.linspace(linear_start ** 0.5, linear_end ** 0.5, n_timestep, dtype=torch.float64) ** 2
+            torch.linspace(
+                linear_start**0.5, linear_end**0.5, n_timestep, dtype=torch.float64
+            )
+            ** 2
         )
 
     elif schedule == "cosine":
         timesteps = (
-                torch.arange(n_timestep + 1, dtype=torch.float64) / n_timestep + cosine_s
+            torch.arange(n_timestep + 1, dtype=torch.float64) / n_timestep + cosine_s
         )
         alphas = timesteps / (1 + cosine_s) * np.pi / 2
         alphas = torch.cos(alphas).pow(2)
@@ -129,12 +141,18 @@ def make_beta_schedule(schedule, n_timestep, linear_start=1e-4, linear_end=2e-2,
         betas = np.clip(betas, a_min=0, a_max=0.999)
 
     elif schedule == "sqrt_linear":
-        betas = torch.linspace(linear_start, linear_end, n_timestep, dtype=torch.float64)
+        betas = torch.linspace(
+            linear_start, linear_end, n_timestep, dtype=torch.float64
+        )
     elif schedule == "sqrt":
-        betas = torch.linspace(linear_start, linear_end, n_timestep, dtype=torch.float64) ** 0.5
+        betas = (
+            torch.linspace(linear_start, linear_end, n_timestep, dtype=torch.float64)
+            ** 0.5
+        )
     else:
         raise ValueError(f"schedule '{schedule}' unknown.")
     return betas.numpy()
+
 
 class LitEma(nn.Module):
     """Exponential Moving Average (EMA) manager for model parameters.
@@ -148,18 +166,26 @@ class LitEma(nn.Module):
     use_num_updates : bool, optional
         Whether to adjust decay dynamically based on update step count. Default is True.
     """
+
     def __init__(self, model, decay=0.9999, use_num_updates=True):
         super().__init__()
         if decay < 0.0 or decay > 1.0:
-            raise ValueError('Decay must be between 0 and 1')
+            raise ValueError("Decay must be between 0 and 1")
 
         self.m_name2s_name = {}
-        self.register_buffer('decay', torch.tensor(decay, dtype=torch.float32))
-        self.register_buffer('num_updates', torch.tensor(0, dtype=torch.int) if use_num_updates else torch.tensor(-1, dtype=torch.int))
+        self.register_buffer("decay", torch.tensor(decay, dtype=torch.float32))
+        self.register_buffer(
+            "num_updates",
+            (
+                torch.tensor(0, dtype=torch.int)
+                if use_num_updates
+                else torch.tensor(-1, dtype=torch.int)
+            ),
+        )
 
         for name, p in model.named_parameters():
             if p.requires_grad:
-                s_name = name.replace('.', '')
+                s_name = name.replace(".", "")
                 self.m_name2s_name.update({name: s_name})
                 self.register_buffer(s_name, p.clone().detach().data)
 
@@ -186,7 +212,9 @@ class LitEma(nn.Module):
                 if m_param[key].requires_grad:
                     sname = self.m_name2s_name[key]
                     shadow_params[sname] = shadow_params[sname].type_as(m_param[key])
-                    shadow_params[sname].sub_(one_minus_decay * (shadow_params[sname] - m_param[key]))
+                    shadow_params[sname].sub_(
+                        one_minus_decay * (shadow_params[sname] - m_param[key])
+                    )
 
     def copy_to(self, model):
         """Copies shadow parameters into the target model parameters.
@@ -222,6 +250,7 @@ class LitEma(nn.Module):
         """
         for c_param, param in zip(self.collected_params, parameters):
             param.data.copy_(c_param.data)
+
 
 class DDPM(L.LightningModule):
     """Denoising Diffusion Probabilistic Model (DDPM) implementation in PyTorch Lightning.
@@ -261,24 +290,26 @@ class DDPM(L.LightningModule):
     parameterization : str, optional
         Model prediction objective (``"eps"`` or ``"x0"``). Default is "eps".
     """
-    
-    def __init__(self,
-                 unet_model: nn.Module,
-                 timesteps=1000,
-                 beta_schedule="linear",
-                 loss_type="l2",
-                 use_ema=True,
-                 sequence_length=16,
-                 channels=4,
-                 log_every_t=100,
-                 clip_denoised=True,
-                 linear_start=1e-4,
-                 linear_end=2e-2,
-                 cosine_s=8e-3,
-                 original_elbo_weight=0.,
-                 v_posterior=0.,
-                 l_simple_weight=1.,
-                 parameterization="eps"):
+
+    def __init__(
+        self,
+        unet_model: nn.Module,
+        timesteps=1000,
+        beta_schedule="linear",
+        loss_type="l2",
+        use_ema=True,
+        sequence_length=16,
+        channels=4,
+        log_every_t=100,
+        clip_denoised=True,
+        linear_start=1e-4,
+        linear_end=2e-2,
+        cosine_s=8e-3,
+        original_elbo_weight=0.0,
+        v_posterior=0.0,
+        l_simple_weight=1.0,
+        parameterization="eps",
+    ):
         super().__init__()
         self.parameterization = parameterization
         self.clip_denoised = clip_denoised
@@ -290,7 +321,7 @@ class DDPM(L.LightningModule):
 
         # Assign the UNet directly
         self.model = unet_model
-        
+
         self.use_ema = use_ema
         if self.use_ema:
             self.model_ema = LitEma(self.model)
@@ -299,16 +330,21 @@ class DDPM(L.LightningModule):
         self.original_elbo_weight = original_elbo_weight
         self.l_simple_weight = l_simple_weight
 
-        self.register_schedule(beta_schedule=beta_schedule, timesteps=timesteps,
-                               linear_start=linear_start, linear_end=linear_end, cosine_s=cosine_s)
+        self.register_schedule(
+            beta_schedule=beta_schedule,
+            timesteps=timesteps,
+            linear_start=linear_start,
+            linear_end=linear_end,
+            cosine_s=cosine_s,
+        )
 
     def register_schedule(
-        self, 
-        beta_schedule="linear", 
-        timesteps=1000, 
-        linear_start=1e-4, 
-        linear_end=2e-2, 
-        cosine_s=8e-3
+        self,
+        beta_schedule="linear",
+        timesteps=1000,
+        linear_start=1e-4,
+        linear_end=2e-2,
+        cosine_s=8e-3,
     ):
         """Computes and registers diffusion hyperparameters as model buffers.
 
@@ -325,38 +361,74 @@ class DDPM(L.LightningModule):
         cosine_s : float, optional
             Cosine schedule offset. Default is 8e-3.
         """
-        betas = make_beta_schedule(beta_schedule, timesteps, linear_start=linear_start, linear_end=linear_end, cosine_s=cosine_s)
-        alphas = 1. - betas
+        betas = make_beta_schedule(
+            beta_schedule,
+            timesteps,
+            linear_start=linear_start,
+            linear_end=linear_end,
+            cosine_s=cosine_s,
+        )
+        alphas = 1.0 - betas
         alphas_cumprod = np.cumprod(alphas, axis=0)
-        alphas_cumprod_prev = np.append(1., alphas_cumprod[:-1])
+        alphas_cumprod_prev = np.append(1.0, alphas_cumprod[:-1])
 
         self.num_timesteps = int(timesteps)
         to_torch = partial(torch.tensor, dtype=torch.float32)
 
-        self.register_buffer('betas', to_torch(betas))
-        self.register_buffer('alphas_cumprod', to_torch(alphas_cumprod))
-        self.register_buffer('alphas_cumprod_prev', to_torch(alphas_cumprod_prev))
+        self.register_buffer("betas", to_torch(betas))
+        self.register_buffer("alphas_cumprod", to_torch(alphas_cumprod))
+        self.register_buffer("alphas_cumprod_prev", to_torch(alphas_cumprod_prev))
 
-        self.register_buffer('sqrt_alphas_cumprod', to_torch(np.sqrt(alphas_cumprod)))
-        self.register_buffer('sqrt_one_minus_alphas_cumprod', to_torch(np.sqrt(1. - alphas_cumprod)))
-        self.register_buffer('log_one_minus_alphas_cumprod', to_torch(np.log(1. - alphas_cumprod)))
-        self.register_buffer('sqrt_recip_alphas_cumprod', to_torch(np.sqrt(1. / alphas_cumprod)))
-        self.register_buffer('sqrt_recipm1_alphas_cumprod', to_torch(np.sqrt(1. / alphas_cumprod - 1)))
+        self.register_buffer("sqrt_alphas_cumprod", to_torch(np.sqrt(alphas_cumprod)))
+        self.register_buffer(
+            "sqrt_one_minus_alphas_cumprod", to_torch(np.sqrt(1.0 - alphas_cumprod))
+        )
+        self.register_buffer(
+            "log_one_minus_alphas_cumprod", to_torch(np.log(1.0 - alphas_cumprod))
+        )
+        self.register_buffer(
+            "sqrt_recip_alphas_cumprod", to_torch(np.sqrt(1.0 / alphas_cumprod))
+        )
+        self.register_buffer(
+            "sqrt_recipm1_alphas_cumprod", to_torch(np.sqrt(1.0 / alphas_cumprod - 1))
+        )
 
-        posterior_variance = (1 - self.v_posterior) * betas * (1. - alphas_cumprod_prev) / (1. - alphas_cumprod) + self.v_posterior * betas
-        self.register_buffer('posterior_variance', to_torch(posterior_variance))
-        self.register_buffer('posterior_log_variance_clipped', to_torch(np.log(np.maximum(posterior_variance, 1e-20))))
-        self.register_buffer('posterior_mean_coef1', to_torch(betas * np.sqrt(alphas_cumprod_prev) / (1. - alphas_cumprod)))
-        self.register_buffer('posterior_mean_coef2', to_torch((1. - alphas_cumprod_prev) * np.sqrt(alphas) / (1. - alphas_cumprod)))
+        posterior_variance = (1 - self.v_posterior) * betas * (
+            1.0 - alphas_cumprod_prev
+        ) / (1.0 - alphas_cumprod) + self.v_posterior * betas
+        self.register_buffer("posterior_variance", to_torch(posterior_variance))
+        self.register_buffer(
+            "posterior_log_variance_clipped",
+            to_torch(np.log(np.maximum(posterior_variance, 1e-20))),
+        )
+        self.register_buffer(
+            "posterior_mean_coef1",
+            to_torch(betas * np.sqrt(alphas_cumprod_prev) / (1.0 - alphas_cumprod)),
+        )
+        self.register_buffer(
+            "posterior_mean_coef2",
+            to_torch(
+                (1.0 - alphas_cumprod_prev) * np.sqrt(alphas) / (1.0 - alphas_cumprod)
+            ),
+        )
 
         if self.parameterization == "eps":
-            lvlb_weights = self.betas ** 2 / (2 * self.posterior_variance * to_torch(alphas) * (1 - self.alphas_cumprod))
+            lvlb_weights = self.betas**2 / (
+                2
+                * self.posterior_variance
+                * to_torch(alphas)
+                * (1 - self.alphas_cumprod)
+            )
         elif self.parameterization == "x0":
-            lvlb_weights = 0.5 * np.sqrt(torch.Tensor(alphas_cumprod)) / (2. * 1 - torch.Tensor(alphas_cumprod))
+            lvlb_weights = (
+                0.5
+                * np.sqrt(torch.Tensor(alphas_cumprod))
+                / (2.0 * 1 - torch.Tensor(alphas_cumprod))
+            )
         else:
             raise NotImplementedError()
         lvlb_weights[0] = lvlb_weights[1]
-        self.register_buffer('lvlb_weights', lvlb_weights, persistent=False)
+        self.register_buffer("lvlb_weights", lvlb_weights, persistent=False)
 
     @contextmanager
     def ema_scope(self):
@@ -387,8 +459,11 @@ class DDPM(L.LightningModule):
             Noisy sample $x_t$ at timestep $t$.
         """
         noise = default(noise, lambda: torch.randn_like(x_start))
-        return (extract_into_tensor(self.sqrt_alphas_cumprod, t, x_start.shape) * x_start +
-                extract_into_tensor(self.sqrt_one_minus_alphas_cumprod, t, x_start.shape) * noise)
+        return (
+            extract_into_tensor(self.sqrt_alphas_cumprod, t, x_start.shape) * x_start
+            + extract_into_tensor(self.sqrt_one_minus_alphas_cumprod, t, x_start.shape)
+            * noise
+        )
 
     def p_losses(self, x_start, t, noise=None):
         """Computes training loss objectives for diffusion step $t$.
@@ -411,30 +486,32 @@ class DDPM(L.LightningModule):
         """
         noise = default(noise, lambda: torch.randn_like(x_start))
         x_noisy = self.q_sample(x_start=x_start, t=t, noise=noise)
-        
+
         model_out = self.model(x_noisy, t)
 
         loss_dict = {}
         target = noise if self.parameterization == "eps" else x_start
 
-        if self.loss_type == 'l1':
+        if self.loss_type == "l1":
             loss = (target - model_out).abs().mean(dim=[1, 2])
-        elif self.loss_type == 'l2':
-            loss = torch.nn.functional.mse_loss(target, model_out, reduction='none').mean(dim=[1, 2])
+        elif self.loss_type == "l2":
+            loss = torch.nn.functional.mse_loss(
+                target, model_out, reduction="none"
+            ).mean(dim=[1, 2])
         else:
             raise NotImplementedError(f"unknown loss type '{self.loss_type}'")
 
-        log_prefix = 'train' if self.training else 'val'
+        log_prefix = "train" if self.training else "val"
 
-        loss_dict.update({f'{log_prefix}/loss_simple': loss.mean()})
+        loss_dict.update({f"{log_prefix}/loss_simple": loss.mean()})
         loss_simple = loss.mean() * self.l_simple_weight
 
         # Variational lower bound loss
         loss_vlb = (self.lvlb_weights[t] * loss).mean()
-        loss_dict.update({f'{log_prefix}/loss_vlb': loss_vlb})
+        loss_dict.update({f"{log_prefix}/loss_vlb": loss_vlb})
 
         loss = loss_simple + self.original_elbo_weight * loss_vlb
-        loss_dict.update({f'{log_prefix}/loss': loss})
+        loss_dict.update({f"{log_prefix}/loss": loss})
 
         return loss, loss_dict
 
@@ -451,7 +528,9 @@ class DDPM(L.LightningModule):
         Tuple[torch.Tensor, dict]
             Computed total loss and logging dictionary.
         """
-        t = torch.randint(0, self.num_timesteps, (x.shape[0],), device=self.device).long()
+        t = torch.randint(
+            0, self.num_timesteps, (x.shape[0],), device=self.device
+        ).long()
         return self.p_losses(x, t, *args, **kwargs)
 
     def on_train_batch_end(self, outputs, batch, batch_idx):
@@ -489,34 +568,38 @@ class TSLatentDiffusion(DDPM):
     f_min : float, optional
         Final learning rate multiplier. Default is 1.0.
     """
-    def __init__(self,
-                 unet_model: nn.Module,             # Instantiated UNet model
-                 first_stage_model: Union[nn.Module, FromPretrained],      # Instantiated Autoencoder
-                 scale_factor=1.0,
-                 scale_by_std=False,
-                 unconditional=True,
-                 learning_rate=2e-4,     # Slightly higher for 1D Unet compared to images
-                 use_scheduler=True, 
-                 warmup_steps=500,       # Approx 4-5 epochs of warmup for HAR datasets
-                 cycle_length=100000,    # Large enough to cover total training steps
-                 f_start=1e-6,           # Starting learning rate multiplier
-                 f_max=1.0,              # Maximum learning rate multiplier
-                 f_min=1.0,              # Final learning rate multiplier (1.0 = no decay)
-                 *args, **kwargs):
+
+    def __init__(
+        self,
+        unet_model: nn.Module,  # Instantiated UNet model
+        first_stage_model: Union[nn.Module, FromPretrained],  # Instantiated Autoencoder
+        scale_factor=1.0,
+        scale_by_std=False,
+        unconditional=True,
+        learning_rate=2e-4,  # Slightly higher for 1D Unet compared to images
+        use_scheduler=True,
+        warmup_steps=500,  # Approx 4-5 epochs of warmup for HAR datasets
+        cycle_length=100000,  # Large enough to cover total training steps
+        f_start=1e-6,  # Starting learning rate multiplier
+        f_max=1.0,  # Maximum learning rate multiplier
+        f_min=1.0,  # Final learning rate multiplier (1.0 = no decay)
+        *args,
+        **kwargs,
+    ):
         super().__init__(unet_model=unet_model, *args, **kwargs)
-        
+
         self.unconditional = unconditional
         self.scale_by_std = scale_by_std
         if not scale_by_std:
             self.scale_factor = scale_factor
         else:
-            self.register_buffer('scale_factor', torch.tensor(scale_factor))
-            
+            self.register_buffer("scale_factor", torch.tensor(scale_factor))
+
         # Freeze the VAE (First Stage)
         self.first_stage_model = first_stage_model.eval()
         for param in self.first_stage_model.parameters():
             param.requires_grad = False
-            
+
         # Scheduler parameters mapped directly from the original Latent Diffusion YAML
         self.learning_rate = learning_rate
         self.use_scheduler = use_scheduler
@@ -544,7 +627,7 @@ class TSLatentDiffusion(DDPM):
         else:
             z = encoder_posterior
         return self.scale_factor * z
-    
+
     @rank_zero_only
     @torch.no_grad()
     def on_train_batch_start(self, batch, batch_idx):
@@ -557,19 +640,28 @@ class TSLatentDiffusion(DDPM):
         batch_idx : int
             Batch index counter.
         """
-        if self.scale_by_std and self.current_epoch == 0 and self.global_step == 0 and batch_idx == 0:
+        if (
+            self.scale_by_std
+            and self.current_epoch == 0
+            and self.global_step == 0
+            and batch_idx == 0
+        ):
             # Handles batches that are just [x] or [x, y]
             x = batch[0] if isinstance(batch, (list, tuple)) else batch
             x = x.to(self.device)
             posterior = self.encode_first_stage(x)
             z = self.get_first_stage_encoding(posterior).detach()
-            del self.scale_factor  # Remove any existing scale factor to avoid interference
+            del (
+                self.scale_factor
+            )  # Remove any existing scale factor to avoid interference
             # Calculate and register the scale factor
-            scale = 1. / z.flatten().std()
-            self.register_buffer('scale_factor', scale)
+            scale = 1.0 / z.flatten().std()
+            self.register_buffer("scale_factor", scale)
             mode = "UNCONDITIONAL" if self.unconditional else "CONDITIONAL"
-            print(f"### LDM 1D ({mode}): Scale factor dynamically adjusted to {self.scale_factor.item():.4f} ###")
-    
+            print(
+                f"### LDM 1D ({mode}): Scale factor dynamically adjusted to {self.scale_factor.item():.4f} ###"
+            )
+
     @torch.no_grad()
     def encode_first_stage(self, x):
         """Pads physical signal and encodes it into first-stage latent representation.
@@ -586,7 +678,7 @@ class TSLatentDiffusion(DDPM):
         """
         if hasattr(self.first_stage_model, "adapter_pad"):
             x = self.first_stage_model.adapter_pad(x)
-            
+
         return self.first_stage_model.encode(x)
 
     @torch.no_grad()
@@ -603,13 +695,13 @@ class TSLatentDiffusion(DDPM):
         torch.Tensor
             Reconstructed physical signal tensor of shape (B, C, L_orig).
         """
-        
+
         z = z / self.scale_factor
         out = self.first_stage_model.decode(z)
-        
+
         if hasattr(self.first_stage_model, "adapter_unpad"):
             out = self.first_stage_model.adapter_unpad(out)
-            
+
         return out
 
     def shared_step(self, batch):
@@ -628,11 +720,11 @@ class TSLatentDiffusion(DDPM):
             Dictionary of logged loss values.
         """
         x = batch[0] if isinstance(batch, (list, tuple)) else batch
-        
+
         # Extract the latent space representation
         encoder_posterior = self.encode_first_stage(x)
         z = self.get_first_stage_encoding(encoder_posterior)
-        
+
         # Pass the latent (z) to the mother class DDPM forward pass
         loss, loss_dict = self(z)
         return loss, loss_dict
@@ -653,7 +745,9 @@ class TSLatentDiffusion(DDPM):
             Training step loss.
         """
         loss, loss_dict = self.shared_step(batch)
-        self.log_dict(loss_dict, prog_bar=True, logger=True, on_step=True, on_epoch=True)
+        self.log_dict(
+            loss_dict, prog_bar=True, logger=True, on_step=True, on_epoch=True
+        )
         return loss
 
     @torch.no_grad()
@@ -671,11 +765,15 @@ class TSLatentDiffusion(DDPM):
         _, loss_dict_no_ema = self.shared_step(batch)
         with self.ema_scope():
             _, loss_dict_ema = self.shared_step(batch)
-            loss_dict_ema = {key + '_ema': loss_dict_ema[key] for key in loss_dict_ema}
-            
-        self.log_dict(loss_dict_no_ema, prog_bar=False, logger=True, on_step=False, on_epoch=True)
-        self.log_dict(loss_dict_ema, prog_bar=False, logger=True, on_step=False, on_epoch=True)
-    
+            loss_dict_ema = {key + "_ema": loss_dict_ema[key] for key in loss_dict_ema}
+
+        self.log_dict(
+            loss_dict_no_ema, prog_bar=False, logger=True, on_step=False, on_epoch=True
+        )
+        self.log_dict(
+            loss_dict_ema, prog_bar=False, logger=True, on_step=False, on_epoch=True
+        )
+
     def configure_optimizers(self):
         """Configures AdamW optimizer and linear warmup learning rate scheduler.
 
@@ -686,7 +784,7 @@ class TSLatentDiffusion(DDPM):
         """
         # 1. Start with the U-Net parameters
         params = list(self.model.parameters())
-        
+
         # 2. Add conditioning model parameters IF we are in Conditional Mode
         #    This allows the model to learn the embeddings jointly with the diffusion process.
         # if not self.unconditional and self.cond_stage_model is not None:
@@ -700,33 +798,41 @@ class TSLatentDiffusion(DDPM):
 
         # 4. Learning Rate Scheduler (Linear Warmup & Decay)
         if self.use_scheduler:
-            print(f"Setting up LambdaLR scheduler with {self.warmup_steps} warmup steps...")
-            
+            print(
+                f"Setting up LambdaLR scheduler with {self.warmup_steps} warmup steps..."
+            )
+
             def lr_lambda(current_step):
                 """
                 Returns the learning rate multiplier for the current training step.
                 """
                 # Phase 1: Linear Warmup (scales from f_start to f_max)
                 if current_step < self.warmup_steps:
-                    f = (self.f_max - self.f_start) / float(max(1, self.warmup_steps)) * current_step + self.f_start
+                    f = (self.f_max - self.f_start) / float(
+                        max(1, self.warmup_steps)
+                    ) * current_step + self.f_start
                     return f
-                
+
                 # Phase 2: Linear Decay (scales from f_max to f_min over cycle_length)
                 # Note: If f_max == f_min (default), this simply maintains the max learning rate.
                 else:
                     n = current_step - self.warmup_steps
-                    f = self.f_min + (self.f_max - self.f_min) * (self.cycle_length - n) / float(max(1, self.cycle_length))
+                    f = self.f_min + (self.f_max - self.f_min) * (
+                        self.cycle_length - n
+                    ) / float(max(1, self.cycle_length))
                     return f
-            
+
             scheduler = {
-                'scheduler': torch.optim.lr_scheduler.LambdaLR(opt, lr_lambda=lr_lambda),
-                'interval': 'step', 
-                'frequency': 1
+                "scheduler": torch.optim.lr_scheduler.LambdaLR(
+                    opt, lr_lambda=lr_lambda
+                ),
+                "interval": "step",
+                "frequency": 1,
             }
             return [opt], [scheduler]
-            
+
         return opt
-    
+
     @torch.no_grad()
     def p_sample(self, z, t, t_index):
         """Performs single-step reverse denoising on latent sequence $z_t$.
@@ -747,22 +853,28 @@ class TSLatentDiffusion(DDPM):
         """
         # 1. The diffusion model (UNet) predicts the noise (epsilon)
         model_out = self.model(z, t)
-        
+
         # 2. Extract mathematical constants for time step t
         betas_t = extract_into_tensor(self.betas, t, z.shape)
-        alphas_t = 1. - betas_t
-        sqrt_one_minus_alphas_cumprod_t = extract_into_tensor(self.sqrt_one_minus_alphas_cumprod, t, z.shape)
+        alphas_t = 1.0 - betas_t
+        sqrt_one_minus_alphas_cumprod_t = extract_into_tensor(
+            self.sqrt_one_minus_alphas_cumprod, t, z.shape
+        )
         sqrt_recip_alphas_t = 1.0 / torch.sqrt(alphas_t)
-        
+
         # 3. Calculate the expected mean (subtracting the scaled predicted noise)
-        model_mean = sqrt_recip_alphas_t * (z - betas_t * model_out / sqrt_one_minus_alphas_cumprod_t)
-        
-        # 4. In the last step (t=0), return the pure clean signal. 
+        model_mean = sqrt_recip_alphas_t * (
+            z - betas_t * model_out / sqrt_one_minus_alphas_cumprod_t
+        )
+
+        # 4. In the last step (t=0), return the pure clean signal.
         # If t > 0, add controlled variance (Langevin dynamics).
         if t_index == 0:
             return model_mean
         else:
-            posterior_variance_t = extract_into_tensor(self.posterior_variance, t, z.shape)
+            posterior_variance_t = extract_into_tensor(
+                self.posterior_variance, t, z.shape
+            )
             noise = torch.randn_like(z)
             return model_mean + torch.sqrt(posterior_variance_t) * noise
 
@@ -782,22 +894,22 @@ class TSLatentDiffusion(DDPM):
         torch.Tensor
             Denoised latent sequence tensor.
         """
-        
+
         device = self.device
         b = shape[0]
-        
+
         # Start with pure Gaussian noise in the latent space
         z = torch.randn(shape, device=device)
-        
+
         # Iterate backwards, from T-1 (e.g., 999) to 0
         iterator = reversed(range(0, self.num_timesteps))
         if verbose:
-            iterator = tqdm(iterator, desc='Denoising Steps', total=self.num_timesteps)
-            
+            iterator = tqdm(iterator, desc="Denoising Steps", total=self.num_timesteps)
+
         for i in iterator:
             t = torch.full((b,), i, device=device, dtype=torch.long)
             z = self.p_sample(z, t, i)
-            
+
         return z
 
     @torch.no_grad()
@@ -820,19 +932,19 @@ class TSLatentDiffusion(DDPM):
         """
         # Latent tensor shape: [Batch, Latent Channels (4), Latent Length (16)]
         shape = (batch_size, self.channels, self.sequence_length)
-        
+
         # Use ema_scope to generate with stabilized weights
         if use_ema and self.use_ema:
             with self.ema_scope():
                 z_samples = self.p_sample_loop(shape, verbose=verbose)
         else:
             z_samples = self.p_sample_loop(shape, verbose=verbose)
-            
+
         # Decode the latent space [Batch, 4, 16] back to physical space [Batch, 6, 64]
         x_samples = self.decode_first_stage(z_samples)
-        
+
         return x_samples
-    
+
     def simple_forward(self, x, target_time_step, block=None):
         """Passes latent encoding through internal embedding layers of UNet.
 
@@ -850,17 +962,14 @@ class TSLatentDiffusion(DDPM):
         torch.Tensor
             Extracted activation embedding.
         """
-        
+
         timesteps = torch.full(
-            (x.size(0),),
-            target_time_step,
-            device=x.device,
-            dtype=torch.long
+            (x.size(0),), target_time_step, device=x.device, dtype=torch.long
         )
         encoder_posterior = self.encode_first_stage(x)
         z = self.get_first_stage_encoding(encoder_posterior)
         return self.model.forward_emb(z, timesteps, block=block)
-    
+
     def full_forward(self, x, target_time_step):
         """Full forward pass reproducing complete single-step denoising operation
         and decoding result back to physical signal space.
@@ -878,37 +987,40 @@ class TSLatentDiffusion(DDPM):
             Denoised output signal mapped back to physical space.
         """
         t = torch.full(
-            (x.size(0),),
-            target_time_step,
-            device=x.device,
-            dtype=torch.long
+            (x.size(0),), target_time_step, device=x.device, dtype=torch.long
         )
-        
+
         encoder_posterior = self.encode_first_stage(x)
         z = self.get_first_stage_encoding(encoder_posterior)
-        
+
         pred_noise = self.model(z, t)
-        
+
         betas_t = extract_into_tensor(self.betas, t, z.shape)
-        alphas_t = 1. - betas_t
-        sqrt_one_minus_alphas_cumprod_t = extract_into_tensor(self.sqrt_one_minus_alphas_cumprod, t, z.shape)
+        alphas_t = 1.0 - betas_t
+        sqrt_one_minus_alphas_cumprod_t = extract_into_tensor(
+            self.sqrt_one_minus_alphas_cumprod, t, z.shape
+        )
         sqrt_recip_alphas_t = 1.0 / torch.sqrt(alphas_t)
-        
+
         # 3. Calculate the expected mean (subtracting the scaled predicted noise)
-        model_mean = sqrt_recip_alphas_t * (z - betas_t * pred_noise / sqrt_one_minus_alphas_cumprod_t)
-        
-        # 4. In the last step (t=0), return the pure clean signal. 
+        model_mean = sqrt_recip_alphas_t * (
+            z - betas_t * pred_noise / sqrt_one_minus_alphas_cumprod_t
+        )
+
+        # 4. In the last step (t=0), return the pure clean signal.
         # If t > 0, add controlled variance (Langevin dynamics).
         if target_time_step == 0:
             model_out = model_mean
         else:
-            posterior_variance_t = extract_into_tensor(self.posterior_variance, t, z.shape)
+            posterior_variance_t = extract_into_tensor(
+                self.posterior_variance, t, z.shape
+            )
             noise = torch.randn_like(z)
             model_out = model_mean + torch.sqrt(posterior_variance_t) * noise
-        
+
         denoised = self.decode_first_stage(model_out)
         return denoised
-    
+
     def get_init_config(self):
         """Returns initialization configuration dictionary for serialization.
 
@@ -929,5 +1041,5 @@ class TSLatentDiffusion(DDPM):
             "unconditional": self.unconditional,
             "beta_schedule": self.beta_schedule,
             "scale_factor": self.scale_factor,
-            "scale_by_std": self.scale_by_std
+            "scale_by_std": self.scale_by_std,
         }

@@ -4,6 +4,7 @@ import math
 from typing import Optional
 from .conv_layers import Conv
 
+
 class ResidualBlock(nn.Module):
     """Residual block used in the DiffWave architecture.
 

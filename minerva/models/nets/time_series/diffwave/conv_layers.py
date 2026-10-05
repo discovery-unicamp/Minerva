@@ -1,5 +1,6 @@
 import torch.nn as nn
 
+
 class Conv(nn.Module):
     """1D Convolutional layer with weight normalization.
 

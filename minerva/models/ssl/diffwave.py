@@ -7,6 +7,7 @@ import lightning as L
 from typing import Optional
 from minerva.models.nets.time_series.diffwave import Conv, ZeroConv1d, ResidualGroup
 
+
 class DiffWave(L.LightningModule):
     """DiffWave model adapted for time-series sensor data (e.g. IMU).
 
@@ -76,7 +77,7 @@ class DiffWave(L.LightningModule):
         self.beta_0 = beta_0
         self.beta_T = beta_T
         self.num_classes = num_classes
-        
+
         # initial conv1x1 with relu
         self.init_conv = nn.Sequential(
             Conv(in_channels, res_channels, kernel_size=1), nn.ReLU()
@@ -118,7 +119,7 @@ class DiffWave(L.LightningModule):
             "beta_0": self.beta_0,
             "beta_T": self.beta_T,
             "conditional": self.conditional,
-            "num_classes": self.num_classes
+            "num_classes": self.num_classes,
         }
 
     def forward(self, input_data, label: Optional[int | torch.Tensor] = None):
@@ -245,9 +246,9 @@ class DiffWave(L.LightningModule):
         x = self.std_normal(output_shape, device=self.device)
         with torch.no_grad():
             for t in range(T - 1, -1, -1):
-                diffusion_steps = (
-                    t * torch.ones((output_shape[0], 1))
-                ).to(self.device)  # use the corresponding reverse step
+                diffusion_steps = (t * torch.ones((output_shape[0], 1))).to(
+                    self.device
+                )  # use the corresponding reverse step
                 epsilon_theta = self.forward(
                     (x, diffusion_steps), condition
                 )  # predict \epsilon according to \epsilon_\theta
@@ -261,7 +262,7 @@ class DiffWave(L.LightningModule):
                         output_shape, device=self.device
                     )  # add the variance term to x_{t-1}
         return x
-    
+
     def simple_forward(
         self,
         input: torch.Tensor,
@@ -269,7 +270,7 @@ class DiffWave(L.LightningModule):
         target_time_step: int = 0,
         target_res_layer: Optional[int] = None,
         return_skip: bool = False,
-        flatten: bool = False
+        flatten: bool = False,
     ):
         """
         Forward pass for feature extraction at a specific diffusion timestep
@@ -317,9 +318,7 @@ class DiffWave(L.LightningModule):
         """
 
         B, C, L = input.shape
-        diffusion_steps = (target_time_step * torch.ones((B, 1))).to(
-            input.device
-        )
+        diffusion_steps = (target_time_step * torch.ones((B, 1))).to(input.device)
         label_emb = None
         if self.conditional and label is not None:
             label_emb = self.global_emb(label)  # shape: (B, 128)
@@ -332,7 +331,7 @@ class DiffWave(L.LightningModule):
         )
         output = out_res if not return_skip else skip
         if output.dim() == 3:
-            if (not flatten):
+            if not flatten:
                 output = output.mean(dim=-1)  # (B, C)
             else:
                 output = torch.flatten(output, start_dim=1)
@@ -350,7 +349,7 @@ class DiffWave(L.LightningModule):
         DiffWave at a specific diffusion timestep.
 
         It returns the fully denoised output for the given timestep, not an
-        intermediate latent embedding. 
+        intermediate latent embedding.
 
         Parameters
         ----------
@@ -381,11 +380,9 @@ class DiffWave(L.LightningModule):
         assert len(Alpha) == T
         assert len(Alpha_bar) == T
         assert len(Sigma) == T
-        
+
         B, C, L = input.shape
-        diffusion_steps = (target_time_step * torch.ones((B, 1))).to(
-            input.device
-        )
+        diffusion_steps = (target_time_step * torch.ones((B, 1))).to(input.device)
         output_shape = (B, C, L)
 
         label_emb = None
@@ -394,14 +391,14 @@ class DiffWave(L.LightningModule):
         x = input
         x_t = input
         x = self.init_conv(x)
-        x = self.residual_layer(
-            (x, diffusion_steps),
-            label_emb=label_emb
-        )
+        x = self.residual_layer((x, diffusion_steps), label_emb=label_emb)
         output = self.final_conv(x)
 
         x_t = (
-            x_t - (1 - Alpha[target_time_step]) / torch.sqrt(1 - Alpha_bar[target_time_step]) * output
+            x_t
+            - (1 - Alpha[target_time_step])
+            / torch.sqrt(1 - Alpha_bar[target_time_step])
+            * output
         ) / torch.sqrt(
             Alpha[target_time_step]
         )  # update x_{t-1} to \mu_\theta(x_t)
@@ -411,6 +408,7 @@ class DiffWave(L.LightningModule):
                 output_shape, device=input.device
             )  # add the variance term to x_{t-1}
         return x_t
+
 
 def calc_diffusion_hyperparams(T, beta_0, beta_T):
     """

@@ -3,6 +3,7 @@ import torch.nn as nn
 from typing import Optional
 from minerva.models.ssl.diffwave import DiffWave
 
+
 class DiffWaveEncoder(nn.Module):
     """Feature extraction wrapper for DiffWave generative model architectures.
 
@@ -30,9 +31,10 @@ class DiffWaveEncoder(nn.Module):
     flatten : bool, optional
         Whether to flatten output spatial/temporal dimensions. Default is False.
     """
+
     def __init__(
         self,
-        backbone: DiffWave,       
+        backbone: DiffWave,
         diffusion_timestep: int = 0,
         target_block: Optional[int] = None,
         pass_strategy: str = "single",
@@ -45,13 +47,13 @@ class DiffWaveEncoder(nn.Module):
         self.target_res_layer = target_block
         self.pass_strategy = pass_strategy
         self.flatten = flatten
-        
+
         self.is_double_pass = self.pass_strategy == "double"
         if self.is_double_pass:
             print("Initializing double pass backbone for DiffWaveEncoder")
             self.backbone2 = DiffWave(**backbone.get_init_config())
             self.backbone2.load_state_dict(backbone.state_dict())
-    
+
     def forward(self, input: torch.Tensor) -> torch.Tensor:
         """Executes the feature extraction forward pass on the input tensor.
 
@@ -72,15 +74,17 @@ class DiffWaveEncoder(nn.Module):
             Extracted feature representations or denoised tensor.
         """
         x = input
-        if self.is_double_pass :
-            x = self.backbone.full_forward(x, None, target_time_step=self.diffusion_timestep)
+        if self.is_double_pass:
+            x = self.backbone.full_forward(
+                x, None, target_time_step=self.diffusion_timestep
+            )
             x = self.backbone2.simple_forward(
                 x,
                 None,
                 target_time_step=0,
                 target_res_layer=self.target_res_layer,
                 return_skip=False,
-                flatten=self.flatten
+                flatten=self.flatten,
             )
         else:
             x = self.backbone.simple_forward(
@@ -89,7 +93,7 @@ class DiffWaveEncoder(nn.Module):
                 target_time_step=self.diffusion_timestep,
                 target_res_layer=self.target_res_layer,
                 return_skip=False,
-                flatten=self.flatten
+                flatten=self.flatten,
             )
-            
+
         return x

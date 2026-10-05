@@ -4,6 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from abc import abstractmethod
 
+
 def zero_module(module):
     """Zeros out the parameters of a module and returns it.
 
@@ -39,6 +40,7 @@ class GroupNorm32(nn.GroupNorm):
     num_channels : int
         Number of channels expected in the input.
     """
+
     def forward(self, x):
         return super().forward(x.float()).type(x.dtype)
 
@@ -86,7 +88,9 @@ def timestep_embedding(timesteps, dim, max_period=10000):
     """
     half = dim // 2
     freqs = torch.exp(
-        -math.log(max_period) * torch.arange(start=0, end=half, dtype=torch.float32) / half
+        -math.log(max_period)
+        * torch.arange(start=0, end=half, dtype=torch.float32)
+        / half
     ).to(device=timesteps.device)
     args = timesteps[:, None].float() * freqs[None]
     embedding = torch.cat([torch.cos(args), torch.sin(args)], dim=-1)
@@ -97,10 +101,11 @@ def timestep_embedding(timesteps, dim, max_period=10000):
 
 class CheckpointFunction(torch.autograd.Function):
     """Custom autograd function for memory-efficient gradient checkpointing.
-    
+
     Prevents PyTorch's native checkpoint from throwing TypeErrors when
     mixing custom parameter lists.
     """
+
     @staticmethod
     def forward(ctx, run_function, length, *args):
         ctx.run_function = run_function
@@ -153,8 +158,10 @@ def checkpoint(func, inputs, params, flag):
     else:
         return func(*inputs)
 
+
 class TimestepBlock(nn.Module):
     """Abstract class for modules that require timestep embeddings."""
+
     @abstractmethod
     def forward(self, x, emb):
         pass
@@ -166,6 +173,7 @@ class TimestepEmbedSequential(nn.Sequential, TimestepBlock):
     It iterates through its child layers and passes the timestep embedding `emb`
     only to the layers that are instances of `TimestepBlock`.
     """
+
     def forward(self, x, emb):
         for layer in self:
             if isinstance(layer, TimestepBlock):
@@ -173,6 +181,7 @@ class TimestepEmbedSequential(nn.Sequential, TimestepBlock):
             else:
                 x = layer(x)
         return x
+
 
 class Upsample1d(nn.Module):
     """1D Upsampling layer using nearest interpolation and convolution.
@@ -182,6 +191,7 @@ class Upsample1d(nn.Module):
     channels : int
         Number of input and output channels.
     """
+
     def __init__(self, channels):
         super().__init__()
         self.conv = nn.Conv1d(channels, channels, 3, padding=1)
@@ -199,6 +209,7 @@ class Downsample1d(nn.Module):
     channels : int
         Number of input and output channels.
     """
+
     def __init__(self, channels):
         super().__init__()
         self.conv = nn.Conv1d(channels, channels, 3, stride=2, padding=1)
@@ -229,7 +240,16 @@ class ResBlock1d(TimestepBlock):
         Dilation rate for the convolutions. Padding is automatically adjusted.
         Default is 1.
     """
-    def __init__(self, channels, emb_channels, dropout, out_channels=None, use_scale_shift_norm=False, dilation=1):
+
+    def __init__(
+        self,
+        channels,
+        emb_channels,
+        dropout,
+        out_channels=None,
+        use_scale_shift_norm=False,
+        dilation=1,
+    ):
         super().__init__()
         self.channels = channels
         self.emb_channels = emb_channels
@@ -241,7 +261,9 @@ class ResBlock1d(TimestepBlock):
         self.in_layers = nn.Sequential(
             normalization(channels),
             nn.SiLU(),
-            nn.Conv1d(channels, self.out_channels, 3, padding=dilation, dilation=dilation),
+            nn.Conv1d(
+                channels, self.out_channels, 3, padding=dilation, dilation=dilation
+            ),
         )
 
         self.emb_layers = nn.Sequential(
@@ -256,7 +278,15 @@ class ResBlock1d(TimestepBlock):
             normalization(self.out_channels),
             nn.SiLU(),
             nn.Dropout(p=dropout),
-            zero_module(nn.Conv1d(self.out_channels, self.out_channels, 3, padding=dilation, dilation=dilation)),
+            zero_module(
+                nn.Conv1d(
+                    self.out_channels,
+                    self.out_channels,
+                    3,
+                    padding=dilation,
+                    dilation=dilation,
+                )
+            ),
         )
 
         if self.out_channels == channels:
@@ -267,7 +297,7 @@ class ResBlock1d(TimestepBlock):
     def forward(self, x, emb):
         h = self.in_layers(x)
         emb_out = self.emb_layers(emb).type(h.dtype).unsqueeze(-1)
-        
+
         if self.use_scale_shift_norm:
             out_norm, out_rest = self.out_layers[0], self.out_layers[1:]
             scale, shift = torch.chunk(emb_out, 2, dim=1)
@@ -276,7 +306,7 @@ class ResBlock1d(TimestepBlock):
         else:
             h = h + emb_out
             h = self.out_layers(h)
-            
+
         return self.skip_connection(x) + h
 
 
@@ -292,12 +322,15 @@ class AttentionBlock1d(nn.Module):
     use_checkpoint : bool, optional
         If True, uses gradient checkpointing to save memory. Default is False.
     """
+
     def __init__(self, channels, num_head_channels=32, use_checkpoint=False):
         super().__init__()
         self.channels = channels
         self.use_checkpoint = use_checkpoint
-        
-        assert channels % num_head_channels == 0, f"Channels {channels} must be divisible by {num_head_channels}"
+
+        assert (
+            channels % num_head_channels == 0
+        ), f"Channels {channels} must be divisible by {num_head_channels}"
         self.num_heads = channels // num_head_channels
 
         self.norm = normalization(channels)
@@ -311,19 +344,20 @@ class AttentionBlock1d(nn.Module):
         b, c, l = x.shape
         qkv = self.qkv(self.norm(x))
         q, k, v = qkv.chunk(3, dim=1)
-        
+
         head_dim = c // self.num_heads
-        q = q.view(b, self.num_heads, head_dim, l).transpose(2, 3) 
-        k = k.view(b, self.num_heads, head_dim, l)                 
-        v = v.view(b, self.num_heads, head_dim, l).transpose(2, 3) 
-        
+        q = q.view(b, self.num_heads, head_dim, l).transpose(2, 3)
+        k = k.view(b, self.num_heads, head_dim, l)
+        v = v.view(b, self.num_heads, head_dim, l).transpose(2, 3)
+
         weight = torch.matmul(q, k) * (1.0 / math.sqrt(head_dim))
         weight = F.softmax(weight, dim=-1)
-        
-        a = torch.matmul(weight, v) 
+
+        a = torch.matmul(weight, v)
         a = a.transpose(2, 3).contiguous().view(b, c, l)
-        
+
         return x + self.proj_out(a)
+
 
 class UNetModel1d(nn.Module):
     """1D U-Net Model for Time Series Generation / Diffusion.
@@ -357,6 +391,7 @@ class UNetModel1d(nn.Module):
     num_classes : int, optional
         If specified, enables class-conditional generation with an embedding layer.
     """
+
     def __init__(
         self,
         in_channels: int,
@@ -364,11 +399,11 @@ class UNetModel1d(nn.Module):
         out_channels: int,
         num_res_blocks: int,
         attention_resolutions: list[int],
-        dropout: float=0.0,
-        channel_mult: list[int] | tuple[int, ...]=(1, 2, 4, 8),
-        num_head_channels: int=32,
-        use_scale_shift_norm: bool=False,
-        use_checkpoint: bool=False,
+        dropout: float = 0.0,
+        channel_mult: list[int] | tuple[int, ...] = (1, 2, 4, 8),
+        num_head_channels: int = 32,
+        use_scale_shift_norm: bool = False,
+        use_checkpoint: bool = False,
         num_classes=None,
     ):
         super().__init__()
@@ -389,14 +424,18 @@ class UNetModel1d(nn.Module):
             nn.SiLU(),
             nn.Linear(time_embed_dim, time_embed_dim),
         )
-        
+
         if self.num_classes is not None:
             self.label_emb = nn.Embedding(num_classes, time_embed_dim)
 
-        self.input_blocks = nn.ModuleList([
-            TimestepEmbedSequential(nn.Conv1d(in_channels, model_channels, 3, padding=1))
-        ])
-        
+        self.input_blocks = nn.ModuleList(
+            [
+                TimestepEmbedSequential(
+                    nn.Conv1d(in_channels, model_channels, 3, padding=1)
+                )
+            ]
+        )
+
         self._feature_size = model_channels
         input_block_chans = [model_channels]
         ch = model_channels
@@ -407,15 +446,21 @@ class UNetModel1d(nn.Module):
             for _ in range(num_res_blocks):
                 layers = [
                     ResBlock1d(
-                        ch, time_embed_dim, dropout,
+                        ch,
+                        time_embed_dim,
+                        dropout,
                         out_channels=model_channels * mult,
-                        use_scale_shift_norm=use_scale_shift_norm
+                        use_scale_shift_norm=use_scale_shift_norm,
                     )
                 ]
                 ch = model_channels * mult
                 if ds in attention_resolutions:
                     layers.append(
-                        AttentionBlock1d(ch, num_head_channels=num_head_channels, use_checkpoint=use_checkpoint)                   
+                        AttentionBlock1d(
+                            ch,
+                            num_head_channels=num_head_channels,
+                            use_checkpoint=use_checkpoint,
+                        )
                     )
                 self.input_blocks.append(TimestepEmbedSequential(*layers))
                 self._feature_size += ch
@@ -429,9 +474,15 @@ class UNetModel1d(nn.Module):
 
         # ====== MIDDLE ======
         self.middle_block = TimestepEmbedSequential(
-            ResBlock1d(ch, time_embed_dim, dropout, use_scale_shift_norm=use_scale_shift_norm),
-            AttentionBlock1d(ch, num_head_channels=num_head_channels, use_checkpoint=use_checkpoint),
-            ResBlock1d(ch, time_embed_dim, dropout, use_scale_shift_norm=use_scale_shift_norm),
+            ResBlock1d(
+                ch, time_embed_dim, dropout, use_scale_shift_norm=use_scale_shift_norm
+            ),
+            AttentionBlock1d(
+                ch, num_head_channels=num_head_channels, use_checkpoint=use_checkpoint
+            ),
+            ResBlock1d(
+                ch, time_embed_dim, dropout, use_scale_shift_norm=use_scale_shift_norm
+            ),
         )
         self._feature_size += ch
 
@@ -442,15 +493,21 @@ class UNetModel1d(nn.Module):
                 ich = input_block_chans.pop()
                 layers = [
                     ResBlock1d(
-                        ch + ich, time_embed_dim, dropout,
+                        ch + ich,
+                        time_embed_dim,
+                        dropout,
                         out_channels=model_channels * mult,
-                        use_scale_shift_norm=use_scale_shift_norm
+                        use_scale_shift_norm=use_scale_shift_norm,
                     )
                 ]
                 ch = model_channels * mult
                 if ds in attention_resolutions:
                     layers.append(
-                        AttentionBlock1d(ch, num_head_channels=num_head_channels, use_checkpoint=use_checkpoint)
+                        AttentionBlock1d(
+                            ch,
+                            num_head_channels=num_head_channels,
+                            use_checkpoint=use_checkpoint,
+                        )
                     )
                 if level and i == num_res_blocks:
                     layers.append(Upsample1d(ch))
@@ -502,7 +559,7 @@ class UNetModel1d(nn.Module):
 
         hs = []
         h = x
-        
+
         for module in self.input_blocks:
             h = module(h, emb)
             hs.append(h)
@@ -514,7 +571,7 @@ class UNetModel1d(nn.Module):
             h = module(h, emb)
 
         return self.out(h)
-    
+
     def forward_emb(self, x, timesteps, block=None):
         """Returns intermediate activations from the encoder blocks.
 
@@ -536,7 +593,7 @@ class UNetModel1d(nn.Module):
             The intermediate activation tensor.
         """
         emb = self.time_embed(timestep_embedding(timesteps, self.model_channels))
-        h = x        
+        h = x
         cont = 0
         # print(f"Size input_blocks : {len(self.input_blocks)}")
         for module in self.input_blocks:
@@ -547,6 +604,6 @@ class UNetModel1d(nn.Module):
                 return h
             cont += 1
         return h
-    
+
     def get_init_config(self):
         return self._init_config.copy()

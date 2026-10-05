@@ -48,6 +48,7 @@ class Residual(nn.Module):
     fn : Callable or nn.Module
         Module or function to wrap with a residual shortcut connection.
     """
+
     def __init__(self, fn):
         super().__init__()
         self.fn = fn
@@ -108,7 +109,7 @@ class WeightStandardizedConv2d(nn.Conv1d):
         Variable length argument list passed to `nn.Conv1d`.
     **kwargs
         Arbitrary keyword arguments passed to `nn.Conv1d`.
-  
+
     https://arxiv.org/abs/1903.10520
     weight standardization purportedly works synergistically with group normalization
     """
@@ -154,6 +155,7 @@ class LayerNorm(nn.Module):
     dim : int
         Number of feature channels.
     """
+
     def __init__(self, dim):
         super().__init__()
         self.g = nn.Parameter(torch.ones(1, dim, 1))
@@ -187,6 +189,7 @@ class PreNorm(nn.Module):
     fn : nn.Module
         Target block to execute after normalization.
     """
+
     def __init__(self, dim, fn):
         super().__init__()
         self.fn = fn
@@ -218,6 +221,7 @@ class SinusoidalPosEmb(nn.Module):
     dim : int
         Output embedding dimension.
     """
+
     def __init__(self, dim):
         super().__init__()
         self.dim = dim
@@ -255,7 +259,7 @@ class RandomOrLearnedSinusoidalPosEmb(nn.Module):
         Total feature dimension (must be even).
     is_random : bool, optional
         If True, weight parameters remain fixed/frozen. Default is False.
-    https://github.com/crowsonkb/v-diffusion-jax/blob/master/diffusion/models/danbooru_128.py#L8 
+    https://github.com/crowsonkb/v-diffusion-jax/blob/master/diffusion/models/danbooru_128.py#L8
     """
 
     def __init__(self, dim, is_random=False):
@@ -301,6 +305,7 @@ class Block(nn.Module):
     groups : int, optional
         Number of groups for GroupNorm. Default is 8.
     """
+
     def __init__(self, dim, dim_out, groups=8):
         super().__init__()
         self.proj = WeightStandardizedConv2d(dim, dim_out, 3, padding=1)
@@ -349,6 +354,7 @@ class ResnetBlock(nn.Module):
     groups : int, optional
         Number of groups for GroupNorm within internal blocks. Default is 8.
     """
+
     def __init__(
         self, dim, dim_out, *, time_emb_dim=None, classes_emb_dim=None, groups=8
     ):
@@ -413,6 +419,7 @@ class LinearAttention(nn.Module):
     dim_head : int, optional
         Channel dimension per attention head. Default is 32.
     """
+
     def __init__(self, dim, heads=4, dim_head=32):
         super().__init__()
         self.scale = dim_head**-0.5
@@ -465,6 +472,7 @@ class Attention(nn.Module):
     dim_head : int, optional
         Channel dimension per head. Default is 32.
     """
+
     def __init__(self, dim, heads=4, dim_head=32):
         super().__init__()
         self.scale = dim_head**-0.5
@@ -506,8 +514,8 @@ class Attention(nn.Module):
 class Unet1D_cls_free(nn.Module):
     """1D U-Net architecture with Classifier-Free Guidance support.
 
-    Implements a 1-dimensional U-Net designed for diffusion models, incorporating 
-    both time and class embeddings. It supports condition dropout to seamlessly 
+    Implements a 1-dimensional U-Net designed for diffusion models, incorporating
+    both time and class embeddings. It supports condition dropout to seamlessly
     enable classifier-free guidance during generation.
 
     Parameters
@@ -517,23 +525,23 @@ class Unet1D_cls_free(nn.Module):
     num_classes : int
         Total number of discrete classes for conditional embedding.
     cond_drop_prob : float, optional
-        Probability of dropping the class condition (setting it to null) during 
+        Probability of dropping the class condition (setting it to null) during
         training for classifier-free guidance. Default is 0.5.
     init_dim : int, optional
-        Initial convolution output channel dimension. If None, defaults to `dim`. 
+        Initial convolution output channel dimension. If None, defaults to `dim`.
         Default is None.
     out_dim : int, optional
-        Output channel dimension of the final convolution. If None, computed 
+        Output channel dimension of the final convolution. If None, computed
         based on `channels` and `learned_variance`. Default is None.
     dim_mults : tuple of int, optional
         Channel dimension multipliers for each resolution level. Default is (1, 2, 4, 8).
     channels : int, optional
         Number of input signal channels. Default is 3.
     resnet_block_groups : int, optional
-        Number of groups to use for Group Normalization within ResNet blocks. 
+        Number of groups to use for Group Normalization within ResNet blocks.
         Default is 8.
     learned_variance : bool, optional
-        Whether the model predicts learned variance (doubles the output channels). 
+        Whether the model predicts learned variance (doubles the output channels).
         Default is False.
     learned_sinusoidal_cond : bool, optional
         Whether to use learned sinusoidal positional embeddings. Default is False.
@@ -544,6 +552,7 @@ class Unet1D_cls_free(nn.Module):
     n_timesteps : int, optional
         Total number of diffusion timesteps. Default is 100.
     """
+
     def __init__(
         self,
         dim: int,
@@ -565,7 +574,7 @@ class Unet1D_cls_free(nn.Module):
         # classifier free guidance stuff
 
         self.cond_drop_prob = cond_drop_prob
-        
+
         self.dim = dim
         self.num_classes = num_classes
 
@@ -722,8 +731,8 @@ class Unet1D_cls_free(nn.Module):
         *args
             Positional arguments passed to the `forward` method (e.g., `x`, `time`, `classes`).
         cond_scale : float, optional
-            Guidance scale factor. A value of 1.0 reduces to a standard conditional pass. 
-            Values > 1.0 push the prediction further in the direction of the condition. 
+            Guidance scale factor. A value of 1.0 reduces to a standard conditional pass.
+            Values > 1.0 push the prediction further in the direction of the condition.
             Default is 1.0.
         **kwargs
             Keyword arguments passed to the `forward` method.
@@ -753,7 +762,7 @@ class Unet1D_cls_free(nn.Module):
         classes : torch.Tensor, optional
             Class label indices of shape (B,). Default is None.
         cond_drop_prob : float, optional
-            Probability override for dropping class conditioning. If None, uses the 
+            Probability override for dropping class conditioning. If None, uses the
             instance's default `cond_drop_prob`. Default is None.
 
         Returns
@@ -824,7 +833,7 @@ class Unet1D_cls_free(nn.Module):
 
         x = self.final_res_block(x, t, c)
         return self.final_conv(x)
-    
+
     def full_forward(self, x, time, classes=None, cond_drop_prob=None):
         """Executes a complete forward pass through the full U-Net network.
 
@@ -991,7 +1000,7 @@ class Unet1D_cls_free(nn.Module):
             emb = x
 
         return emb
-    
+
     def get_init_config(self):
         """Returns the core configuration parameters used to initialize the model.
 
@@ -1003,5 +1012,5 @@ class Unet1D_cls_free(nn.Module):
         return {
             "dim": self.dim,
             "num_classes": self.num_classes,
-            "channels": self.channels
+            "channels": self.channels,
         }

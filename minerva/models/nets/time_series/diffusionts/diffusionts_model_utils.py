@@ -7,6 +7,7 @@ import torch.nn.functional as F
 
 from torch import nn
 
+
 def exists(x):
     """
     Check if the input is not None.

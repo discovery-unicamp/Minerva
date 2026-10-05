@@ -9,12 +9,13 @@ from typing import Optional
 import lightning as L
 from minerva.models.nets.time_series.biodiffusion import Unet1D_cls_free
 
+
 class BioDiffusion(L.LightningModule):
     """
     Diffusion Model for Biological and HAR signals.
 
-    This LightningModule implements the forward and reverse processes of a 
-    diffusion model tailored for 1D biological signals. It handles noise 
+    This LightningModule implements the forward and reverse processes of a
+    diffusion model tailored for 1D biological signals. It handles noise
     scheduling (linear or cosine), signal padding, and the optimization process.
 
     Parameters
@@ -40,9 +41,10 @@ class BioDiffusion(L.LightningModule):
     channels : int, optional
         Number of channels in the input signal. Default is 3.
     signal_padding : int, optional
-        Amount of padding to add to the signal to ensure dimensionality 
+        Amount of padding to add to the signal to ensure dimensionality
         matches network requirements (e.g., powers of 2). Default is 0.
     """
+
     def __init__(
         self,
         model: nn.Module,
@@ -65,8 +67,7 @@ class BioDiffusion(L.LightningModule):
         self.lr = lr
         self.conditional = conditional
         self.signal_padding = signal_padding
-        
-        
+
         # Padding logic to handle specific dimensional requirements
         self.add_signal_pad = signal_padding > 0
         self.left_pad = signal_padding // 2
@@ -90,7 +91,7 @@ class BioDiffusion(L.LightningModule):
     def prepare_noise_schedule(self) -> torch.Tensor:
         """
         Calculates the beta variance schedule for the diffusion process.
-        
+
         Returns
         -------
         torch.Tensor
@@ -192,7 +193,7 @@ class BioDiffusion(L.LightningModule):
         activity : int, optional
             The class label to condition on. If < 0, unconditional generation is used.
         cond_scale : float, optional
-            Classifier-Free Guidance scale. Determines how strongly to condition 
+            Classifier-Free Guidance scale. Determines how strongly to condition
             the generation on the label. Default is 3.0.
         end : int, optional
             The timestep to stop the reverse process. Default is 0 (full generation).
@@ -221,11 +222,11 @@ class BioDiffusion(L.LightningModule):
                 total=self.noise_steps,
                 desc="Sampling step ",
             )
-            
+
             # Reverse process loop
             for i in p_bar:
                 t = (torch.ones(batch_size) * i).int().to(self.device)
-                
+
                 # Predict noise, using Classifier-Free Guidance if conditional
                 if is_conditional:
                     cond_pred_noise = self.forward(x_t, t.to(self.device), labels)
@@ -248,7 +249,7 @@ class BioDiffusion(L.LightningModule):
                     - torch.sqrt(1.0 / alpha_hat - 1) * pred_noise
                 )
                 x_start = torch.clamp(x_start, -4.0, 4.0)
-                
+
                 # Compute posterior mean and variance to step back to x_{t-1}
                 posterior_mean = (
                     beta * torch.sqrt(alpha_hat_prev) / (1.0 - alpha_hat)
@@ -271,22 +272,18 @@ class BioDiffusion(L.LightningModule):
                 x_t = self.unpad_signal(x_t)
 
         return x_t
-    
-    
-    def full_forward(self,
-        inputs,
-        t,
-        with_cond_drop: bool = True,
-        pass_strategy: str = "single"
+
+    def full_forward(
+        self, inputs, t, with_cond_drop: bool = True, pass_strategy: str = "single"
     ):
-        
+
         cond_drop_prob = 0.5 if with_cond_drop else 0
         if self.add_signal_pad and pass_strategy == "double":
             inputs = self.pad_signal(inputs)
 
         x_t = inputs
         time_step = (torch.ones(x_t.shape[0]) * t).int().to(x_t.device)
-        
+
         pred_noise = self.model.full_forward(
             x_t, time_step, cond_drop_prob=cond_drop_prob
         )
@@ -319,17 +316,16 @@ class BioDiffusion(L.LightningModule):
 
         if self.add_signal_pad:
             x_t = self.unpad_signal(x_t)
-            
+
         return x_t
 
-        
     def simple_forward(
         self,
         inputs,
         t,
         with_cond_drop: bool = True,
         target_block: int = 4,
-        pass_strategy: str= 'single',
+        pass_strategy: str = "single",
     ):
         cond_drop_prob = 0.5 if with_cond_drop else 0
         if self.add_signal_pad and pass_strategy == "double":
@@ -337,7 +333,7 @@ class BioDiffusion(L.LightningModule):
 
         x_t = inputs
         time_step = (torch.ones(x_t.shape[0]) * t).int().to(x_t.device)
-        
+
         x = self.model.simple_forward(
             x_t,
             time=time_step,
@@ -346,7 +342,7 @@ class BioDiffusion(L.LightningModule):
             target_block=target_block,
         )
 
-        return x     
+        return x
 
     def get_init_config(self):
         return {
@@ -359,5 +355,5 @@ class BioDiffusion(L.LightningModule):
             "lr": self.lr,
             "conditional": self.is_conditional,
             "channels": self.channels,
-            "signal_padding": self.signal_padding
+            "signal_padding": self.signal_padding,
         }
