@@ -523,6 +523,7 @@ class UNetModel1d(nn.Module):
         )
 
         self._init_config = {
+            "num_classes": num_classes,
             "in_channels": in_channels,
             "model_channels": model_channels,
             "out_channels": out_channels,
