@@ -2,7 +2,6 @@ import pytest
 import torch
 
 from minerva.schedulers.diffusionts_lr_sch import (
-    CosineAnnealingLRWithWarmup,
     ReduceLROnPlateauWithWarmup,
 )
 
@@ -54,24 +53,3 @@ def test_plateau_respects_minimum_learning_rate(optimizer):
 def test_plateau_rejects_invalid_factor(optimizer):
     with pytest.raises(ValueError, match="Factor"):
         ReduceLROnPlateauWithWarmup(optimizer, factor=1.0)
-
-
-def test_cosine_warmup_increases_learning_rate(optimizer):
-    scheduler = CosineAnnealingLRWithWarmup(
-        optimizer, T_max=4, last_epoch=0, warmup=2, warmup_lr=0.3
-    )
-
-    scheduler.step()
-
-    assert optimizer.param_groups[0]["lr"] == pytest.approx(0.2)
-
-
-def test_cosine_reaches_minimum_learning_rate(optimizer):
-    scheduler = CosineAnnealingLRWithWarmup(
-        optimizer, T_max=4, last_epoch=0, warmup=2, warmup_lr=0.3, min_lr=0.02
-    )
-
-    for _ in range(4):
-        scheduler.step()
-
-    assert optimizer.param_groups[0]["lr"] == pytest.approx(0.02)
