@@ -58,6 +58,7 @@ class ResnetBlock1d(nn.Module):
     """
 
     def __init__(self, in_channels, out_channels=None, dropout=0.0):
+        """Build a residual convolution block with optional channel projection."""
         super().__init__()
         self.in_channels = in_channels
         out_channels = in_channels if out_channels is None else out_channels
@@ -120,6 +121,7 @@ class Downsample1d(nn.Module):
     """
 
     def __init__(self, in_channels):
+        """Create a stride-two convolution for temporal downsampling."""
         super().__init__()
         self.conv = nn.Conv1d(
             in_channels, in_channels, kernel_size=3, stride=2, padding=0
@@ -153,6 +155,7 @@ class Upsample1d(nn.Module):
     """
 
     def __init__(self, in_channels):
+        """Create the convolution applied after temporal interpolation."""
         super().__init__()
         self.conv = nn.Conv1d(in_channels, in_channels, kernel_size=3, padding=1)
 
@@ -183,6 +186,7 @@ class AttnBlock1d(nn.Module):
     """
 
     def __init__(self, in_channels):
+        """Build channel-preserving projections for temporal self-attention."""
         super().__init__()
         self.in_channels = in_channels
 
@@ -277,6 +281,7 @@ class Encoder1d(nn.Module):
         resolution=64,
         double_z=True,
     ):
+        """Build the convolutional encoder that predicts latent posterior parameters."""
         super().__init__()
         self.num_resolutions = len(ch_mult)
         self.num_res_blocks = num_res_blocks
@@ -393,6 +398,7 @@ class Decoder1d(nn.Module):
         z_channels=4,
         resolution=64,
     ):
+        """Build the convolutional decoder that reconstructs signals from latents."""
         super().__init__()
         self.num_resolutions = len(ch_mult)
         self.num_res_blocks = num_res_blocks
@@ -478,6 +484,7 @@ class DiagonalGaussianDistribution1d(object):
     """
 
     def __init__(self, parameters, deterministic=False):
+        """Split posterior parameters into mean and log variance along channels."""
         self.parameters = parameters
 
         # Split the channels in half: the first half is the mean, the second half is the log-variance
@@ -577,6 +584,7 @@ class AutoencoderKL1d(L.LightningModule):
         kl_weight=1.0e-6,
         original_length=60,
     ):
+        """Build the encoder, decoder, latent projections, and signal-length adapters."""
         super().__init__()
         self.save_hyperparameters()
         self.lr = lr

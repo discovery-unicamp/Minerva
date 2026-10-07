@@ -26,6 +26,7 @@ class ResidualBlock(nn.Module):
     def __init__(
         self, res_channels, skip_channels, dilation=1, diffusion_step_embed_dim_out=512
     ):
+        """Build a gated dilated block with timestep conditioning and skip output."""
         super(ResidualBlock, self).__init__()
         self.res_channels = res_channels
 
@@ -130,6 +131,7 @@ class ResidualGroup(nn.Module):
         diffusion_step_embed_dim_mid=512,
         diffusion_step_embed_dim_out=512,
     ):
+        """Build diffusion-step embeddings and a stack of cyclically dilated blocks."""
         super(ResidualGroup, self).__init__()
         self.num_res_layers = num_res_layers
         self.diffusion_step_embed_dim_in = diffusion_step_embed_dim_in
@@ -155,6 +157,7 @@ class ResidualGroup(nn.Module):
             )
 
     def forward(self, input_data, label_emb=None):
+        """Condition residual blocks on time and optional labels, then aggregate skips."""
         x, diffusion_steps = input_data
 
         # embed diffusion step t
@@ -180,6 +183,7 @@ class ResidualGroup(nn.Module):
     def forward_emb(
         self, input_data, label_emb=None, target_res_layer: Optional[int] = None
     ):
+        """Return residual features and summed skips up to the requested block."""
         x, diffusion_steps = input_data
 
         # embed diffusion step t
@@ -231,4 +235,5 @@ class ResidualGroup(nn.Module):
         return diffusion_step_embed
 
     def swish(self, x):
+        """Apply the elementwise Swish activation."""
         return x * torch.sigmoid(x)

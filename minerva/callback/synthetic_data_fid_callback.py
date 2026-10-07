@@ -67,6 +67,8 @@ def _atomic_path(destination: Path):
 
 
 class SyntheticDataFIDCallback(Callback):
+    """Generate signals and evaluate repeated TS2Vec FID at training checkpoints."""
+
     def __init__(
         self,
         every_n_train_steps: int = 100_000,

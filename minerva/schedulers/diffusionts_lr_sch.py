@@ -62,7 +62,7 @@ class ReduceLROnPlateauWithWarmup(object):
         warmup_lr=None,
         warmup=0,
     ):
-
+        """Configure linear warmup and metric-based learning-rate reductions."""
         if factor >= 1.0:
             raise ValueError("Factor should be < 1.0.")
         self.factor = factor
@@ -105,6 +105,7 @@ class ReduceLROnPlateauWithWarmup(object):
         self._reset()
 
     def _prepare_for_warmup(self):
+        """Compute per-group warmup increments from the initial and target rates."""
         if self.warmup_lr is not None:
             if isinstance(self.warmup_lr, (list, tuple)):
                 if len(self.warmup_lr) != len(self.optimizer.param_groups):
@@ -135,6 +136,7 @@ class ReduceLROnPlateauWithWarmup(object):
 
     def step(self, metrics):
         # convert `metrics` to float, in case it's a zero-dim Tensor
+        """Advance warmup or update plateau tracking using the supplied metric."""
         current = float(metrics)
         epoch = self.last_epoch + 1
         self.last_epoch = epoch
@@ -160,6 +162,7 @@ class ReduceLROnPlateauWithWarmup(object):
             self._last_lr = [group["lr"] for group in self.optimizer.param_groups]
 
     def _reduce_lr(self, epoch):
+        """Reduce each learning rate without crossing its configured minimum."""
         for i, param_group in enumerate(self.optimizer.param_groups):
             old_lr = float(param_group["lr"])
             new_lr = max(old_lr * self.factor, self.min_lrs[i])
@@ -173,6 +176,7 @@ class ReduceLROnPlateauWithWarmup(object):
 
     def _increase_lr(self, epoch):
         # used for warmup
+        """Increase learning rates by their warmup increments."""
         for i, param_group in enumerate(self.optimizer.param_groups):
             old_lr = float(param_group["lr"])
             new_lr = max(old_lr + self.warmup_lr_steps[i], self.min_lrs[i])
@@ -185,9 +189,11 @@ class ReduceLROnPlateauWithWarmup(object):
 
     @property
     def in_cooldown(self):
+        """Return whether plateau reductions are temporarily suspended."""
         return self.cooldown_counter > 0
 
     def is_better(self, a, best):
+        """Compare a metric with the best value using the configured threshold."""
         if self.mode == "min" and self.threshold_mode == "rel":
             rel_epsilon = 1.0 - self.threshold
             return a < best * rel_epsilon
@@ -203,6 +209,7 @@ class ReduceLROnPlateauWithWarmup(object):
             return a > best + self.threshold
 
     def _init_is_better(self, mode, threshold, threshold_mode):
+        """Validate comparison settings and initialize the worst possible metric."""
         if mode not in {"min", "max"}:
             raise ValueError("mode " + mode + " is unknown!")
         if threshold_mode not in {"rel", "abs"}:
@@ -220,11 +227,13 @@ class ReduceLROnPlateauWithWarmup(object):
         self._prepare_for_warmup()
 
     def state_dict(self):
+        """Return scheduler state without the optimizer reference."""
         return {
             key: value for key, value in self.__dict__.items() if key != "optimizer"
         }
 
     def load_state_dict(self, state_dict):
+        """Restore scheduler state and its metric comparison settings."""
         self.__dict__.update(state_dict)
         self._init_is_better(
             mode=self.mode, threshold=self.threshold, threshold_mode=self.threshold_mode
@@ -250,6 +259,7 @@ class CosineAnnealingLRWithWarmup(object):
         warmup_lr=None,
         warmup=0,
     ):
+        """Configure linear warmup followed by cosine learning-rate annealing."""
         self.optimizer = optimizer
         self.T_max = T_max
         self.last_epoch = last_epoch
@@ -272,6 +282,7 @@ class CosineAnnealingLRWithWarmup(object):
         self._prepare_for_warmup()
 
     def step(self):
+        """Advance one scheduler step and update all parameter-group rates."""
         epoch = self.last_epoch + 1
         self.last_epoch = epoch
 
@@ -281,6 +292,7 @@ class CosineAnnealingLRWithWarmup(object):
             self._reduce_lr(epoch)
 
     def _reduce_lr(self, epoch):
+        """Apply the cosine schedule between warmup targets and minimum rates."""
         for i, param_group in enumerate(self.optimizer.param_groups):
             progress = float(epoch - self.warmup) / float(
                 max(1, self.T_max - self.warmup)
@@ -297,6 +309,7 @@ class CosineAnnealingLRWithWarmup(object):
 
     def _increase_lr(self, epoch):
         # used for warmup
+        """Increase learning rates by their warmup increments."""
         for i, param_group in enumerate(self.optimizer.param_groups):
             old_lr = float(param_group["lr"])
             new_lr = old_lr + self.warmup_lr_steps[i]
@@ -309,6 +322,7 @@ class CosineAnnealingLRWithWarmup(object):
                 )
 
     def _prepare_for_warmup(self):
+        """Compute warmup increments and target rates for each parameter group."""
         if self.warmup_lr is not None:
             if isinstance(self.warmup_lr, (list, tuple)):
                 if len(self.warmup_lr) != len(self.optimizer.param_groups):
@@ -332,10 +346,12 @@ class CosineAnnealingLRWithWarmup(object):
             self.warmup_lr_steps = None
 
     def state_dict(self):
+        """Return scheduler state without the optimizer reference."""
         return {
             key: value for key, value in self.__dict__.items() if key != "optimizer"
         }
 
     def load_state_dict(self, state_dict):
+        """Restore scheduler state and recompute warmup increments."""
         self.__dict__.update(state_dict)
         self._prepare_for_warmup()

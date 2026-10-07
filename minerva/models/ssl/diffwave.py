@@ -60,6 +60,7 @@ class DiffWave(L.LightningModule):
         conditional: bool = False,
         num_classes: int = 6,
     ):
+        """Build the residual denoiser, diffusion schedule, and optional label embedding."""
         super(DiffWave, self).__init__()
 
         self.learning_rate = learning_rate
@@ -105,6 +106,7 @@ class DiffWave(L.LightningModule):
         self.diffusion_hyperparams = calc_diffusion_hyperparams(T, beta_0, beta_T)
 
     def get_init_config(self):
+        """Return constructor settings used to rebuild the DiffWave model."""
         return {
             "in_channels": self.in_channels,
             "res_channels": self.res_channels,
@@ -123,6 +125,7 @@ class DiffWave(L.LightningModule):
         }
 
     def forward(self, input_data, label: Optional[int | torch.Tensor] = None):
+        """Predict noise from a signal and timestep, optionally conditioned on labels."""
         input, diffusion_steps = input_data
         label_emb = None
         if self.conditional and label is not None:
@@ -135,6 +138,7 @@ class DiffWave(L.LightningModule):
         return x
 
     def training_step(self, batch, batch_idx):
+        """Compute and log noise-prediction loss for a signal-label batch."""
         X, Y = batch
         X = X.to(self.device, non_blocking=True)
         Y = Y.to(self.device, non_blocking=True)
@@ -147,6 +151,7 @@ class DiffWave(L.LightningModule):
         return loss
 
     def configure_optimizers(self):
+        """Return an Adam optimizer with the configured learning rate."""
         optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate)
         return [optimizer]
 

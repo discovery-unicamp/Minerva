@@ -8,6 +8,8 @@ from minerva.models.ssl.biodiffusion import BioDiffusion
 
 
 class BioDiffusionEncoder(nn.Module):
+    """Extract U-Net features directly or after a BioDiffusion denoising step."""
+
     def __init__(
         self,
         backbone: nn.Module,
@@ -16,6 +18,7 @@ class BioDiffusionEncoder(nn.Module):
         pass_strategy: str = "single",
         flatten: bool = True,
     ):
+        """Select the timestep and feature block, cloning the backbone for double pass."""
         super(BioDiffusionEncoder, self).__init__()
         self.backbone = backbone
         self.diffusion_timestep = diffusion_timestep
@@ -31,6 +34,7 @@ class BioDiffusionEncoder(nn.Module):
             self.backbone2.load_state_dict(self.backbone.state_dict())
 
     def forward(self, input: torch.Tensor) -> torch.Tensor:
+        """Return features from the selected U-Net block and extraction strategy."""
         x = input
         if self.is_double_pass:
             x = self.backbone.full_forward(

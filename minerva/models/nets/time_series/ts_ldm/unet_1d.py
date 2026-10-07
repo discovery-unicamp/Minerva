@@ -42,6 +42,7 @@ class GroupNorm32(nn.GroupNorm):
     """
 
     def forward(self, x):
+        """Normalize in float32 and return the original input dtype."""
         return super().forward(x.float()).type(x.dtype)
 
 
@@ -108,6 +109,7 @@ class CheckpointFunction(torch.autograd.Function):
 
     @staticmethod
     def forward(ctx, run_function, length, *args):
+        """Run without recording activations and retain inputs for recomputation."""
         ctx.run_function = run_function
         ctx.input_tensors = list(args[:length])
         ctx.input_params = list(args[length:])
@@ -117,6 +119,7 @@ class CheckpointFunction(torch.autograd.Function):
 
     @staticmethod
     def backward(ctx, *output_grads):
+        """Recompute activations and return input and parameter gradients."""
         ctx.input_tensors = [x.detach().requires_grad_(True) for x in ctx.input_tensors]
         with torch.enable_grad():
             shallow_copies = [x.view_as(x) for x in ctx.input_tensors]
@@ -164,6 +167,7 @@ class TimestepBlock(nn.Module):
 
     @abstractmethod
     def forward(self, x, emb):
+        """Define the interface for layers receiving a timestep embedding."""
         pass
 
 
@@ -175,6 +179,7 @@ class TimestepEmbedSequential(nn.Sequential, TimestepBlock):
     """
 
     def forward(self, x, emb):
+        """Pass the timestep embedding only to layers that accept it."""
         for layer in self:
             if isinstance(layer, TimestepBlock):
                 x = layer(x, emb)
@@ -193,10 +198,12 @@ class Upsample1d(nn.Module):
     """
 
     def __init__(self, channels):
+        """Create a convolution that preserves channels after upsampling."""
         super().__init__()
         self.conv = nn.Conv1d(channels, channels, 3, padding=1)
 
     def forward(self, x):
+        """Double the temporal length with nearest-neighbor interpolation and convolve."""
         x = F.interpolate(x, scale_factor=2.0, mode="nearest")
         return self.conv(x)
 
@@ -211,10 +218,12 @@ class Downsample1d(nn.Module):
     """
 
     def __init__(self, channels):
+        """Create a stride-two convolution that preserves the channel count."""
         super().__init__()
         self.conv = nn.Conv1d(channels, channels, 3, stride=2, padding=1)
 
     def forward(self, x):
+        """Reduce the temporal length using a stride-two convolution."""
         return self.conv(x)
 
 
@@ -250,6 +259,7 @@ class ResBlock1d(TimestepBlock):
         use_scale_shift_norm=False,
         dilation=1,
     ):
+        """Build a residual block conditioned by a diffusion timestep embedding."""
         super().__init__()
         self.channels = channels
         self.emb_channels = emb_channels
@@ -295,6 +305,7 @@ class ResBlock1d(TimestepBlock):
             self.skip_connection = nn.Conv1d(channels, self.out_channels, 1)
 
     def forward(self, x, emb):
+        """Combine convolutional features, timestep conditioning, and the skip path."""
         h = self.in_layers(x)
         emb_out = self.emb_layers(emb).type(h.dtype).unsqueeze(-1)
 
@@ -324,6 +335,7 @@ class AttentionBlock1d(nn.Module):
     """
 
     def __init__(self, channels, num_head_channels=32, use_checkpoint=False):
+        """Build multihead attention projections and optional activation checkpointing."""
         super().__init__()
         self.channels = channels
         self.use_checkpoint = use_checkpoint
@@ -338,9 +350,11 @@ class AttentionBlock1d(nn.Module):
         self.proj_out = zero_module(nn.Conv1d(channels, channels, 1))
 
     def forward(self, x):
+        """Apply temporal self-attention, optionally recomputing activations backward."""
         return checkpoint(self._forward, (x,), self.parameters(), self.use_checkpoint)
 
     def _forward(self, x):
+        """Compute scaled query-key attention and add the projected residual."""
         b, c, l = x.shape
         qkv = self.qkv(self.norm(x))
         q, k, v = qkv.chunk(3, dim=1)
@@ -406,6 +420,7 @@ class UNetModel1d(nn.Module):
         use_checkpoint: bool = False,
         num_classes=None,
     ):
+        """Build the temporal U-Net with timestep and optional class conditioning."""
         super().__init__()
 
         self.in_channels = in_channels
@@ -607,4 +622,5 @@ class UNetModel1d(nn.Module):
         return h
 
     def get_init_config(self):
+        """Return a copy of the constructor configuration for reconstruction."""
         return self._init_config.copy()

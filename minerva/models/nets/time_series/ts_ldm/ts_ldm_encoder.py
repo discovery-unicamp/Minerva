@@ -39,6 +39,7 @@ class TSLatentDiffusionEncoder(nn.Module):
         pass_strategy: str = "single",
         flatten: bool = True,
     ):
+        """Select a diffusion timestep and feature block, creating a second pass if needed."""
         super(TSLatentDiffusionEncoder, self).__init__()
         self.backbone = backbone
         self.diffusion_timestep = diffusion_timestep

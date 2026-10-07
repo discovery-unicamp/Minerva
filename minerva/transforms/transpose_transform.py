@@ -5,6 +5,8 @@ from typing import Union, Tuple
 
 
 class TransposeTransform(_Transform):
+    """Exchange two dimensions of a NumPy array or PyTorch tensor."""
+
     def __init__(self, dim0: int, dim1: int):
         """
         A transform that transposes the input data along two dimensions. When applied to a

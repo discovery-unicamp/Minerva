@@ -9,6 +9,7 @@ from torch import nn
 
 # helpers functions
 def exists(x):
+    """Return whether a value is not None."""
     return x is not None
 
 
@@ -51,10 +52,12 @@ class Residual(nn.Module):
     """
 
     def __init__(self, fn):
+        """Wrap a module with an additive residual connection."""
         super().__init__()
         self.fn = fn
 
     def forward(self, x, *args, **kwargs):
+        """Add the wrapped module output to its input."""
         return self.fn(x, *args, **kwargs) + x
 
 
@@ -158,6 +161,7 @@ class LayerNorm(nn.Module):
     """
 
     def __init__(self, dim):
+        """Create a learned gain for channel-wise normalization."""
         super().__init__()
         self.g = nn.Parameter(torch.ones(1, dim, 1))
 
@@ -192,6 +196,7 @@ class PreNorm(nn.Module):
     """
 
     def __init__(self, dim, fn):
+        """Build channel normalization to apply before the wrapped module."""
         super().__init__()
         self.fn = fn
         self.norm = LayerNorm(dim)
@@ -224,6 +229,7 @@ class SinusoidalPosEmb(nn.Module):
     """
 
     def __init__(self, dim):
+        """Set the dimension of the sinusoidal timestep embedding."""
         super().__init__()
         self.dim = dim
 
@@ -264,6 +270,7 @@ class RandomOrLearnedSinusoidalPosEmb(nn.Module):
     """
 
     def __init__(self, dim, is_random=False):
+        """Initialize fixed random or trainable Fourier frequencies."""
         super().__init__()
         assert (dim % 2) == 0
         half_dim = dim // 2
@@ -308,6 +315,7 @@ class Block(nn.Module):
     """
 
     def __init__(self, dim, dim_out, groups=8):
+        """Build a weight-standardized convolution, group normalization, and activation."""
         super().__init__()
         self.proj = WeightStandardizedConv2d(dim, dim_out, 3, padding=1)
         self.norm = nn.GroupNorm(groups, dim_out)
@@ -359,6 +367,7 @@ class ResnetBlock(nn.Module):
     def __init__(
         self, dim, dim_out, *, time_emb_dim=None, classes_emb_dim=None, groups=8
     ):
+        """Build a residual block modulated by time and class embeddings."""
         super().__init__()
         self.mlp = (
             nn.Sequential(
@@ -422,6 +431,7 @@ class LinearAttention(nn.Module):
     """
 
     def __init__(self, dim, heads=4, dim_head=32):
+        """Build multihead query-key-value projections for linear attention."""
         super().__init__()
         self.scale = dim_head**-0.5
         self.heads = heads
@@ -475,6 +485,7 @@ class Attention(nn.Module):
     """
 
     def __init__(self, dim, heads=4, dim_head=32):
+        """Build multihead query-key-value projections for full self-attention."""
         super().__init__()
         self.scale = dim_head**-0.5
         self.heads = heads
@@ -570,6 +581,7 @@ class Unet1D_cls_free(nn.Module):
         learned_sinusoidal_dim: int = 16,
         n_timesteps: int = 100,
     ):
+        """Build a temporal U-Net with class embeddings and conditional dropout."""
         super().__init__()
 
         self._init_config = {

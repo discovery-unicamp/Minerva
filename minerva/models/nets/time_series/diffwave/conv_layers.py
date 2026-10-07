@@ -20,6 +20,7 @@ class Conv(nn.Module):
     """
 
     def __init__(self, in_channels, out_channels, kernel_size=3, dilation=1):
+        """Create a weight-normalized dilated convolution with length-preserving padding."""
         super(Conv, self).__init__()
         self.padding = dilation * (kernel_size - 1) // 2
         self.conv = nn.Conv1d(
@@ -64,11 +65,13 @@ class ZeroConv1d(nn.Module):
     """
 
     def __init__(self, in_channel, out_channel):
+        """Create a pointwise convolution with zero weights and bias."""
         super(ZeroConv1d, self).__init__()
         self.conv = nn.Conv1d(in_channel, out_channel, kernel_size=1, padding=0)
         self.conv.weight.data.zero_()
         self.conv.bias.data.zero_()
 
     def forward(self, x):
+        """Project the input channels through the pointwise convolution."""
         out = self.conv(x)
         return out

@@ -95,10 +95,12 @@ def cond_fn(x, t, classifier=None, y=None, classifier_scale=1.0):
 
 
 def normalize_to_neg_one_to_one(x):
+    """Map values from [0, 1] to [-1, 1] without clipping."""
     return x * 2 - 1
 
 
 def unnormalize_to_zero_to_one(x):
+    """Map values from [-1, 1] to [0, 1] without clipping."""
     return (x + 1) * 0.5
 
 
@@ -117,10 +119,12 @@ class SinusoidalPosEmb(nn.Module):
     """
 
     def __init__(self, dim):
+        """Set the dimension of the sinusoidal timestep embedding."""
         super().__init__()
         self.dim = dim
 
     def forward(self, x):
+        """Encode each timestep as sine and cosine features."""
         device = x.device
         half_dim = self.dim // 2
         emb = math.log(10000) / (half_dim - 1)
@@ -147,6 +151,7 @@ class LearnablePositionalEncoding(nn.Module):
     """
 
     def __init__(self, d_model, dropout=0.1, max_len=1024):
+        """Initialize trainable position embeddings and output dropout."""
         super(LearnablePositionalEncoding, self).__init__()
         self.dropout = nn.Dropout(p=dropout)
         # Each position gets its own embedding
@@ -175,12 +180,14 @@ class moving_avg(nn.Module):
     """
 
     def __init__(self, kernel_size, stride):
+        """Configure the pooling window and stride for trend estimation."""
         super(moving_avg, self).__init__()
         self.kernel_size = kernel_size
         self.avg = nn.AvgPool1d(kernel_size=kernel_size, stride=stride, padding=0)
 
     def forward(self, x):
         # padding on the both ends of time series
+        """Pad with endpoint values and compute a moving average over time."""
         front = x[:, 0:1, :].repeat(
             1, self.kernel_size - 1 - math.floor((self.kernel_size - 1) // 2), 1
         )
@@ -197,10 +204,12 @@ class series_decomp(nn.Module):
     """
 
     def __init__(self, kernel_size):
+        """Create a moving-average filter for separating trend and residual."""
         super(series_decomp, self).__init__()
         self.moving_avg = moving_avg(kernel_size, stride=1)
 
     def forward(self, x):
+        """Return the residual and moving-average trend of the input series."""
         moving_mean = self.moving_avg(x)
         res = x - moving_mean
         return res, moving_mean
@@ -212,11 +221,13 @@ class series_decomp_multi(nn.Module):
     """
 
     def __init__(self, kernel_size):
+        """Create multiple moving-average filters and learned mixture weights."""
         super(series_decomp_multi, self).__init__()
         self.moving_avg = [moving_avg(kernel, stride=1) for kernel in kernel_size]
         self.layer = torch.nn.Linear(1, len(kernel_size))
 
     def forward(self, x):
+        """Return residual and trend using a learned mixture of moving averages."""
         moving_mean = []
         for func in self.moving_avg:
             moving_avg = func(x)
@@ -233,15 +244,20 @@ class Transpose(nn.Module):
     """Wrapper class of torch.transpose() for Sequential module."""
 
     def __init__(self, shape: tuple):
+        """Store the pair of dimensions to exchange."""
         super(Transpose, self).__init__()
         self.shape = shape
 
     def forward(self, x):
+        """Exchange the configured tensor dimensions."""
         return x.transpose(*self.shape)
 
 
 class Conv_MLP(nn.Module):
+    """Project sequence features with a temporal convolution and dropout."""
+
     def __init__(self, in_dim, out_dim, resid_pdrop=0.0):
+        """Build the channel projection and its input-axis conversion."""
         super().__init__()
         self.sequential = nn.Sequential(
             Transpose(shape=(1, 2)),
@@ -250,11 +266,15 @@ class Conv_MLP(nn.Module):
         )
 
     def forward(self, x):
+        """Project features while preserving batch-time-feature axis order."""
         return self.sequential(x).transpose(1, 2)
 
 
 class Transformer_MLP(nn.Module):
+    """Apply the convolutional feed-forward subnetwork of a transformer block."""
+
     def __init__(self, n_embd, mlp_hidden_times, act, resid_pdrop):
+        """Build channel expansion, activation, projection, and dropout layers."""
         super().__init__()
         self.sequential = nn.Sequential(
             nn.Conv1d(
@@ -281,19 +301,27 @@ class Transformer_MLP(nn.Module):
         )
 
     def forward(self, x):
+        """Apply the convolutional feed-forward layers to input features."""
         return self.sequential(x)
 
 
 class GELU2(nn.Module):
+    """Approximate GELU using a sigmoid-gated linear activation."""
+
     def __init__(self):
+        """Initialize the parameter-free activation module."""
         super().__init__()
 
     def forward(self, x):
+        """Multiply each input by its scaled sigmoid gate."""
         return x * F.sigmoid(1.702 * x)
 
 
 class AdaLayerNorm(nn.Module):
+    """Modulate layer-normalized features using diffusion timestep embeddings."""
+
     def __init__(self, n_embd):
+        """Build timestep embeddings and adaptive scale and shift projections."""
         super().__init__()
         self.emb = SinusoidalPosEmb(n_embd)
         self.silu = nn.SiLU()
@@ -301,6 +329,7 @@ class AdaLayerNorm(nn.Module):
         self.layernorm = nn.LayerNorm(n_embd, elementwise_affine=False)
 
     def forward(self, x, timestep, label_emb=None):
+        """Normalize features and apply time-dependent scale and shift."""
         emb = self.emb(timestep)
         if label_emb is not None:
             emb = emb + label_emb
@@ -311,7 +340,10 @@ class AdaLayerNorm(nn.Module):
 
 
 class AdaInsNorm(nn.Module):
+    """Modulate instance-normalized features using diffusion timestep embeddings."""
+
     def __init__(self, n_embd):
+        """Build instance normalization and timestep-conditioned modulation."""
         super().__init__()
         self.emb = SinusoidalPosEmb(n_embd)
         self.silu = nn.SiLU()
@@ -319,6 +351,7 @@ class AdaInsNorm(nn.Module):
         self.instancenorm = nn.InstanceNorm1d(n_embd)
 
     def forward(self, x, timestep, label_emb=None):
+        """Apply instance normalization with time-dependent scale and shift."""
         emb = self.emb(timestep)
         if label_emb is not None:
             emb = emb + label_emb

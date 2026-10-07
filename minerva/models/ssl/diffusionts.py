@@ -26,6 +26,7 @@ from torch.nn.utils import clip_grad_norm_
 
 
 def linear_beta_schedule(timesteps):
+    """Return linearly spaced noise variances scaled by the diffusion step count."""
     scale = 1000 / timesteps
     beta_start = scale * 0.0001
     beta_end = scale * 0.02
@@ -251,6 +252,7 @@ class DiffusionTS(L.LightningModule):
         return None
 
     def on_train_batch_end(self, outputs, batch, batch_idx):
+        """Stop training when the manual optimizer-step counter reaches its limit."""
         if self.max_steps is not None and self.step_counter >= self.max_steps:
             self.trainer.should_stop = True
 
@@ -272,17 +274,20 @@ class DiffusionTS(L.LightningModule):
         self.sch = ReduceLROnPlateauWithWarmup(self.opt, **self.scheduler_hparams)
 
     def predict_noise_from_start(self, x_t, t, x0):
+        """Recover the implied noise from noisy and predicted clean series."""
         return (
             extract(self.sqrt_recip_alphas_cumprod, t, x_t.shape) * x_t - x0
         ) / extract(self.sqrt_recipm1_alphas_cumprod, t, x_t.shape)
 
     def predict_start_from_noise(self, x_t, t, noise):
+        """Recover the clean series estimate from noisy input and predicted noise."""
         return (
             extract(self.sqrt_recip_alphas_cumprod, t, x_t.shape) * x_t
             - extract(self.sqrt_recipm1_alphas_cumprod, t, x_t.shape) * noise
         )
 
     def q_posterior(self, x_start, x_t, t):
+        """Return the posterior mean, variance, and clipped log variance."""
         posterior_mean = (
             extract(self.posterior_mean_coef1, t, x_t.shape) * x_start
             + extract(self.posterior_mean_coef2, t, x_t.shape) * x_t
@@ -294,11 +299,13 @@ class DiffusionTS(L.LightningModule):
         return posterior_mean, posterior_variance, posterior_log_variance_clipped
 
     def output(self, x, t, padding_masks=None):
+        """Combine the transformer trend and seasonal outputs into a clean estimate."""
         trend, season = self.model(x, t, padding_masks=padding_masks)
         model_output = trend + season
         return model_output
 
     def model_predictions(self, x, t, clip_x_start=False, padding_masks=None):
+        """Return predicted noise and clean series, optionally clipping the latter."""
         if padding_masks is None:
             padding_masks = torch.ones(
                 x.shape[0], self.seq_length, dtype=bool, device=x.device
@@ -313,6 +320,7 @@ class DiffusionTS(L.LightningModule):
         return pred_noise, x_start
 
     def p_mean_variance(self, x, t, clip_denoised=True):
+        """Compute reverse-step statistics and the predicted clean series."""
         _, x_start = self.model_predictions(x, t)
         if clip_denoised:
             x_start.clamp_(-1.0, 1.0)
@@ -322,6 +330,7 @@ class DiffusionTS(L.LightningModule):
         return model_mean, posterior_variance, posterior_log_variance, x_start
 
     def p_sample(self, x, t: int, clip_denoised=True, cond_fn=None, model_kwargs=None):
+        """Sample one reverse step and return it with the clean series estimate."""
         b, *_, device = *x.shape, self.betas.device
         batched_times = torch.full((x.shape[0],), t, device=x.device, dtype=torch.long)
         model_mean, _, model_log_variance, x_start = self.p_mean_variance(
@@ -342,6 +351,7 @@ class DiffusionTS(L.LightningModule):
 
     @torch.no_grad()
     def sample(self, shape):
+        """Generate series from Gaussian noise using every reverse diffusion step."""
         device = self.betas.device
         img = torch.randn(shape, device=device)
         for t in tqdm(
@@ -356,6 +366,7 @@ class DiffusionTS(L.LightningModule):
 
     @torch.no_grad()
     def fast_sample(self, shape, clip_denoised=True):
+        """Generate series using the configured reduced set of diffusion timesteps."""
         batch, device, total_timesteps, sampling_timesteps, eta = (
             shape[0],
             self.betas.device,
@@ -395,6 +406,21 @@ class DiffusionTS(L.LightningModule):
         return img
 
     def generate_mts(self, batch_size=16, model_kwargs=None, cond_fn=None):
+        """Generate a batch with the configured full or accelerated sampler.
+
+        Parameters
+        ----------
+        batch_size : int, optional
+            Number of series to generate, by default 16.
+        model_kwargs : dict, optional
+            Keyword arguments passed to the conditioning function.
+        cond_fn : callable, optional
+            Function returning a guidance gradient from ``x``, ``t``, and keyword arguments.
+
+        Returns
+        -------
+        torch.Tensor
+            Generated series with shape ``(batch_size, seq_length, feature_size)``."""
         feature_size, seq_length = self.feature_size, self.seq_length
         if cond_fn is not None:
             model_kwargs = {} if model_kwargs is None else model_kwargs
@@ -411,6 +437,7 @@ class DiffusionTS(L.LightningModule):
 
     @property
     def loss_fn(self):
+        """Select the elementwise L1 or L2 reconstruction loss."""
         if self.loss_type == "l1":
             return F.l1_loss
         elif self.loss_type == "l2":
@@ -419,6 +446,7 @@ class DiffusionTS(L.LightningModule):
             raise ValueError(f"invalid loss type {self.loss_type}")
 
     def q_sample(self, x_start, t, noise=None):
+        """Add timestep-dependent Gaussian noise to a clean series."""
         noise = default(noise, lambda: torch.randn_like(x_start))
         return (
             extract(self.sqrt_alphas_cumprod, t, x_start.shape) * x_start
@@ -426,6 +454,7 @@ class DiffusionTS(L.LightningModule):
         )
 
     def _train_loss(self, x_start, t, target=None, noise=None, padding_masks=None):
+        """Compute weighted reconstruction loss with optional Fourier-domain loss."""
         noise = default(noise, lambda: torch.randn_like(x_start))
         if target is None:
             target = x_start
@@ -450,6 +479,7 @@ class DiffusionTS(L.LightningModule):
         return train_loss.mean()
 
     def forward(self, x, **kwargs):
+        """Validate series dimensions and compute loss at random diffusion timesteps."""
         (
             b,
             c,
@@ -466,6 +496,7 @@ class DiffusionTS(L.LightningModule):
         return self._train_loss(x_start=x, t=t, **kwargs)
 
     def return_components(self, x, t: int):
+        """Return trend, seasonality, residual, and noisy input at the chosen timestep."""
         (
             b,
             c,
@@ -493,6 +524,27 @@ class DiffusionTS(L.LightningModule):
         clip_denoised=True,
         model_kwargs=None,
     ):
+        """Fill missing values with accelerated sampling and Langevin refinement.
+
+        Parameters
+        ----------
+        shape : tuple of int
+            Output shape ``(batch, time, features)`` matching ``target``.
+        target : torch.Tensor
+            Reference series containing the observed values.
+        sampling_timesteps : int
+            Number of reverse sampling steps.
+        partial_mask : torch.Tensor
+            Boolean mask with True entries marking observed values to preserve.
+        clip_denoised : bool, optional
+            Clip clean predictions to [-1, 1], by default True.
+        model_kwargs : dict
+            Arguments for ``langevin_fn``, including ``coef`` and ``learning_rate``.
+
+        Returns
+        -------
+        torch.Tensor
+            Completed series retaining the observed target values."""
         if partial_mask is None:
             raise ValueError("partial_mask is required for infill")
         model_kwargs = {} if model_kwargs is None else model_kwargs
@@ -593,6 +645,7 @@ class DiffusionTS(L.LightningModule):
         clip_denoised=True,
         model_kwargs=None,
     ):
+        """Take a reverse step, refine missing values, and restore noisy observations."""
         model_kwargs = {} if model_kwargs is None else model_kwargs
         b, *_, device = *x.shape, self.betas.device
         batched_times = torch.full((x.shape[0],), t, device=x.device, dtype=torch.long)
@@ -630,7 +683,7 @@ class DiffusionTS(L.LightningModule):
         t,
         coef_=0.0,
     ):
-
+        """Refine missing entries by optimizing reconstruction of observed values."""
         if t[0].item() < self.num_timesteps * 0.05:
             K = 0
         elif t[0].item() > self.num_timesteps * 0.9:
@@ -737,6 +790,7 @@ class DiffusionTS(L.LightningModule):
     def fast_sample_cond(
         self, shape, clip_denoised=True, model_kwargs=None, cond_fn=None
     ):
+        """Generate series with accelerated sampling and a conditioning gradient."""
         model_kwargs = {} if model_kwargs is None else model_kwargs
         batch, device, total_timesteps, sampling_timesteps, eta = (
             shape[0],

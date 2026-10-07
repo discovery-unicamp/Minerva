@@ -168,6 +168,7 @@ class LitEma(nn.Module):
     """
 
     def __init__(self, model, decay=0.9999, use_num_updates=True):
+        """Register shadow buffers for the trainable parameters and EMA update count."""
         super().__init__()
         if decay < 0.0 or decay > 1.0:
             raise ValueError("Decay must be between 0 and 1")
@@ -310,6 +311,7 @@ class DDPM(L.LightningModule):
         l_simple_weight=1.0,
         parameterization="eps",
     ):
+        """Configure the denoiser, diffusion schedule, loss weights, and optional EMA."""
         super().__init__()
         self.parameterization = parameterization
         self.clip_denoised = clip_denoised
@@ -432,6 +434,7 @@ class DDPM(L.LightningModule):
 
     @contextmanager
     def ema_scope(self):
+        """Temporarily use EMA weights and restore the original weights on exit."""
         if self.use_ema:
             self.model_ema.store(self.model.parameters())
             self.model_ema.copy_to(self.model)
@@ -534,6 +537,7 @@ class DDPM(L.LightningModule):
         return self.p_losses(x, t, *args, **kwargs)
 
     def on_train_batch_end(self, outputs, batch, batch_idx):
+        """Update EMA shadow parameters after a training batch when enabled."""
         if self.use_ema:
             self.model_ema(self.model)
 
@@ -586,6 +590,7 @@ class TSLatentDiffusion(DDPM):
         *args,
         **kwargs,
     ):
+        """Attach the frozen autoencoder and configure latent scaling and optimization."""
         super().__init__(unet_model=unet_model, *args, **kwargs)
 
         self.unconditional = unconditional

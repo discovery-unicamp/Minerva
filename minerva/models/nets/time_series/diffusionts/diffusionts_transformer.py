@@ -23,6 +23,7 @@ class TrendBlock(nn.Module):
     """
 
     def __init__(self, in_dim, out_dim, in_feat, out_feat, act):
+        """Create polynomial basis functions and learned trend coefficients."""
         super(TrendBlock, self).__init__()
         trend_poly = 3
         self.trend = nn.Sequential(
@@ -40,6 +41,7 @@ class TrendBlock(nn.Module):
         )
 
     def forward(self, input):
+        """Project features onto the polynomial basis to produce the trend."""
         b, c, h = input.shape
         x = self.trend(input).transpose(1, 2)
         trend_vals = torch.matmul(x.transpose(1, 2), self.poly_space.to(x.device))
@@ -53,11 +55,13 @@ class MovingBlock(nn.Module):
     """
 
     def __init__(self, out_dim):
+        """Choose a moving-average window from the output length."""
         super(MovingBlock, self).__init__()
         size = max(min(int(out_dim / 4), 24), 4)
         self.decomp = series_decomp(size)
 
     def forward(self, input):
+        """Separate the input into residual and moving-average trend."""
         b, c, h = input.shape
         x, trend_vals = self.decomp(input)
         return x, trend_vals
@@ -69,6 +73,7 @@ class FourierLayer(nn.Module):
     """
 
     def __init__(self, d_model, low_freq=1, factor=1):
+        """Configure the lowest frequency and the number of dominant modes to retain."""
         super().__init__()
         self.d_model = d_model
         self.factor = factor
@@ -94,6 +99,7 @@ class FourierLayer(nn.Module):
         return self.extrapolate(x_freq, f, t)
 
     def extrapolate(self, x_freq, f, t):
+        """Reconstruct a real temporal signal from selected Fourier coefficients."""
         x_freq = torch.cat([x_freq, x_freq.conj()], dim=1)
         f = torch.cat([f, -f], dim=1)
         t = rearrange(torch.arange(t, dtype=torch.float), "t -> () () t ()").to(
@@ -106,6 +112,7 @@ class FourierLayer(nn.Module):
         return reduce(x_time, "b f t d -> b t d", "sum")
 
     def topk_freq(self, x_freq):
+        """Select the highest-amplitude frequencies for each sample and feature."""
         length = x_freq.shape[1]
         top_k = int(self.factor * math.log(length))
         values, indices = torch.topk(
@@ -125,6 +132,7 @@ class SeasonBlock(nn.Module):
     """
 
     def __init__(self, in_dim, out_dim, factor=1):
+        """Build sine and cosine bases and a projection for seasonal coefficients."""
         super(SeasonBlock, self).__init__()
         season_poly = factor * min(32, int(out_dim // 2))
         self.season = nn.Conv1d(
@@ -145,6 +153,7 @@ class SeasonBlock(nn.Module):
         self.poly_space = torch.cat([s1, s2])
 
     def forward(self, input):
+        """Project input features onto the seasonal basis."""
         b, c, h = input.shape
         x = self.season(input)
         season_vals = torch.matmul(x.transpose(1, 2), self.poly_space.to(x.device))
@@ -153,6 +162,8 @@ class SeasonBlock(nn.Module):
 
 
 class FullAttention(nn.Module):
+    """Compute multihead self-attention across the full input sequence."""
+
     def __init__(
         self,
         n_embd,  # the embed dim
@@ -160,6 +171,7 @@ class FullAttention(nn.Module):
         attn_pdrop=0.1,  # attention dropout prob
         resid_pdrop=0.1,  # residual attention dropout prob
     ):
+        """Build query, key, value, and output projections with dropout."""
         super().__init__()
         assert n_embd % n_head == 0
         # key, query, value projections for all heads
@@ -175,6 +187,7 @@ class FullAttention(nn.Module):
         self.n_head = n_head
 
     def forward(self, x, mask=None):
+        """Return self-attended features and mean attention weights across heads."""
         B, T, C = x.size()
         k = (
             self.key(x).view(B, T, self.n_head, C // self.n_head).transpose(1, 2)
@@ -201,6 +214,8 @@ class FullAttention(nn.Module):
 
 
 class CrossAttention(nn.Module):
+    """Attend to encoder features using queries from a decoder sequence."""
+
     def __init__(
         self,
         n_embd,  # the embed dim
@@ -209,6 +224,7 @@ class CrossAttention(nn.Module):
         attn_pdrop=0.1,  # attention dropout prob
         resid_pdrop=0.1,  # residual attention dropout prob
     ):
+        """Build decoder queries and encoder key-value projections."""
         super().__init__()
         assert n_embd % n_head == 0
         # key, query, value projections for all heads
@@ -224,6 +240,7 @@ class CrossAttention(nn.Module):
         self.n_head = n_head
 
     def forward(self, x, encoder_output, mask=None):
+        """Return cross-attended decoder features and mean attention weights."""
         B, T, C = x.size()
         B, T_E, _ = encoder_output.size()
         # calculate query, key, values for all heads in batch and move head forward to be the batch dim
@@ -267,6 +284,7 @@ class EncoderBlock(nn.Module):
         mlp_hidden_times=4,
         activate="GELU",
     ):
+        """Build timestep-conditioned self-attention and feed-forward layers."""
         super().__init__()
 
         self.ln1 = AdaLayerNorm(n_embd)
@@ -289,6 +307,7 @@ class EncoderBlock(nn.Module):
         )
 
     def forward(self, x, timestep, mask=None, label_emb=None):
+        """Apply attention and feed-forward residual updates conditioned on time."""
         a, att = self.attn(self.ln1(x, timestep, label_emb), mask=mask)
         x = x + a
         x = x + self.mlp(self.ln2(x))  # only one really use encoder_output
@@ -296,6 +315,8 @@ class EncoderBlock(nn.Module):
 
 
 class Encoder(nn.Module):
+    """Stack timestep-conditioned transformer blocks to encode a series."""
+
     def __init__(
         self,
         n_layer=14,
@@ -306,6 +327,7 @@ class Encoder(nn.Module):
         mlp_hidden_times=4,
         block_activate="GELU",
     ):
+        """Build the configured number of temporal encoder blocks."""
         super().__init__()
 
         self.blocks = nn.Sequential(
@@ -323,6 +345,7 @@ class Encoder(nn.Module):
         )
 
     def forward(self, input, t, padding_masks=None, label_emb=None):
+        """Pass sequence embeddings through all encoder blocks."""
         x = input
         for block_idx in range(len(self.blocks)):
             x, _ = self.blocks[block_idx](x, t, mask=padding_masks, label_emb=label_emb)
@@ -344,6 +367,7 @@ class DecoderBlock(nn.Module):
         activate="GELU",
         condition_dim=1024,
     ):
+        """Build attention, trend, seasonality, and feed-forward sublayers."""
         super().__init__()
 
         self.ln1 = AdaLayerNorm(n_embd)
@@ -384,6 +408,7 @@ class DecoderBlock(nn.Module):
         self.linear = nn.Linear(n_embd, n_feat)
 
     def forward(self, x, encoder_output, timestep, mask=None, label_emb=None):
+        """Return centered features, projected mean, trend, and seasonal components."""
         a, att = self.attn1(self.ln1(x, timestep, label_emb), mask=mask)
         x = x + a
         a, att = self.attn2(self.ln1_1(x, timestep), encoder_output, mask=mask)
@@ -396,6 +421,8 @@ class DecoderBlock(nn.Module):
 
 
 class Decoder(nn.Module):
+    """Accumulate trend and seasonal components across transformer decoder blocks."""
+
     def __init__(
         self,
         n_channel,
@@ -409,6 +436,7 @@ class Decoder(nn.Module):
         block_activate="GELU",
         condition_dim=512,
     ):
+        """Build decoder blocks conditioned on encoder features."""
         super().__init__()
         self.d_model = n_embd
         self.n_feat = n_feat
@@ -430,6 +458,7 @@ class Decoder(nn.Module):
         )
 
     def forward(self, x, t, enc, padding_masks=None, label_emb=None):
+        """Return decoded features and the accumulated mean, trend, and seasonality."""
         b, c, _ = x.shape
         # att_weights = []
         mean = []
@@ -448,6 +477,8 @@ class Decoder(nn.Module):
 
 
 class Transformer(nn.Module):
+    """Denoise time series by predicting trend and seasonal residual components."""
+
     def __init__(
         self,
         n_feat: int,
@@ -464,6 +495,7 @@ class Transformer(nn.Module):
         conv_params: Optional[tuple] = None,
         **kwargs,
     ):
+        """Build feature projections, position embeddings, and encoder-decoder stacks."""
         super().__init__()
         self.emb = Conv_MLP(n_feat, n_embd, resid_pdrop=resid_pdrop)
         self.inverse = Conv_MLP(n_embd, n_feat, resid_pdrop=resid_pdrop)
@@ -525,6 +557,7 @@ class Transformer(nn.Module):
         )
 
     def forward(self, input, t, padding_masks=None, return_res=False):
+        """Return trend and seasonal residual, optionally separating the residual term."""
         emb = self.emb(input)
         inp_enc = self.pos_enc(emb)
         enc_cond = self.encoder(inp_enc, t, padding_masks=padding_masks)

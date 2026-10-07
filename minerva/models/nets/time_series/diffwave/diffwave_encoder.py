@@ -40,6 +40,7 @@ class DiffWaveEncoder(nn.Module):
         pass_strategy: str = "single",
         flatten: bool = False,
     ):
+        """Configure the timestep, residual block, and feature extraction strategy."""
         super(DiffWaveEncoder, self).__init__()
         self.backbone = backbone
         self.backbone2: DiffWave = None

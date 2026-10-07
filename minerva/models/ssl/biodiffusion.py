@@ -58,6 +58,7 @@ class BioDiffusion(L.LightningModule):
         channels: int = 3,
         signal_padding: int = 0,
     ) -> None:
+        """Configure the U-Net, diffusion buffers, optimizer rate, and signal padding."""
         super(BioDiffusion, self).__init__()
         self.noise_steps = noise_steps
         self.scheduler_type = schedule_type
@@ -118,6 +119,7 @@ class BioDiffusion(L.LightningModule):
 
     def forward(self, inputs, t, labels=None, with_cond_drop: bool = True):
         # 50% chance to drop condition for Classifier-Free Guidance during training
+        """Predict noise with optional class labels and a conditional-dropout setting."""
         cond_drop_prob = 0.5 if with_cond_drop else 0
 
         if labels is not None:
@@ -126,19 +128,23 @@ class BioDiffusion(L.LightningModule):
             return self.model(inputs, t, cond_drop_prob=cond_drop_prob)
 
     def pad_signal(self, signal: torch.Tensor) -> torch.Tensor:
+        """Add configured zero padding to both temporal ends of the signal."""
         return torch.nn.functional.pad(
             signal, (self.left_pad, self.right_pad), mode="constant", value=0
         )
 
     def unpad_signal(self, signal: torch.Tensor) -> torch.Tensor:
+        """Remove the configured temporal padding from the signal."""
         shape = signal.shape
         signal = signal[:, :, self.left_pad : shape[-1] - self.right_pad]
         return signal
 
     def configure_optimizers(self):
+        """Return an AdamW optimizer for the denoising model parameters."""
         return torch.optim.AdamW(self.model.parameters(), lr=self.lr)
 
     def training_step(self, batch):
+        """Train on randomly noised signals using noise-prediction MSE."""
         inputs, labels = batch
         bs = inputs.shape[0]
         device = inputs.device
@@ -276,7 +282,7 @@ class BioDiffusion(L.LightningModule):
     def full_forward(
         self, inputs, t, with_cond_drop: bool = True, pass_strategy: str = "single"
     ):
-
+        """Perform one reverse diffusion step and remove configured signal padding."""
         cond_drop_prob = 0.5 if with_cond_drop else 0
         if self.add_signal_pad and pass_strategy == "double":
             inputs = self.pad_signal(inputs)
@@ -327,6 +333,7 @@ class BioDiffusion(L.LightningModule):
         target_block: int = 4,
         pass_strategy: str = "single",
     ):
+        """Extract U-Net features at a selected timestep and encoder block."""
         cond_drop_prob = 0.5 if with_cond_drop else 0
         if self.add_signal_pad and pass_strategy == "double":
             inputs = self.pad_signal(inputs)
@@ -345,6 +352,7 @@ class BioDiffusion(L.LightningModule):
         return x
 
     def get_init_config(self):
+        """Return diffusion settings and a reconstructed U-Net for model initialization."""
         return {
             "model": Unet1D_cls_free(**self.model.get_init_config()),
             "noise_steps": self.noise_steps,

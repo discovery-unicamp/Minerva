@@ -89,6 +89,7 @@ class DiffusionTSEncoder(Transformer):
             self.additional_encoder_blocks = copy.deepcopy(self.encoder.blocks)
 
     def forward(self, input):
+        """Extract encoder features directly or after a denoising pass."""
         t = torch.full((len(input),), self.timestep, device=input.device).long()
         if self.pass_strategy == "single":
             # Single pass
@@ -107,6 +108,7 @@ class DiffusionTSEncoder(Transformer):
 
     def encoder_partial_forward(self, input, t, encoder_block, additional=False):
         # Which encoder to use: original (single pass) or additional (double pass)
+        """Return selected encoder-block features and the input embedding."""
         emb_module = self.emb
         pos_enc_module = self.pos_enc
         encoder_blocks_module = self.encoder.blocks
@@ -122,6 +124,7 @@ class DiffusionTSEncoder(Transformer):
         return inp_enc, input_emb
 
     def model_pass_forward(self, input, t):
+        """Reconstruct the signal by combining predicted trend and seasonal residual."""
         encoder_output, input_emb = self.encoder_partial_forward(
             input, t, self.n_layer_enc, additional=False
         )
@@ -136,6 +139,7 @@ class DiffusionTSEncoder(Transformer):
         return trend + season_error
 
     def decoder_forward(self, emb, enc_cond, t):
+        """Decode embeddings into trend and seasonal residual components."""
         inp_dec = self.pos_dec(emb)
         output, mean, trend, season = self.decoder(inp_dec, t, enc_cond)
         res = self.inverse(output)
