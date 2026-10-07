@@ -88,9 +88,7 @@ def test_diffusionts_conditioned_sampling_accepts_optional_kwargs(
     torch.manual_seed(42)
     omitted = model.generate_mts(batch_size=2, cond_fn=no_condition)
     torch.manual_seed(42)
-    explicit = model.generate_mts(
-        batch_size=2, model_kwargs={}, cond_fn=no_condition
-    )
+    explicit = model.generate_mts(batch_size=2, model_kwargs={}, cond_fn=no_condition)
 
     torch.testing.assert_close(omitted, explicit)
 

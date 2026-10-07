@@ -413,15 +413,9 @@ class SyntheticDataFIDCallback(Callback):
         if trainer.world_size > 1 and trainer.is_global_zero:
             timeout = getattr(trainer.strategy, "_timeout", None)
             # Duration is workload-dependent; flag the common 30-minute limit.
-            if (
-                not self._ddp_timeout_warning_issued
-                and (
-                    timeout is None
-                    or (
-                        isinstance(timeout, timedelta)
-                        and timeout <= timedelta(minutes=30)
-                    )
-                )
+            if not self._ddp_timeout_warning_issued and (
+                timeout is None
+                or (isinstance(timeout, timedelta) and timeout <= timedelta(minutes=30))
             ):
                 log.warning(
                     "Synthetic-data FID: DDP process-group timeout (%s) may be "
