@@ -1,10 +1,23 @@
+import pytest
 import torch
 
 from minerva.models.nets.time_series.diffusionts.diffusionts_model_utils import (
+    LearnablePositionalEncoding,
     extract,
     normalize_to_neg_one_to_one,
     series_decomp,
 )
+
+
+@pytest.mark.parametrize("sequence_length", [4, 8])
+def test_learnable_positional_encoding_matches_sequence_length(sequence_length):
+    model = LearnablePositionalEncoding(d_model=3, dropout=0, max_len=8)
+    x = torch.zeros(2, sequence_length, 3)
+
+    output = model(x)
+
+    assert output.shape == x.shape
+    torch.testing.assert_close(output, model.pe[:, :sequence_length].expand_as(x))
 
 
 def test_series_decomposition_reconstructs_input():

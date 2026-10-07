@@ -165,7 +165,7 @@ class LearnablePositionalEncoding(nn.Module):
             output: [batch size, sequence length, embed dim]
         """
         # print(x.shape)
-        x = x + self.pe
+        x = x + self.pe[:, : x.size(1)]
         return self.dropout(x)
 
 

@@ -1,3 +1,5 @@
+from unittest.mock import Mock
+
 import pytest
 import torch
 
@@ -6,7 +8,6 @@ from minerva.models.nets.time_series.biodiffusion.unet1d import Unet1D_cls_free
 
 @pytest.fixture
 def small_bio_unet():
-    # Only the three core parameters are stored by get_init_config().
     return Unet1D_cls_free(dim=8, num_classes=3, channels=2)
 
 
@@ -32,7 +33,60 @@ def test_biodiffusion_unet_forward_with_labels(small_bio_unet):
 def test_biodiffusion_unet_init_config(small_bio_unet):
     config = small_bio_unet.get_init_config()
 
-    assert config == {"dim": 8, "num_classes": 3, "channels": 2}
+    assert config == {
+        "dim": 8,
+        "num_classes": 3,
+        "cond_drop_prob": 0.5,
+        "init_dim": None,
+        "out_dim": None,
+        "dim_mults": (1, 2, 4, 8),
+        "channels": 2,
+        "resnet_block_groups": 8,
+        "learned_variance": False,
+        "learned_sinusoidal_cond": False,
+        "random_fourier_features": False,
+        "learned_sinusoidal_dim": 16,
+        "n_timesteps": 100,
+    }
+
+
+def test_biodiffusion_unet_custom_config_round_trip():
+    dim_mults = [1, 2]
+    model = Unet1D_cls_free(
+        dim=8,
+        num_classes=3,
+        cond_drop_prob=0.25,
+        init_dim=8,
+        out_dim=2,
+        dim_mults=dim_mults,
+        channels=2,
+        resnet_block_groups=4,
+        learned_variance=True,
+        learned_sinusoidal_cond=True,
+        random_fourier_features=True,
+        learned_sinusoidal_dim=8,
+        n_timesteps=32,
+    )
+    config = model.get_init_config()
+    assert config["dim_mults"] == [1, 2]
+    assert config["cond_drop_prob"] == 0.25
+    assert config["learned_variance"] is True
+    assert config["random_fourier_features"] is True
+    assert config["n_timesteps"] == 32
+
+    dim_mults.append(4)
+    config["dim_mults"].append(8)
+    assert model.get_init_config()["dim_mults"] == [1, 2]
+
+    restored = Unet1D_cls_free(**model.get_init_config())
+    restored.load_state_dict(model.state_dict())
+    x = torch.rand(2, 2, 16)
+    timesteps = torch.tensor([0, 1])
+    labels = torch.tensor([0, 2])
+    torch.testing.assert_close(
+        restored(x, timesteps, labels, cond_drop_prob=0),
+        model(x, timesteps, labels, cond_drop_prob=0),
+    )
 
 
 def test_biodiffusion_dropping_all_labels_matches_unconditional_output(small_bio_unet):
@@ -97,3 +151,51 @@ def test_biodiffusion_without_condition_dropout():
     )
 
     assert output.shape == x.shape
+
+
+@pytest.mark.parametrize(
+    ("method", "kwargs"),
+    [
+        ("forward", {}),
+        ("full_forward", {}),
+        ("simple_forward", {"target_block": 1}),
+    ],
+)
+def test_explicit_zero_condition_dropout_skips_mask(method, kwargs, monkeypatch):
+    model = Unet1D_cls_free(dim=8, num_classes=3, channels=2, cond_drop_prob=1)
+    mask = Mock(side_effect=AssertionError("Condition dropout was applied"))
+    monkeypatch.setattr(
+        "minerva.models.nets.time_series.biodiffusion.unet1d.prob_mask_like", mask
+    )
+
+    output = getattr(model, method)(
+        torch.rand(2, 2, 16),
+        torch.tensor([0, 1]),
+        torch.tensor([0, 2]),
+        cond_drop_prob=0.0,
+        **kwargs,
+    )
+
+    assert isinstance(output, torch.Tensor)
+    mask.assert_not_called()
+
+
+@pytest.mark.parametrize("cond_scale", [1.0, 2.0])
+def test_guidance_ignores_caller_dropout(cond_scale):
+    model = Unet1D_cls_free(dim=8, num_classes=3, channels=2, cond_drop_prob=1)
+    x = torch.rand(2, 2, 16)
+    timesteps = torch.tensor([0, 1])
+    labels = torch.tensor([0, 2])
+
+    conditional = model(x, timesteps, labels, cond_drop_prob=0.0)
+    unconditional = model(x, timesteps, labels, cond_drop_prob=1.0)
+    guided = model.forward_with_cond_scale(
+        x, timesteps, labels, cond_scale=cond_scale, cond_drop_prob=1.0
+    )
+
+    expected = (
+        conditional
+        if cond_scale == 1.0
+        else unconditional + (conditional - unconditional) * cond_scale
+    )
+    torch.testing.assert_close(guided, expected)

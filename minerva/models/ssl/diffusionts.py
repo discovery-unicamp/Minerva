@@ -397,6 +397,7 @@ class DiffusionTS(L.LightningModule):
     def generate_mts(self, batch_size=16, model_kwargs=None, cond_fn=None):
         feature_size, seq_length = self.feature_size, self.seq_length
         if cond_fn is not None:
+            model_kwargs = {} if model_kwargs is None else model_kwargs
             sample_fn = (
                 self.fast_sample_cond if self.fast_sampling else self.sample_cond
             )
@@ -492,6 +493,9 @@ class DiffusionTS(L.LightningModule):
         clip_denoised=True,
         model_kwargs=None,
     ):
+        if partial_mask is None:
+            raise ValueError("partial_mask is required for infill")
+        model_kwargs = {} if model_kwargs is None else model_kwargs
         batch, device, total_timesteps, eta = (
             shape[0],
             self.betas.device,
@@ -558,6 +562,9 @@ class DiffusionTS(L.LightningModule):
         Generate samples from the model and yield intermediate samples from
         each timestep of diffusion.
         """
+        if partial_mask is None:
+            raise ValueError("partial_mask is required for infill")
+        model_kwargs = {} if model_kwargs is None else model_kwargs
         batch, device = shape[0], self.betas.device
         img = torch.randn(shape, device=device)
         for t in tqdm(
@@ -586,6 +593,7 @@ class DiffusionTS(L.LightningModule):
         clip_denoised=True,
         model_kwargs=None,
     ):
+        model_kwargs = {} if model_kwargs is None else model_kwargs
         b, *_, device = *x.shape, self.betas.device
         batched_times = torch.full((x.shape[0],), t, device=x.device, dtype=torch.long)
         model_mean, _, model_log_variance, _ = self.p_mean_variance(
@@ -679,6 +687,7 @@ class DiffusionTS(L.LightningModule):
 
         This uses the conditioning strategy from Sohl-Dickstein et al. (2015).
         """
+        model_kwargs = {} if model_kwargs is None else model_kwargs
         gradient = cond_fn(x=x, t=t, **model_kwargs)
         new_mean = mean.float() + torch.exp(log_variance) * gradient.float()
         return new_mean
@@ -693,6 +702,7 @@ class DiffusionTS(L.LightningModule):
         Unlike condition_mean(), this instead uses the conditioning strategy
         from Song et al (2020).
         """
+        model_kwargs = {} if model_kwargs is None else model_kwargs
         alpha_bar = extract(self.alphas_cumprod, t, x.shape)
 
         eps = self.predict_noise_from_start(x, t, x_start)
@@ -707,6 +717,7 @@ class DiffusionTS(L.LightningModule):
         Generate samples from the model and yield intermediate samples from
         each timestep of diffusion.
         """
+        model_kwargs = {} if model_kwargs is None else model_kwargs
         batch, device = shape[0], self.betas.device
         img = torch.randn(shape, device=device)
         for t in tqdm(
@@ -726,6 +737,7 @@ class DiffusionTS(L.LightningModule):
     def fast_sample_cond(
         self, shape, clip_denoised=True, model_kwargs=None, cond_fn=None
     ):
+        model_kwargs = {} if model_kwargs is None else model_kwargs
         batch, device, total_timesteps, sampling_timesteps, eta = (
             shape[0],
             self.betas.device,

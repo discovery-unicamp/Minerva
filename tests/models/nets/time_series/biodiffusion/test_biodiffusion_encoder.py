@@ -10,7 +10,6 @@ from minerva.models.ssl.biodiffusion import BioDiffusion
 
 @pytest.fixture
 def small_bio_unet():
-    # Only the three core parameters are stored by get_init_config().
     return Unet1D_cls_free(dim=8, num_classes=3, channels=2)
 
 
@@ -36,3 +35,25 @@ def test_biodiffusion_encoder_uses_selected_timestep_and_block(small_bio_unet):
     expected = backbone.simple_forward(x, t=2, target_block=3)
 
     torch.testing.assert_close(output, expected)
+
+
+def test_biodiffusion_double_pass_preserves_backbone_configuration():
+    unet = Unet1D_cls_free(
+        dim=8,
+        num_classes=3,
+        channels=2,
+        cond_drop_prob=0.25,
+        dim_mults=(1, 2),
+        resnet_block_groups=4,
+    )
+    backbone = BioDiffusion(unet, noise_steps=4, channels=2, signal_padding=2)
+
+    encoder = BioDiffusionEncoder(backbone, pass_strategy="double")
+
+    assert encoder.backbone2 is not backbone
+    assert encoder.backbone2.model is not backbone.model
+    assert encoder.backbone2.model.get_init_config() == unet.get_init_config()
+    original_parameter = next(backbone.parameters())
+    copied_parameter = next(encoder.backbone2.parameters())
+    assert copied_parameter is not original_parameter
+    torch.testing.assert_close(copied_parameter, original_parameter)

@@ -1,4 +1,5 @@
 import csv
+from datetime import timedelta
 from unittest.mock import Mock
 
 import lightning as L
@@ -100,3 +101,25 @@ def test_fid_callback_rejects_zero_interval():
 def test_fid_callback_requires_multiple_fid_runs():
     with pytest.raises(ValueError, match="num_fid_runs"):
         SyntheticDataFIDCallback(num_fid_runs=1)
+
+
+@pytest.mark.parametrize(
+    ("timeout", "expected_warnings"),
+    [(None, 1), (timedelta(minutes=30), 1), (timedelta(hours=2), 0)],
+)
+def test_fid_callback_ddp_timeout_warning_preserves_broadcast(
+    timeout, expected_warnings, caplog
+):
+    callback = SyntheticDataFIDCallback()
+    callback._evaluate_synthetic_data = Mock()
+    strategy = Mock(_timeout=timeout)
+    strategy.broadcast.side_effect = lambda error, src: error
+    trainer = Mock(world_size=2, is_global_zero=True, strategy=strategy)
+
+    with caplog.at_level("WARNING"):
+        callback._evaluate(trainer, Mock(), 2)
+        callback._evaluate(trainer, Mock(), 4)
+
+    assert caplog.text.count("DDP process-group timeout") == expected_warnings
+    assert callback._evaluate_synthetic_data.call_count == 2
+    assert strategy.broadcast.call_count == 2

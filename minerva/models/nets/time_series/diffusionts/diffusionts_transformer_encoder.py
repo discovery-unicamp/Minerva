@@ -51,6 +51,9 @@ class DiffusionTSEncoder(Transformer):
         diffusion_use_t_and_s: bool
             Whether to return the trend and seasonality as features, by default False.
         """
+        if pass_strategy not in ("single", "double"):
+            raise ValueError("pass_strategy must be 'single' or 'double'.")
+
         super().__init__(
             n_feat=n_feat,
             n_channel=n_channel,
@@ -141,12 +144,4 @@ class DiffusionTSEncoder(Transformer):
             self.combine_s(season.transpose(1, 2)).transpose(1, 2) + res - res_m
         )
         trend = self.combine_m(mean) + res_m + trend
-        return trend, season_error
-
-    def single_pass(self, input, t, encoder_block, return_t_and_s):
-        emb = self.emb(input)
-        enc_cond = self.encoder_forward(emb, t, encoder_block)
-        if not return_t_and_s:
-            return enc_cond
-        trend, season_error = self.decoder_forward(emb, enc_cond, t)
         return trend, season_error

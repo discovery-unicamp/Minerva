@@ -1,4 +1,5 @@
 import math
+from copy import deepcopy
 from functools import partial
 from typing import Optional, List
 import torch
@@ -571,6 +572,22 @@ class Unet1D_cls_free(nn.Module):
     ):
         super().__init__()
 
+        self._init_config = {
+            "dim": dim,
+            "num_classes": num_classes,
+            "cond_drop_prob": cond_drop_prob,
+            "init_dim": init_dim,
+            "out_dim": out_dim,
+            "dim_mults": deepcopy(dim_mults),
+            "channels": channels,
+            "resnet_block_groups": resnet_block_groups,
+            "learned_variance": learned_variance,
+            "learned_sinusoidal_cond": learned_sinusoidal_cond,
+            "random_fourier_features": random_fourier_features,
+            "learned_sinusoidal_dim": learned_sinusoidal_dim,
+            "n_timesteps": n_timesteps,
+        }
+
         # classifier free guidance stuff
 
         self.cond_drop_prob = cond_drop_prob
@@ -772,7 +789,9 @@ class Unet1D_cls_free(nn.Module):
         """
         batch, device = x.shape[0], x.device
 
-        cond_drop_prob = cond_drop_prob if cond_drop_prob else self.cond_drop_prob
+        cond_drop_prob = (
+            self.cond_drop_prob if cond_drop_prob is None else cond_drop_prob
+        )
 
         # derive condition, with condition dropout for classifier free guidance
 
@@ -856,7 +875,9 @@ class Unet1D_cls_free(nn.Module):
         """
         batch, device = x.shape[0], x.device
 
-        cond_drop_prob = cond_drop_prob if cond_drop_prob else self.cond_drop_prob
+        cond_drop_prob = (
+            self.cond_drop_prob if cond_drop_prob is None else cond_drop_prob
+        )
 
         # derive condition, with condition dropout for classifier free guidance
 
@@ -945,7 +966,9 @@ class Unet1D_cls_free(nn.Module):
         """
         batch, device = x.shape[0], x.device
 
-        cond_drop_prob = cond_drop_prob if cond_drop_prob else self.cond_drop_prob
+        cond_drop_prob = (
+            self.cond_drop_prob if cond_drop_prob is None else cond_drop_prob
+        )
 
         # derive condition, with condition dropout for classifier free guidance
 
@@ -1002,15 +1025,11 @@ class Unet1D_cls_free(nn.Module):
         return emb
 
     def get_init_config(self):
-        """Returns the core configuration parameters used to initialize the model.
+        """Return all constructor arguments used to initialize the model.
 
         Returns
         -------
         dict
-            Dictionary containing primary initialization keys (`dim`, `num_classes`, `channels`).
+            Complete constructor configuration.
         """
-        return {
-            "dim": self.dim,
-            "num_classes": self.num_classes,
-            "channels": self.channels,
-        }
+        return deepcopy(self._init_config)

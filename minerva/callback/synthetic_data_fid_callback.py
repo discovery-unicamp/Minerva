@@ -7,6 +7,7 @@ import os
 import random
 import shutil
 from contextlib import contextmanager
+from datetime import timedelta
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import Any, Dict, Optional, Union
@@ -111,7 +112,10 @@ class SyntheticDataFIDCallback(Callback):
         ``use_val_with_train=False``. The full training set is cached on CPU,
         and the training random-number-generator states are restored afterward.
         Single-device and DDP training are supported, but sharded strategies are
-        not.
+        not. Under DDP, other ranks wait while rank 0 evaluates. Configure
+        ``DDPStrategy(timeout=...)`` to exceed the longest expected evaluation;
+        a timeout warning is only advisory and does not prevent a collective
+        timeout.
 
         Parameters
         ----------
@@ -264,6 +268,7 @@ class SyntheticDataFIDCallback(Callback):
         self._best_checkpoint_id = None
         self._last_step = -1
         self._real_series = None
+        self._ddp_timeout_warning_issued = False
 
     @property
     def state_key(self) -> str:
@@ -405,6 +410,28 @@ class SyntheticDataFIDCallback(Callback):
         processes writing to the same files. Any evaluation error is reported
         to every process so they stop together.
         """
+        if trainer.world_size > 1 and trainer.is_global_zero:
+            timeout = getattr(trainer.strategy, "_timeout", None)
+            # Duration is workload-dependent; flag the common 30-minute limit.
+            if (
+                not self._ddp_timeout_warning_issued
+                and (
+                    timeout is None
+                    or (
+                        isinstance(timeout, timedelta)
+                        and timeout <= timedelta(minutes=30)
+                    )
+                )
+            ):
+                log.warning(
+                    "Synthetic-data FID: DDP process-group timeout (%s) may be "
+                    "too short for rank-0 evaluation with %d TS2Vec runs. Other "
+                    "ranks wait for the broadcast; configure DDPStrategy(timeout=...) "
+                    "to exceed the longest expected evaluation time.",
+                    timeout if timeout is not None else "backend default",
+                    self.num_fid_runs,
+                )
+                self._ddp_timeout_warning_issued = True
         error = None
         failure = None
         if trainer.is_global_zero:
