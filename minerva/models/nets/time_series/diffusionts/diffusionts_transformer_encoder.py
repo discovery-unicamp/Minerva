@@ -87,6 +87,40 @@ class DiffusionTSEncoder(Transformer):
             self.additional_emb = copy.deepcopy(self.emb)
             self.additional_pos_enc = copy.deepcopy(self.pos_enc)
             self.additional_encoder_blocks = copy.deepcopy(self.encoder.blocks)
+            self.register_load_state_dict_pre_hook(self._initialize_second_pass_weights)
+
+    def _initialize_second_pass_weights(
+        self,
+        module,
+        state_dict,
+        prefix,
+        local_metadata,
+        strict,
+        missing_keys,
+        unexpected_keys,
+        error_msgs,
+    ):
+        """Initialize second-pass weights when loading a Transformer checkpoint.
+
+        Existing second-pass keys identify an encoder checkpoint and are left
+        untouched, including incomplete checkpoints that strict loading rejects.
+        The prefix supports loading the encoder inside a supervised model.
+        """
+        copies = {
+            "emb.": "additional_emb.",
+            "pos_enc.": "additional_pos_enc.",
+            "encoder.blocks.": "additional_encoder_blocks.",
+        }
+        additional_prefixes = tuple(prefix + name for name in copies.values())
+        if any(key.startswith(additional_prefixes) for key in state_dict):
+            return
+
+        for source, destination in copies.items():
+            source_prefix = prefix + source
+            for key, value in list(state_dict.items()):
+                if key.startswith(source_prefix):
+                    new_key = prefix + destination + key[len(source_prefix) :]
+                    state_dict[new_key] = value.clone()
 
     def forward(self, input):
         """Extract encoder features directly or after a denoising pass."""

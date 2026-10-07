@@ -1,6 +1,13 @@
 import pytest
 import torch
 
+from minerva.models.loaders import FromPretrained
+from minerva.models.nets.base import SimpleSupervisedModel
+from minerva.models.nets.time_series.diffusionts.diffusionts_transformer import (
+    Transformer,
+)
+from minerva.models.ssl.diffusionts import DiffusionTS
+
 from minerva.models.nets.time_series.diffusionts.diffusionts_transformer_encoder import (
     DiffusionTSEncoder,
 )
@@ -137,3 +144,115 @@ def test_double_pass_restores_both_sets_of_weights_from_encoder_checkpoint():
         restored.additional_emb.sequential[1].weight,
         restored.emb.sequential[1].weight,
     )
+
+
+@pytest.fixture
+def pretrained_transformer():
+    config = _small_encoder_kwargs()
+    config.pop("pass_strategy")
+    return Transformer(**config)
+
+
+@pytest.mark.parametrize("strategy", ["single", "double"])
+def test_encoder_loads_diffusionts_pretraining_checkpoint(
+    pretrained_transformer, tmp_path, strategy
+):
+    pretrained = DiffusionTS(
+        pretrained_transformer, seq_length=16, feature_size=2, timesteps=4
+    )
+    checkpoint = tmp_path / "pretrained.ckpt"
+    torch.save({"state_dict": pretrained.state_dict()}, checkpoint)
+    config = {**_small_encoder_kwargs(), "pass_strategy": strategy}
+
+    encoder = FromPretrained(
+        model=DiffusionTSEncoder(**config),
+        ckpt_path=checkpoint,
+        filter_keys=["^model"],
+        keys_to_rename={"model.": ""},
+        strict=True,
+        error_on_missing_keys=True,
+    )
+
+    torch.testing.assert_close(
+        encoder.emb.state_dict(), pretrained_transformer.emb.state_dict()
+    )
+    if strategy == "double":
+        torch.testing.assert_close(
+            encoder.additional_emb.state_dict(), pretrained_transformer.emb.state_dict()
+        )
+        torch.testing.assert_close(
+            encoder.additional_pos_enc.state_dict(),
+            pretrained_transformer.pos_enc.state_dict(),
+        )
+        torch.testing.assert_close(
+            encoder.additional_encoder_blocks.state_dict(),
+            pretrained_transformer.encoder.blocks.state_dict(),
+        )
+
+
+@pytest.mark.parametrize("assign", [False, True])
+def test_loaded_second_pass_parameters_are_independent(pretrained_transformer, assign):
+    encoder = DiffusionTSEncoder(**_small_encoder_kwargs())
+
+    encoder.load_state_dict(pretrained_transformer.state_dict(), assign=assign)
+
+    first = encoder.emb.sequential[1].weight
+    second = encoder.additional_emb.sequential[1].weight
+    assert first.data_ptr() != second.data_ptr()
+
+
+def test_supervised_checkpoint_preserves_finetuned_second_pass():
+    source = SimpleSupervisedModel(
+        backbone=DiffusionTSEncoder(**_small_encoder_kwargs()),
+        fc=torch.nn.Linear(128, 3),
+        loss_fn=torch.nn.CrossEntropyLoss(),
+    )
+    with torch.no_grad():
+        source.backbone.additional_emb.sequential[1].weight.add_(1)
+    restored = SimpleSupervisedModel(
+        backbone=DiffusionTSEncoder(**_small_encoder_kwargs()),
+        fc=torch.nn.Linear(128, 3),
+        loss_fn=torch.nn.CrossEntropyLoss(),
+    )
+
+    restored.load_state_dict(source.state_dict(), strict=True)
+
+    torch.testing.assert_close(restored.state_dict(), source.state_dict())
+
+
+def test_nested_encoder_initializes_missing_second_pass(pretrained_transformer):
+    source = torch.nn.ModuleDict({"backbone": pretrained_transformer})
+    restored = torch.nn.ModuleDict(
+        {"backbone": DiffusionTSEncoder(**_small_encoder_kwargs())}
+    )
+
+    restored.load_state_dict(source.state_dict(), strict=True)
+
+    torch.testing.assert_close(
+        restored["backbone"].additional_encoder_blocks.state_dict(),
+        pretrained_transformer.encoder.blocks.state_dict(),
+    )
+
+
+def test_encoder_rejects_partial_second_pass_checkpoint():
+    encoder = DiffusionTSEncoder(**_small_encoder_kwargs())
+    state = encoder.state_dict()
+    del state["additional_emb.sequential.1.weight"]
+
+    with pytest.raises(RuntimeError, match="additional_emb.sequential.1.weight"):
+        encoder.load_state_dict(state, strict=True)
+
+
+@pytest.mark.parametrize("invalid", ["missing", "unexpected", "shape"])
+def test_pretraining_load_preserves_strict_validation(pretrained_transformer, invalid):
+    encoder = DiffusionTSEncoder(**_small_encoder_kwargs())
+    state = pretrained_transformer.state_dict()
+    if invalid == "missing":
+        del state["emb.sequential.1.weight"]
+    elif invalid == "unexpected":
+        state["unknown.weight"] = torch.ones(1)
+    else:
+        state["emb.sequential.1.weight"] = torch.ones(1)
+
+    with pytest.raises(RuntimeError):
+        encoder.load_state_dict(state, strict=True)
