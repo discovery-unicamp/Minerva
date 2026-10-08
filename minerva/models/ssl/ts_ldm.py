@@ -9,7 +9,6 @@ import lightning as L
 from contextlib import contextmanager
 from functools import partial
 from tqdm import tqdm
-from lightning.pytorch.utilities import rank_zero_only
 from minerva.models.nets.time_series.ts_ldm import UNetModel1d
 from minerva.models.loaders import FromPretrained
 
@@ -614,6 +613,12 @@ class TSLatentDiffusion(DDPM):
         self.f_max = f_max
         self.f_min = f_min
 
+    def train(self, mode: bool = True):
+        """Set the diffusion model's mode while keeping the frozen VAE in evaluation."""
+        super().train(mode)
+        self.first_stage_model.eval()
+        return self
+
     def get_first_stage_encoding(self, encoder_posterior):
         """Extracts scaled latent sample from first-stage encoder output.
 
@@ -633,10 +638,11 @@ class TSLatentDiffusion(DDPM):
             z = encoder_posterior
         return self.scale_factor * z
 
-    @rank_zero_only
     @torch.no_grad()
     def on_train_batch_start(self, batch, batch_idx):
         """Dynamically computes latent scaling factor during first batch step to achieve unit variance.
+
+        Compute on rank zero and share the value with all training processes.
 
         Parameters
         ----------
@@ -651,21 +657,22 @@ class TSLatentDiffusion(DDPM):
             and self.global_step == 0
             and batch_idx == 0
         ):
-            # Handles batches that are just [x] or [x, y]
-            x = batch[0] if isinstance(batch, (list, tuple)) else batch
-            x = x.to(self.device)
-            posterior = self.encode_first_stage(x)
-            z = self.get_first_stage_encoding(posterior).detach()
-            del (
-                self.scale_factor
-            )  # Remove any existing scale factor to avoid interference
-            # Calculate and register the scale factor
-            scale = 1.0 / z.flatten().std()
-            self.register_buffer("scale_factor", scale)
-            mode = "UNCONDITIONAL" if self.unconditional else "CONDITIONAL"
-            print(
-                f"### LDM 1D ({mode}): Scale factor dynamically adjusted to {self.scale_factor.item():.4f} ###"
-            )
+            scale = self.scale_factor
+            if self.trainer.is_global_zero:
+                # Handles batches that are just [x] or [x, y]
+                x = batch[0] if isinstance(batch, (list, tuple)) else batch
+                x = x.to(self.device)
+                posterior = self.encode_first_stage(x)
+                z = self.get_first_stage_encoding(posterior).detach()
+                scale = 1.0 / z.flatten().std()
+
+            scale = self.trainer.strategy.broadcast(scale, src=0)
+            self.scale_factor.copy_(scale)
+            if self.trainer.is_global_zero:
+                mode = "UNCONDITIONAL" if self.unconditional else "CONDITIONAL"
+                print(
+                    f"### LDM 1D ({mode}): Scale factor dynamically adjusted to {self.scale_factor.item():.4f} ###"
+                )
 
     @torch.no_grad()
     def encode_first_stage(self, x):
