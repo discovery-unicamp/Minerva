@@ -60,6 +60,7 @@ dependencies = [
     "transformers>=4.47.1",
     "wrapt>=1.16",
     "zarr>=2.17",
+    "ema-pytorch>=0.8.3"
 ]
 
 [tool.setuptools.packages.find]
@@ -87,7 +88,7 @@ docs = [
     "furo",
     "sphinx",
 ]
-analysis = ["codecarbon>=2.8.3", "ultralytics-thop>=2.0.14"]
+analysis = ["codecarbon>=2.8.3", "ultralytics-thop>=2.0.14", "ts2vec==0.1"]
 
 [project.urls]
 "Bug Tracker" = "https://github.com/discovery-unicamp/Minerva/issues"
