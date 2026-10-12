@@ -132,6 +132,7 @@ class DiffusionTS(L.LightningModule):
         self.model = model
         self.automatic_optimization = False
         self.gradient_accumulate_counter = 0
+        self._restored_gradients = {}
         self.total_loss = 0
         self.step_counter = 0
         self.max_steps = max_training_steps
@@ -235,15 +236,16 @@ class DiffusionTS(L.LightningModule):
             batch = batch[0]
         loss = self.forward(batch, target=batch)
         loss = loss / self.gradient_accumulate_every
-        loss.backward()
+        self.manual_backward(loss)
         self.total_loss += loss.item()
         self.gradient_accumulate_counter += 1
         if self.gradient_accumulate_counter == self.gradient_accumulate_every:
             self.gradient_accumulate_counter = 0
-            clip_grad_norm_(self.parameters(), 1.0)
-            self.opt.step()
-            self.sch.step(self.total_loss)
-            self.opt.zero_grad()
+            opt = self.optimizers()
+            sch = self.lr_schedulers()
+            opt.step()
+            sch.step(self.total_loss)
+            opt.zero_grad()
             self.ema.update()
             self.log("train_loss", self.total_loss, on_epoch=False, on_step=True)
             self.last_logged_total_loss = self.total_loss
@@ -251,10 +253,55 @@ class DiffusionTS(L.LightningModule):
             self.step_counter += 1
         return None
 
+    def on_before_optimizer_step(self, optimizer):
+        """Clip accumulated gradients after Lightning unscales them in mixed precision."""
+        clip_grad_norm_(self.parameters(), 1.0)
+
     def on_train_batch_end(self, outputs, batch, batch_idx):
         """Stop training when the manual optimizer-step counter reaches its limit."""
         if self.max_steps is not None and self.step_counter >= self.max_steps:
             self.trainer.should_stop = True
+
+    def on_save_checkpoint(self, checkpoint):
+        """Save the manual step counter and any unfinished gradient accumulation."""
+        checkpoint["diffusionts_training_state"] = {
+            "step_counter": self.step_counter,
+            "gradient_accumulate_counter": self.gradient_accumulate_counter,
+            "total_loss": self.total_loss,
+            "last_logged_total_loss": self.last_logged_total_loss,
+            "gradients": {
+                name: param.grad.detach().clone()
+                for name, param in self.named_parameters()
+                if self.gradient_accumulate_counter and param.grad is not None
+            },
+        }
+
+    def on_load_checkpoint(self, checkpoint):
+        """Restore manual training progress when it is available in the checkpoint."""
+        state = checkpoint.get("diffusionts_training_state")
+        if state is None:
+            return
+        self.step_counter = state["step_counter"]
+        self.gradient_accumulate_counter = state["gradient_accumulate_counter"]
+        self.total_loss = state["total_loss"]
+        self.last_logged_total_loss = state["last_logged_total_loss"]
+        self._restored_gradients = state["gradients"]
+
+    def on_train_start(self):
+        """Restore pending gradients after Lightning clears gradients during setup."""
+        for name, param in self.named_parameters():
+            if name in self._restored_gradients:
+                param.grad = self._restored_gradients[name].to(param)
+        self._restored_gradients = {}
+
+    def configure_model(self):
+        """Create EMA before Lightning restores weights, without resetting loaded EMA."""
+        if not hasattr(self, "ema"):
+            self.ema = EMA(
+                self.model,
+                beta=self.ema_decay,
+                update_every=self.ema_update_interval,
+            ).to(self.device)
 
     def configure_optimizers(self):
         """
@@ -266,12 +313,9 @@ class DiffusionTS(L.LightningModule):
             lr=self.base_lr,
             betas=[0.9, 0.96],
         )
-        self.ema = EMA(
-            self.model,
-            beta=self.ema_decay,
-            update_every=self.ema_update_interval,
-        ).to(self.device)
+        self.configure_model()
         self.sch = ReduceLROnPlateauWithWarmup(self.opt, **self.scheduler_hparams)
+        return [self.opt], [self.sch]
 
     def predict_noise_from_start(self, x_t, t, x0):
         """Recover the implied noise from noisy and predicted clean series."""
@@ -416,6 +460,8 @@ class DiffusionTS(L.LightningModule):
             Keyword arguments passed to the conditioning function.
         cond_fn : callable, optional
             Function returning a guidance gradient from ``x``, ``t``, and keyword arguments.
+            Functions using autograd must enable gradients locally with
+            ``torch.enable_grad()``.
 
         Returns
         -------
@@ -515,6 +561,7 @@ class DiffusionTS(L.LightningModule):
         trend, season, residual = self.model(x, t, return_res=True)
         return trend, season, residual, x
 
+    @torch.no_grad()
     def fast_sample_infill(
         self,
         shape,
@@ -602,6 +649,7 @@ class DiffusionTS(L.LightningModule):
 
         return img
 
+    @torch.no_grad()
     def sample_infill(
         self,
         shape,
@@ -765,6 +813,7 @@ class DiffusionTS(L.LightningModule):
         model_mean, _, _ = self.q_posterior(x_start=pred_xstart, x_t=x, t=t)
         return model_mean, pred_xstart
 
+    @torch.no_grad()
     def sample_cond(self, shape, clip_denoised=True, model_kwargs=None, cond_fn=None):
         """
         Generate samples from the model and yield intermediate samples from
@@ -787,6 +836,7 @@ class DiffusionTS(L.LightningModule):
             )
         return img
 
+    @torch.no_grad()
     def fast_sample_cond(
         self, shape, clip_denoised=True, model_kwargs=None, cond_fn=None
     ):

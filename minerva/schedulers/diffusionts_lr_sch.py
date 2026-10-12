@@ -101,6 +101,7 @@ class ReduceLROnPlateauWithWarmup(object):
         self._init_is_better(
             mode=mode, threshold=threshold, threshold_mode=threshold_mode
         )
+        self._prepare_for_warmup()
         self._reset()
 
     def _prepare_for_warmup(self):
@@ -222,8 +223,6 @@ class ReduceLROnPlateauWithWarmup(object):
         self.mode = mode
         self.threshold = threshold
         self.threshold_mode = threshold_mode
-
-        self._prepare_for_warmup()
 
     def state_dict(self):
         """Return scheduler state without the optimizer reference."""

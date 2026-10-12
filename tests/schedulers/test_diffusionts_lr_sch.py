@@ -53,3 +53,27 @@ def test_plateau_respects_minimum_learning_rate(optimizer):
 def test_plateau_rejects_invalid_factor(optimizer):
     with pytest.raises(ValueError, match="Factor"):
         ReduceLROnPlateauWithWarmup(optimizer, factor=1.0)
+
+
+def test_plateau_restores_warmup_without_changing_learning_rate_steps(optimizer):
+    scheduler = ReduceLROnPlateauWithWarmup(optimizer, warmup=4, warmup_lr=0.5)
+    scheduler.step(1.0)
+    scheduler.step(1.0)
+    optimizer_state = deepcopy(optimizer.state_dict())
+    scheduler_state = deepcopy(scheduler.state_dict())
+    restored_optimizer = torch.optim.SGD(torch.nn.Linear(2, 1).parameters(), lr=0.1)
+    restored_scheduler = ReduceLROnPlateauWithWarmup(
+        restored_optimizer, warmup=4, warmup_lr=0.5
+    )
+
+    restored_optimizer.load_state_dict(optimizer_state)
+    restored_scheduler.load_state_dict(scheduler_state)
+    scheduler.step(1.0)
+    restored_scheduler.step(1.0)
+
+    assert restored_optimizer.param_groups[0]["lr"] == pytest.approx(
+        optimizer.param_groups[0]["lr"]
+    )
+
+
+from copy import deepcopy
