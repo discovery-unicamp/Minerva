@@ -1,5 +1,7 @@
 # This code was copied and adapted from the DiffusionTS implementation in
 # https://github.com/Y-debug-sys/Diffusion-TS/blob/main/Models/interpretable_diffusion/transformer.py
+"""Transformer blocks for Diffusion-TS trend and seasonality decomposition."""
+
 import math
 import torch
 import numpy as np
@@ -18,8 +20,20 @@ from .diffusionts_model_utils import (
 
 
 class TrendBlock(nn.Module):
-    """
-    Model trend of time series using the polynomial regressor.
+    """Estimate temporal trends using three polynomial basis functions.
+
+    Parameters
+    ----------
+    in_dim : int
+        Number of input timestamps, treated as channels by the first convolution.
+    out_dim : int
+        Number of timestamps in the reconstructed trend.
+    in_feat : int
+        Number of features per input timestamp.
+    out_feat : int
+        Number of features per reconstructed timestamp.
+    act : torch.nn.Module
+        Activation applied between the coefficient projections.
     """
 
     def __init__(self, in_dim, out_dim, in_feat, out_feat, act):
@@ -41,7 +55,18 @@ class TrendBlock(nn.Module):
         )
 
     def forward(self, input):
-        """Project features onto the polynomial basis to produce the trend."""
+        """Project input features onto the polynomial trend basis.
+
+        Parameters
+        ----------
+        input : torch.Tensor
+            Features of shape ``(batch_size, in_dim, in_feat)``.
+
+        Returns
+        -------
+        torch.Tensor
+            Trend component of shape ``(batch_size, out_dim, out_feat)``.
+        """
         b, c, h = input.shape
         x = self.trend(input).transpose(1, 2)
         trend_vals = torch.matmul(x.transpose(1, 2), self.poly_space.to(x.device))
@@ -50,8 +75,13 @@ class TrendBlock(nn.Module):
 
 
 class MovingBlock(nn.Module):
-    """
-    Model trend of time series using the moving average.
+    """Separate a temporal sequence into moving-average trend and residual.
+
+    Parameters
+    ----------
+    out_dim : int
+        Reference output length used to choose the moving-average window.
+        The window is ``int(out_dim / 4)``, bounded between 4 and 24.
     """
 
     def __init__(self, out_dim):
@@ -61,15 +91,40 @@ class MovingBlock(nn.Module):
         self.decomp = series_decomp(size)
 
     def forward(self, input):
-        """Separate the input into residual and moving-average trend."""
+        """Separate the input into residual and moving-average trend.
+
+        Parameters
+        ----------
+        input : torch.Tensor
+            Features of shape ``(batch_size, timestamps, channels)``.
+
+        Returns
+        -------
+        residual : torch.Tensor
+            Input minus the estimated trend, with the same shape as ``input``.
+        trend : torch.Tensor
+            Moving-average trend, with the same shape as ``input``.
+        """
         b, c, h = input.shape
         x, trend_vals = self.decomp(input)
         return x, trend_vals
 
 
 class FourierLayer(nn.Module):
-    """
-    Model seasonality of time series using the inverse DFT.
+    """Reconstruct seasonality from dominant discrete Fourier coefficients.
+
+    Parameters
+    ----------
+    d_model : int
+        Feature width stored for reference. The forward pass reads the actual
+        width from the input tensor.
+    low_freq : int, optional
+        First real-FFT frequency bin to consider. The default of 1 excludes
+        the constant component. The Nyquist bin is also excluded for even
+        sequence lengths. Default is 1.
+    factor : float, optional
+        Multiplier used to retain ``int(factor * log(n_frequencies))`` modes
+        per sample and feature. Default is 1.
     """
 
     def __init__(self, d_model, low_freq=1, factor=1):
@@ -80,7 +135,18 @@ class FourierLayer(nn.Module):
         self.low_freq = low_freq
 
     def forward(self, x):
-        """x: (b, t, d)"""
+        """Reconstruct seasonal features from the strongest retained frequencies.
+
+        Parameters
+        ----------
+        x : torch.Tensor
+            Features of shape ``(batch_size, timestamps, channels)``.
+
+        Returns
+        -------
+        torch.Tensor
+            Seasonal reconstruction with the same shape as ``x``.
+        """
         b, t, d = x.shape
         x_freq = torch.fft.rfft(x, dim=1)
 
@@ -99,7 +165,25 @@ class FourierLayer(nn.Module):
         return self.extrapolate(x_freq, f, t)
 
     def extrapolate(self, x_freq, f, t):
-        """Reconstruct a real temporal signal from selected Fourier coefficients."""
+        """Reconstruct a real temporal signal from selected complex coefficients.
+
+        Parameters
+        ----------
+        x_freq : torch.Tensor
+            Selected complex Fourier coefficients of shape
+            ``(batch_size, selected_modes, channels)``.
+        f : torch.Tensor
+            Frequencies in cycles per timestamp, of shape
+            ``(batch_size, selected_modes, 1, channels)``.
+        t : int
+            Number of output timestamps to reconstruct.
+
+        Returns
+        -------
+        torch.Tensor
+            Real-valued reconstruction of shape ``(batch_size, t, channels)``.
+            Coefficients are paired with their complex conjugates before summation.
+        """
         x_freq = torch.cat([x_freq, x_freq.conj()], dim=1)
         f = torch.cat([f, -f], dim=1)
         t = rearrange(torch.arange(t, dtype=torch.float), "t -> () () t ()").to(
@@ -112,7 +196,24 @@ class FourierLayer(nn.Module):
         return reduce(x_time, "b f t d -> b t d", "sum")
 
     def topk_freq(self, x_freq):
-        """Select the highest-amplitude frequencies for each sample and feature."""
+        """Select the highest-amplitude frequencies for each sample and feature.
+
+        Parameters
+        ----------
+        x_freq : torch.Tensor
+            Complex coefficients of shape ``(batch_size, n_frequencies, channels)``.
+            The available frequency count and ``factor`` must yield a valid
+            ``torch.topk`` selection size.
+
+        Returns
+        -------
+        coefficients : torch.Tensor
+            Selected coefficients of shape ``(batch_size, selected_modes, channels)``,
+            where ``selected_modes = int(factor * log(n_frequencies))``.
+        indices : tuple of torch.Tensor
+            Batch, frequency, and channel indices used to select the coefficients
+            and their corresponding frequencies.
+        """
         length = x_freq.shape[1]
         top_k = int(self.factor * math.log(length))
         values, indices = torch.topk(
@@ -127,8 +228,17 @@ class FourierLayer(nn.Module):
 
 
 class SeasonBlock(nn.Module):
-    """
-    Model seasonality of time series using the Fourier series.
+    """Estimate seasonality using learned coefficients and fixed Fourier bases.
+
+    Parameters
+    ----------
+    in_dim : int
+        Number of input timestamps, treated as convolution channels.
+    out_dim : int
+        Number of timestamps in the reconstructed seasonal component.
+    factor : int, optional
+        Multiplier for the number of basis functions. The number of functions
+        is ``factor * min(32, out_dim // 2)``. Default is 1.
     """
 
     def __init__(self, in_dim, out_dim, factor=1):
@@ -153,7 +263,18 @@ class SeasonBlock(nn.Module):
         self.poly_space = torch.cat([s1, s2])
 
     def forward(self, input):
-        """Project input features onto the seasonal basis."""
+        """Project input features onto the sine and cosine bases.
+
+        Parameters
+        ----------
+        input : torch.Tensor
+            Features of shape ``(batch_size, in_dim, channels)``.
+
+        Returns
+        -------
+        torch.Tensor
+            Seasonal component of shape ``(batch_size, out_dim, channels)``.
+        """
         b, c, h = input.shape
         x = self.season(input)
         season_vals = torch.matmul(x.transpose(1, 2), self.poly_space.to(x.device))
@@ -162,7 +283,24 @@ class SeasonBlock(nn.Module):
 
 
 class FullAttention(nn.Module):
-    """Compute multihead self-attention across the full input sequence."""
+    """Compute multihead self-attention over all input timestamps.
+
+    Parameters
+    ----------
+    n_embd : int
+        Input and output feature width. Must be divisible by ``n_head``.
+    n_head : int
+        Number of attention heads.
+    attn_pdrop : float, optional
+        Dropout probability applied to attention weights. Default is 0.1.
+    resid_pdrop : float, optional
+        Dropout probability applied after the output projection. Default is 0.1.
+
+    Raises
+    ------
+    AssertionError
+        If ``n_embd`` is not divisible by ``n_head``.
+    """
 
     def __init__(
         self,
@@ -187,7 +325,24 @@ class FullAttention(nn.Module):
         self.n_head = n_head
 
     def forward(self, x, mask=None):
-        """Return self-attended features and mean attention weights across heads."""
+        """Return self-attended features and head-averaged attention weights.
+
+        Parameters
+        ----------
+        x : torch.Tensor
+            Features of shape ``(batch_size, timestamps, n_embd)``.
+        mask : torch.Tensor, optional
+            Reserved argument. No attention mask is applied in this implementation.
+            Default is None.
+
+        Returns
+        -------
+        features : torch.Tensor
+            Projected features with the same shape as ``x``.
+        attention : torch.Tensor
+            Attention weights after dropout, averaged over heads, of shape
+            ``(batch_size, timestamps, timestamps)``.
+        """
         B, T, C = x.size()
         k = (
             self.key(x).view(B, T, self.n_head, C // self.n_head).transpose(1, 2)
@@ -214,7 +369,27 @@ class FullAttention(nn.Module):
 
 
 class CrossAttention(nn.Module):
-    """Attend to encoder features using queries from a decoder sequence."""
+    """Attend to encoder features using queries from a decoder sequence.
+
+    Parameters
+    ----------
+    n_embd : int
+        Decoder feature width and attention projection width. Must be
+        divisible by ``n_head``.
+    condition_embd : int
+        Feature width of the encoder conditioning sequence.
+    n_head : int
+        Number of attention heads.
+    attn_pdrop : float, optional
+        Dropout probability applied to attention weights. Default is 0.1.
+    resid_pdrop : float, optional
+        Dropout probability applied after the output projection. Default is 0.1.
+
+    Raises
+    ------
+    AssertionError
+        If ``n_embd`` is not divisible by ``n_head``.
+    """
 
     def __init__(
         self,
@@ -240,7 +415,27 @@ class CrossAttention(nn.Module):
         self.n_head = n_head
 
     def forward(self, x, encoder_output, mask=None):
-        """Return cross-attended decoder features and mean attention weights."""
+        """Return cross-attended decoder features and head-averaged attention weights.
+
+        Parameters
+        ----------
+        x : torch.Tensor
+            Decoder features of shape ``(batch_size, decoder_length, n_embd)``.
+        encoder_output : torch.Tensor
+            Conditioning features of shape
+            ``(batch_size, encoder_length, condition_embd)``.
+        mask : torch.Tensor, optional
+            Reserved argument. No attention mask is applied in this implementation.
+            Default is None.
+
+        Returns
+        -------
+        features : torch.Tensor
+            Projected features with the same shape as ``x``.
+        attention : torch.Tensor
+            Attention weights after dropout, averaged over heads, of shape
+            ``(batch_size, decoder_length, encoder_length)``.
+        """
         B, T, C = x.size()
         B, T_E, _ = encoder_output.size()
         # calculate query, key, values for all heads in batch and move head forward to be the batch dim
@@ -273,7 +468,30 @@ class CrossAttention(nn.Module):
 
 
 class EncoderBlock(nn.Module):
-    """an unassuming Transformer block"""
+    """Apply timestep-conditioned self-attention and a feed-forward residual update.
+
+    Parameters
+    ----------
+    n_embd : int, optional
+        Feature width, divisible by ``n_head``. Default is 1024.
+    n_head : int, optional
+        Number of attention heads. Default is 16.
+    attn_pdrop : float, optional
+        Attention weight dropout probability. Default is 0.1.
+    resid_pdrop : float, optional
+        Dropout probability for attention output and feed-forward layers.
+        Default is 0.1.
+    mlp_hidden_times : int, optional
+        Multiplier for the feed-forward hidden width. Default is 4.
+    activate : {"GELU", "GELU2"}, optional
+        Feed-forward activation. Default is ``"GELU"``.
+
+    Raises
+    ------
+    AssertionError
+        If the feature width is not divisible by the head count, or the
+        activation is unsupported.
+    """
 
     def __init__(
         self,
@@ -307,7 +525,29 @@ class EncoderBlock(nn.Module):
         )
 
     def forward(self, x, timestep, mask=None, label_emb=None):
-        """Apply attention and feed-forward residual updates conditioned on time."""
+        """Apply attention and feed-forward updates conditioned on diffusion time.
+
+        Parameters
+        ----------
+        x : torch.Tensor
+            Features of shape ``(batch_size, timestamps, n_embd)``.
+        timestep : torch.Tensor
+            Diffusion timesteps of shape ``(batch_size,)``.
+        mask : torch.Tensor, optional
+            Passed to self-attention, which currently does not apply masking.
+            Default is None.
+        label_emb : torch.Tensor, optional
+            Class embeddings of shape ``(batch_size, n_embd)`` added to the
+            timestep conditioning. Default is None.
+
+        Returns
+        -------
+        features : torch.Tensor
+            Updated features with the same shape as ``x``.
+        attention : torch.Tensor
+            Head-averaged attention weights of shape
+            ``(batch_size, timestamps, timestamps)``.
+        """
         a, att = self.attn(self.ln1(x, timestep, label_emb), mask=mask)
         x = x + a
         x = x + self.mlp(self.ln2(x))  # only one really use encoder_output
@@ -315,7 +555,26 @@ class EncoderBlock(nn.Module):
 
 
 class Encoder(nn.Module):
-    """Stack timestep-conditioned transformer blocks to encode a series."""
+    """Stack timestep-conditioned Transformer blocks to encode a time series.
+
+    Parameters
+    ----------
+    n_layer : int, optional
+        Number of encoder blocks. Default is 14.
+    n_embd : int, optional
+        Feature width, divisible by ``n_head``. Default is 1024.
+    n_head : int, optional
+        Number of attention heads per block. Default is 16.
+    attn_pdrop : float, optional
+        Attention weight dropout probability. Default is 0.0.
+    resid_pdrop : float, optional
+        Dropout probability for attention output and feed-forward layers.
+        Default is 0.0.
+    mlp_hidden_times : int, optional
+        Multiplier for each feed-forward hidden width. Default is 4.
+    block_activate : {"GELU", "GELU2"}, optional
+        Activation used by encoder blocks. Default is ``"GELU"``.
+    """
 
     def __init__(
         self,
@@ -345,7 +604,26 @@ class Encoder(nn.Module):
         )
 
     def forward(self, input, t, padding_masks=None, label_emb=None):
-        """Pass sequence embeddings through all encoder blocks."""
+        """Pass sequence embeddings through all encoder blocks.
+
+        Parameters
+        ----------
+        input : torch.Tensor
+            Embeddings of shape ``(batch_size, timestamps, n_embd)``.
+        t : torch.Tensor
+            Diffusion timesteps of shape ``(batch_size,)``.
+        padding_masks : torch.Tensor, optional
+            Passed to the blocks as an attention mask. The current attention
+            implementation does not apply it. Default is None.
+        label_emb : torch.Tensor, optional
+            Class embeddings of shape ``(batch_size, n_embd)`` added to timestep
+            conditioning in each block. Default is None.
+
+        Returns
+        -------
+        torch.Tensor
+            Encoded features with the same shape as ``input``.
+        """
         x = input
         for block_idx in range(len(self.blocks)):
             x, _ = self.blocks[block_idx](x, t, mask=padding_masks, label_emb=label_emb)
@@ -353,7 +631,37 @@ class Encoder(nn.Module):
 
 
 class DecoderBlock(nn.Module):
-    """an unassuming Transformer block"""
+    """Decode features into residual activations, mean, trend, and seasonality.
+
+    Parameters
+    ----------
+    n_channel : int
+        Number of timestamps in the decoder input. Temporal projections
+        treat this dimension as convolution channels.
+    n_feat : int
+        Number of output signal features per timestamp.
+    n_embd : int, optional
+        Decoder feature width, divisible by ``n_head``. Default is 1024.
+    n_head : int, optional
+        Number of self-attention and cross-attention heads. Default is 16.
+    attn_pdrop : float, optional
+        Attention weight dropout probability. Default is 0.1.
+    resid_pdrop : float, optional
+        Dropout probability for attention output and feed-forward layers.
+        Default is 0.1.
+    mlp_hidden_times : int, optional
+        Multiplier for the feed-forward hidden width. Default is 4.
+    activate : {"GELU", "GELU2"}, optional
+        Feed-forward and trend projection activation. Default is ``"GELU"``.
+    condition_dim : int, optional
+        Feature width of the encoder conditioning sequence. Default is 1024.
+
+    Raises
+    ------
+    AssertionError
+        If the feature width is not divisible by the head count, or the
+        activation is unsupported.
+    """
 
     def __init__(
         self,
@@ -408,7 +716,35 @@ class DecoderBlock(nn.Module):
         self.linear = nn.Linear(n_embd, n_feat)
 
     def forward(self, x, encoder_output, timestep, mask=None, label_emb=None):
-        """Return centered features, projected mean, trend, and seasonal components."""
+        """Decode features and separate their temporal components.
+
+        Parameters
+        ----------
+        x : torch.Tensor
+            Decoder features of shape ``(batch_size, n_channel, n_embd)``.
+        encoder_output : torch.Tensor
+            Conditioning features of shape
+            ``(batch_size, encoder_length, condition_dim)``.
+        timestep : torch.Tensor
+            Diffusion timesteps of shape ``(batch_size,)``.
+        mask : torch.Tensor, optional
+            Passed to attention layers, which currently do not apply masking.
+            Default is None.
+        label_emb : torch.Tensor, optional
+            Class embeddings of shape ``(batch_size, n_embd)`` added to the
+            self-attention timestep conditioning. Default is None.
+
+        Returns
+        -------
+        features : torch.Tensor
+            Centered decoder features of shape ``(batch_size, n_channel, n_embd)``.
+        mean : torch.Tensor
+            Projected temporal mean of shape ``(batch_size, 1, n_feat)``.
+        trend : torch.Tensor
+            Polynomial trend of shape ``(batch_size, n_channel, n_feat)``.
+        season : torch.Tensor
+            Fourier seasonal component of shape ``(batch_size, n_channel, n_embd)``.
+        """
         a, att = self.attn1(self.ln1(x, timestep, label_emb), mask=mask)
         x = x + a
         a, att = self.attn2(self.ln1_1(x, timestep), encoder_output, mask=mask)
@@ -421,7 +757,32 @@ class DecoderBlock(nn.Module):
 
 
 class Decoder(nn.Module):
-    """Accumulate trend and seasonal components across transformer decoder blocks."""
+    """Accumulate trend and seasonal components across Transformer decoder blocks.
+
+    Parameters
+    ----------
+    n_channel : int
+        Number of timestamps in the decoder input.
+    n_feat : int
+        Number of output signal features per timestamp.
+    n_embd : int, optional
+        Decoder feature width, divisible by ``n_head``. Default is 1024.
+    n_head : int, optional
+        Number of attention heads per block. Default is 16.
+    n_layer : int, optional
+        Number of decoder blocks. Default is 10.
+    attn_pdrop : float, optional
+        Attention weight dropout probability. Default is 0.1.
+    resid_pdrop : float, optional
+        Dropout probability for attention output and feed-forward layers.
+        Default is 0.1.
+    mlp_hidden_times : int, optional
+        Multiplier for each feed-forward hidden width. Default is 4.
+    block_activate : {"GELU", "GELU2"}, optional
+        Feed-forward and trend projection activation. Default is ``"GELU"``.
+    condition_dim : int, optional
+        Feature width of the encoder conditioning sequence. Default is 512.
+    """
 
     def __init__(
         self,
@@ -458,7 +819,35 @@ class Decoder(nn.Module):
         )
 
     def forward(self, x, t, enc, padding_masks=None, label_emb=None):
-        """Return decoded features and the accumulated mean, trend, and seasonality."""
+        """Return decoded features and accumulated mean, trend, and seasonality.
+
+        Parameters
+        ----------
+        x : torch.Tensor
+            Decoder embeddings of shape ``(batch_size, n_channel, n_embd)``.
+        t : torch.Tensor
+            Diffusion timesteps of shape ``(batch_size,)``.
+        enc : torch.Tensor
+            Conditioning features of shape
+            ``(batch_size, encoder_length, condition_dim)``.
+        padding_masks : torch.Tensor, optional
+            Passed to attention layers, which currently do not apply masking.
+            Default is None.
+        label_emb : torch.Tensor, optional
+            Class embeddings of shape ``(batch_size, n_embd)`` passed to each block.
+            Default is None.
+
+        Returns
+        -------
+        features : torch.Tensor
+            Final decoder features of shape ``(batch_size, n_channel, n_embd)``.
+        mean : torch.Tensor
+            Concatenated block means of shape ``(batch_size, n_layer, n_feat)``.
+        trend : torch.Tensor
+            Accumulated trend of shape ``(batch_size, n_channel, n_feat)``.
+        season : torch.Tensor
+            Accumulated seasonality of shape ``(batch_size, n_channel, n_embd)``.
+        """
         b, c, _ = x.shape
         # att_weights = []
         mean = []
@@ -477,7 +866,45 @@ class Decoder(nn.Module):
 
 
 class Transformer(nn.Module):
-    """Denoise time series by predicting trend and seasonal residual components."""
+    """Predict trend and seasonal residual components of a noisy time series.
+
+    The model embeds the input, applies a timestep-conditioned encoder and
+    decoder, then combines polynomial trend, Fourier seasonality, and a
+    centered residual projection into signal-space components.
+
+    Parameters
+    ----------
+    n_feat : int
+        Number of signal features per timestamp.
+    n_channel : int
+        Input sequence length, used by the decoder's temporal projections.
+    n_layer_enc : int, optional
+        Number of encoder blocks. Default is 5.
+    n_layer_dec : int, optional
+        Number of decoder blocks. Default is 14.
+    n_embd : int, optional
+        Embedding width, divisible by ``n_heads``. Default is 1024.
+    n_heads : int, optional
+        Number of attention heads per block. Default is 16.
+    attn_pdrop : float, optional
+        Attention weight dropout probability. Default is 0.1.
+    resid_pdrop : float, optional
+        Dropout probability for embeddings, attention output, positional
+        encodings, and feed-forward layers. Default is 0.1.
+    mlp_hidden_times : int, optional
+        Multiplier for each feed-forward hidden width. Default is 4.
+    block_activate : {"GELU", "GELU2"}, optional
+        Feed-forward and trend projection activation. Default is ``"GELU"``.
+    max_len : int, optional
+        Maximum sequence length supported by the positional encodings.
+        Must be at least ``n_channel``. Default is 2048.
+    conv_params : tuple of int, optional
+        Kernel size and padding for the seasonal output convolution. If None,
+        or its first item is None, uses ``(1, 0)`` when ``n_feat < 32`` and
+        ``n_channel < 64``, or ``(5, 2)`` otherwise. Default is None.
+    **kwargs
+        Additional keyword arguments accepted for compatibility and not used.
+    """
 
     def __init__(
         self,
@@ -557,7 +984,33 @@ class Transformer(nn.Module):
         )
 
     def forward(self, input, t, padding_masks=None, return_res=False):
-        """Return trend and seasonal residual, optionally separating the residual term."""
+        """Decompose a noisy signal into trend and seasonal residual components.
+
+        Parameters
+        ----------
+        input : torch.Tensor
+            Signals of shape ``(batch_size, n_channel, n_feat)``.
+        t : torch.Tensor
+            Diffusion timesteps of shape ``(batch_size,)``.
+        padding_masks : torch.Tensor, optional
+            Passed to attention layers, which currently do not apply masking.
+            Default is None.
+        return_res : bool, optional
+            Return the seasonal projection and centered residual separately.
+            If False, return their sum as the seasonal residual. Default is False.
+
+        Returns
+        -------
+        trend : torch.Tensor
+            Trend component of shape ``(batch_size, n_channel, n_feat)``.
+        season : torch.Tensor
+            Seasonal residual when ``return_res=False``, or only the seasonal
+            projection when True. Has the same shape as ``trend`` when the
+            output convolution preserves temporal length.
+        residual : torch.Tensor, optional
+            Centered residual projection with the same shape as ``trend``.
+            Returned only when ``return_res=True``.
+        """
         emb = self.emb(input)
         inp_enc = self.pos_enc(emb)
         enc_cond = self.encoder(inp_enc, t, padding_masks=padding_masks)
