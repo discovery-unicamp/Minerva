@@ -1,5 +1,3 @@
-import sys
-from types import SimpleNamespace
 from unittest.mock import Mock
 
 import numpy as np
@@ -43,11 +41,12 @@ def test_fid_requires_matching_feature_counts():
 
 @pytest.fixture
 def ts2vec_encoder(monkeypatch):
-    # Replace the optional encoder so these unit tests do not train TS2Vec.
+    # Replace the TS2Vec reference imported by FID so no encoder is trained.
     encoder = Mock()
     encoder.encode.return_value = np.array([[-1.0], [0.0], [1.0]])
-    module = SimpleNamespace(TS2Vec=Mock(return_value=encoder))
-    monkeypatch.setitem(sys.modules, "ts2vec.ts2vec", module)
+    monkeypatch.setattr(
+        "minerva.analysis.metrics.fid_score.TS2Vec", Mock(return_value=encoder)
+    )
     return encoder
 
 
