@@ -1,3 +1,5 @@
+"""Feature extraction from DiffWave residual blocks."""
+
 import torch
 import torch.nn as nn
 from typing import Optional
@@ -5,31 +7,33 @@ from minerva.models.ssl.diffwave import DiffWave
 
 
 class DiffWaveEncoder(nn.Module):
-    """Feature extraction wrapper for DiffWave generative model architectures.
+    """Extract DiffWave residual features directly or after one reverse diffusion step.
 
-    Provides an interface to extract intermediate activations or residual layer
-    representations from a pre-trained DiffWave model, supporting both single-pass
-    feature extraction and multi-iteration (double-pass) denoising workflows.
+    Single pass extracts features from the input at ``diffusion_timestep``.
+    Double pass applies one reverse step with the primary backbone, then extracts
+    features at timestep zero with a second backbone initialized from its weights.
 
     Parameters
     ----------
-    backbone : nn.Module
-        Pre-trained DiffWave model instance used as the primary feature extractor.
+    backbone : DiffWave
+        Initialized DiffWave model, typically loaded with pretrained weights.
     diffusion_timestep : int, optional
-        Diffusion timestep index used during feature extraction or initial denoising.
-        Default is 0.
-    target_res_layer : int, optional
-        Target residual layer index from which to extract feature representations.
-        If None, extracts from the model default. Default is None.
-    return_skip : bool, optional
-        Whether to return aggregated skip connections instead of residual outputs.
-        Default is False.
+        Timestep used by the first pass. Default is 0.
+    target_block : int, optional
+        Zero-based residual block index at which to extract features. If None,
+        uses the last residual block. Default is None.
     pass_strategy : str, optional
-        Strategy for forward processing iterations. Values of "double" trigger a
-        double-pass mechanism (full denoising followed by timestep 0 feature extraction).
-        Default is "single".
+        Use ``"double"`` for denoising followed by feature extraction. Other
+        values follow the single-pass path. Default is ``"single"``.
     flatten : bool, optional
-        Whether to flatten output spatial/temporal dimensions. Default is False.
+        If True, flatten the channel and time dimensions. If False, average
+        features over time. Default is False.
+
+    Notes
+    -----
+    The wrapper supplies no class labels and extracts residual activations.
+    The reverse step adds Gaussian noise when ``diffusion_timestep > 0``, so
+    repeated double-pass calls can produce different representations.
     """
 
     def __init__(
@@ -56,23 +60,19 @@ class DiffWaveEncoder(nn.Module):
             self.backbone2.load_state_dict(backbone.state_dict())
 
     def forward(self, input: torch.Tensor) -> torch.Tensor:
-        """Executes the feature extraction forward pass on the input tensor.
-
-        If configured for a double pass (`pass_strategy == "double"`), the input is first
-        denoised via a full forward step using the primary backbone at `diffusion_timestep`.
-        The output is then passed through the secondary backbone at timestep 0 to extract
-        the requested residual or skip layer features. Otherwise, performs direct
-        feature extraction in a single pass.
+        """Extract residual features using the configured timestep and block.
 
         Parameters
         ----------
         input : torch.Tensor
-            Input signal tensor to process through the network.
+            Signal batch of shape ``(batch_size, in_channels, sequence_length)``.
+            The tensor must be on the same device as the backbone.
 
         Returns
         -------
         torch.Tensor
-            Extracted feature representations or denoised tensor.
+            Features of shape ``(batch_size, res_channels)`` when ``flatten=False``,
+            or ``(batch_size, res_channels * sequence_length)`` when True.
         """
         x = input
         if self.is_double_pass:

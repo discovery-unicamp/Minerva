@@ -16,4 +16,3 @@ timm
 opencv-python
 torchinfo
 ema-pytorch
-ts2vec

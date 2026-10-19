@@ -1,3 +1,5 @@
+"""Feature extraction from the latent diffusion U-Net for time series."""
+
 import torch
 from torch import nn
 from typing import Optional
@@ -5,30 +7,36 @@ from minerva.models.ssl.ts_ldm import TSLatentDiffusion
 
 
 class TSLatentDiffusionEncoder(nn.Module):
-    """Encoder wrapper for TSLatentDiffusion models to extract features.
+    """Extract latent U-Net features from a time-series diffusion model.
 
-    Provides a unified interface to extract intermediate representations or
-    perform multi-step denoising forward passes from a pre-trained Latent
-    Diffusion Model (LDM) tailored for Time Series Analysis.
+    Single pass encodes the signal with the first-stage autoencoder and
+    extracts U-Net activations at ``diffusion_timestep``. Double pass first
+    performs one latent reverse step and decodes it to signal space, then
+    extracts features at timestep zero with a second backbone initialized
+    from the primary backbone's configuration and weights.
 
     Parameters
     ----------
-    backbone : nn.Module
-        Pre-trained TSLatentDiffusion model used for feature extraction.
-    target_time_step : int, optional
-        Diffusion timestep used for feature extraction or initial denoising.
+    backbone : TSLatentDiffusion
+        Initialized latent diffusion model, including its first-stage autoencoder.
+    diffusion_timestep : int, optional
+        Timestep for direct feature extraction or the initial reverse step.
         Default is 0.
     target_block : int, optional
-        Specific U-Net block index to extract features from. If None, extracts
-        from the default output layer. Default is None.
+        Zero-based U-Net input block index at which to return activations.
+        If None, uses the output of the last input block. Default is None.
     pass_strategy : str, optional
-        Strategy for forward processing iterations. Values of "double" trigger a
-        double-pass mechanism (full denoising step followed by feature extraction).
-        Default is "single".
+        Use ``"double"`` for denoising followed by feature extraction. Other
+        values follow the single-pass path. Default is ``"single"``.
     flatten : bool, optional
-        Flag indicating whether to flatten the output features. (Note: behavior
-        depends on external usage, currently stored as an attribute).
-        Default is True.
+        Stored configuration flag. This wrapper does not flatten or pool the
+        returned features. Default is True.
+
+    Notes
+    -----
+    Encoding samples the first-stage posterior when it supports sampling.
+    Double pass also adds reverse-step noise above timestep zero. Evaluation
+    mode alone therefore does not guarantee identical features between calls.
     """
 
     def __init__(
@@ -58,23 +66,20 @@ class TSLatentDiffusionEncoder(nn.Module):
             self.backbone2.load_state_dict(self.backbone.state_dict())
 
     def forward(self, input: torch.Tensor) -> torch.Tensor:
-        """Forward pass to extract latent features from the input signal.
-
-        If configured for a double pass (`pass_strategy == "double"`), the input first
-        undergoes a full single-step denoising using the primary backbone at
-        `diffusion_timestep`. The denoised output is then passed through the cloned
-        secondary backbone at timestep 0 to extract the block features.
-        Otherwise, it performs a standard feature extraction in a single pass.
+        """Encode a signal and return activations from the selected U-Net input block.
 
         Parameters
         ----------
         input : torch.Tensor
-            Input signal tensor to be processed.
+            Signal batch of shape ``(batch_size, channels, sequence_length)``.
+            The backbone handles configured padding and latent scaling.
 
         Returns
         -------
         torch.Tensor
-            Extracted feature representations.
+            Activations of shape ``(batch_size, block_channels, block_length)``.
+            The selected block and latent resolution determine the feature shape.
+            No flattening or temporal pooling is applied.
         """
         x = input
 

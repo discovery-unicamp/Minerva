@@ -1,5 +1,6 @@
 import numpy as np
 import scipy
+from minerva.models.ssl.ts2vec import TS2Vec
 
 
 def compute_frechet_distance(ori_representation, gen_representation):
@@ -88,12 +89,6 @@ def compute_ts_fid(
         )
     options.update(encoder_kwargs or {})
     training_options = {"verbose": False, **(fit_kwargs or {})}
-    try:
-        from ts2vec.ts2vec import TS2Vec
-    except ImportError as exc:
-        raise ImportError(
-            "TS2Vec evaluation requires a package exposing ts2vec.ts2vec.TS2Vec."
-        ) from exc
 
     model = TS2Vec(input_dims=ori_data.shape[-1], device=device, **options)
     model.fit(ori_data, **training_options)

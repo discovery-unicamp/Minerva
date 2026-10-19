@@ -1,5 +1,6 @@
 import pytest
 import torch
+from copy import deepcopy
 
 from minerva.schedulers.diffusionts_lr_sch import (
     ReduceLROnPlateauWithWarmup,
@@ -74,6 +75,3 @@ def test_plateau_restores_warmup_without_changing_learning_rate_steps(optimizer)
     assert restored_optimizer.param_groups[0]["lr"] == pytest.approx(
         optimizer.param_groups[0]["lr"]
     )
-
-
-from copy import deepcopy

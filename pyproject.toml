@@ -88,7 +88,7 @@ docs = [
     "furo",
     "sphinx",
 ]
-analysis = ["codecarbon>=2.8.3", "ultralytics-thop>=2.0.14", "ts2vec==0.1"]
+analysis = ["codecarbon>=2.8.3", "ultralytics-thop>=2.0.14"]
 
 [project.urls]
 "Bug Tracker" = "https://github.com/discovery-unicamp/Minerva/issues"
