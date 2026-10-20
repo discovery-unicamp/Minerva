@@ -32,7 +32,7 @@ license = { file = "LICENSE" }
 name = "minerva"
 readme = "README.md"
 requires-python = ">=3.10"
-version = "0.3.10-beta"
+version = "0.3.11-beta"
 
 dependencies = [
     "einops>=0.7",
