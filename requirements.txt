@@ -15,3 +15,4 @@ torchvision
 timm
 opencv-python
 torchinfo
+ema-pytorch
