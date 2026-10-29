@@ -1,11 +1,7 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-import copy
 import lightning as L
-from PIL import Image
-from torchvision import transforms
-from typing import Optional, Any, Callable, Sequence
+from typing import Optional, Any, Sequence
 
 
 class SimSiamMLPHead(nn.Sequential):
@@ -104,16 +100,18 @@ class FastSiam(L.LightningModule):
         Hidden dimension for the projector and predictor networks, by default 512.
     out_dim : int, optional
         Output dimension for the projector and predictor networks, by default 128.
-    K : int, optional
-        Number of target_branch views to generate, by default 3.
-    momentum : float, optional
-        Momentum factor for updating the target_branch, by default 0.996.
+    flatten : bool, optional, default=True
+        Whether to flatten the output of the backbone model, by default True
+    avg_pooling: bool, optional, default=True
+        Whether to apply a global average pooling to the backbone output.
+        If flatten is True it will be applied before flattening, by default True
+    k : int, optional
+        Number of target views to use, it will k+1 total views, make sure your Dataset class yields k+1 views, by default 3
     lr : float, optional
-        Learning rate for the optimizer, by default 1e-3.
-    test_metric : Optional[Callable], optional
-        A callable to compute the test metric, by default None.
-    num_classes : Optional[int], optional
-        Number of classes for classification tasks, by default None.
+        Learning rate for the optimizer, by default 0.125
+    loss_fn : Callable, optional
+        Loss function used for training. Default is cosine similarity loss.
+        This loss will be multiplied by -1 when computing total loss
     """
 
     def __init__(
@@ -122,192 +120,108 @@ class FastSiam(L.LightningModule):
         in_dim: int = 2048,
         hid_dim: int = 2048,
         out_dim: int = 2048,
-        K: int = 3,
-        momentum: float = 0.996,
-        lr: float = 1e-3,
-        test_metric: Optional[Callable] = None,
-        num_classes: Optional[int] = None,
+        flatten: bool = True,
+        avg_pooling: bool = True,
+        k: int = 3,
+        lr: float = 0.125,
+        loss_fn: Optional[nn.Module] = None,
     ):
         super(FastSiam, self).__init__()
-        self.K = K
-        self.momentum = momentum
+        self.k = k
         self.lr = lr
-        self.test_metric = test_metric
-        self.num_classes = num_classes
+        self.out_dim = out_dim
+        self.flatten = flatten
 
-        # Prediction branch
         self.backbone = backbone
-        self.prediction_branch_projector = SimSiamMLPHead(
+        self.projection_head = SimSiamMLPHead(
             [in_dim, 512, out_dim],
             activation_cls=nn.ReLU,
             batch_norm=True,
             final_bn=False,
             final_relu=False,
         )
-        self.prediction_branch_predictor = SimSiamMLPHead(
+        self.prediction_head = SimSiamMLPHead(
             [out_dim, hid_dim, out_dim],
             activation_cls=nn.ReLU,
             batch_norm=True,
             final_bn=False,
             final_relu=False,
         )
+        if loss_fn:
+            self.loss_fn = loss_fn
+        else:
+            self.loss_fn = torch.nn.CosineSimilarity(dim=1, eps=1e-8)
 
-        # Target branch (momentum updated)
-        self.target_branch_backbone = copy.deepcopy(backbone)
-        self.target_branch_projector = SimSiamMLPHead(
-            [in_dim, hid_dim, out_dim],
-            activation_cls=nn.ReLU,
-            batch_norm=True,
-            final_bn=False,
-            final_relu=False,
-        )
+        self.global_avg_pool = None
+        if avg_pooling:
+            self.global_avg_pool = nn.AdaptiveAvgPool2d((1, 1))
 
-        # Global average pooling layer
-        self.global_avg_pool = nn.AdaptiveAvgPool2d((1, 1))
+    def forward(self, x):
+        f = self.backbone(x)
+        if self.global_avg_pool:
+            f = self.global_avg_pool(f)
+        if self.flatten:
+            f = f.flatten(start_dim=1)
+        z = self.projection_head(f)
+        p = self.prediction_head(z)
+        z = z.detach()
+        return z, p
 
-    @torch.no_grad()
-    def update_target_branch(self) -> None:
-        """Momentum update for the target branch."""
-        for prediction_branch_param, target_branch_param in zip(
-            self.backbone.parameters(), self.target_branch_backbone.parameters()
-        ):
-            target_branch_param.data = (
-                self.momentum * target_branch_param.data
-                + (1.0 - self.momentum) * prediction_branch_param.data
-            )
-        for prediction_branch_param, target_branch_param in zip(
-            self.prediction_branch_projector.parameters(),
-            self.target_branch_projector.parameters(),
-        ):
-            target_branch_param.data = (
-                self.momentum * target_branch_param.data
-                + (1.0 - self.momentum) * prediction_branch_param.data
-            )
+    def _single_step_arbitrary_k(self, batch: Any):
+        # borrowed from lightly
+        # source: https://github.com/lightly-ai/lightly/blob/f5a9f19ac983d88f058030d630761432dbbd98a3/examples/pytorch_lightning/fastsiam.py
+        features = [self.forward(view) for view in batch]
+        zs = torch.stack([z for z, _ in features])
+        ps = torch.stack([p for _, p in features])
 
-    def forward(self, views: Any) -> tuple[torch.Tensor, torch.Tensor]:
-        """Forward pass through the prediction branch and target branches."""
-        # Ensure views are in the correct format (BCHW)
-        if not isinstance(views, list):
-            views = [views]
+        loss = 0.0
+        for i in range(self.k + 1):
+            mask = torch.arange(self.k + 1, device=self.device) != i
+            loss += -self.loss_fn(ps[i], torch.sum(zs[mask], dim=0) / self.k).mean()
+        return loss / (self.k + 1)
 
-        # Process prediction branch
-        prediction_branch_features = self.backbone(views[-1])  # Use the last view
-        prediction_branch_features = self.global_avg_pool(prediction_branch_features)
-        prediction_branch_features = torch.flatten(
-            prediction_branch_features, start_dim=1
-        )
-        prediction_branch_projected = self.prediction_branch_projector(
-            prediction_branch_features
-        )
-        prediction_branch_predicted = self.prediction_branch_predictor(
-            prediction_branch_projected
-        )
-
-        target_branch_projected_list = []
-        with torch.no_grad():
-            for i in range(self.K):
-                # Process target branch
-                target_branch_features = self.target_branch_backbone(views[i])
-                target_branch_features = self.global_avg_pool(target_branch_features)
-                target_branch_features = torch.flatten(
-                    target_branch_features, start_dim=1
-                )
-                target_branch_projected = self.target_branch_projector(
-                    target_branch_features
-                )
-                target_branch_projected_list.append(target_branch_projected)
-
-        avg_target_branch_projected = sum(target_branch_projected_list) / self.K
-
-        return prediction_branch_predicted, avg_target_branch_projected.detach()
-
-    def _single_step(self, batch: Any, K: int, log_prefix: str) -> torch.Tensor:
-        """Perform a single training, validation, or test step."""
-        images, *_ = batch
-
-        # Generate augmented views
-        augmented_views = [
-            torch.stack([self.ensure_tensor(img)[0] for img in images]).to(self.device)
-            for _ in range(K + 1)
-        ]
-
-        # Initialize total loss
-        total_loss = 0
-
-        # Loop over all views as the prediction view
-        for i in range(K + 1):
-            # Prediction branch uses view i
-            prediction_branch_features = self.backbone(augmented_views[i])
-            prediction_branch_features = self.global_avg_pool(
-                prediction_branch_features
-            )
-            prediction_branch_features = torch.flatten(
-                prediction_branch_features, start_dim=1
-            )
-            prediction_branch_projected = self.prediction_branch_projector(
-                prediction_branch_features
-            )
-            prediction_branch_predicted = self.prediction_branch_predictor(
-                prediction_branch_projected
+    def _single_step(self, batch: Any, log_prefix: str) -> torch.Tensor:
+        if len(batch) != self.k + 1:
+            raise RuntimeError(
+                f"expected {self.k + 1} views, but got {len(batch)}, is your Dataset class yielding k+1 views?"
             )
 
-            # Target branch averages over all other views
-            target_branch_projected_list = []
-            with torch.no_grad():
-                for j in range(K + 1):
-                    if j != i:
-                        target_branch_features = self.target_branch_backbone(
-                            augmented_views[j]
-                        )
-                        target_branch_features = self.global_avg_pool(
-                            target_branch_features
-                        )
-                        target_branch_features = torch.flatten(
-                            target_branch_features, start_dim=1
-                        )
-                        target_branch_projected = self.target_branch_projector(
-                            target_branch_features
-                        )
-                        target_branch_projected_list.append(target_branch_projected)
+        # since the user will probably use k = 3 most of the time
+        # lets just inline the loss here
+        if self.k == 3:
+            z0, p0 = self.forward(batch[0])
+            z1, p1 = self.forward(batch[1])
+            z2, p2 = self.forward(batch[2])
+            z3, p3 = self.forward(batch[3])
 
-            avg_target_branch_projected = sum(target_branch_projected_list) / K
+            d1 = self.loss_fn(p0, (z1 + z2 + z3) / 3).mean()
+            d2 = self.loss_fn(p1, (z0 + z2 + z3) / 3).mean()
+            d3 = self.loss_fn(p2, (z0 + z1 + z3) / 3).mean()
+            d4 = self.loss_fn(p3, (z0 + z1 + z2) / 3).mean()
 
-            # Normalize loss before summing
-            avg_target_branch_projected = F.normalize(
-                avg_target_branch_projected, dim=-1, p=2
-            )
+            loss = (-1 / 4) * (d1 + d2 + d3 + d4)
+        else:
+            loss = self._single_step_arbitrary_k(batch)
 
-            # Compute loss for the current view
-            loss = self.fastsiam_loss(
-                prediction_branch_predicted, avg_target_branch_projected.detach()
-            )
-            total_loss += loss
-
-        # Average the loss over all views
-        total_loss /= K + 1
-
-        # Log the loss
         self.log(
             f"{log_prefix}_loss",
-            total_loss,
-            batch_size=len(images),
+            loss,
             on_step=True,
             on_epoch=True,
             prog_bar=True,
         )
-        return total_loss
+        return loss
 
     def training_step(self, batch: Any, batch_idx: int) -> torch.Tensor:
-        return self._single_step(batch, self.K, "train")
+        return self._single_step(batch, "train")
 
     def validation_step(self, batch: Any, batch_idx: int) -> torch.Tensor:
-        return self._single_step(batch, self.K, "val")
+        return self._single_step(batch, "val")
 
     def test_step(self, batch: Any, batch_idx: int) -> torch.Tensor:
-        return self._single_step(batch, self.K, "test")
+        return self._single_step(batch, "test")
 
-    def configure_optimizers(self) -> torch.optim.Optimizer:
-        """Configure the optimizer for training."""
+    def configure_optimizers(self):
         optimizer = torch.optim.SGD(
             self.parameters(), lr=self.lr, momentum=0.9, weight_decay=1e-4
         )
@@ -315,24 +229,3 @@ class FastSiam(L.LightningModule):
             optimizer, T_max=self.trainer.max_epochs
         )
         return [optimizer], [scheduler]
-
-    def ensure_tensor(self, image: torch.Tensor) -> torch.Tensor:
-        """Ensure the input image is a PyTorch tensor with the correct format."""
-        if not isinstance(image, torch.Tensor):
-            # Convert non-tensor input to tensor (assuming numpy array input)
-            image = torch.from_numpy(image).float()
-
-        # Ensure the tensor is in BCHW format (batch, channels, height, width)
-        if len(image.shape) == 3:
-            image = image.unsqueeze(0)  # Add batch dimension if missing
-
-        return image
-
-    @staticmethod
-    def fastsiam_loss(
-        prediction_branch_pred: torch.Tensor, target_branch_target: torch.Tensor
-    ) -> torch.Tensor:
-        """Compute the FastSiam loss (cosine similarity loss)."""
-        prediction_branch_pred = F.normalize(prediction_branch_pred, dim=-1, p=2)
-        target_branch_target = F.normalize(target_branch_target, dim=-1, p=2)
-        return -(prediction_branch_pred * target_branch_target).sum(dim=-1).mean()
