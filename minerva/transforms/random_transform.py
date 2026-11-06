@@ -10,6 +10,7 @@ from minerva.transforms.transform import (
     Resize,
     Rotation,
     Solarize,
+    GaussianBlur,
     _Transform,
 )
 
@@ -338,3 +339,54 @@ class RandomResize(_RandomSyncedTransform):
 
     def __str__(self) -> str:
         return f"RandomResize(num_samples={self.num_samples}, target_scale={self.target_scale}, ratio_range={self.ratio_range})"
+
+class RandomGaussianBlur(_RandomSyncedTransform):
+    def __init__(
+        self,
+        kernel_size: Union[int, Tuple[int, int]],
+        sigma_range: Tuple[float, float] = (0.1, 2.0),
+        prob: float = 0.5,
+        num_samples: int = 1,
+        seed: Optional[int] = None,
+    ):
+        """
+        A random Gaussian blur transform that applies the same blur to multiple data items.
+
+        This transform randomly decides whether to apply a Gaussian blur based on a specified probability.
+        When activated, it samples a standard deviation (sigma) uniformly from the specified range and 
+        applies the blur using the provided kernel size. The same transformation is applied to all related
+        data items, ensuring consistency across image-mask pairs or other grouped data.
+
+        Parameters
+        ----------
+        kernel_size : Union[int, Tuple[int, int]]
+            Gaussian kernel size. If an int is provided, it is used for both height and width.
+            Both dimensions must be positive, odd integers.
+        sigma_range : Tuple[float, float], default=(0.1, 2.0)
+            Range of standard deviation for the Gaussian kernel as (min_sigma, max_sigma).
+            The sigma value is sampled uniformly from this range.
+        prob : float, default=0.5
+            Probability of applying the Gaussian blur transformation. Must be between 0.0 and 1.0.
+            Higher values make the blur more likely.
+        num_samples : int, default=1
+            The number of times the same random transformation will be applied when called.
+            Set to 2 for data-label pairs, 3 or more for datasets with multiple related items,
+            or 1 for single data items or contrastive learning scenarios.
+        seed : Optional[int], default=None
+            Random seed for reproducible sigma selection and probability check. 
+            If None, uses system randomness.
+        """
+        super().__init__(num_samples=num_samples, seed=seed)
+        self.kernel_size = kernel_size
+        self.sigma_range = sigma_range
+        self.prob = prob
+
+    def select_transform(self):
+        if self.rng.random() < self.prob:
+            sigma = self.rng.uniform(*self.sigma_range)
+            return GaussianBlur(kernel_size=self.kernel_size, sigma=sigma)
+        else:
+            return Identity()
+
+    def __str__(self) -> str:
+        return f"RandomGaussianBlur(num_samples={self.num_samples}, kernel_size={self.kernel_size}, sigma_range={self.sigma_range}, prob={self.prob})"

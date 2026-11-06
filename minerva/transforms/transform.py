@@ -958,3 +958,45 @@ class Resize(_Transform):
             (width, height),
             interpolation=cv2.INTER_LINEAR,
         )
+
+class GaussianBlur(_Transform):
+    def __init__(self, kernel_size: Union[int, Tuple[int, int]], sigma: float = 0.0):
+        """
+        Applies a Gaussian blur to an image using OpenCV.
+
+        Parameters
+        ----------
+        kernel_size : Union[int, Tuple[int, int]]
+            Gaussian kernel size. If an int is provided, it is used for both
+            height and width. Both dimensions must be positive, odd integers.
+        sigma : float, optional
+            Gaussian kernel standard deviation in X direction. If set to 0.0, 
+            it is automatically computed from the kernel size. Defaults to 0.0.
+        """
+        if isinstance(kernel_size, int):
+            kernel_size = (kernel_size, kernel_size)
+            
+        if kernel_size[0] % 2 == 0 or kernel_size[1] % 2 == 0:
+            raise ValueError("Kernel size dimensions must be odd integers.")
+            
+        self.kernel_size = kernel_size
+        self.sigma = sigma
+
+    def __call__(self, x: np.ndarray) -> np.ndarray:
+        """
+        Apply Gaussian blur to the input data.
+
+        Parameters
+        ----------
+        x : np.ndarray
+            Input image array in (H, W) or (H, W, C) format.
+            
+        Returns
+        -------
+        np.ndarray
+            Blurred image array of the same shape as input.
+        """
+        return cv2.GaussianBlur(x, self.kernel_size, self.sigma)
+
+    def __str__(self) -> str:
+        return f"GaussianBlur(kernel_size={self.kernel_size}, sigma={self.sigma})"

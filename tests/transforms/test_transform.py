@@ -21,6 +21,7 @@ from minerva.transforms import (
     TransformPipeline,
     Transpose,
     Unsqueeze,
+    GaussianBlur,
     _Transform,
 )
 from minerva.transforms.random_transform import Identity
@@ -420,3 +421,43 @@ def test_rotation_output_shape_and_visual_change():
 
     assert y.shape == x.shape
     assert not np.array_equal(x, y)
+
+
+def test_gaussian_blur_output_shape_and_effect():
+    # Create a dummy image
+    x = np.random.randint(0, 256, size=(100, 100, 3), dtype=np.uint8)
+    
+    # Apply Gaussian blur
+    transform = GaussianBlur(kernel_size=5, sigma=1.5)
+    y = transform(x)
+
+    # Check if the output shape is the same as the input
+    assert y.shape == x.shape
+    
+    # Check that the image has been modified (blurred)
+    assert not np.array_equal(x, y)
+
+
+def test_gaussian_blur_tuple_kernel():
+    # Create a dummy 2D image (grayscale)
+    x = np.random.randint(0, 256, size=(50, 50), dtype=np.uint8)
+    
+    # Apply Gaussian blur with a tuple kernel size
+    transform = GaussianBlur(kernel_size=(3, 5))
+    y = transform(x)
+
+    assert y.shape == x.shape
+
+
+def test_gaussian_blur_invalid_kernel():
+    # Check if a ValueError is raised when using an even kernel size
+    with pytest.raises(ValueError):
+        transform = GaussianBlur(kernel_size=4)
+        
+    with pytest.raises(ValueError):
+        transform = GaussianBlur(kernel_size=(3, 4))
+
+
+def test_gaussian_blur_str():
+    transform = GaussianBlur(kernel_size=5, sigma=1.5)
+    assert str(transform) == "GaussianBlur(kernel_size=(5, 5), sigma=1.5)"

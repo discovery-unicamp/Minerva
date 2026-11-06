@@ -9,6 +9,8 @@ from minerva.transforms import (
     RandomSolarize,
     Rotation,
     Solarize,
+    RandomGaussianBlur,
+    GaussianBlur
 )
 from minerva.transforms.random_transform import Identity
 
@@ -82,3 +84,28 @@ def test_random_rotation_within_degree_range():
 
     assert isinstance(selected, Rotation)
     assert -30 <= selected.degrees <= 30
+
+def test_random_gaussian_blur_prob_1():
+    x = np.random.randint(0, 256, size=(64, 64, 3), dtype=np.uint8)
+    transform = RandomGaussianBlur(kernel_size=5, sigma_range=(0.5, 1.5), prob=1.0, seed=42)
+    selected = transform.select_transform()
+
+    assert isinstance(selected, GaussianBlur)
+    y = selected(x)
+    assert y.shape == x.shape
+    assert not np.array_equal(x, y)
+
+
+def test_random_gaussian_blur_prob_0():
+    transform = RandomGaussianBlur(kernel_size=5, prob=0.0, seed=42)
+    selected = transform.select_transform()
+
+    assert isinstance(selected, Identity)
+
+
+def test_random_gaussian_blur_within_sigma_range():
+    transform = RandomGaussianBlur(kernel_size=5, sigma_range=(1.0, 3.0), prob=1.0, seed=123)
+    selected = transform.select_transform()
+
+    assert isinstance(selected, GaussianBlur)
+    assert 1.0 <= selected.sigma <= 3.0

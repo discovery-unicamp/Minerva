@@ -6,6 +6,7 @@ from .random_transform import (
     RandomGrayScale,
     RandomRotation,
     RandomSolarize,
+    RandomGaussianBlur,
     _RandomSyncedTransform,
 )
 from .transform import (
@@ -30,6 +31,7 @@ from .transform import (
     TransformPipeline,
     Transpose,
     Unsqueeze,
+    GaussianBlur,
     _Transform,
 )
 
@@ -55,11 +57,13 @@ __all__ = [
     "Repeat",
     "Normalize",
     "ContrastiveTransform",
+    "GaussianBlur",
     "RandomCrop",
     "RandomFlip",
     "RandomGrayScale",
     "RandomRotation",
     "RandomSolarize",
+    "RandomGaussianBlur",
     "Identity",
     "_RandomSyncedTransform",
 ]
