@@ -11,6 +11,7 @@ from minerva.transforms.transform import (
     Rotation,
     Solarize,
     GaussianBlur,
+    VerticalPatchSwap,
     _Transform,
 )
 
@@ -390,3 +391,46 @@ class RandomGaussianBlur(_RandomSyncedTransform):
 
     def __str__(self) -> str:
         return f"RandomGaussianBlur(num_samples={self.num_samples}, kernel_size={self.kernel_size}, sigma_range={self.sigma_range}, prob={self.prob})"
+
+
+class RandomVerticalPatchSwap(_RandomSyncedTransform):
+    def __init__(
+        self,
+        patch_height: int = 50,
+        prob: float = 0.5,
+        num_samples: int = 1,
+        seed: Optional[int] = None,
+    ):
+        """
+        A random vertical patch swap transform that applies the same patch swapping 
+        operation based on a specified probability.
+
+        Parameters
+        ----------
+        patch_height : int, default=50
+            The height of each horizontal stripe to be swapped, in pixels.
+        prob : float, default=0.5
+            Probability of applying the patch swap transformation. Must be between 0.0 and 1.0.
+        num_samples : int, default=1
+            The number of times the same random transformation will be applied when called.
+            (Note: if applying to multiple samples like an image and a mask, ensure your base 
+            VerticalPatchSwap caches its shuffle indices if you need strict sync, as calling 
+            the base transform twice will advance its internal RNG state).
+        seed : Optional[int], default=None
+            Random seed for reproducible probability check and shuffling operations.
+        """
+        super().__init__(num_samples=num_samples, seed=seed)
+        self.patch_height = patch_height
+        self.prob = prob
+
+    def select_transform(self):
+        if self.rng.random() < self.prob:
+            # Generate a specific seed for the VerticalPatchSwap instance so its internal 
+            # shuffle relies on the RandomVerticalPatchSwap's deterministic RNG state.
+            transform_seed = int(self.rng.integers(0, 2**31 - 1))
+            return VerticalPatchSwap(patch_height=self.patch_height, seed=transform_seed)
+        else:
+            return Identity()
+
+    def __str__(self) -> str:
+        return f"RandomVerticalPatchSwap(num_samples={self.num_samples}, patch_height={self.patch_height}, prob={self.prob})"

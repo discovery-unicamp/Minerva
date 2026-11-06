@@ -7,6 +7,7 @@ from .random_transform import (
     RandomRotation,
     RandomSolarize,
     RandomGaussianBlur,
+    RandomVerticalPatchSwap,
     _RandomSyncedTransform,
 )
 from .transform import (
@@ -32,6 +33,7 @@ from .transform import (
     Transpose,
     Unsqueeze,
     GaussianBlur,
+    VerticalPatchSwap,
     _Transform,
 )
 
@@ -58,12 +60,14 @@ __all__ = [
     "Normalize",
     "ContrastiveTransform",
     "GaussianBlur",
+    "VerticalPatchSwap",
     "RandomCrop",
     "RandomFlip",
     "RandomGrayScale",
     "RandomRotation",
     "RandomSolarize",
     "RandomGaussianBlur",
+    "RandomVerticalPatchSwap",
     "Identity",
     "_RandomSyncedTransform",
 ]

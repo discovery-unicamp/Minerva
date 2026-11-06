@@ -10,7 +10,9 @@ from minerva.transforms import (
     Rotation,
     Solarize,
     RandomGaussianBlur,
-    GaussianBlur
+    GaussianBlur,
+    RandomVerticalPatchSwap,
+    VerticalPatchSwap
 )
 from minerva.transforms.random_transform import Identity
 
@@ -109,3 +111,25 @@ def test_random_gaussian_blur_within_sigma_range():
 
     assert isinstance(selected, GaussianBlur)
     assert 1.0 <= selected.sigma <= 3.0
+
+
+def test_random_vertical_patch_swap_prob_1():
+    x = np.random.randint(0, 256, size=(64, 64, 3), dtype=np.uint8)
+    transform = RandomVerticalPatchSwap(patch_height=16, prob=1.0, seed=42)
+    selected = transform.select_transform()
+
+    # Verify the correct transform is selected
+    assert isinstance(selected, VerticalPatchSwap)
+    
+    # Verify shape and effect
+    y = selected(x)
+    assert y.shape == x.shape
+    assert not np.array_equal(x, y)
+
+
+def test_random_vertical_patch_swap_prob_0():
+    transform = RandomVerticalPatchSwap(patch_height=16, prob=0.0, seed=42)
+    selected = transform.select_transform()
+
+    # Verify the identity transform is returned when probability fails
+    assert isinstance(selected, Identity)

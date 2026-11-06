@@ -22,6 +22,7 @@ from minerva.transforms import (
     Transpose,
     Unsqueeze,
     GaussianBlur,
+    VerticalPatchSwap,
     _Transform,
 )
 from minerva.transforms.random_transform import Identity
@@ -461,3 +462,29 @@ def test_gaussian_blur_invalid_kernel():
 def test_gaussian_blur_str():
     transform = GaussianBlur(kernel_size=5, sigma=1.5)
     assert str(transform) == "GaussianBlur(kernel_size=(5, 5), sigma=1.5)"
+
+
+def test_vertical_patch_swap_shape_and_effect():
+    # Test standard behavior on a 3D (multi-channel) image
+    x = np.random.randint(0, 256, size=(3, 100, 50), dtype=np.uint8)
+    transform = VerticalPatchSwap(patch_height=20, seed=42)
+    y = transform(x)
+
+    assert y.shape == x.shape
+    # Ensure the pixels have actually been shuffled
+    assert not np.array_equal(x, y)
+
+
+def test_vertical_patch_swap_odd_height():
+    # Test an odd image height that doesn't divide evenly, while simultaneously testing a 2D image
+    x = np.random.randint(0, 256, size=(105, 50), dtype=np.uint8)
+    transform = VerticalPatchSwap(patch_height=30, seed=123)
+    y = transform(x)
+
+    assert y.shape == x.shape
+    assert not np.array_equal(x, y)
+
+
+def test_vertical_patch_swap_str():
+    transform = VerticalPatchSwap(patch_height=40, seed=1)
+    assert str(transform) == "VerticalPatchSwap(patch_height=40, seed=1)"

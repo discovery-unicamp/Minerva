@@ -959,6 +959,7 @@ class Resize(_Transform):
             interpolation=cv2.INTER_LINEAR,
         )
 
+
 class GaussianBlur(_Transform):
     def __init__(self, kernel_size: Union[int, Tuple[int, int]], sigma: float = 0.0):
         """
@@ -1000,3 +1001,57 @@ class GaussianBlur(_Transform):
 
     def __str__(self) -> str:
         return f"GaussianBlur(kernel_size={self.kernel_size}, sigma={self.sigma})"
+
+
+class VerticalPatchSwap(_Transform):
+    """
+    Slices the image horizontally into multiple stripes (patches) of a specified height 
+    and randomly shuffles their vertical order. 
+    """
+
+    def __init__(self, patch_height: int = 50, seed: Optional[int] = None):
+        """
+        Parameters
+        ----------
+        patch_height : int, optional
+            The height of each horizontal stripe to be swapped, in pixels. By default 50.
+            If the image height is not perfectly divisible by this value, the final 
+            patch will simply contain the remaining pixels.
+        seed : Optional[int], optional
+            Random seed for reproducible shuffling. If None, uses system randomness.
+        """
+        self.patch_height = patch_height
+        self.seed = seed
+        self.rng = np.random.default_rng(seed)
+
+    def __call__(self, x: np.ndarray) -> np.ndarray:
+        """
+        Apply vertical patch swapping to the input image.
+        Expects inputs in CHW (C, H, W) or 2D (H, W) format.
+        """
+        # Read spatial dims from the last two axes (consistent with CHW or HW)
+        h = x.shape[-2]
+        
+        num_patches = h // self.patch_height + (1 if h % self.patch_height != 0 else 0)
+
+        patches = []
+        for i in range(num_patches):
+            start_row = i * self.patch_height
+            end_row = min((i + 1) * self.patch_height, h)
+            # Use ellipsis to handle both 3D (C, H, W) and 2D (H, W) gracefully
+            patches.append(x[..., start_row:end_row, :])
+
+        # rng.shuffle shuffles the list of patches in-place
+        self.rng.shuffle(patches)
+        
+        # Concatenate along the height axis (second-to-last axis)
+        shuffled = np.concatenate(patches, axis=-2)
+
+        # Safety trim just in case the original logic exceeded boundaries
+        if shuffled.shape[-2] != h:
+            shuffled = shuffled[..., :h, :]
+
+        return shuffled
+
+    def __str__(self) -> str:
+        return f"VerticalPatchSwap(patch_height={self.patch_height}, seed={self.seed})"
