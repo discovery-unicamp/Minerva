@@ -985,18 +985,13 @@ class GaussianBlur(_Transform):
 
     def __call__(self, x: np.ndarray) -> np.ndarray:
         """
-        Apply Gaussian blur to the input data.
-
-        Parameters
-        ----------
-        x : np.ndarray
-            Input image array in (H, W) or (H, W, C) format.
-            
-        Returns
-        -------
-        np.ndarray
-            Blurred image array of the same shape as input.
+        Apply Gaussian blur to the input data. 
+        If the input is a mask (unsigned integer), it is returned unchanged.
         """
+        # Detect masks to avoid interpolating categorical labels
+        if np.issubdtype(x.dtype, np.unsignedinteger):
+            return x
+            
         return cv2.GaussianBlur(x, self.kernel_size, self.sigma)
 
     def __str__(self) -> str:
