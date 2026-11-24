@@ -960,13 +960,20 @@ class Resize(_Transform):
         )
 
 
-class GaussianBlur(_Transform):
-    def __init__(self, kernel_size: Union[int, Tuple[int, int]], sigma: float = 0.0):
+class GaussianBlurTransform(_Transform):
+    def __init__(
+        self,
+        keys_to_transform: List[str],
+        kernel_size: Union[int, Tuple[int, int]],
+        sigma: float = 0.0,
+    ):
         """
         Applies a Gaussian blur to an image using OpenCV.
 
         Parameters
         ----------
+        keys_to_transform : List[str]
+            Keys of the entries to blur. Unlisted keys pass through unchanged.
         kernel_size : Union[int, Tuple[int, int]]
             Gaussian kernel size. If an int is provided, it is used for both
             height and width. Both dimensions must be positive, odd integers.
@@ -976,38 +983,45 @@ class GaussianBlur(_Transform):
         """
         if isinstance(kernel_size, int):
             kernel_size = (kernel_size, kernel_size)
-            
+
+        if len(kernel_size) != 2 or any(size <= 0 for size in kernel_size):
+            raise ValueError("Kernel size dimensions must be positive integers.")
         if kernel_size[0] % 2 == 0 or kernel_size[1] % 2 == 0:
             raise ValueError("Kernel size dimensions must be odd integers.")
             
+        self.keys_to_transform = keys_to_transform
         self.kernel_size = kernel_size
         self.sigma = sigma
 
-    def __call__(self, x: np.ndarray) -> np.ndarray:
+    def __call__(self, data: dict[str, Any]) -> dict[str, Any]:
         """
-        Apply Gaussian blur to the input data. 
-        If the input is a mask (unsigned integer), it is returned unchanged.
+        Apply Gaussian blur to every listed entry.
         """
-        # Detect masks to avoid interpolating categorical labels
-        if np.issubdtype(x.dtype, np.unsignedinteger):
-            return x
-            
-        return cv2.GaussianBlur(x, self.kernel_size, self.sigma)
+        for key in self.keys_to_transform:
+            data[key] = cv2.GaussianBlur(data[key], self.kernel_size, self.sigma)
+        return data
 
     def __str__(self) -> str:
-        return f"GaussianBlur(kernel_size={self.kernel_size}, sigma={self.sigma})"
+        return f"GaussianBlurTransform(keys_to_transform={self.keys_to_transform}, kernel_size={self.kernel_size}, sigma={self.sigma})"
 
 
-class VerticalPatchSwap(_Transform):
+class VerticalPatchSwapTransform(_Transform):
     """
     Slices the image horizontally into multiple stripes (patches) of a specified height 
     and randomly shuffles their vertical order. 
     """
 
-    def __init__(self, patch_height: int = 50, seed: Optional[int] = None):
+    def __init__(
+        self,
+        keys_to_transform: List[str],
+        patch_height: int = 50,
+        seed: Optional[int] = None,
+    ):
         """
         Parameters
         ----------
+        keys_to_transform : List[str]
+            Keys of the entries to transform. Unlisted keys pass through unchanged.
         patch_height : int, optional
             The height of each horizontal stripe to be swapped, in pixels. By default 50.
             If the image height is not perfectly divisible by this value, the final 
@@ -1015,38 +1029,44 @@ class VerticalPatchSwap(_Transform):
         seed : Optional[int], optional
             Random seed for reproducible shuffling. If None, uses system randomness.
         """
+        if patch_height <= 0:
+            raise ValueError("patch_height must be greater than 0.")
+        self.keys_to_transform = keys_to_transform
         self.patch_height = patch_height
         self.seed = seed
         self.rng = np.random.default_rng(seed)
 
-    def __call__(self, x: np.ndarray) -> np.ndarray:
+    def _apply_permutation(self, x: np.ndarray, permutation: np.ndarray) -> np.ndarray:
+        h = x.shape[-2]
+        patches = [
+            x[..., start:min(start + self.patch_height, h), :]
+            for start in range(0, h, self.patch_height)
+        ]
+        return np.concatenate([patches[i] for i in permutation], axis=-2)
+
+    def __call__(self, data: dict[str, Any]) -> dict[str, Any]:
         """
         Apply vertical patch swapping to the input image.
         Expects inputs in CHW (C, H, W) or 2D (H, W) format.
         """
-        # Read spatial dims from the last two axes (consistent with CHW or HW)
-        h = x.shape[-2]
-        
-        num_patches = h // self.patch_height + (1 if h % self.patch_height != 0 else 0)
-
-        patches = []
-        for i in range(num_patches):
-            start_row = i * self.patch_height
-            end_row = min((i + 1) * self.patch_height, h)
-            # Use ellipsis to handle both 3D (C, H, W) and 2D (H, W) gracefully
-            patches.append(x[..., start_row:end_row, :])
-
-        # rng.shuffle shuffles the list of patches in-place
-        self.rng.shuffle(patches)
-        
-        # Concatenate along the height axis (second-to-last axis)
-        shuffled = np.concatenate(patches, axis=-2)
-
-        # Safety trim just in case the original logic exceeded boundaries
-        if shuffled.shape[-2] != h:
-            shuffled = shuffled[..., :h, :]
-
-        return shuffled
+        if not self.keys_to_transform:
+            return data
+        # Draw one order from the first key and apply it to all listed keys.
+        first = data[self.keys_to_transform[0]]
+        num_patches = (first.shape[-2] + self.patch_height - 1) // self.patch_height
+        permutation = self.rng.permutation(num_patches)
+        for key in self.keys_to_transform:
+            value = data[key]
+            key_num_patches = (value.shape[-2] + self.patch_height - 1) // self.patch_height
+            if key_num_patches != num_patches or value.shape[-2:] != first.shape[-2:]:
+                raise ValueError("All transformed keys must have matching spatial dimensions.")
+            data[key] = self._apply_permutation(value, permutation)
+        return data
 
     def __str__(self) -> str:
-        return f"VerticalPatchSwap(patch_height={self.patch_height}, seed={self.seed})"
+        return f"VerticalPatchSwapTransform(keys_to_transform={self.keys_to_transform}, patch_height={self.patch_height}, seed={self.seed})"
+
+
+# Backwards-compatible names for callers that used the pre-1.0 class names.
+GaussianBlur = GaussianBlurTransform
+VerticalPatchSwap = VerticalPatchSwapTransform

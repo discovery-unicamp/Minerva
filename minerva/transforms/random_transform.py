@@ -1,4 +1,4 @@
-from typing import List, Literal, Optional, Tuple, Union
+from typing import Any, Dict, List, Literal, Optional, Tuple, Union
 
 import numpy as np
 
@@ -341,13 +341,13 @@ class RandomResize(_RandomSyncedTransform):
     def __str__(self) -> str:
         return f"RandomResize(num_samples={self.num_samples}, target_scale={self.target_scale}, ratio_range={self.ratio_range})"
 
-class RandomGaussianBlur(_RandomSyncedTransform):
+class RandomGaussianBlurTransform(_Transform):
     def __init__(
         self,
+        keys_to_transform: List[str],
         kernel_size: Union[int, Tuple[int, int]],
         sigma_range: Tuple[float, float] = (0.1, 2.0),
         prob: float = 0.5,
-        num_samples: int = 1,
         seed: Optional[int] = None,
     ):
         """
@@ -360,6 +360,8 @@ class RandomGaussianBlur(_RandomSyncedTransform):
 
         Parameters
         ----------
+        keys_to_transform : List[str]
+            Keys of the entries to blur. All listed keys share one random draw.
         kernel_size : Union[int, Tuple[int, int]]
             Gaussian kernel size. If an int is provided, it is used for both height and width.
             Both dimensions must be positive, odd integers.
@@ -369,36 +371,36 @@ class RandomGaussianBlur(_RandomSyncedTransform):
         prob : float, default=0.5
             Probability of applying the Gaussian blur transformation. Must be between 0.0 and 1.0.
             Higher values make the blur more likely.
-        num_samples : int, default=1
-            The number of times the same random transformation will be applied when called.
-            Set to 2 for data-label pairs, 3 or more for datasets with multiple related items,
-            or 1 for single data items or contrastive learning scenarios.
         seed : Optional[int], default=None
             Random seed for reproducible sigma selection and probability check. 
             If None, uses system randomness.
         """
-        super().__init__(num_samples=num_samples, seed=seed)
+        self.keys_to_transform = keys_to_transform
+        self.rng = np.random.default_rng(seed)
         self.kernel_size = kernel_size
         self.sigma_range = sigma_range
         self.prob = prob
+        if not 0.0 <= prob <= 1.0:
+            raise ValueError("prob must be between 0 and 1.")
+        if sigma_range[0] < 0 or sigma_range[0] > sigma_range[1]:
+            raise ValueError("sigma_range must contain non-negative, increasing values.")
 
-    def select_transform(self):
+    def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
         if self.rng.random() < self.prob:
             sigma = self.rng.uniform(*self.sigma_range)
-            return GaussianBlur(kernel_size=self.kernel_size, sigma=sigma)
-        else:
-            return Identity()
+            return GaussianBlur(self.keys_to_transform, kernel_size=self.kernel_size, sigma=sigma)(data)
+        return data
 
     def __str__(self) -> str:
-        return f"RandomGaussianBlur(num_samples={self.num_samples}, kernel_size={self.kernel_size}, sigma_range={self.sigma_range}, prob={self.prob})"
+        return f"RandomGaussianBlurTransform(keys_to_transform={self.keys_to_transform}, kernel_size={self.kernel_size}, sigma_range={self.sigma_range}, prob={self.prob})"
 
 
-class RandomVerticalPatchSwap(_RandomSyncedTransform):
+class RandomVerticalPatchSwapTransform(_Transform):
     def __init__(
         self,
+        keys_to_transform: List[str],
         patch_height: int = 50,
         prob: float = 0.5,
-        num_samples: int = 1,
         seed: Optional[int] = None,
     ):
         """
@@ -407,30 +409,43 @@ class RandomVerticalPatchSwap(_RandomSyncedTransform):
 
         Parameters
         ----------
+        keys_to_transform : List[str]
+            Keys of the entries to transform. All listed keys share one draw.
         patch_height : int, default=50
             The height of each horizontal stripe to be swapped, in pixels.
         prob : float, default=0.5
             Probability of applying the patch swap transformation. Must be between 0.0 and 1.0.
-        num_samples : int, default=1
-            The number of times the same random transformation will be applied when called.
-            (Note: if applying to multiple samples like an image and a mask, ensure your base 
-            VerticalPatchSwap caches its shuffle indices if you need strict sync, as calling 
-            the base transform twice will advance its internal RNG state).
         seed : Optional[int], default=None
             Random seed for reproducible probability check and shuffling operations.
         """
-        super().__init__(num_samples=num_samples, seed=seed)
+        self.keys_to_transform = keys_to_transform
+        self.rng = np.random.default_rng(seed)
         self.patch_height = patch_height
         self.prob = prob
+        if patch_height <= 0:
+            raise ValueError("patch_height must be greater than 0.")
+        if not 0.0 <= prob <= 1.0:
+            raise ValueError("prob must be between 0 and 1.")
 
-    def select_transform(self):
-        if self.rng.random() < self.prob:
-            # Generate a specific seed for the VerticalPatchSwap instance so its internal 
-            # shuffle relies on the RandomVerticalPatchSwap's deterministic RNG state.
-            transform_seed = int(self.rng.integers(0, 2**31 - 1))
-            return VerticalPatchSwap(patch_height=self.patch_height, seed=transform_seed)
-        else:
-            return Identity()
+    def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        if self.rng.random() >= self.prob or not self.keys_to_transform:
+            return data
+        first = data[self.keys_to_transform[0]]
+        num_patches = (first.shape[-2] + self.patch_height - 1) // self.patch_height
+        permutation = self.rng.permutation(num_patches)
+        transform = VerticalPatchSwap(self.keys_to_transform, patch_height=self.patch_height)
+        for key in self.keys_to_transform:
+            value = data[key]
+            key_num_patches = (value.shape[-2] + self.patch_height - 1) // self.patch_height
+            if key_num_patches != num_patches or value.shape[-2:] != first.shape[-2:]:
+                raise ValueError("All transformed keys must have matching spatial dimensions.")
+            data[key] = transform._apply_permutation(value, permutation)
+        return data
 
     def __str__(self) -> str:
-        return f"RandomVerticalPatchSwap(num_samples={self.num_samples}, patch_height={self.patch_height}, prob={self.prob})"
+        return f"RandomVerticalPatchSwapTransform(keys_to_transform={self.keys_to_transform}, patch_height={self.patch_height}, prob={self.prob})"
+
+
+# Backwards-compatible names for callers that used the pre-1.0 class names.
+RandomGaussianBlur = RandomGaussianBlurTransform
+RandomVerticalPatchSwap = RandomVerticalPatchSwapTransform
