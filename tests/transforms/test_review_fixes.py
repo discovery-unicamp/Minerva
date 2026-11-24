@@ -14,7 +14,9 @@ from minerva.transforms import (
 from minerva.transforms.transform import GaussianBlurTransform
 
 
-@pytest.mark.parametrize("dtype", ["uint8", "int32", "int64", "uint16", "float16", "bool"])
+@pytest.mark.parametrize(
+    "dtype", ["uint8", "int32", "int64", "uint16", "float16", "bool"]
+)
 def test_geometric_nearest_preserves_dtype_and_classes(dtype):
     label = (np.arange(64).reshape(8, 8) % 3).astype(dtype)
     for t, x in [
@@ -48,7 +50,9 @@ def test_random_resize_tiny_factor_does_not_crash():
 def _img():
     from PIL import Image
 
-    return Image.fromarray((np.random.RandomState(0).rand(64, 64, 3) * 255).astype("uint8"))
+    return Image.fromarray(
+        (np.random.RandomState(0).rand(64, 64, 3) * 255).astype("uint8")
+    )
 
 
 def test_moco_seed_reproducible_and_restores_global_rng():
@@ -107,7 +111,9 @@ def test_spatial_transforms_share_one_hwc_layout():
 def _flip_pipe(seed):
     from minerva.transforms import RandomFlipTransform, _TransformsPipeline
 
-    return _TransformsPipeline([RandomFlipTransform(["image"], possible_axis=1, prob=0.5, seed=seed)])
+    return _TransformsPipeline(
+        [RandomFlipTransform(["image"], possible_axis=1, prob=0.5, seed=seed)]
+    )
 
 
 def _view_bits(multi, n=40):
@@ -133,7 +139,9 @@ def test_multiview_with_seeds_is_reproducible():
     from minerva.transforms import MultiViewTransform
 
     def make():
-        return MultiViewTransform(["image"], {"view1": _flip_pipe(0), "view2": _flip_pipe(0)})
+        return MultiViewTransform(
+            ["image"], {"view1": _flip_pipe(0), "view2": _flip_pipe(0)}
+        )
 
     assert _view_bits(make()) == _view_bits(make())
 
@@ -142,7 +150,9 @@ def test_multiview_shared_object_views_still_differ():
     from minerva.transforms import MultiViewTransform
 
     shared = _flip_pipe(3)
-    v1, v2 = _view_bits(MultiViewTransform(["image"], {"view1": shared, "view2": shared}))
+    v1, v2 = _view_bits(
+        MultiViewTransform(["image"], {"view1": shared, "view2": shared})
+    )
     assert v1 != v2
 
 
@@ -151,7 +161,9 @@ def test_multiview_first_view_keeps_plain_seed():
 
     alone = _flip_pipe(0)
     base = np.arange(6, dtype="float32").reshape(1, 6)
-    expected = [int(alone({"image": base.copy()})["image"][0, 0] == 5) for _ in range(40)]
+    expected = [
+        int(alone({"image": base.copy()})["image"][0, 0] == 5) for _ in range(40)
+    ]
     v1, _ = _view_bits(
         MultiViewTransform(["image"], {"view1": _flip_pipe(0), "view2": _flip_pipe(0)})
     )
@@ -163,7 +175,9 @@ def test_solarize_float_images_use_unit_range():
 
     x = np.array([[0.2, 0.5, 0.9]], dtype="float32")
     out = SolarizeTransform(["x"])({"x": x.copy()})["x"]
-    np.testing.assert_allclose(out, [[0.2, 0.5, 0.1]], atol=1e-6)  # >= 0.5 inverted as 1 - x
+    np.testing.assert_allclose(
+        out, [[0.2, 0.5, 0.1]], atol=1e-6
+    )  # >= 0.5 inverted as 1 - x
     assert out.dtype == np.float32
 
 

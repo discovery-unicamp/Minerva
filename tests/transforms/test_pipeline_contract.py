@@ -126,7 +126,9 @@ def test_dataloader_with_workers_keeps_image_and_label_in_sync():
     transform = _TransformsPipeline(
         [
             RandomCropTransform(["image", "label"], (8, 8)),
-            RandomFlipTransform(["image", "label"], 1, prob=0.5),  # axis 1 = width for HW and HWC
+            RandomFlipTransform(
+                ["image", "label"], 1, prob=0.5
+            ),  # axis 1 = width for HW and HWC
         ]
     )
     loader = DataLoader(_DictDataset(transform), batch_size=4, num_workers=2)
@@ -195,7 +197,9 @@ def test_seed_is_reproducible_and_seeds_differ(make):
 
 
 def test_seed_ignores_global_rng_and_none_follows_it():
-    t1, t2 = RandomCropTransform(["x"], (6, 6), seed=5), RandomCropTransform(["x"], (6, 6), seed=5)
+    t1, t2 = RandomCropTransform(["x"], (6, 6), seed=5), RandomCropTransform(
+        ["x"], (6, 6), seed=5
+    )
     torch.manual_seed(0)
     a = _run(t1)
     torch.manual_seed(123)
@@ -217,7 +221,9 @@ def test_other_random_transforms_accept_seed():
         a = [cls(["x"], prob=0.5, seed=3)({"x": x.copy()})["x"] for _ in range(1)]
         b = [cls(["x"], prob=0.5, seed=3)({"x": x.copy()})["x"] for _ in range(1)]
         np.testing.assert_array_equal(a[0], b[0])
-    p = lambda: PerlinMaskerTransform(["x"], octaves=2, seed=4)({"x": np.ones((6, 6))})["x"]
+    p = lambda: PerlinMaskerTransform(["x"], octaves=2, seed=4)({"x": np.ones((6, 6))})[
+        "x"
+    ]
     np.testing.assert_array_equal(p(), p())
 
 

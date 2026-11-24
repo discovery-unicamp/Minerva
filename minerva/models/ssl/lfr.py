@@ -6,7 +6,6 @@ from typing import Optional, Callable
 import numpy as np
 import math
 
-
 # -------------------------------------------------------------------------------------------------
 # This function was extracted from the LFR implementation in
 # https://github.com/layer6ai-labs/lfr/blob/main/utils/dpp.py

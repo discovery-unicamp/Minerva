@@ -206,9 +206,7 @@ class MultiModalSeriesCSVDataset(Dataset):
     def __len__(self) -> int:
         return len(self.data)
 
-    def __getitem__(
-        self, index: int
-    ) -> Dict[str, np.ndarray]:
+    def __getitem__(self, index: int) -> Dict[str, np.ndarray]:
         # Get data and apply transforms
         sample = {self.data_key: self.data[index]}
         if self.label:

@@ -34,7 +34,8 @@ def test_make_normalize_transform():
 
 
 def test_data_augmentation_dino_default(dummy_pil_image):
-    aug = DINOTransform(['image'], 
+    aug = DINOTransform(
+        ["image"],
         global_crops_scale=[0.5, 1.0],
         local_crops_scale=[0.1, 0.5],
         local_crops_number=4,
@@ -63,7 +64,8 @@ def test_data_augmentation_dino_default(dummy_pil_image):
 
 
 def test_data_augmentation_dino_gram_teacher(dummy_pil_image):
-    aug = DINOTransform(['image'], 
+    aug = DINOTransform(
+        ["image"],
         global_crops_scale=[0.5, 1.0],
         local_crops_scale=[0.1, 0.5],
         local_crops_number=2,
@@ -81,7 +83,8 @@ def test_data_augmentation_dino_gram_teacher(dummy_pil_image):
 
 
 def test_data_augmentation_dino_teacher_no_color_jitter(dummy_pil_image):
-    aug = DINOTransform(['image'], 
+    aug = DINOTransform(
+        ["image"],
         global_crops_size=64,
         local_crops_size=32,
         local_crops_number=2,
@@ -93,7 +96,8 @@ def test_data_augmentation_dino_teacher_no_color_jitter(dummy_pil_image):
 
 
 def test_data_augmentation_dino_share_color_jitter(dummy_pil_image):
-    aug = DINOTransform(['image'], 
+    aug = DINOTransform(
+        ["image"],
         global_crops_size=64,
         local_crops_size=32,
         local_crops_number=2,
@@ -105,7 +109,8 @@ def test_data_augmentation_dino_share_color_jitter(dummy_pil_image):
 
 
 def test_data_augmentation_dino_local_subset(dummy_pil_image):
-    aug = DINOTransform(['image'], 
+    aug = DINOTransform(
+        ["image"],
         global_crops_size=96,
         local_crops_size=32,
         local_crops_number=4,

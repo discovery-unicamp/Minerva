@@ -58,7 +58,9 @@ def test_flip_invalid_axes():
         FlipTransform(["x"], [0, 1, 2])({"x": np.random.rand(10, 20)})
 
 
-@pytest.mark.parametrize("kwargs", [{"octaves": 0}, {"octaves": -1}, {"octaves": 1, "scale": 0}])
+@pytest.mark.parametrize(
+    "kwargs", [{"octaves": 0}, {"octaves": -1}, {"octaves": 1, "scale": 0}]
+)
 def test_perlin_masker_invalid(kwargs):
     with pytest.raises(ValueError):
         PerlinMaskerTransform(["x"], **kwargs)
@@ -108,7 +110,9 @@ def test_normalize_does_not_mutate_input_and_skips_unlisted_label():
 
 
 def test_normalize_to_rgb():
-    out = NormalizeTransform(["x"], [0] * 3, [1] * 3, to_rgb=True)({"x": np.ones((4, 4, 1))})
+    out = NormalizeTransform(["x"], [0] * 3, [1] * 3, to_rgb=True)(
+        {"x": np.ones((4, 4, 1))}
+    )
     assert out["x"].shape == (4, 4, 3)
 
 
@@ -163,7 +167,11 @@ def test_color_jitter():
 
 def test_crop_hwc_2d_padding_and_bbox():
     x = np.random.randint(0, 256, size=(50, 50, 3), dtype=np.uint8)
-    assert CropTransform(["x"], (30, 30), coords=(0.5, 0.5))({"x": x})["x"].shape == (30, 30, 3)
+    assert CropTransform(["x"], (30, 30), coords=(0.5, 0.5))({"x": x})["x"].shape == (
+        30,
+        30,
+        3,
+    )
     assert CropTransform(["x"], (40, 40))({"x": x[:20, :20]})["x"].shape == (40, 40, 3)
     assert CropTransform(["x"], (30, 30))({"x": x[..., 0]})["x"].shape == (30, 30)
 
@@ -216,7 +224,9 @@ def test_resize_modes_and_aspect_ratio():
     )
     assert out["image"].shape == (10, 10, 3) and out["label"].shape == (10, 10)
     assert set(np.unique(out["label"])) <= set(np.unique(label))
-    kept = ResizeTransform(["x"], 10, 10, keep_aspect_ratio=True)({"x": np.random.rand(20, 40)})
+    kept = ResizeTransform(["x"], 10, 10, keep_aspect_ratio=True)(
+        {"x": np.random.rand(20, 40)}
+    )
     assert kept["x"].shape == (5, 10)
 
 

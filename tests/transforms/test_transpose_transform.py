@@ -20,7 +20,9 @@ def test_transpose_tensor():
 def test_hwc_to_chw_for_numpy_and_tensor():
     x = np.zeros((4, 5, 3))
     assert TransposeTransform(["x"], (2, 0, 1))({"x": x})["x"].shape == (3, 4, 5)
-    assert TransposeTransform(["x"], (2, 0, 1))({"x": torch.zeros(4, 5, 3)})["x"].shape == (3, 4, 5)
+    assert TransposeTransform(["x"], (2, 0, 1))({"x": torch.zeros(4, 5, 3)})[
+        "x"
+    ].shape == (3, 4, 5)
 
 
 def test_transpose_invalid_input():

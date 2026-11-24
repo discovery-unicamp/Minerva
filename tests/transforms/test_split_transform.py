@@ -13,7 +13,7 @@ def test_split_transform_invalid_parameters():
         match=f"Expected input 'num_splits' to be a positive integer greater than 0, but received {erroneus_value}.",
     ):
         # Define an invalid split transform
-        SplitTransform(['x'], num_splits=erroneus_value, split_dimension=1)
+        SplitTransform(["x"], num_splits=erroneus_value, split_dimension=1)
 
     erroneus_value = -1
     with pytest.raises(
@@ -21,7 +21,7 @@ def test_split_transform_invalid_parameters():
         match=f"Expected input 'num_splits' to be a positive integer greater than 0, but received {erroneus_value}.",
     ):
         # Define an invalid split transform
-        SplitTransform(['x'], num_splits=erroneus_value, split_dimension=1)
+        SplitTransform(["x"], num_splits=erroneus_value, split_dimension=1)
 
     erroneus_value = -1
     with pytest.raises(
@@ -29,12 +29,12 @@ def test_split_transform_invalid_parameters():
         match=f"Expected input 'split_dimension' to be a positive integer greater than or equal to 0, but received {erroneus_value}.",
     ):
         # Define an invalid split transform
-        SplitTransform(['x'], num_splits=2, split_dimension=erroneus_value)
+        SplitTransform(["x"], num_splits=2, split_dimension=erroneus_value)
 
 
 def test_split_transform_invalid_input():
     # Define a valid split transform
-    split_transform = SplitTransform(['x'], num_splits=3, split_dimension=1)
+    split_transform = SplitTransform(["x"], num_splits=3, split_dimension=1)
     erroneus_value = "invalid input"
     with pytest.raises(
         TypeError,
@@ -47,31 +47,31 @@ def test_split_transform_invalid_input():
 def test_split_transform_invalid_split():
     random_input = np.random.rand(10, 20, 30)
     # Define a valid split transform
-    split_transform = SplitTransform(['x'], num_splits=3, split_dimension=1)
+    split_transform = SplitTransform(["x"], num_splits=3, split_dimension=1)
     with pytest.raises(
         ValueError,
         match=f"Invalid split: expected {split_transform.num_splits} to divide equally the dimension {random_input.shape[split_transform.split_dimension]}.",
     ):
         # Apply the split transform with an invalid split
-        split_transform({'x': random_input})
+        split_transform({"x": random_input})
 
     # Define a valid split transform
-    split_transform = SplitTransform(['x'], num_splits=50, split_dimension=2)
+    split_transform = SplitTransform(["x"], num_splits=50, split_dimension=2)
     with pytest.raises(
         ValueError,
         match=f"Invalid split: expected {split_transform.num_splits} to divide equally the dimension {random_input.shape[split_transform.split_dimension]}.",
     ):
         # Apply the split transform with an invalid split
-        split_transform({'x': random_input})
+        split_transform({"x": random_input})
 
     # Define a valid split transform
-    split_transform = SplitTransform(['x'], num_splits=50, split_dimension=5)
+    split_transform = SplitTransform(["x"], num_splits=50, split_dimension=5)
     with pytest.raises(
         ValueError,
         match=f"Invalid split dimension: expected the split dimension to be less than {len(random_input.shape)}, but received {split_transform.split_dimension}.",
     ):
         # Apply the split transform with an invalid split
-        split_transform({'x': random_input})
+        split_transform({"x": random_input})
 
 
 def test_split_transform_numpy():
@@ -79,10 +79,10 @@ def test_split_transform_numpy():
     x = np.random.rand(10, 20, 30)
 
     # Apply the split transform
-    split_transform = SplitTransform(['x'], num_splits=2, split_dimension=1)
-    out = split_transform({'x': x, 'y': 1})
-    assert 'x' not in out and out['y'] == 1
-    splits = [out['x_0'], out['x_1']]
+    split_transform = SplitTransform(["x"], num_splits=2, split_dimension=1)
+    out = split_transform({"x": x, "y": 1})
+    assert "x" not in out and out["y"] == 1
+    splits = [out["x_0"], out["x_1"]]
 
     # Check if the split data has the correct shape
     assert len(splits) == 2
@@ -99,10 +99,10 @@ def test_split_transform_torch():
     x = torch.rand(10, 20, 30)
 
     # Apply the split transform
-    split_transform = SplitTransform(['x'], num_splits=2, split_dimension=1)
-    out = split_transform({'x': x, 'y': 1})
-    assert 'x' not in out and out['y'] == 1
-    splits = [out['x_0'], out['x_1']]
+    split_transform = SplitTransform(["x"], num_splits=2, split_dimension=1)
+    out = split_transform({"x": x, "y": 1})
+    assert "x" not in out and out["y"] == 1
+    splits = [out["x_0"], out["x_1"]]
 
     # Check if the split data has the correct shape
     assert len(splits) == 2

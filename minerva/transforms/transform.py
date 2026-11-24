@@ -258,7 +258,9 @@ class _RandomTransform(_Transform):
 
     def _randint(self, low: int, high: int) -> int:
         """Integer in [low, high)."""
-        return int(torch.randint(low, high, (1,), generator=self._rng.generator()).item())
+        return int(
+            torch.randint(low, high, (1,), generator=self._rng.generator()).item()
+        )
 
     @contextlib.contextmanager
     def _seed_scope(self):
@@ -524,7 +526,9 @@ class PaddingTransform(_Transform):
         self.target_h_size = target_h_size
         self.target_w_size = target_w_size
         self.padding_mode = padding_mode
-        self.padding_value = _per_key(self.keys_to_transform, padding_value, "padding_value")
+        self.padding_value = _per_key(
+            self.keys_to_transform, padding_value, "padding_value"
+        )
 
     def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
         for key, value in zip(self.keys_to_transform, self.padding_value):
@@ -712,7 +716,9 @@ class GrayScaleTransform(_Transform):
         self.method = method
 
     def _gray(self, image: np.ndarray) -> np.ndarray:
-        assert image.ndim == 3 and image.shape[2] == 3, "Input must have shape (H, W, 3)"
+        assert (
+            image.ndim == 3 and image.shape[2] == 3
+        ), "Input must have shape (H, W, 3)"
         if self.method == "average":
             gray = image.mean(axis=2)
         else:
@@ -765,7 +771,9 @@ class SolarizeTransform(_Transform):
         if self.threshold is not None:
             return self.threshold, max_value
         # 128 for uint8 (the historical default), half the range otherwise
-        half = 128 if image.dtype == np.uint8 and self.max_value is None else max_value / 2
+        half = (
+            128 if image.dtype == np.uint8 and self.max_value is None else max_value / 2
+        )
         return half, max_value
 
     def _solarize(self, image: np.ndarray) -> np.ndarray:
@@ -1006,7 +1014,10 @@ class ResizeTransform(_Transform):
             height = int(original_height * scale)
         flag = _interpolation(mode)
         return _cv2_safe(
-            x, lambda a: cv2.resize(a, (max(1, width), max(1, height)), interpolation=flag)
+            x,
+            lambda a: cv2.resize(
+                a, (max(1, width), max(1, height)), interpolation=flag
+            ),
         )
 
     def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
@@ -1347,7 +1358,9 @@ class RandomCropTransform(_RandomTransform):
         self.ignore_index = ignore_index
 
     def _accepts(self, coords: Tuple[float, float], label: np.ndarray) -> bool:
-        cropped = CropTransform(["label"], self.crop_size, self.pad_mode, coords)._crop(label)
+        cropped = CropTransform(["label"], self.crop_size, self.pad_mode, coords)._crop(
+            label
+        )
         valid = cropped[cropped != self.ignore_index]
         if valid.size == 0:
             return False
@@ -1363,7 +1376,10 @@ class RandomCropTransform(_RandomTransform):
                     break
                 coords = (self._rand(), self._rand())
         return CropTransform(
-            self.keys_to_transform, self.crop_size, self.pad_mode, coords,
+            self.keys_to_transform,
+            self.crop_size,
+            self.pad_mode,
+            coords,
             pad_value=self.pad_value,
         )(data)
 
@@ -1436,7 +1452,9 @@ class RandomSolarizeTransform(_RandomTransform):
 
     def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
         if self._rand() < self.prob:
-            SolarizeTransform(self.keys_to_transform, self.threshold, self.max_value)(data)
+            SolarizeTransform(self.keys_to_transform, self.threshold, self.max_value)(
+                data
+            )
         return data
 
 
@@ -1517,9 +1535,9 @@ class RandomResizeTransform(_RandomTransform):
         factor = self._uniform(*self.ratio_range)
         new_h = int(self.target_scale[0] * factor)
         new_w = int(self.target_scale[1] * factor)
-        return ResizeTransform(
-            self.keys_to_transform, new_h, new_w, mode=self.mode
-        )(data)
+        return ResizeTransform(self.keys_to_transform, new_h, new_w, mode=self.mode)(
+            data
+        )
 
 
 class RandomResizedCropTransform(_RandomTransform):
@@ -1585,7 +1603,10 @@ class RandomResizedCropTransform(_RandomTransform):
             bh, bw = max(1, int(round(ch * xh))), max(1, int(round(cw * xw)))
             patch = x[t : t + bh, l : l + bw]
             data[key] = _resize_spatial(
-                np.ascontiguousarray(patch), self.size[0], self.size[1], _interpolation(m)
+                np.ascontiguousarray(patch),
+                self.size[0],
+                self.size[1],
+                _interpolation(m),
             )
         return data
 
@@ -1659,7 +1680,8 @@ class ClassRatioCropTransform(RandomCropTransform):
         seed: Optional[int] = None,
     ) -> None:
         _warn_deprecated(
-            "ClassRatioCropTransform", "RandomCropTransform(keys, size, label_key=..., max_ratio=...)"
+            "ClassRatioCropTransform",
+            "RandomCropTransform(keys, size, label_key=..., max_ratio=...)",
         )
         super().__init__(
             keys_to_transform,

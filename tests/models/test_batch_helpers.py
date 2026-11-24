@@ -32,7 +32,10 @@ def test_views_and_many():
     d = {"view1_image": a, "view2_image": b, "label": 0}
     assert get_views(d) == (a, b)
     assert get_views(((a, b), 0)) == (a, b)
-    assert get_many({"anchor": a, "neighbor": b, "non_neighbor": a}, ("anchor", "neighbor", "non_neighbor")) == (a, b, a)
+    assert get_many(
+        {"anchor": a, "neighbor": b, "non_neighbor": a},
+        ("anchor", "neighbor", "non_neighbor"),
+    ) == (a, b, a)
     assert get_many((a, b, a), ("anchor", "neighbor", "non_neighbor")) == (a, b, a)
 
 

@@ -373,9 +373,7 @@ class DINOTransform(_RandomTransform):
             gs = self.global_crops_size
             ls = self.local_crops_size
             for img in _local_crops:
-                rx, ry = (
-                    torch.randint(0, (gs - ls) // self.patch_size, (2,)).tolist()
-                )
+                rx, ry = torch.randint(0, (gs - ls) // self.patch_size, (2,)).tolist()
                 rx, ry = rx * self.patch_size, ry * self.patch_size
                 local_crops.append(img[:, rx : rx + ls, ry : ry + ls])
                 offsets.append((rx, ry))
