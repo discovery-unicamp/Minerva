@@ -2,7 +2,7 @@ import torch
 from torch import nn
 import lightning as pl
 from typing import List, Tuple, Union, Optional, Dict
-from minerva.transforms.tfc import TFCTransform
+from minerva.transforms.tfc import TFCTransform, tfc_augment
 from minerva.models.nets.tfc import TFC_Backbone, TFC_PredicionHead
 from minerva.losses.ntxent_loss_poly import NTXentLoss_poly
 from minerva.transforms.transform import _Transform
@@ -73,7 +73,7 @@ class TFC_Model(pl.LightningModule):
         - learning_rate: float
             The learning rate of the optimizer
         - transform: _Transform
-            The transformation to be applied to the input data. If None, a default transformation is applied that includes data augmentation and frequency domain transformation
+            The transformation to be applied to the input data: a `TFCTransform`, or any callable returning the four tensors (x, x_aug, x_freq, x_freq_aug). If None, a default transformation is applied that includes data augmentation and frequency domain transformation
         - device: str
             The device to be used in the training of the model, default is 'cuda'
         - batch_size: int
@@ -269,7 +269,7 @@ class TFC_Model(pl.LightningModule):
         x = get_input(batch)
         x = x.to(self.device)
         labels = get_target(batch)
-        data, aug1, data_f, aug1_f = self.transform.augment(x)
+        data, aug1, data_f, aug1_f = tfc_augment(self.transform, x)
         if self.pred_head:
             pred = self.forward(data)
             labels = labels.long()
@@ -318,7 +318,7 @@ class TFC_Model(pl.LightningModule):
         x = get_input(batch)
         x = x.to(self.device)
         labels = get_target(batch)
-        data, aug1, data_f, aug1_f = self.transform.augment(x)
+        data, aug1, data_f, aug1_f = tfc_augment(self.transform, x)
         if self.pred_head:
             pred = self.forward(data)
             labels = labels.long()
@@ -368,7 +368,7 @@ class TFC_Model(pl.LightningModule):
         x = get_input(batch)
         x = x.to(self.device)
         labels = get_target(batch)
-        data, aug1, data_f, aug1_f = self.transform.augment(x)
+        data, aug1, data_f, aug1_f = tfc_augment(self.transform, x)
 
         f1, acc = None, None
         if self.pred_head:
@@ -421,7 +421,7 @@ class TFC_Model(pl.LightningModule):
         """
         x = get_input(batch)
         x = x.to(self.device)
-        data, _, data_f, _ = self.transform.augment(x)
+        data, _, data_f, _ = tfc_augment(self.transform, x)
 
         if self.pred_head:
             pred = self.forward(data)

@@ -28,3 +28,15 @@ def test_tfc_dict_call():
     }
     assert out["label"] == 1
     assert out["signal_aug"].shape == (10, 20)
+
+
+def test_tfc_augment_helper_supports_plain_callables():
+    import torch
+
+    from minerva.transforms.tfc import TFCTransform, tfc_augment
+
+    x = np.random.rand(4, 3, 32).astype("float32")
+    four = tuple(torch.zeros(1) for _ in range(4))
+    assert tfc_augment(lambda v: four, x) is four  # legacy __call__ contract
+    out = tfc_augment(TFCTransform(), x)  # default transform: augment()
+    assert len(out) == 4

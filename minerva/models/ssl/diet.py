@@ -1,13 +1,14 @@
 from typing import Callable, Optional
 
 import lightning as L
+import numpy as np
 import torch
 from torch import nn
 from torch.nn import CrossEntropyLoss
 from torch.optim import Adam
 
 from minerva.schedulers.warmup_cosine_annealing import WarmupCosineAnnealingLR
-from minerva.models.batch import get_input_target
+from minerva.models.batch import get_input, get_input_target
 
 
 class DIET(L.LightningModule):
@@ -93,7 +94,11 @@ class DIET(L.LightningModule):
         # Define a linear head if None
         if self.linear_head is None:
             # Simulated input for encoding_size calculation
-            random_input = torch.rand(training_dataset[:5][0].shape)
+            inputs = [
+                torch.as_tensor(np.asarray(get_input(training_dataset[i])))
+                for i in range(min(5, len(training_dataset)))
+            ]
+            random_input = torch.rand(torch.stack(inputs).shape)
             # Compute the encoding size
             with torch.no_grad():
                 # Obtain the embeddings from the random data

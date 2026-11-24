@@ -286,3 +286,28 @@ def test_not_directory():
     with NamedTemporaryFile() as tmpfile:
         with pytest.raises(ValueError):
             dataset = SeriesFolderCSVDataset(tmpfile.name)
+
+
+def test_transform_in_place_does_not_corrupt_cached_data(sample_data):
+    """An in-place keyed transform must not change what is cached."""
+
+    class InPlace(_Transform):
+        keys_to_transform = ["image", "label"]
+
+        def __call__(self, data):
+            data["image"][...] = -1
+            data["label"][...] = -1
+            return data
+
+    dataset = SeriesFolderCSVDataset(
+        sample_data,
+        features=["accel-x", "accel-y"],
+        label="class",
+        transforms=InPlace(),
+        lazy=False,
+    )
+    first = dataset[0]
+    second = dataset[0]
+    assert (first["image"] == -1).all() and (second["image"] == -1).all()
+    cached_data, cached_label = dataset._cache[0]
+    assert (cached_data != -1).any() and (cached_label != -1).any()

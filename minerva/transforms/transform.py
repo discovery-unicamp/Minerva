@@ -168,6 +168,14 @@ def _resize_spatial(x: np.ndarray, height: int, width: int, flag: int) -> np.nda
     return np.stack([_cv2_safe(x[..., c], resize) for c in range(x.shape[-1])], axis=-1)
 
 
+def _offset(slack: int, fraction: float) -> int:
+    """Map a fraction in [0, 1) (or 1.0) to an integer offset in [0, slack].
+
+    Every legal position is reachable, including the last one (``slack``).
+    """
+    return min(int(fraction * (slack + 1)), slack)
+
+
 def _per_key(keys: Sequence[str], value: Any, name: str) -> List[Any]:
     """Expand a scalar to one value per key, or validate a per-key sequence."""
     if isinstance(value, (list, tuple)):
@@ -279,7 +287,8 @@ class _RandomTransform(_Transform):
         py_state, np_state = random.getstate(), np.random.get_state()
         try:
             with torch.random.fork_rng(devices=[]):
-                torch.manual_seed(call_seed)
+                # CPU generator only: torch.manual_seed would also reseed CUDA
+                torch.default_generator.manual_seed(call_seed)
                 random.seed(call_seed)
                 np.random.seed(call_seed)
                 yield
@@ -683,8 +692,8 @@ class CropTransform(_Transform):
             return image[y1:y2, x1:x2]
 
         row, col = self.coords
-        r = int((h - new_h) * row)
-        c = int((w - new_w) * col)
+        r = _offset(h - new_h, row)
+        c = _offset(w - new_w, col)
         return image[r : r + new_h, c : c + new_w]
 
     def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
@@ -1012,13 +1021,7 @@ class ResizeTransform(_Transform):
             # Round down to match MMsegmentation's behavior.
             width = int(original_width * scale)
             height = int(original_height * scale)
-        flag = _interpolation(mode)
-        return _cv2_safe(
-            x,
-            lambda a: cv2.resize(
-                a, (max(1, width), max(1, height)), interpolation=flag
-            ),
-        )
+        return _resize_spatial(x, height, width, _interpolation(mode))
 
     def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
         for key, m in zip(self.keys_to_transform, self.mode):
@@ -1111,39 +1114,55 @@ class MultiViewTransform(_Transform):
             pipelines per view give asymmetric augmentation.
         """
         self.keys_to_transform = _as_keys(keys_to_transform)
-        self.views = views
-        self._decorrelate_views()
+        # Work on private copies, so wrapping a transform never touches its
+        # owner's random stream. One deepcopy keeps objects that appear in
+        # several views shared (one stream that advances between views).
+        try:
+            self.views = copy.deepcopy(views)
+            self._decorrelate_views()
+        except Exception as error:  # e.g. a transform that cannot be copied
+            warnings.warn(
+                f"MultiViewTransform could not copy its views ({error!r}); using "
+                "them as given, so same-seed transforms in different views are "
+                "not decorrelated.",
+                RuntimeWarning,
+                stacklevel=2,
+            )
+            self.views = views
 
     def _decorrelate_views(self) -> None:
         """Give each view's seeded random transforms a distinct stream.
 
         Two *separate* transform objects built with the same ``seed`` would
         otherwise draw identical parameters, so the "independent" views would
-        be identical. Each view's seeded transforms are salted with the view's
-        index (the first view keeps its plain seed). A transform object that
-        appears in several views is left alone: it is one generator that
-        advances between views, so its views already differ.
+        be identical. Each seeded transform is salted with its full path
+        through the (possibly nested) views; the first view keeps its plain
+        seed. An object that appears in several views is left alone: it is
+        one generator that advances between views, so its views differ.
         """
-        owners: Dict[int, set] = {}
+        found: List[Tuple[Tuple[int, ...], _RandomTransform]] = []
 
-        def walk(node: Any, view_index: int, found: List[Tuple[int, _Transform]]):
+        def walk(node: Any, path: Tuple[int, ...]) -> None:
             if isinstance(node, _TransformsPipeline):
                 for child in node.transforms:
-                    walk(child, view_index, found)
+                    walk(child, path)
             elif isinstance(node, MultiViewTransform):
-                for child in node.views.values():
-                    walk(child, view_index, found)
+                for index, child in enumerate(node.views.values()):
+                    walk(child, path + (index,))
             elif isinstance(node, _RandomTransform) and node.seed is not None:
-                found.append((view_index, node))
+                found.append((path, node))
 
-        found: List[Tuple[int, _Transform]] = []
         for index, pipeline in enumerate(self.views.values()):
-            walk(pipeline, index, found)
-        for index, node in found:
-            owners.setdefault(id(node), set()).add(index)
-        for index, node in found:
-            if len(owners[id(node)]) == 1:
-                node._rng.salt = index
+            walk(pipeline, (index,))
+        paths: Dict[int, set] = {}
+        for path, node in found:
+            paths.setdefault(id(node), set()).add(path)
+        for path, node in found:
+            if len(paths[id(node)]) == 1:
+                salt = 0
+                for index in path:
+                    salt = salt * 1000 + index
+                node._rng.salt = salt
                 node._rng._generator = None  # rebuild with the new salt
 
     def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
@@ -1358,9 +1377,16 @@ class RandomCropTransform(_RandomTransform):
         self.ignore_index = ignore_index
 
     def _accepts(self, coords: Tuple[float, float], label: np.ndarray) -> bool:
-        cropped = CropTransform(["label"], self.crop_size, self.pad_mode, coords)._crop(
-            label
-        )
+        if self.label_key in self.keys_to_transform:
+            # same padding as the label actually gets in the output
+            mode = self.pad_mode
+            value = self.pad_value[self.keys_to_transform.index(self.label_key)]
+        else:
+            # padded pixels are not real labels: mark them as ignored
+            mode, value = "constant", self.ignore_index
+        cropped = CropTransform(
+            ["label"], self.crop_size, mode, coords, pad_value=value
+        )._crop(label.astype(np.int64), value)
         valid = cropped[cropped != self.ignore_index]
         if valid.size == 0:
             return False
