@@ -2,13 +2,13 @@ import numpy as np
 import torch
 import torch.fft as fft
 from torch import nn
-from .transform import _Transform
+from .transform import _RandomTransform
 from typing import Any, Dict, List, Union, Tuple, Optional
 
 from .transform import _as_keys
 
 
-class TFCTransform(_Transform):
+class TFCTransform(_RandomTransform):
     """
     Transformations used in the TFC model.
     It consists of time and frequency domain data augmentation.
@@ -25,6 +25,7 @@ class TFCTransform(_Transform):
         keys_to_transform: Optional[List[str]] = None,
         jitter_ratio: float = 0.08,
         jitter_function: Optional[callable] = None,
+        seed: Optional[int] = None,
     ):
         """
         Initialize the TFCTransform class.
@@ -38,8 +39,11 @@ class TFCTransform(_Transform):
             The ratio of the jittering transformation. Default is 0.08.
         - jitter_function: Optional[callable]
             A custom jittering function. If None, the default proportional jittering function is used.
+        - seed: Optional[int]
+            Seed for reproducible augmentations, by default None (torch's global RNG).
         """
         super().__init__()
+        self._init_rng(seed)
         self.keys_to_transform = _as_keys(keys_to_transform or [])
         self.jitter_ratio = jitter_ratio
         self.jitter_operation = self.proportional_jitter
@@ -60,6 +64,12 @@ class TFCTransform(_Transform):
         return data
 
     def augment(
+        self, x: Union[np.ndarray, torch.Tensor], jitter_ratio: Optional[float] = None
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+        with self._seed_scope():
+            return self._augment(x, jitter_ratio)
+
+    def _augment(
         self, x: Union[np.ndarray, torch.Tensor], jitter_ratio: Optional[float] = None
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         """

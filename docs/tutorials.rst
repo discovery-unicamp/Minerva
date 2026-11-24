@@ -19,10 +19,14 @@ These introductory tutorials demonstrate how to use Minerva to train models on t
 - **Experiment API**: Understand how to use the experiment API to configure and run experiments, log results, and analyze performance metrics. This is a general-purpose tutorial (constructed over seismic facies classification example) that can be applied to any task.
 
 
+- **Transforms**: Learn the Minerva 1.0 transform pattern (dict samples, ``keys_to_transform``, shared random draws, ``seed``, per-key interpolation ``mode``, multi-view augmentation). Runs on CPU with synthetic data.
+
+
 ..  toctree::
     :maxdepth: 1
 
     notebooks/seismic_facies_getting_started.ipynb
     notebooks/har_getting_started.ipynb
     notebooks/experiment_api_example.ipynb
+    notebooks/transforms_getting_started.ipynb
     

@@ -11,9 +11,9 @@ from minerva.transforms import (
     IdentityTransform,
     IndexerTransform,
     NormalizeTransform,
-    PadCropTransform,
     PaddingTransform,
     PerlinMaskerTransform,
+    RandomCropTransform,
     RepeatTransform,
     ReshapeTransform,
     ResizeTransform,
@@ -58,7 +58,9 @@ def test_flip_invalid_axes():
         FlipTransform(["x"], [0, 1, 2])({"x": np.random.rand(10, 20)})
 
 
-@pytest.mark.parametrize("kwargs", [{"octaves": 0}, {"octaves": -1}, {"octaves": 1, "scale": 0}])
+@pytest.mark.parametrize(
+    "kwargs", [{"octaves": 0}, {"octaves": -1}, {"octaves": 1, "scale": 0}]
+)
 def test_perlin_masker_invalid(kwargs):
     with pytest.raises(ValueError):
         PerlinMaskerTransform(["x"], **kwargs)
@@ -93,23 +95,25 @@ def test_unsqueeze_only_listed_keys():
 
 
 def test_normalize():
-    x = np.random.rand(1, 10, 20)
-    out = NormalizeTransform(["x"], [np.mean(x[0])], [np.std(x[0])])({"x": x.copy()})
+    x = np.random.rand(10, 20, 1)
+    out = NormalizeTransform(["x"], [np.mean(x)], [np.std(x)])({"x": x.copy()})
     assert np.allclose(out["x"].mean(), 0) and np.allclose(out["x"].std(), 1)
 
 
 def test_normalize_does_not_mutate_input_and_skips_unlisted_label():
-    image = np.random.rand(1, 5, 5)
-    label = np.arange(25, dtype=np.uint8).reshape(1, 5, 5)
+    image = np.random.rand(5, 5, 1)
+    label = np.arange(25, dtype=np.uint8).reshape(5, 5, 1)
     image_copy = image.copy()
     out = NormalizeTransform(["image"], [0.5], [2.0])({"image": image, "label": label})
     np.testing.assert_array_equal(image, image_copy)
-    np.testing.assert_array_equal(out["label"], np.arange(25).reshape(1, 5, 5))
+    np.testing.assert_array_equal(out["label"], np.arange(25).reshape(5, 5, 1))
 
 
 def test_normalize_to_rgb():
-    out = NormalizeTransform(["x"], [0] * 3, [1] * 3, to_rgb=True)({"x": np.ones((1, 4, 4))})
-    assert out["x"].shape == (3, 4, 4)
+    out = NormalizeTransform(["x"], [0] * 3, [1] * 3, to_rgb=True)(
+        {"x": np.ones((4, 4, 1))}
+    )
+    assert out["x"].shape == (4, 4, 3)
 
 
 def test_identity():
@@ -135,9 +139,9 @@ def test_padding_per_key_value():
         ["image", "label"], 6, 6, padding_mode="constant", padding_value=[0, 255]
     )(data)
     assert out["image"].shape == (6, 6, 3)
-    assert out["label"].shape == (6, 6, 1)
+    assert out["label"].shape == (6, 6)  # rank is preserved
     assert out["image"][5, 5, 0] == 0
-    assert out["label"][5, 5, 0] == 255
+    assert out["label"][5, 5] == 255
 
 
 def test_padding_reflect_default_and_bad_value_length():
@@ -149,8 +153,8 @@ def test_padding_reflect_default_and_bad_value_length():
 
 def test_gradient():
     out = GradientTransform(["x"], 0)({"x": np.zeros((5, 6))})["x"]
-    assert out.shape == (2, 5, 6)
-    assert out[1, 0, 0] == 0 and out[1, 0, -1] == 1
+    assert out.shape == (5, 6, 2)
+    assert out[0, 0, 1] == 0 and out[0, -1, 1] == 1
     with pytest.raises(AssertionError):
         GradientTransform(["x"], 2)
 
@@ -161,20 +165,24 @@ def test_color_jitter():
     assert y.shape == x.shape and not np.array_equal(x, y)
 
 
-def test_crop_chw_2d_padding_and_bbox():
-    x = np.random.randint(0, 256, size=(3, 50, 50), dtype=np.uint8)
-    assert CropTransform(["x"], (30, 30), coords=(0.5, 0.5))({"x": x})["x"].shape == (3, 30, 30)
-    assert CropTransform(["x"], (40, 40))({"x": x[:, :20, :20]})["x"].shape == (3, 40, 40)
-    assert CropTransform(["x"], (30, 30))({"x": x[0]})["x"].shape == (30, 30)
+def test_crop_hwc_2d_padding_and_bbox():
+    x = np.random.randint(0, 256, size=(50, 50, 3), dtype=np.uint8)
+    assert CropTransform(["x"], (30, 30), coords=(0.5, 0.5))({"x": x})["x"].shape == (
+        30,
+        30,
+        3,
+    )
+    assert CropTransform(["x"], (40, 40))({"x": x[:20, :20]})["x"].shape == (40, 40, 3)
+    assert CropTransform(["x"], (30, 30))({"x": x[..., 0]})["x"].shape == (30, 30)
 
-    z = np.zeros((3, 50, 50), dtype=np.uint8)
-    z[:, 10:20, 10:20] = 255
+    z = np.zeros((50, 50, 3), dtype=np.uint8)
+    z[10:20, 10:20] = 255
     y = CropTransform(["x"], (10, 10), bbox=(10, 20, 10, 20))({"x": z})["x"]
-    assert y.shape == (3, 10, 10) and np.all(y == 255)
+    assert y.shape == (10, 10, 3) and np.all(y == 255)
 
 
 def test_crop_same_region_for_all_keys():
-    image = np.arange(100).reshape(1, 10, 10)
+    image = np.arange(100).reshape(10, 10, 1)
     out = CropTransform(["image", "label"], (4, 4), coords=(0.5, 0.5))(
         {"image": image, "label": image.copy()}
     )
@@ -216,14 +224,26 @@ def test_resize_modes_and_aspect_ratio():
     )
     assert out["image"].shape == (10, 10, 3) and out["label"].shape == (10, 10)
     assert set(np.unique(out["label"])) <= set(np.unique(label))
-    kept = ResizeTransform(["x"], 10, 10, keep_aspect_ratio=True)({"x": np.random.rand(20, 40)})
+    kept = ResizeTransform(["x"], 10, 10, keep_aspect_ratio=True)(
+        {"x": np.random.rand(20, 40)}
+    )
     assert kept["x"].shape == (5, 10)
 
 
-def test_pad_crop_shapes_and_shared_position():
-    image = np.arange(3 * 20 * 20).reshape(3, 20, 20)
-    out = PadCropTransform(["image", "label"], 10, 30)(
+def test_random_crop_pads_when_too_small_and_shares_position():
+    # one axis needs padding (20 -> 30), the other cropping (20 -> 10)
+    image = np.arange(3 * 20 * 20).reshape(20, 20, 3)
+    out = RandomCropTransform(["image", "label"], (10, 30), seed=0)(
         {"image": image, "label": image.copy()}
     )
-    assert out["image"].shape == (3, 10, 30)
+    assert out["image"].shape == (10, 30, 3)
     np.testing.assert_array_equal(out["image"], out["label"])
+
+
+def test_crop_constant_pad_value_per_key():
+    data = {"image": np.ones((4, 4, 3)), "label": np.ones((4, 4), dtype=np.uint8)}
+    out = CropTransform(
+        ["image", "label"], (6, 6), pad_mode="constant", pad_value=[0, 255]
+    )(data)
+    assert out["image"].shape == (6, 6, 3) and out["label"].shape == (6, 6)
+    assert out["image"][0, 0, 0] == 0 and out["label"][0, 0] == 255  # centered padding

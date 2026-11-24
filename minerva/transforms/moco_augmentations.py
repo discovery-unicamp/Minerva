@@ -1,11 +1,11 @@
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from torchvision import transforms
 
-from .transform import _as_keys, _Transform
+from .transform import _as_keys, _RandomTransform
 
 
-class MoCoAugmentationTransform(_Transform):
+class MoCoAugmentationTransform(_RandomTransform):
     """Default MoCo augmentations applied to every listed PIL image.
 
     - 224x224 crop from a randomly resized image
@@ -19,13 +19,16 @@ class MoCoAugmentationTransform(_Transform):
     list one image key and use ``MultiViewTransform`` for the two MoCo views.
     """
 
-    def __init__(self, keys_to_transform: List[str]):
+    def __init__(self, keys_to_transform: List[str], seed: Optional[int] = None):
         """
         Parameters
         ----------
         keys_to_transform : List[str]
             Keys of the PIL images to augment.
+        seed : int, optional
+            Seed for reproducible augmentations, by default None.
         """
+        self._init_rng(seed)
         self.keys_to_transform = _as_keys(keys_to_transform)
         self.augment = transforms.Compose(
             [
@@ -43,4 +46,5 @@ class MoCoAugmentationTransform(_Transform):
         )
 
     def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        return self._map_keys(data, self.augment)
+        with self._seed_scope():
+            return self._map_keys(data, self.augment)

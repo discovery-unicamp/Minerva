@@ -8,12 +8,20 @@ RNG, which ``DataLoader`` seeds per worker) and share them across all listed
 keys. Independent randomness across views comes only from
 :class:`MultiViewTransform`.
 
+Spatial transforms use NumPy's (and PIL's/OpenCV's) layout: images are
+``(H, W)`` or ``(H, W, C)``, channels last, which is what the readers return,
+so no transposition is needed before transforming. Use ``TransposeTransform``
+at the end of a pipeline if a model wants channels first.
+
 A listed key that is missing from the dict raises ``KeyError``. This is not
 settled in the 1.0 standard (open question 3); do not depend on it.
 """
 
+import contextlib
 import copy
 import os
+import random
+import warnings
 from itertools import product
 from typing import (
     Any,
@@ -79,6 +87,10 @@ def _interpolation(mode: str) -> int:
     return _INTERPOLATION[mode]
 
 
+# Large prime stride so (seed, worker_id, view) never collide for realistic values.
+_VIEW_SALT_STRIDE = 1_000_003
+
+
 class _RNG:
     """Torch random source of a random transform.
 
@@ -93,6 +105,7 @@ class _RNG:
 
     def __init__(self, seed: Optional[int]):
         self.seed = seed
+        self.salt = 0  # set by MultiViewTransform so views never share a stream
         self._generator: Optional[torch.Generator] = None
         self._owner: Optional[Tuple[int, int]] = None
 
@@ -104,21 +117,91 @@ class _RNG:
         owner = (os.getpid(), worker_id)
         if self._generator is None or self._owner != owner:
             self._generator = torch.Generator()
-            self._generator.manual_seed(int(self.seed) + worker_id)
+            self._generator.manual_seed(
+                int(self.seed) + worker_id + _VIEW_SALT_STRIDE * self.salt
+            )
             self._owner = owner
         return self._generator
 
     def __getstate__(self):
-        return {"seed": self.seed, "_generator": None, "_owner": None}
+        return {
+            "seed": self.seed,
+            "salt": self.salt,
+            "_generator": None,
+            "_owner": None,
+        }
+
+
+def _cv2_safe(x: np.ndarray, fn: Callable[[np.ndarray], np.ndarray]) -> np.ndarray:
+    """Apply an OpenCV function to ``x`` and keep ``x``'s dtype.
+
+    OpenCV does not support int64, bool or float16 (it either raises or
+    silently narrows int64 to int32, which breaks ``CrossEntropyLoss``
+    targets). Those dtypes are computed in a supported dtype and cast back.
+    """
+    dtype = x.dtype
+    if dtype == np.bool_:
+        work = x.astype(np.uint8)
+    elif dtype in (np.int64, np.uint64):
+        work = x.astype(np.float64)
+    elif dtype == np.float16:
+        work = x.astype(np.float32)
+    else:
+        return fn(x)
+    out = fn(work)
+    if dtype == np.bool_:
+        return out > 0
+    if np.issubdtype(dtype, np.integer):
+        out = np.rint(out)
+    return out.astype(dtype)
 
 
 def _resize_spatial(x: np.ndarray, height: int, width: int, flag: int) -> np.ndarray:
-    """Resize the last two axes of a (H, W) or (C, H, W) array."""
+    """Resize the first two axes of an (H, W) or (H, W, C) array."""
+    height, width = max(1, int(height)), max(1, int(width))
+
+    def resize(a: np.ndarray) -> np.ndarray:
+        return cv2.resize(a, (width, height), interpolation=flag)
+
     if x.ndim == 2:
-        return cv2.resize(x, (width, height), interpolation=flag)
-    return np.stack(
-        [cv2.resize(c, (width, height), interpolation=flag) for c in x], axis=0
-    )
+        return _cv2_safe(x, resize)
+    return np.stack([_cv2_safe(x[..., c], resize) for c in range(x.shape[-1])], axis=-1)
+
+
+def _per_key(keys: Sequence[str], value: Any, name: str) -> List[Any]:
+    """Expand a scalar to one value per key, or validate a per-key sequence."""
+    if isinstance(value, (list, tuple)):
+        values = list(value)
+        if len(values) != len(keys):
+            raise ValueError(f"`{name}` must be a scalar or have one entry per key.")
+        return values
+    return [value] * len(keys)
+
+
+def _pad_to_size(
+    x: np.ndarray,
+    target_h: int,
+    target_w: int,
+    mode: str = "reflect",
+    value: Union[int, float] = 0,
+    centered: bool = True,
+) -> np.ndarray:
+    """Pad the first two axes of an (H, W[, C]) array up to the target size.
+
+    Axes that are already large enough are left alone. ``centered=True`` splits
+    the padding on both sides; otherwise it is added at the bottom/right.
+    """
+    h, w = x.shape[:2]
+    pad_h, pad_w = max(0, target_h - h), max(0, target_w - w)
+    if pad_h == 0 and pad_w == 0:
+        return x
+    before_h = pad_h // 2 if centered else 0
+    before_w = pad_w // 2 if centered else 0
+    pad_width = ((before_h, pad_h - before_h), (before_w, pad_w - before_w))
+    if x.ndim > 2:
+        pad_width += ((0, 0),) * (x.ndim - 2)
+    kwargs = {"constant_values": value} if mode == "constant" else {}
+    return np.pad(x, pad_width, mode=mode, **kwargs)  # type: ignore
 
 
 class _Transform:
@@ -175,7 +258,34 @@ class _RandomTransform(_Transform):
 
     def _randint(self, low: int, high: int) -> int:
         """Integer in [low, high)."""
-        return int(torch.randint(low, high, (1,), generator=self._rng.generator()).item())
+        return int(
+            torch.randint(low, high, (1,), generator=self._rng.generator()).item()
+        )
+
+    @contextlib.contextmanager
+    def _seed_scope(self):
+        """Make code that uses the *global* RNGs reproducible for this call.
+
+        For transforms built on torchvision, ``random`` or ``numpy.random``,
+        which cannot take a generator. With ``seed=None`` this does nothing.
+        Otherwise a per-call seed is drawn from this transform's own
+        generator, torch/python/numpy are seeded with it inside the block,
+        and their previous states are restored afterwards.
+        """
+        if self.seed is None:
+            yield
+            return
+        call_seed = self._randint(0, 2**31 - 1)
+        py_state, np_state = random.getstate(), np.random.get_state()
+        try:
+            with torch.random.fork_rng(devices=[]):
+                torch.manual_seed(call_seed)
+                random.seed(call_seed)
+                np.random.seed(call_seed)
+                yield
+        finally:
+            random.setstate(py_state)
+            np.random.set_state(np_state)
 
 
 class _TransformsPipeline(_Transform):
@@ -330,9 +440,12 @@ class UnsqueezeTransform(_Transform):
 
 
 class TransposeTransform(_Transform):
-    """Reorder the axes of every listed key (``np.transpose``).
+    """Reorder the axes of every listed key.
 
-    To exchange just two axes use :class:`SwapAxesTransform`.
+    Works on NumPy arrays and PyTorch tensors. To exchange just two axes give
+    the full permutation, e.g. ``axes=(1, 0, 2)`` swaps the first two axes of
+    a 3D array. A common use is ``(2, 0, 1)`` at the end of an image pipeline
+    to turn (H, W, C) into the (C, H, W) layout most models expect.
     """
 
     def __init__(self, keys_to_transform: List[str], axes: Sequence[int]):
@@ -345,10 +458,17 @@ class TransposeTransform(_Transform):
             The order of the new axes.
         """
         self.keys_to_transform = _as_keys(keys_to_transform)
-        self.axes = axes
+        self.axes = tuple(axes)
+
+    def _transpose(self, x: Any) -> Any:
+        if isinstance(x, torch.Tensor):
+            return x.permute(*self.axes)
+        if not isinstance(x, np.ndarray):
+            raise TypeError(f"Expected a numpy array or a torch tensor, got {type(x)}.")
+        return np.transpose(x, self.axes)
 
     def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        return self._map_keys(data, lambda x: np.transpose(x, self.axes))
+        return self._map_keys(data, self._transpose)
 
 
 class CastToTransform(_Transform):
@@ -371,9 +491,11 @@ class CastToTransform(_Transform):
 
 
 class PaddingTransform(_Transform):
-    """Pad every listed key to reach the target height and width.
+    """Pad every listed key at the bottom/right up to the target size.
 
-    Expects (H, W) or (H, W, C) arrays. A 2D input becomes (H, W, 1).
+    Expects (H, W) or (H, W, C) arrays; the rank is preserved. Axes that are
+    already large enough are left alone. To pad *and* crop to an exact size
+    (centered padding), use :class:`CropTransform`.
     """
 
     def __init__(
@@ -382,7 +504,7 @@ class PaddingTransform(_Transform):
         target_h_size: int,
         target_w_size: int,
         padding_mode: str = "reflect",
-        padding_value: Union[int, Sequence[int]] = 0,
+        padding_value: Union[int, float, Sequence[Union[int, float]]] = 0,
     ):
         """
         Parameters
@@ -404,35 +526,28 @@ class PaddingTransform(_Transform):
         self.target_h_size = target_h_size
         self.target_w_size = target_w_size
         self.padding_mode = padding_mode
-        if isinstance(padding_value, (int, float, np.integer, np.floating)):
-            values = [padding_value] * len(self.keys_to_transform)
-        else:
-            values = list(padding_value)
-            if len(values) != len(self.keys_to_transform):
-                raise ValueError(
-                    "`padding_value` must be a scalar or have one entry per key."
-                )
-        self.padding_value = values
-
-    def _pad(self, x: np.ndarray, value: Union[int, float]) -> np.ndarray:
-        h, w = x.shape[:2]
-        pad_h = max(0, self.target_h_size - h)
-        pad_w = max(0, self.target_w_size - w)
-        pad_width = ((0, pad_h), (0, pad_w)) + (((0, 0),) if x.ndim > 2 else ())
-        kwargs = {"constant_values": value} if self.padding_mode == "constant" else {}
-        padded = np.pad(x, pad_width, mode=self.padding_mode, **kwargs)  # type: ignore
-        if x.ndim == 2:
-            padded = np.expand_dims(padded, axis=2)
-        return padded
+        self.padding_value = _per_key(
+            self.keys_to_transform, padding_value, "padding_value"
+        )
 
     def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
         for key, value in zip(self.keys_to_transform, self.padding_value):
-            data[key] = self._pad(data[key], value)
+            data[key] = _pad_to_size(
+                data[key],
+                self.target_h_size,
+                self.target_w_size,
+                self.padding_mode,
+                value,
+                centered=False,
+            )
         return data
 
 
 class GradientTransform(_Transform):
-    """Append a 0-to-1 gradient channel to every listed key."""
+    """Append a 0-to-1 gradient channel to every listed key.
+
+    Expects (H, W) or (H, W, C) arrays and returns (H, W, C + 1).
+    """
 
     directions = {0: "x (width)", 1: "y (height)"}
 
@@ -455,11 +570,11 @@ class GradientTransform(_Transform):
         return xx if self.direction == 0 else yy
 
     def _gradient(self, x: np.ndarray) -> np.ndarray:
-        shape = x.shape if x.ndim == 2 else x.shape[1:]
-        gradient = np.expand_dims(self.generate_gradient(shape), axis=0)
-        x_expanded = np.expand_dims(x, axis=0) if x.ndim == 2 else x
-        output = np.concatenate([x_expanded, gradient], axis=0)
-        assert output.shape == (x_expanded.shape[0] + 1, shape[0], shape[1])
+        shape = x.shape[:2]
+        gradient = np.expand_dims(self.generate_gradient(shape), axis=-1)
+        x_expanded = np.expand_dims(x, axis=-1) if x.ndim == 2 else x
+        output = np.concatenate([x_expanded, gradient], axis=-1)
+        assert output.shape == (shape[0], shape[1], x_expanded.shape[-1] + 1)
         return output
 
     def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
@@ -515,9 +630,12 @@ class ColorJitterTransform(_Transform):
 
 
 class CropTransform(_Transform):
-    """Crop every listed key to the same region.
+    """Crop every listed key to the same region, padding if it is too small.
 
-    Expects (C, H, W) or (H, W) arrays; the last two axes are spatial.
+    Expects (H, W) or (H, W, C) arrays; the first two axes are spatial. If the
+    output size is larger than the input, the input is first padded
+    (centered), so this also covers "pad to a size". For a random position use
+    :class:`RandomCropTransform`.
     """
 
     def __init__(
@@ -527,6 +645,7 @@ class CropTransform(_Transform):
         pad_mode: str = "reflect",
         coords: Tuple[float, float] = (0, 0),
         bbox: Optional[Tuple[int, int, int, int]] = None,
+        pad_value: Union[int, float, Sequence[Union[int, float]]] = 0,
     ):
         """
         Parameters
@@ -543,37 +662,35 @@ class CropTransform(_Transform):
             from 0 to 1, by default (0, 0).
         bbox : Tuple[int, int, int, int], optional
             If given, crop to (y1, y2, x1, x2) and ignore ``coords``.
+        pad_value : int | Sequence[int], optional
+            Fill value when ``pad_mode="constant"``: one value for all keys or
+            one per key (e.g. an ignore index for the label), by default 0.
         """
         self.keys_to_transform = _as_keys(keys_to_transform)
         self.output_size = output_size
         self.pad_mode = pad_mode
         self.coords = coords
         self.bbox = bbox
+        self.pad_value = _per_key(self.keys_to_transform, pad_value, "pad_value")
 
-    def _crop(self, image: np.ndarray) -> np.ndarray:
-        h, w = image.shape[-2:]
+    def _crop(self, image: np.ndarray, pad_value: Union[int, float] = 0) -> np.ndarray:
         new_h, new_w = self.output_size
-
-        if new_h > h or new_w > w:
-            pad_h = max(new_h - h, 0)
-            pad_w = max(new_w - w, 0)
-            pad_width = ((pad_h // 2, pad_h - pad_h // 2), (pad_w // 2, pad_w - pad_w // 2))
-            if image.ndim == 3:
-                pad_width = ((0, 0),) + pad_width
-            image = np.pad(image, pad_width, mode=self.pad_mode)  # type: ignore
-            h, w = image.shape[-2:]
+        image = _pad_to_size(image, new_h, new_w, self.pad_mode, pad_value)
+        h, w = image.shape[:2]
 
         if self.bbox is not None:
             y1, y2, x1, x2 = self.bbox
-            return image[..., y1:y2, x1:x2]
+            return image[y1:y2, x1:x2]
 
         row, col = self.coords
         r = int((h - new_h) * row)
         c = int((w - new_w) * col)
-        return image[..., r : r + new_h, c : c + new_w]
+        return image[r : r + new_h, c : c + new_w]
 
     def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        return self._map_keys(data, self._crop)
+        for key, value in zip(self.keys_to_transform, self.pad_value):
+            data[key] = self._crop(data[key], value)
+        return data
 
 
 class GrayScaleTransform(_Transform):
@@ -599,7 +716,9 @@ class GrayScaleTransform(_Transform):
         self.method = method
 
     def _gray(self, image: np.ndarray) -> np.ndarray:
-        assert image.ndim == 3 and image.shape[2] == 3, "Input must have shape (H, W, 3)"
+        assert (
+            image.ndim == 3 and image.shape[2] == 3
+        ), "Input must have shape (H, W, 3)"
         if self.method == "average":
             gray = image.mean(axis=2)
         else:
@@ -611,27 +730,55 @@ class GrayScaleTransform(_Transform):
 
 
 class SolarizeTransform(_Transform):
-    """Invert pixel values at or above a threshold in every listed key."""
+    """Invert pixel values at or above a threshold in every listed key.
 
-    def __init__(self, keys_to_transform: List[str], threshold: int = 128):
+    The value range comes from the dtype: integer arrays use the dtype's
+    maximum (255 for uint8), float arrays are assumed to be in [0, 1]. Pass
+    ``max_value`` for anything else, e.g. ``max_value=255`` for float images
+    in [0, 255]. Works on (H, W) and (H, W, C) arrays.
+    """
+
+    def __init__(
+        self,
+        keys_to_transform: List[str],
+        threshold: Optional[float] = None,
+        max_value: Optional[float] = None,
+    ):
         """
         Parameters
         ----------
         keys_to_transform : List[str]
             Keys of the images to solarize.
-        threshold : int, optional
-            Intensity threshold for inversion, by default 128.
+        threshold : float, optional
+            Intensity at or above which values are inverted. By default half
+            of the value range (128 for uint8, 0.5 for float images in [0, 1]).
+        max_value : float, optional
+            Top of the value range, used to invert (``max_value - x``). By
+            default 255 for uint8 (the dtype maximum for other integer
+            types) and 1.0 for float images.
         """
         self.keys_to_transform = _as_keys(keys_to_transform)
         self.threshold = threshold
+        self.max_value = max_value
+
+    def _range(self, image: np.ndarray) -> Tuple[float, float]:
+        if self.max_value is not None:
+            max_value = self.max_value
+        elif np.issubdtype(image.dtype, np.integer):
+            max_value = int(np.iinfo(image.dtype).max)
+        else:
+            max_value = 1.0
+        if self.threshold is not None:
+            return self.threshold, max_value
+        # 128 for uint8 (the historical default), half the range otherwise
+        half = (
+            128 if image.dtype == np.uint8 and self.max_value is None else max_value / 2
+        )
+        return half, max_value
 
     def _solarize(self, image: np.ndarray) -> np.ndarray:
-        if image.ndim == 3:
-            channels = [
-                np.where(c < self.threshold, c, 255 - c) for c in cv2.split(image)
-            ]
-            return cv2.merge(channels)
-        return np.where(image < self.threshold, image, 255 - image)
+        threshold, max_value = self._range(image)
+        return np.where(image < threshold, image, max_value - image).astype(image.dtype)
 
     def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
         return self._map_keys(data, self._solarize)
@@ -674,8 +821,11 @@ class RotationTransform(_Transform):
         matrix = cv2.getRotationMatrix2D((w // 2, h // 2), self.degrees, 1.0)
 
         def warp(a):
-            return cv2.warpAffine(
-                a, matrix, (w, h), flags=flag, borderMode=cv2.BORDER_REFLECT
+            return _cv2_safe(
+                a,
+                lambda b: cv2.warpAffine(
+                    b, matrix, (w, h), flags=flag, borderMode=cv2.BORDER_REFLECT
+                ),
             )
 
         if image.ndim == 2:
@@ -686,87 +836,6 @@ class RotationTransform(_Transform):
         for key, m in zip(self.keys_to_transform, self.mode):
             data[key] = self._rotate(data[key], m)
         return data
-
-
-class PadCropTransform(_RandomTransform):
-    """Pad or crop every listed key to the target size.
-
-    If the target is larger than the input along an axis, that axis is padded
-    symmetrically (the input is centered); otherwise it is cropped from a
-    random position. The crop position is drawn once per call and shared by
-    all listed keys (as relative offsets, so keys of different sizes stay
-    aligned). Expects (C, H, W) or (H, W) arrays.
-    """
-
-    def __init__(
-        self,
-        keys_to_transform: List[str],
-        target_h_size: int,
-        target_w_size: int,
-        padding_mode: str = "reflect",
-        constant_values: int = 0,
-        seed: Optional[int] = None,
-    ):
-        """
-        Parameters
-        ----------
-        keys_to_transform : List[str]
-            Keys of the entries to pad or crop.
-        target_h_size : int
-            Desired height.
-        target_w_size : int
-            Desired width.
-        padding_mode : str, optional
-            Padding mode, by default "reflect".
-        constant_values : int, optional
-            Padding value when ``padding_mode="constant"``, by default 0.
-        seed : int, optional
-            Seed for a reproducible crop position, by default None.
-        """
-        self._init_rng(seed)
-        self.keys_to_transform = _as_keys(keys_to_transform)
-        self.target_h_size = target_h_size
-        self.target_w_size = target_w_size
-        self.padding_mode = padding_mode
-        self.constant_values = constant_values
-
-    def _pad_crop(self, x: np.ndarray, frac_h: float, frac_w: float) -> np.ndarray:
-        if x.ndim == 3:
-            x = np.transpose(x, (1, 2, 0))
-        h, w = x.shape[:2]
-
-        def pad(arr, axis, amount):
-            before = amount // 2
-            width = [(0, 0)] * arr.ndim
-            width[axis] = (before, amount - before)
-            kwargs = (
-                {"constant_values": self.constant_values}
-                if self.padding_mode == "constant"
-                else {}
-            )
-            return np.pad(arr, width, mode=self.padding_mode, **kwargs)  # type: ignore
-
-        if self.target_h_size > h:
-            x = pad(x, 0, self.target_h_size - h)
-        elif self.target_h_size < h:
-            n = h - self.target_h_size
-            start = min(int(frac_h * (n + 1)), n)
-            x = x[start : start + self.target_h_size]
-
-        if self.target_w_size > w:
-            x = pad(x, 1, self.target_w_size - w)
-        elif self.target_w_size < w:
-            n = w - self.target_w_size
-            start = min(int(frac_w * (n + 1)), n)
-            x = x[:, start : start + self.target_w_size]
-
-        if x.ndim == 3:
-            x = np.transpose(x, (2, 0, 1))
-        return x
-
-    def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        frac_h, frac_w = self._rand(), self._rand()
-        return self._map_keys(data, lambda x: self._pad_crop(x, frac_h, frac_w))
 
 
 class IdentityTransform(_Transform):
@@ -829,8 +898,9 @@ class RepeatTransform(_Transform):
 
 
 class NormalizeTransform(_Transform):
-    """Normalize every listed key per channel. Expects (C, H, W) data.
+    """Normalize every listed key per channel. Expects (H, W, C) data.
 
+    Channels are the last axis. An (H, W) array counts as a single channel.
     List only the keys to normalize; labels are normalized only if listed.
     """
 
@@ -866,13 +936,15 @@ class NormalizeTransform(_Transform):
             x = x.astype(np.float32)
         else:
             x = x.copy()
-        if self.to_rgb and x.shape[0] == 1:
-            x = np.repeat(x, 3, axis=0)
-        assert x.shape[0] == len(
+        if x.ndim == 2:
+            x = x[..., None]
+        if self.to_rgb and x.shape[-1] == 1:
+            x = np.repeat(x, 3, axis=-1)
+        assert x.shape[-1] == len(
             self.mean
         ), f"Number of channels in data does not match the number of provided mean/std. {x.shape}"
         for i in range(len(self.mean)):
-            x[i, :, :] = (x[i, :, :] - self.mean[i]) / self.std[i]
+            x[..., i] = (x[..., i] - self.mean[i]) / self.std[i]
         return x
 
     def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
@@ -940,7 +1012,13 @@ class ResizeTransform(_Transform):
             # Round down to match MMsegmentation's behavior.
             width = int(original_width * scale)
             height = int(original_height * scale)
-        return cv2.resize(x, (width, height), interpolation=_interpolation(mode))
+        flag = _interpolation(mode)
+        return _cv2_safe(
+            x,
+            lambda a: cv2.resize(
+                a, (max(1, width), max(1, height)), interpolation=flag
+            ),
+        )
 
     def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
         for key, m in zip(self.keys_to_transform, self.mode):
@@ -951,7 +1029,7 @@ class ResizeTransform(_Transform):
 class GaussianBlurTransform(_RandomTransform):
     """Gaussian-blur every listed key with one random sigma per call.
 
-    Expects (C, H, W) or (H, W) arrays. The decision to blur and the sigma
+    Expects (H, W) or (H, W, C) arrays. The decision to blur and the sigma
     are drawn once per call and shared by all listed keys.
     """
 
@@ -988,9 +1066,13 @@ class GaussianBlurTransform(_RandomTransform):
 
     def _blur(self, x: np.ndarray, sigma: float) -> np.ndarray:
         k = (self.kernel_size, self.kernel_size)
+
+        def blur(a: np.ndarray) -> np.ndarray:
+            return _cv2_safe(a, lambda b: cv2.GaussianBlur(b, k, sigma))
+
         if x.ndim == 2:
-            return cv2.GaussianBlur(x, k, sigma)
-        return np.stack([cv2.GaussianBlur(c, k, sigma) for c in x], axis=0)
+            return blur(x)
+        return np.stack([blur(x[..., c]) for c in range(x.shape[-1])], axis=-1)
 
     def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
         do_blur = self._rand() < self.prob
@@ -1008,6 +1090,10 @@ class MultiViewTransform(_Transform):
     across views every view draws fresh parameters, even if two views use the
     same pipeline. Output keys are named ``{view}_{key}``; the source keys are
     removed; unlisted keys stay at the top level.
+
+    Seeded random transforms in different views are given different streams
+    automatically, so two views built with the same ``seed`` still differ
+    (and the result stays reproducible).
     """
 
     def __init__(
@@ -1026,6 +1112,39 @@ class MultiViewTransform(_Transform):
         """
         self.keys_to_transform = _as_keys(keys_to_transform)
         self.views = views
+        self._decorrelate_views()
+
+    def _decorrelate_views(self) -> None:
+        """Give each view's seeded random transforms a distinct stream.
+
+        Two *separate* transform objects built with the same ``seed`` would
+        otherwise draw identical parameters, so the "independent" views would
+        be identical. Each view's seeded transforms are salted with the view's
+        index (the first view keeps its plain seed). A transform object that
+        appears in several views is left alone: it is one generator that
+        advances between views, so its views already differ.
+        """
+        owners: Dict[int, set] = {}
+
+        def walk(node: Any, view_index: int, found: List[Tuple[int, _Transform]]):
+            if isinstance(node, _TransformsPipeline):
+                for child in node.transforms:
+                    walk(child, view_index, found)
+            elif isinstance(node, MultiViewTransform):
+                for child in node.views.values():
+                    walk(child, view_index, found)
+            elif isinstance(node, _RandomTransform) and node.seed is not None:
+                found.append((view_index, node))
+
+        found: List[Tuple[int, _Transform]] = []
+        for index, pipeline in enumerate(self.views.values()):
+            walk(pipeline, index, found)
+        for index, node in found:
+            owners.setdefault(id(node), set()).add(index)
+        for index, node in found:
+            if len(owners[id(node)]) == 1:
+                node._rng.salt = index
+                node._rng._generator = None  # rebuild with the new salt
 
     def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
         outputs: Dict[str, Any] = {}
@@ -1038,3 +1157,576 @@ class MultiViewTransform(_Transform):
             del data[key]
         data.update(outputs)
         return data
+
+
+class SplitTransform(_Transform):
+    """Split every listed key into equal parts along a dimension (1 key to many).
+
+    Output keys are ``{key}_0``, ``{key}_1``, ... ``{key}_{num_splits - 1}``.
+    The source keys are removed; unlisted keys pass through unchanged.
+    """
+
+    def __init__(
+        self,
+        keys_to_transform: List[str],
+        num_splits: int = 2,
+        split_dimension: int = 0,
+    ):
+        """
+        Parameters
+        ----------
+        keys_to_transform : List[str]
+            Keys of the entries to split.
+        num_splits : int, optional
+            Number of equal parts, by default 2.
+        split_dimension : int, optional
+            Dimension to split along, by default 0.
+        """
+        super().__init__()
+        if num_splits <= 0:
+            raise ValueError(
+                f"Expected input 'num_splits' to be a positive integer greater than 0, but received {num_splits}."
+            )
+        if split_dimension < 0:
+            raise ValueError(
+                f"Expected input 'split_dimension' to be a positive integer greater than or equal to 0, but received {split_dimension}."
+            )
+        self.keys_to_transform = _as_keys(keys_to_transform)
+        self.num_splits = num_splits
+        self.split_dimension = split_dimension
+
+    def _split(self, x: Union[np.ndarray, torch.Tensor]):
+        if not isinstance(x, (np.ndarray, torch.Tensor)):
+            raise TypeError(
+                f"Expected input 'x' to be either a numpy array or a Pytorch tensor, but received an object of type {type(x)}."
+            )
+        if self.split_dimension >= len(x.shape):
+            raise ValueError(
+                f"Invalid split dimension: expected the split dimension to be less than {len(x.shape)}, but received {self.split_dimension}."
+            )
+        if x.shape[self.split_dimension] % self.num_splits != 0:
+            raise ValueError(
+                f"Invalid split: expected {self.num_splits} to divide equally the dimension {x.shape[self.split_dimension]}."
+            )
+        if isinstance(x, np.ndarray):
+            return np.split(x, self.num_splits, axis=self.split_dimension)
+        return torch.split(
+            x,
+            x.shape[self.split_dimension] // self.num_splits,
+            dim=self.split_dimension,
+        )
+
+    def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        outputs = {}
+        for key in self.keys_to_transform:
+            for i, part in enumerate(self._split(data[key])):
+                outputs[f"{key}_{i}"] = part
+        for key in self.keys_to_transform:
+            del data[key]
+        data.update(outputs)
+        return data
+
+
+class ExternalTransform(_Transform):
+    """Run an external single-input callable (e.g. a torchvision transform) on
+    every listed key (inward compat wrapper).
+
+    The callable is applied to each key separately, so a random external
+    transform draws independent parameters per key. Do not use it to keep
+    image and label in sync; use the keyed transforms for that.
+    """
+
+    def __init__(self, keys_to_transform: List[str], transform: Callable[[Any], Any]):
+        """
+        Parameters
+        ----------
+        keys_to_transform : List[str]
+            Keys of the entries to pass through ``transform``.
+        transform : Callable
+            Any callable taking one object and returning one object, e.g.
+            ``torchvision.transforms.Compose``.
+        """
+        self.keys_to_transform = _as_keys(keys_to_transform)
+        self.transform = transform
+
+    def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        return self._map_keys(data, self.transform)
+
+
+class RandomFlipTransform(_RandomTransform):
+    """Flip every listed key with the same random decision."""
+
+    def __init__(
+        self,
+        keys_to_transform: List[str],
+        possible_axis: Union[int, List[int]] = 1,
+        prob: float = 0.5,
+        seed: Optional[int] = None,
+    ):
+        """
+        Parameters
+        ----------
+        keys_to_transform : List[str]
+            Keys of the entries to flip. All listed keys share one random draw.
+        possible_axis : int | List[int], optional
+            Axis (or axes) that may be flipped, by default 1 (the width of an
+            (H, W) or (H, W, C) array). With a list,
+            each axis is flipped independently with probability ``prob``.
+        prob : float, optional
+            Probability of flipping, by default 0.5.
+        seed : int, optional
+            Seed for reproducible draws, by default None (torch's global RNG).
+        """
+        assert 0.0 <= prob <= 1.0, "prob must be between 0 and 1"
+        self._init_rng(seed)
+        self.keys_to_transform = _as_keys(keys_to_transform)
+        self.possible_axis = possible_axis
+        self.prob = prob
+
+    def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        if isinstance(self.possible_axis, int):
+            axis: Union[int, List[int], None] = (
+                self.possible_axis if self._rand() < self.prob else None
+            )
+        else:
+            chosen = [a for a in self.possible_axis if self._rand() < self.prob]
+            axis = chosen or None
+        if axis is not None:
+            FlipTransform(self.keys_to_transform, axis=axis)(data)
+        return data
+
+
+class RandomCropTransform(_RandomTransform):
+    """Crop every listed key at the same random position.
+
+    Expects (H, W) or (H, W, C) arrays. If the crop is larger than the input,
+    the input is padded first (see :class:`CropTransform`). Optionally the
+    position can be chosen so that no single class dominates the cropped
+    label: set ``label_key`` and the position is redrawn (up to
+    ``max_attempts`` times) while one class covers more than ``max_ratio`` of
+    the valid pixels. The accepted position is applied to every listed key.
+    """
+
+    def __init__(
+        self,
+        keys_to_transform: List[str],
+        crop_size: Tuple[int, int],
+        pad_mode: str = "reflect",
+        seed: Optional[int] = None,
+        pad_value: Union[int, float, Sequence[Union[int, float]]] = 0,
+        label_key: Optional[str] = None,
+        max_ratio: float = 0.75,
+        max_attempts: int = 10,
+        ignore_index: int = -1,
+    ):
+        """
+        Parameters
+        ----------
+        keys_to_transform : List[str]
+            Keys of the entries to crop. All listed keys share one position.
+        crop_size : Tuple[int, int]
+            Output size as (height, width).
+        pad_mode : str, optional
+            Padding mode if the crop is larger than the input, by default "reflect".
+        seed : int, optional
+            Seed for reproducible draws, by default None (torch's global RNG).
+        pad_value : int | Sequence[int], optional
+            Fill value when ``pad_mode="constant"``, one for all keys or one
+            per key, by default 0.
+        label_key : str, optional
+            Key of the (H, W) label whose class ratios decide the position
+            (it need not be listed in ``keys_to_transform``). By default
+            None: the position is purely random.
+        max_ratio : float, optional
+            With ``label_key``: the largest fraction of valid pixels one class
+            may occupy in the crop, by default 0.75.
+        max_attempts : int, optional
+            With ``label_key``: attempts before the last position is accepted,
+            by default 10.
+        ignore_index : int, optional
+            With ``label_key``: label value left out of the ratio computation,
+            by default -1.
+        """
+        self._init_rng(seed)
+        self.keys_to_transform = _as_keys(keys_to_transform)
+        self.crop_size = crop_size
+        self.pad_mode = pad_mode
+        self.pad_value = _per_key(self.keys_to_transform, pad_value, "pad_value")
+        self.label_key = label_key
+        self.max_ratio = max_ratio
+        self.max_attempts = max_attempts
+        self.ignore_index = ignore_index
+
+    def _accepts(self, coords: Tuple[float, float], label: np.ndarray) -> bool:
+        cropped = CropTransform(["label"], self.crop_size, self.pad_mode, coords)._crop(
+            label
+        )
+        valid = cropped[cropped != self.ignore_index]
+        if valid.size == 0:
+            return False
+        _, counts = np.unique(valid, return_counts=True)
+        return bool(np.max(counts / valid.size) <= self.max_ratio)
+
+    def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        coords = (self._rand(), self._rand())
+        if self.label_key is not None:
+            label = data[self.label_key]
+            for _ in range(self.max_attempts - 1):
+                if self._accepts(coords, label):
+                    break
+                coords = (self._rand(), self._rand())
+        return CropTransform(
+            self.keys_to_transform,
+            self.crop_size,
+            self.pad_mode,
+            coords,
+            pad_value=self.pad_value,
+        )(data)
+
+
+class RandomGrayScaleTransform(_RandomTransform):
+    """Convert every listed key to grayscale with the same random decision."""
+
+    def __init__(
+        self,
+        keys_to_transform: List[str],
+        prob: float = 0.1,
+        method: Literal["average", "luminosity"] = "luminosity",
+        seed: Optional[int] = None,
+    ):
+        """
+        Parameters
+        ----------
+        keys_to_transform : List[str]
+            Keys of the images to convert. They share one random draw.
+        prob : float, optional
+            Probability of converting, by default 0.1.
+        method : {'average', 'luminosity'}, optional
+            Grayscale method, by default 'luminosity'.
+        seed : int, optional
+            Seed for reproducible draws, by default None (torch's global RNG).
+        """
+        self._init_rng(seed)
+        self.keys_to_transform = _as_keys(keys_to_transform)
+        self.prob = prob
+        self.method = method
+
+    def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        if self._rand() < self.prob:
+            GrayScaleTransform(self.keys_to_transform, self.method)(data)
+        return data
+
+
+class RandomSolarizeTransform(_RandomTransform):
+    """Solarize every listed key with the same random decision."""
+
+    def __init__(
+        self,
+        keys_to_transform: List[str],
+        threshold: Optional[float] = None,
+        prob: float = 1.0,
+        seed: Optional[int] = None,
+        max_value: Optional[float] = None,
+    ):
+        """
+        Parameters
+        ----------
+        keys_to_transform : List[str]
+            Keys of the images to solarize. They share one random draw.
+        threshold : float, optional
+            Intensity threshold for inversion, by default half the value
+            range (128 for uint8, 0.5 for float images in [0, 1]).
+        prob : float, optional
+            Probability of solarizing, by default 1.0.
+        seed : int, optional
+            Seed for reproducible draws, by default None (torch's global RNG).
+        max_value : float, optional
+            Top of the value range; by default the dtype maximum for integer
+            images and 1.0 for float images (see ``SolarizeTransform``).
+        """
+        self._init_rng(seed)
+        self.keys_to_transform = _as_keys(keys_to_transform)
+        self.threshold = threshold
+        self.max_value = max_value
+        self.prob = prob
+
+    def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        if self._rand() < self.prob:
+            SolarizeTransform(self.keys_to_transform, self.threshold, self.max_value)(
+                data
+            )
+        return data
+
+
+class RandomRotationTransform(_RandomTransform):
+    """Rotate every listed key by the same random angle."""
+
+    def __init__(
+        self,
+        keys_to_transform: List[str],
+        degrees: float,
+        prob: float,
+        mode: Optional[Sequence[str]] = None,
+        seed: Optional[int] = None,
+    ):
+        """
+        Parameters
+        ----------
+        keys_to_transform : List[str]
+            Keys of the entries to rotate. They share one angle.
+        degrees : float
+            Maximum absolute angle; the angle is drawn uniformly from
+            [-degrees, +degrees].
+        prob : float
+            Probability of rotating.
+        mode : Sequence[str], optional
+            One interpolation mode per key. Use "nearest" for labels.
+            By default "bilinear" for all.
+        seed : int, optional
+            Seed for reproducible draws, by default None (torch's global RNG).
+        """
+        self._init_rng(seed)
+        self.keys_to_transform = _as_keys(keys_to_transform)
+        self.degrees = degrees
+        self.prob = prob
+        self.mode = _resolve_modes(self.keys_to_transform, mode)
+
+    def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        if self._rand() < self.prob:
+            angle = self._uniform(-self.degrees, self.degrees)
+            RotationTransform(self.keys_to_transform, angle, self.mode)(data)
+        return data
+
+
+class RandomResizeTransform(_RandomTransform):
+    """Resize every listed key by the same random scale factor."""
+
+    def __init__(
+        self,
+        keys_to_transform: List[str],
+        target_scale: Tuple[int, int],
+        ratio_range: Tuple[float, float],
+        mode: Optional[Sequence[str]] = None,
+        seed: Optional[int] = None,
+    ):
+        """
+        Parameters
+        ----------
+        keys_to_transform : List[str]
+            Keys of the entries to resize. They share one scale factor.
+        target_scale : Tuple[int, int]
+            Base target size as (height, width).
+        ratio_range : Tuple[float, float]
+            Range of the scale factor, drawn uniformly and applied to both
+            dimensions of ``target_scale``.
+        mode : Sequence[str], optional
+            One interpolation mode per key. Use "nearest" for labels.
+            By default "bilinear" for all.
+        seed : int, optional
+            Seed for reproducible draws, by default None (torch's global RNG).
+        """
+        self._init_rng(seed)
+        self.keys_to_transform = _as_keys(keys_to_transform)
+        self.target_scale = target_scale
+        self.ratio_range = ratio_range
+        self.mode = _resolve_modes(self.keys_to_transform, mode)
+
+    def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        factor = self._uniform(*self.ratio_range)
+        new_h = int(self.target_scale[0] * factor)
+        new_w = int(self.target_scale[1] * factor)
+        return ResizeTransform(self.keys_to_transform, new_h, new_w, mode=self.mode)(
+            data
+        )
+
+
+class RandomResizedCropTransform(_RandomTransform):
+    """Crop a random area and aspect ratio, then resize, identically for every listed key.
+
+    Expects (H, W) or (H, W, C) arrays; the first two axes are spatial.
+    """
+
+    def __init__(
+        self,
+        keys_to_transform: List[str],
+        size: Tuple[int, int],
+        scale: Tuple[float, float] = (0.08, 1.0),
+        ratio: Tuple[float, float] = (3.0 / 4.0, 4.0 / 3.0),
+        mode: Optional[Sequence[str]] = None,
+        seed: Optional[int] = None,
+    ):
+        """
+        Parameters
+        ----------
+        keys_to_transform : List[str]
+            Keys of the entries to crop and resize. They share one crop box.
+        size : Tuple[int, int]
+            Output size as (height, width).
+        scale : Tuple[float, float], optional
+            Range of the crop area as a fraction of the input area, by default (0.08, 1.0).
+        ratio : Tuple[float, float], optional
+            Range of the crop aspect ratio (width / height), by default (3/4, 4/3).
+        mode : Sequence[str], optional
+            One interpolation mode per key, e.g. ``["bilinear", "nearest"]``.
+            By default "bilinear" for all.
+        seed : int, optional
+            Seed for reproducible draws, by default None (torch's global RNG).
+        """
+        self._init_rng(seed)
+        self.keys_to_transform = _as_keys(keys_to_transform)
+        self.size = size
+        self.scale = scale
+        self.ratio = ratio
+        self.mode = _resolve_modes(self.keys_to_transform, mode)
+
+    def _draw_box(self, h: int, w: int) -> Tuple[float, float, float, float]:
+        """Draw (top, left, height, width) as fractions of the input size."""
+        for _ in range(10):
+            area = self._uniform(*self.scale)
+            log_ratio = self._uniform(np.log(self.ratio[0]), np.log(self.ratio[1]))
+            aspect = float(np.exp(log_ratio))
+            # fractions of the input: ch * cw == area, cw / ch (pixels) == aspect
+            ch = (area * w / (h * aspect)) ** 0.5
+            cw = ch * aspect * h / w
+            if ch <= 1.0 and cw <= 1.0:
+                return self._uniform(0, 1 - ch), self._uniform(0, 1 - cw), ch, cw
+        return 0.0, 0.0, 1.0, 1.0  # fallback: whole image
+
+    def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        first = data[self.keys_to_transform[0]]
+        h, w = first.shape[:2]
+        top, left, ch, cw = self._draw_box(h, w)
+        for key, m in zip(self.keys_to_transform, self.mode):
+            x = data[key]
+            xh, xw = x.shape[:2]
+            t, l = int(round(top * xh)), int(round(left * xw))
+            bh, bw = max(1, int(round(ch * xh))), max(1, int(round(cw * xw)))
+            patch = x[t : t + bh, l : l + bw]
+            data[key] = _resize_spatial(
+                np.ascontiguousarray(patch),
+                self.size[0],
+                self.size[1],
+                _interpolation(m),
+            )
+        return data
+
+
+# ---------------------------------------------------------------------------
+# Deprecated transforms
+#
+# Kept so existing code keeps working. Each one is a special case of a
+# transform above and WILL BE REMOVED IN THE NEXT MAJOR RELEASE.
+# ---------------------------------------------------------------------------
+
+
+def _warn_deprecated(old: str, new: str) -> None:
+    warnings.warn(
+        f"{old} is deprecated and will be removed in the next major release. "
+        f"Use {new} instead.",
+        FutureWarning,
+        stacklevel=3,
+    )
+
+
+class PadCropTransform(CropTransform):
+    """Deprecated: use :class:`CropTransform`.
+
+    Deterministic: pads (centered) when the target is larger than the input
+    and otherwise takes the centered crop, the same for every call. For a
+    random position use :class:`RandomCropTransform`. Will be removed in the
+    next major release.
+    """
+
+    def __init__(
+        self,
+        keys_to_transform: List[str],
+        target_h_size: int,
+        target_w_size: int,
+        padding_mode: str = "reflect",
+        constant_values: int = 0,
+        seed: Optional[int] = None,
+    ):
+        """
+        ``seed`` is accepted for backwards compatibility and ignored: this
+        transform no longer draws random numbers.
+        """
+        _warn_deprecated(
+            "PadCropTransform",
+            "CropTransform(keys, (height, width), coords=(0.5, 0.5), pad_mode=..., pad_value=...)",
+        )
+        super().__init__(
+            keys_to_transform,
+            (target_h_size, target_w_size),
+            pad_mode=padding_mode,
+            coords=(0.5, 0.5),
+            pad_value=constant_values,
+        )
+
+
+class ClassRatioCropTransform(RandomCropTransform):
+    """Deprecated: use :class:`RandomCropTransform` with ``label_key``.
+
+    Will be removed in the next major release.
+    """
+
+    def __init__(
+        self,
+        keys_to_transform: List[str],
+        label_key: str,
+        target_size: Tuple[int, int],
+        max_ratio: float = 0.75,
+        max_attempts: int = 10,
+        ignore_index: int = -1,
+        seed: Optional[int] = None,
+    ) -> None:
+        _warn_deprecated(
+            "ClassRatioCropTransform",
+            "RandomCropTransform(keys, size, label_key=..., max_ratio=...)",
+        )
+        super().__init__(
+            keys_to_transform,
+            tuple(target_size),
+            seed=seed,
+            label_key=label_key,
+            max_ratio=max_ratio,
+            max_attempts=max_attempts,
+            ignore_index=ignore_index,
+        )
+
+
+class SwapAxesTransform(_Transform):
+    """Deprecated: use :class:`TransposeTransform` with the full permutation.
+
+    ``SwapAxesTransform(keys, 0, 1)`` on a 2D array equals
+    ``TransposeTransform(keys, (1, 0))``. Will be removed in the next major
+    release.
+    """
+
+    def __init__(self, keys_to_transform: List[str], dim0: int, dim1: int):
+        _warn_deprecated("SwapAxesTransform", "TransposeTransform(keys, axes)")
+        for dim in (dim0, dim1):
+            if dim < 0:
+                raise ValueError(
+                    f"Dimension {dim} must be a positive integer greater than or equal to 0."
+                )
+        self.keys_to_transform = _as_keys(keys_to_transform)
+        self.dim0 = dim0
+        self.dim1 = dim1
+
+    def _swap(self, x: Union[np.ndarray, torch.Tensor]):
+        if not isinstance(x, (np.ndarray, torch.Tensor)):
+            raise TypeError(
+                f"Input type {type(x)} must be a numpy array or a Pytorch tensor."
+            )
+        if self.dim0 >= len(x.shape) or self.dim1 >= len(x.shape):
+            raise ValueError(
+                f"Dimensions {self.dim0} and {self.dim1} must be less than {len(x.shape)}."
+            )
+        if isinstance(x, np.ndarray):
+            dims = list(range(x.ndim))
+            dims[self.dim0], dims[self.dim1] = dims[self.dim1], dims[self.dim0]
+            return np.transpose(x, dims)
+        return x.transpose(self.dim0, self.dim1)
+
+    def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        return self._map_keys(data, self._swap)
