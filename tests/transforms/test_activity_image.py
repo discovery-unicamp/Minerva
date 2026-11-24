@@ -1,21 +1,13 @@
-from typing import Sequence
-
 import numpy as np
-import pytest
 
-from minerva.transforms import ActivityImageTransforms
+from minerva.transforms import ActivityImageTransform
 
 
-def test_activity_image_transforms():
-    transform = ActivityImageTransforms(9, 68)
-
-    # Create a dummy input
+def test_activity_image_transform():
+    transform = ActivityImageTransform(["signal"], 9, 68)
     x = np.random.rand(9, 128)
+    out = transform({"signal": x, "label": 3})
 
-    # Apply the transform
-    x, transformed_x = transform(x)
-
-    # Output shape
-    y = np.random.rand(37, 68)
-
-    assert transformed_x.shape == y.shape
+    assert out["signal"] is x  # source key is kept
+    assert out["label"] == 3  # unlisted key passes through
+    assert out["signal_activity_image"].shape == (37, 68)

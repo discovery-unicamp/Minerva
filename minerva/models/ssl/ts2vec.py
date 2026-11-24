@@ -11,6 +11,7 @@ from torch.utils.data import TensorDataset, DataLoader
 import numpy as np
 from minerva.models.nets.tnc import TSEncoder
 import math
+from minerva.models.batch import get_input
 
 
 def instance_contrastive_loss(z1, z2):
@@ -427,7 +428,7 @@ class TS2Vec:
                     interrupted = True
                     break
 
-                x = batch[0]
+                x = get_input(batch)
                 if (
                     self.max_train_length is not None
                     and x.size(1) > self.max_train_length
@@ -632,7 +633,7 @@ class TS2Vec:
         with torch.no_grad():
             output = []
             for batch in loader:
-                x = batch[0]
+                x = get_input(batch)
                 if sliding_length is not None:
                     reprs = []
                     if n_samples < batch_size:

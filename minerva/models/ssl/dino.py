@@ -54,7 +54,7 @@ from minerva.callback.specific_checkpoint_callback import (
     EvalCheckpointCallback,
     FilterWeights,
 )
-from minerva.transforms.dino import DataAugmentationDINO, MaskingGenerator
+from minerva.transforms.dino import DINOTransform, MaskingGenerator
 from minerva.models.nets.image.dino import DINOHead, wrap_compile_block
 from minerva.models.ssl.base import _SSLTechnique
 from minerva.utils.instantiators import instantiate_cls
@@ -988,8 +988,9 @@ class _DINO(_SSLTechnique):
         )
 
     def default_technique_transforms(self):
-        """Return default multi-crop DataAugmentationDINO transform callable."""
-        return DataAugmentationDINO(
+        """Return the default multi-crop ``DINOTransform`` (dict in, dict out) applied to ``"image"``."""
+        return DINOTransform(
+            ["image"],
             self.crops.global_crops_scale,
             self.crops.local_crops_scale,
             self.crops.local_crops_number,
@@ -2111,6 +2112,22 @@ class DINOv3(_DINO):
             self.gram_teacher_initialized = True
 
 
+def _sample_crops(sample, image_key: str) -> Dict[str, Any]:
+    """Return a sample's crops as ``{"global_crops": ..., "local_crops": ...}``.
+
+    Accepts a flat dict from ``DINOTransform`` or a legacy ``(crops, label)``
+    tuple.
+    """
+    if isinstance(sample, dict):
+        names = ("global_crops", "local_crops", "gram_teacher_crops")
+        return {
+            n: sample[f"{image_key}_{n}"]
+            for n in names
+            if f"{image_key}_{n}" in sample
+        }
+    return sample[0]
+
+
 def collate_data_and_cast(
     samples_list,
     mask_ratio_tuple: Tuple[float, float],
@@ -2121,6 +2138,7 @@ def collate_data_and_cast(
     random_circular_shift: bool = False,
     local_batch_size: Optional[int] = None,
     dino_version: int = 3,
+    image_key: str = "image",
 ) -> Dict[str, Any]:
     """
     Collate multi-crop samples, generate random patch masks for iBOT, and cast tensors to precision.
@@ -2128,7 +2146,9 @@ def collate_data_and_cast(
     Parameters
     ----------
     samples_list : list
-        List of data sample dictionaries loaded by dataset workers.
+        Samples loaded by dataset workers. Each is either a flat dict produced
+        by ``DINOTransform`` (crops under ``{image_key}_global_crops`` etc.) or
+        a legacy ``(crops_dict, label)`` tuple.
     mask_ratio_tuple : tuple of (float, float)
         Range (min, max) of masking ratios.
     mask_probability : float
@@ -2145,25 +2165,30 @@ def collate_data_and_cast(
         Batch size per worker rank.
     dino_version : int, default 3
         Target DINO framework version (2 or 3).
+    image_key : str, default "image"
+        Key ``DINOTransform`` was applied to. Samples that are flat dicts hold
+        their crops under ``{image_key}_global_crops``, ``..._local_crops``,
+        etc. Legacy ``(crops_dict, label)`` tuple samples are still accepted.
 
     Returns
     -------
     dict
         Collated batch dictionary containing stacked global/local/Gram crops, masks, and indices.
     """
-    n_global_crops = len(samples_list[0][0]["global_crops"])
-    n_local_crops = len(samples_list[0][0]["local_crops"])
+    samples_list = [_sample_crops(s, image_key) for s in samples_list]
+    n_global_crops = len(samples_list[0]["global_crops"])
+    n_local_crops = len(samples_list[0]["local_crops"])
 
     collated_global_crops = torch.stack(
-        [s[0]["global_crops"][i] for i in range(n_global_crops) for s in samples_list]
+        [s["global_crops"][i] for i in range(n_global_crops) for s in samples_list]
     )  # [n_global_crops, B, ...]
     collated_local_crops = torch.stack(
-        [s[0]["local_crops"][i] for i in range(n_local_crops) for s in samples_list]
+        [s["local_crops"][i] for i in range(n_local_crops) for s in samples_list]
     )
-    if "gram_teacher_crops" in samples_list[0][0]:
+    if "gram_teacher_crops" in samples_list[0]:
         collated_gram_teacher_crops = torch.stack(
             [
-                s[0]["gram_teacher_crops"][i]
+                s["gram_teacher_crops"][i]
                 for i in range(n_global_crops)
                 for s in samples_list
             ]

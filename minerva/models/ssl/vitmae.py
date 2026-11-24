@@ -5,6 +5,7 @@ from typing import Optional
 from ..nets.image.vit_local import VisionTransformer, Block
 from ...utils.position_embedding import get_2d_sincos_pos_embed
 from einops import rearrange
+from minerva.models.batch import get_input
 
 
 class MaskedAutoEncoderViT(L.LightningModule):
@@ -220,7 +221,7 @@ class MaskedAutoEncoderViT(L.LightningModule):
         return loss, pred, mask
 
     def _single_step(self, batch: torch.Tensor, step_name: str) -> torch.Tensor:
-        loss, _, _ = self.forward(batch)
+        loss, _, _ = self.forward(get_input(batch))
         self.log(f"{step_name}_loss", loss)
         return loss
 

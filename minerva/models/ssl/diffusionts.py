@@ -23,6 +23,7 @@ from torch.optim import Adam
 from torch.nn.utils import clip_grad_norm_
 
 # gaussian diffusion trainer class
+from minerva.models.batch import get_input
 
 
 def linear_beta_schedule(timesteps):
@@ -231,9 +232,7 @@ class DiffusionTS(L.LightningModule):
         an optimizer step to update the model parameters, a scheduler step to update the learning
         rate, and updates the Exponential Moving Average shadowing of the model.
         """
-        # If the batch is a tuple or list, get the first element
-        if isinstance(batch, (list, tuple)):
-            batch = batch[0]
+        batch = get_input(batch)
         loss = self.forward(batch, target=batch)
         loss = loss / self.gradient_accumulate_every
         self.manual_backward(loss)

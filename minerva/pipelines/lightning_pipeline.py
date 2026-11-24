@@ -11,11 +11,12 @@ from minerva.pipelines.base import Pipeline
 from minerva.data.data_module_tools import get_full_data_split, get_split_dataloader
 from minerva.utils.typing import PathLike
 from minerva.analysis.model_analysis import _ModelAnalysis
+from minerva.models.batch import get_input_target
 
 
 def predict_batch(classification_metrics, regression_metrics):
     def predict_batch_fn(self, batch, batch_idx, dataloader_idx):
-        X, y = batch
+        X, y = get_input_target(batch)
         y_hat = self.forward(X)
 
         if classification_metrics is not None:

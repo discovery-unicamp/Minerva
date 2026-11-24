@@ -83,9 +83,9 @@ def test_multimdodal_defaults(sample_csv_dir):
     val_dataset = data_module.datasets["validation"][0]
     test_dataset = data_module.datasets["test"][0]
 
-    train_x, train_y = train_dataset[0]
-    val_x, val_y = val_dataset[0]
-    test_x, test_y = test_dataset[0]
+    train_x, train_y = train_dataset[0]["image"], train_dataset[0]["label"]
+    val_x, val_y = val_dataset[0]["image"], val_dataset[0]["label"]
+    test_x, test_y = test_dataset[0]["image"], test_dataset[0]["label"]
 
     assert train_x.shape == (6, 4)
     assert val_x.shape == (6, 4)
@@ -120,7 +120,7 @@ def test_multimdodal_defaults(sample_csv_dir):
                 + [sample[f"gyro-z-{i}"] for i in range(4)]
             )
 
-            val_x = val_dataset[r][0]
+            val_x = val_dataset[r]["image"]
             assert np.array_equal(val_x.flatten(), np.array(sample_values))
 
 
@@ -181,7 +181,7 @@ def test_samples_per_class(sample_csv_dir, samples_per_class):
 
     class_counts = {}
     for i in range(len(train_dataset)):
-        _, y = train_dataset[i]
+        y = train_dataset[i]["label"]
         class_counts[y] = class_counts.get(y, 0) + 1
 
     for count in class_counts.values():
@@ -235,8 +235,8 @@ def test_samples_per_class_cumulative(sample_csv_dir):
     train_dataset_1 = data_module_1.datasets["train"][0]
     train_dataset_2 = data_module_2.datasets["train"][0]
 
-    xs_1 = [train_dataset_1[i][0] for i in range(len(train_dataset_1))]
-    xs_2 = [train_dataset_2[i][0] for i in range(len(train_dataset_2))]
+    xs_1 = [train_dataset_1[i]["image"] for i in range(len(train_dataset_1))]
+    xs_2 = [train_dataset_2[i]["image"] for i in range(len(train_dataset_2))]
 
     # Convert each sample to a hashable tuple for easier comparison
     xs_1_set = set([tuple(sample.flatten()) for sample in xs_1])
@@ -294,8 +294,8 @@ def test_samples_per_class_cumulative_different_seeds(sample_csv_dir):
     train_dataset_1 = data_module_1.datasets["train"][0]
     train_dataset_2 = data_module_2.datasets["train"][0]
 
-    xs_1 = [train_dataset_1[i][0] for i in range(len(train_dataset_1))]
-    xs_2 = [train_dataset_2[i][0] for i in range(len(train_dataset_2))]
+    xs_1 = [train_dataset_1[i]["image"] for i in range(len(train_dataset_1))]
+    xs_2 = [train_dataset_2[i]["image"] for i in range(len(train_dataset_2))]
 
     # Convert each sample to a hashable tuple for easier comparison
     xs_1_set = set([tuple(sample.flatten()) for sample in xs_1])

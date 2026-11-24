@@ -25,6 +25,7 @@ from minerva.utils.string_ops import tree_like_formating, indent_text
 from minerva.utils.output import Tee
 from minerva.models.loaders import FromPretrained
 import os
+from minerva.models.batch import get_target
 
 
 class ModelInstantiator(ABC):
@@ -632,7 +633,7 @@ def perform_evaluation(
 
     if not per_sample:
         # ys -> numpy array -> torch tensor (to keep dtype)
-        y = np.array([dataset[i][1] for i in range(len(dataset))])  # type: ignore
+        y = np.array([get_target(dataset[i]) for i in range(len(dataset))])  # type: ignore
         y = torch.from_numpy(y)
         y_hat = (
             torch.from_numpy(predictions)
@@ -687,7 +688,7 @@ def perform_evaluation(
             desc="Computing metrics (per sample)",
         ):
             result = {"sample": i}
-            _, label = dataset[i]  # type: ignore
+            label = get_target(dataset[i])  # type: ignore
             prediction = predictions[i]
 
             if isinstance(label, np.ndarray):

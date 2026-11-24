@@ -1,35 +1,30 @@
-from minerva.transforms.tfc import TFC_Transforms
 import numpy as np
 import torch
 
+from minerva.transforms.tfc import TFCTransform
 
-def test_tfc_transform_numpy():
-    tranform = TFC_Transforms()
-    # Create a dummy input
+
+def test_tfc_augment_numpy():
     x_original = np.random.rand(10, 20)
-
-    # Apply the transform pipeline
-    returns = tranform(x_original)
-    assert len(returns) == 4
-    x, y1, freq, y2 = returns
-
-    # Check if the transformed data has the same shape as the input
+    x, y1, freq, y2 = TFCTransform().augment(x_original)
     assert x.shape == y1.shape == freq.shape == y2.shape == x_original.shape
 
 
-def test_tfc_transform_tensor():
-    tranform = TFC_Transforms()
-    # Create a dummy input tensor
+def test_tfc_augment_tensor():
     x_original = torch.rand(10, 20)
-
-    # Apply the transform pipeline
-    returns = tranform(x_original)
-    assert len(returns) == 4
-    x, y1, freq, y2 = returns
-
-    # Check if the transformed data has the same shape as the input
+    x, y1, freq, y2 = TFCTransform().augment(x_original)
     assert x.shape == y1.shape == freq.shape == y2.shape == x_original.shape
 
 
-test_tfc_transform_numpy()
-test_tfc_transform_tensor()
+def test_tfc_dict_call():
+    data = {"signal": np.random.rand(10, 20), "label": 1}
+    out = TFCTransform(["signal"])(data)
+    assert set(out) == {
+        "signal",
+        "signal_aug",
+        "signal_freq",
+        "signal_freq_aug",
+        "label",
+    }
+    assert out["label"] == 1
+    assert out["signal_aug"].shape == (10, 20)

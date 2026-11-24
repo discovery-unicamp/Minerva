@@ -1,3 +1,4 @@
-from .base import SimpleDataset
+from .base import MinervaDataset
+from .wrappers import FromTupleDataset, SSLDatasetWrapper, ToTupleDataset
 
-__all__ = ["SimpleDataset"]
+__all__ = ["MinervaDataset", "FromTupleDataset", "SSLDatasetWrapper", "ToTupleDataset"]

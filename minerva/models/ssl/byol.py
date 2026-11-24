@@ -9,6 +9,7 @@ from minerva.losses.negative_cossine_similatiry import NegativeCosineSimilarity
 from minerva.models.nets.mlp import MLP
 from minerva.models.nets.image.deeplabv3 import DeepLabV3Backbone
 from minerva.models.nets.base import SimpleSupervisedModel
+from minerva.models.batch import get_views
 
 
 class BYOL(SimpleSupervisedModel):
@@ -197,7 +198,7 @@ class BYOL(SimpleSupervisedModel):
             self.projection_head, self.projection_head_momentum, m=momentum
         )
 
-        loss = self._loss_func(batch)
+        loss = self._loss_func(get_views(batch))
         self.log(
             "train_loss",
             loss,
