@@ -199,7 +199,8 @@ def test_hardatasetcpc_getitem(sample_data):
         phase="train",
         label="activity code",
     )
-    data, label = dataset[0]
+    sample = dataset[0]
+    data, label = sample["image"], sample["label"]
     assert data.shape == (6, 10)
     np.testing.assert_allclose(data, dataset.data[0])
     np.testing.assert_allclose(label, dataset.labels[0])
@@ -226,7 +227,8 @@ def test_hardatasetcpc_return_index_as_label(sample_data):
         phase="train",
         label="return_index_as_label",
     )
-    data, label = dataset[0]
+    sample = dataset[0]
+    data, label = sample["image"], sample["label"]
     assert data.shape == (6, 10)
     assert label.shape == ()
 
@@ -241,7 +243,7 @@ def test_hardatasetcpc_transpose_data_true(sample_data):
         transpose_data=True,
         label="activity code",
     )
-    data, _ = dataset[0]
+    data = dataset[0]["image"]
     assert data.shape == (6, 10)
 
 
@@ -255,7 +257,7 @@ def test_hardatasetcpc_transpose_data_false(sample_data):
         transpose_data=False,
         label="activity code",
     )
-    data, _ = dataset[0]
+    data = dataset[0]["image"]
     assert data.shape == (10, 6)
 
 

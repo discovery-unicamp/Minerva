@@ -1,6 +1,7 @@
 import torch
 
 from minerva.models.nets.base import SimpleSupervisedModel
+from minerva.models.batch import get_input_target
 
 
 class _WiseNet(torch.nn.Module):
@@ -115,7 +116,7 @@ class WiseNet(SimpleSupervisedModel):
     def _single_step(
         self, batch: torch.Tensor, batch_idx: int, step_name: str
     ) -> torch.Tensor:
-        x, y = batch
+        x, y = get_input_target(batch)
         y_hat = self.forward(x)
         y_hat = y_hat[:, :, : y.size(2), : y.size(3)]
 
@@ -131,7 +132,7 @@ class WiseNet(SimpleSupervisedModel):
         return loss
 
     def predict_step(self, batch, batch_idx, dataloader_idx=None):
-        x, y = batch
+        x, y = get_input_target(batch)
         y_hat = self.forward(x)
         y_hat = y_hat[:, :, : y.size(2), : y.size(3)]
         return y_hat

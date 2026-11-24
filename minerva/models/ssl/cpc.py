@@ -3,6 +3,7 @@ from torch import nn, optim
 from torch.optim.lr_scheduler import StepLR
 import lightning as L
 from minerva.models.nets.cpc_networks import PredictionNetwork
+from minerva.models.batch import get_input
 
 
 class CPC(L.LightningModule):
@@ -102,19 +103,19 @@ class CPC(L.LightningModule):
         return nce
 
     def training_step(self, batch, batch_idx):
-        z, y_pred, start = self.forward(batch[0])
+        z, y_pred, start = self.forward(get_input(batch))
         nce = self.compute_nce_loss(z, y_pred, start)
         self.log("train_loss", nce)
         return nce
 
     def validation_step(self, batch, batch_idx):
-        z, y_pred, start = self.forward(batch[0])
+        z, y_pred, start = self.forward(get_input(batch))
         nce = self.compute_nce_loss(z, y_pred, start)
         self.log("val_loss", nce)
         return nce
 
     def test_step(self, batch, batch_idx):
-        z, y_pred, start = self.forward(batch[0])
+        z, y_pred, start = self.forward(get_input(batch))
         nce = self.compute_nce_loss(z, y_pred, start)
         self.log("test_loss", nce)
         return nce

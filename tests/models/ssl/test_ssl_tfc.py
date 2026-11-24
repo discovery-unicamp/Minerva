@@ -3,7 +3,7 @@ from minerva.models.nets.tfc import (
     TFC_Backbone,
     TFC_Conv_Block,
     TFC_Standard_Projector,
-    TFC_Transforms,
+    TFCTransform,
 )
 from minerva.models.nets.tnc import TSEncoder
 import torch
@@ -300,7 +300,7 @@ def test_tfc_pretrain_not_test():
 
 
 def test_tfc_custom_transforms():
-    transform = TFC_Transforms(
+    transform = TFCTransform(
         jitter_ratio=0.1,
         jitter_function=lambda x, ratio: x * (1 + ratio * torch.randn_like(x)),
     )
@@ -325,17 +325,17 @@ def test_tfc_custom_transforms_by_param():
         model.backbone.transform.jitter_operation is jitter_function
     ), f"Transform should be set in the model's backbone, it is {model.backbone.transform}"
     assert (
-        model.backbone.transform.jitter_ration == 0.1
+        model.backbone.transform.jitter_ratio == 0.1
     ), "Jitter ratio should be set to 0.1"
 
 
 def test_tfc_default_transforms():
     model = TFC_Model(input_channels=9, TS_length=128, single_encoding_size=128)
     assert isinstance(
-        model.backbone.transform, TFC_Transforms
-    ), "Default transform should be an instance of TFC_Transforms"
+        model.backbone.transform, TFCTransform
+    ), "Default transform should be an instance of TFCTransform"
     assert (
-        model.backbone.transform.jitter_ration == 0.08
+        model.backbone.transform.jitter_ratio == 0.08
     ), "Default jitter ratio should be 0.08"
     assert (
         model.backbone.transform.jitter_operation

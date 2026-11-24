@@ -102,7 +102,7 @@ The `data` module is responsible for handling the data used by the models. This 
 
 `readers` are the lowest level in our data pipeline. It is responsible to read the right data requested by a dataset in it's format and return it in a format that can be used. Every reader should know both the method for reading the data from the file it self and the file structure of the data if applicable. Every reader should inherit from the `_Reader` class.
 
-`datasets` are the middle level in our data pipeline. It is composed by one or more readers and is responsible to transform the data read by the readers if necessary. Datasets usually are composed by a slice, of partition of the data (e.g. train, validation, test). The datasets and its partitions will be created and managed by a data module. Every dataset should inherit from the `torch.utils.data.Dataset` class.
+`datasets` are the middle level in our data pipeline. It is composed by one or more keyed readers and one transform pipeline, and returns each sample as one flat `dict[str, Any]` (e.g. `{"image": ..., "label": ...}`). Prefer `MinervaDataset` over writing a new dataset class. Datasets usually are composed by a slice, of partition of the data (e.g. train, validation, test). The datasets and its partitions will be created and managed by a data module. Every dataset should inherit from the `torch.utils.data.Dataset` class.
 
 `data_modules` are the front facing classes of the data pipeline. It is responsible for receiving all the parameters needed to create all datasets and readers. Data modules should inherit from the `lightning.LightningDataModule` class. This class is a PyTorch Lightning class that simplifies the data loading process. You should follow the PyTorch Lightning guidelines for writing your data modules. You can find more information [here](https://pytorch-lightning.readthedocs.io/en/latest/common/lightning_module.html).
 
@@ -112,7 +112,7 @@ The `losses` module houses loss functions that can be used by the modules. As st
 
 #### `transforms` module
 
-The `transforms` module houses transformations that can be used by a dataset. Every transformation should inherit from our `_Transform` class. If you are adding a new transformation, make sure to include a brief description of why it is needed.
+The `transforms` module houses transformations that can be used by a dataset. Every transformation should inherit from our `_Transform` class (or `_RandomTransform` if it draws random numbers) and follow the Minerva 1.0 data pipeline standard: the class name ends in `Transform`; the first constructor argument is `keys_to_transform`; `__call__` takes and returns a `dict`, changes only the listed keys and leaves the others untouched. Random transforms must draw their parameters once per call, share them across all listed keys, and accept an optional `seed` for reproducibility (use `self._init_rng(seed)` and `self._rand()`). Transforms whose behavior depends on the data type (e.g. interpolation) take a per-key `mode`. If you are adding a new transformation, make sure to include a brief description of why it is needed.
 
 #### `analysis` module
 

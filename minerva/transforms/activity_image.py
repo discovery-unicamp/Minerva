@@ -1,25 +1,39 @@
-from typing import Any
+from typing import Any, Dict, List
+
 import numpy as np
 from scipy import signal
 
+from .transform import _as_keys, _Transform
 
-class ActivityImageTransforms:
+
+class ActivityImageTransform(_Transform):
     """
     A class to transform signals into images for Human Activity Recognition (HAR),
     based on the methodology presented in the paper
     "Human Activity Recognition using Wearable Sensors by Deep Convolutional Neural Networks."
     """
 
-    def __init__(self, signal_sequences=9, signal_samples=68) -> None:
-        """Initializes the ActivityImageTransforms class with the given number of signal sequences and samples.
+    def __init__(
+        self,
+        keys_to_transform: List[str],
+        signal_sequences: int = 9,
+        signal_samples: int = 68,
+    ) -> None:
+        """Initializes the transform.
+
+        For each listed key ``k`` the raw signals stay in ``k`` and the
+        activity image is written to the new key ``{k}_activity_image``.
 
         Parameters:
         -----------
+        keys_to_transform: List[str]
+            Keys of the raw signal sequences to convert.
         signal_sequences: int, optional
             The number of signal sequences. Defaults to 9
         signal_samples: int, optional
             The number of samples per signal sequence. Defaults to 68.
         """
+        self.keys_to_transform = _as_keys(keys_to_transform)
         self.signal_sequences = signal_sequences
         self.signal_samples = signal_samples
 
@@ -84,15 +98,12 @@ class ActivityImageTransforms:
             resample_signal.append(signal.resample(raw_signal, self.signal_samples))
         return resample_signal
 
-    def __call__(self, x) -> Any:
-        """Transforms the input signals into activity images suitable for CNN processing.
+    def activity_image(self, x) -> np.ndarray:
+        """Build the activity image of one set of raw signal sequences.
 
-        This method performs the following steps:
-        1. Resamples the input signals to ensure consistent sample length.
-        2. Constructs a 2D signal image from the resampled signals.
-        3. Applies a 2D Fast Fourier Transform (FFT) to convert the signal image to the frequency domain.
-        4. Shifts the zero-frequency component to the center of the spectrum.
-        5. Computes the magnitude of the frequency domain representation to form the final activity image.
+        Steps: resample the signals to a fixed length, arrange them into a 2D
+        signal image, apply a 2D FFT, shift the zero frequency to the center
+        and take the magnitude.
 
         Parameters:
         -----------
@@ -101,11 +112,15 @@ class ActivityImageTransforms:
 
         Returns:
         --------
-            tuple: A tuple containing the original signals and the corresponding activity images.
+        np.ndarray
+            The activity image.
         """
         raw_signals = self.resample_signals(x)
         signal_image = np.array(self.get_signal_image(raw_signals))
         dft_image = np.fft.fft2(signal_image, axes=(0, 1))
-        dft_image_shifted = np.fft.fftshift(dft_image)
-        activity_image = np.abs(dft_image_shifted)
-        return x, activity_image
+        return np.abs(np.fft.fftshift(dft_image))
+
+    def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        for key in self.keys_to_transform:
+            data[f"{key}_activity_image"] = self.activity_image(data[key])
+        return data

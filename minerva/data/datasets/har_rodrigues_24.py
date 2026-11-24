@@ -270,6 +270,7 @@ class HARDatasetCPC(Dataset):
     def __getitem__(self, index):
         data = self.data[index]
 
+        sample = {"image": data}
         if self.label:
-            return data, self.labels[index]
-        return data
+            sample["label"] = self.labels[index]
+        return sample

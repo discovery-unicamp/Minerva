@@ -1,4 +1,5 @@
-from typing import Any, Iterable, List, Optional, Tuple, Union
+from collections import OrderedDict
+from typing import Any, List, Mapping, Optional, Union
 
 from torch.utils.data import Dataset, Subset as _Subset, ConcatDataset as _ConcatDataset
 
@@ -8,193 +9,97 @@ from minerva.transforms.transform import _Transform
 import random
 
 
-class SimpleDataset(Dataset):
-    """Dataset is responsible for loading data from multiple readers and
-    responsible for loading data from multiple readers and
+class MinervaDataset(Dataset):
+    """Combine keyed readers with one transform pipeline.
 
-    apply specified transforms. It is a generic implementation that can be
-    used to create differents dataset, from supervised to unsupervised ones.
+    Every sample is a flat dict (an ``OrderedDict``). Its keys are the keys of
+    ``readers``; its values are what each reader returns at the index. The
+    transform pipeline then takes that dict and returns the final sample:
 
-    This class implements the common pipeline for reading and transforming data.
-    The __getitem__ pipeline is as follows:
+        data = OrderedDict((key, reader[idx]) for key, reader in readers.items())
+        return transforms(data)
 
-    For each reader R and transform list T:
-        1. Read the data from the reader R at the index idx.
-        2. Apply the transforms T to the data.
-        3. Append the transformed data to the list of data.
-    Return the tuple of transformed data.
+    A new task is a new set of readers and transforms. Do not subclass unless
+    it is a true edge case (e.g. filtering to a class percentage).
     """
 
     def __init__(
         self,
-        readers: Union[_Reader, List[_Reader]],
-        transforms: Optional[
-            Union[Optional[_Transform], List[Optional[_Transform]]]
-        ] = None,
-        return_single: bool = False,
+        readers: "OrderedDict[str, _Reader]",
+        transforms: Optional[_Transform] = None,
     ):
-        """Load data from multiple sources and apply specified transforms.
-
+        """
         Parameters
         ----------
-        readers : Union[_Reader, List[_Reader]]
-            The list of readers to load data from. It can be a single reader or
-            a list of readers.
-        transforms : Optional[Union[_Transform, List[_Transform]]], optional
-            The list of transforms to apply to each sample. This can be:
-            -   None, in which case no transform is applied.
-            -   A single transform, in which case the same transform is applied
-                to data from all readers.
-            -   A list of transforms, in which case each transform is applied
-                to the corresponding reader. That is, the first transform is
-                applied to the first reader, the second transform is applied to
-                the second reader, and so on. The transform can also be None for
-                some readers, in which case no transform is applied to that
-                reader's data.
-        return_single : bool, optional
-            If True, the __getitem__ method will return a single sample  when
-            a single reader is used. This is useful for unsupervised datasets,
-            where we usually have a single reader. If False, the __getitem__
-            method will return a tuple of samples, where each sample is from a
-            different reader, from same index. This is useful for supervised
-            datasets, where the data from different readers are related and
-            should be returned together. The default is False.
+        readers : OrderedDict[str, _Reader]
+            Readers keyed by the name of their output in the sample dict.
+            Readers do not need to know their key. The length of the dataset
+            is the length of the first reader.
+        transforms : _Transform, optional
+            One dict-in, dict-out transform (usually a ``_TransformsPipeline``)
+            applied to the whole sample. If None, the sample is returned as
+            read.
 
         Examples
         --------
-        1. Supervised Dataset:
+        Supervised segmentation:
+
         ```python
-        from minerva.data.readers import ImageReader, LabelReader
-        from minerva.transforms import ImageTransform, LabelTransform
-        from minerva.data.datasets import SimpleDataset
-
-        # Create the readers
-        image_reader = ImageReader("path/to/images")
-        label_reader = LabelReader("path/to/labels")
-
-        # Create the transforms
-        image_transform = ImageTransform()
-        label_transform = None          # No transform for the labels
-        # Create the dataset
-        dataset = SimpleDataset(
-            readers=[image_reader, label_reader],
-            transforms=[image_transform, label_transform]
+        from collections import OrderedDict
+        from minerva.data.datasets import MinervaDataset
+        from minerva.transforms import (
+            CropTransform, NormalizeTransform, _TransformsPipeline,
         )
 
-        dataset[0]  # Returns [image, label]
-        ```
-
-        2. Unsupervised Dataset:
-        ```python
-        from minerva.data.readers import ImageReader
-        from minerva.transforms import ImageTransform
-        from minerva.data.datasets import SimpleDataset
-
-        # Create the reader
-        image_reader = ImageReader("path/to/images")
-
-        # Create the transform
-        image_transform = ImageTransform()
-        # Create the dataset
-        dataset = SimpleDataset(
-            readers=[image_reader],
-            transforms=image_transform,
-            return_single=True
+        dataset = MinervaDataset(
+            readers=OrderedDict(image=image_reader, label=label_reader),
+            transforms=_TransformsPipeline([
+                CropTransform(["image", "label"], (256, 256)),
+                NormalizeTransform(["image"], mean=[0.5], std=[0.5]),
+            ]),
         )
-        dataset[0]  # Returns image
+        dataset[0]  # {"image": ..., "label": ...}
         ```
 
+        Unsupervised: use a single reader.
+
+        ```python
+        dataset = MinervaDataset(OrderedDict(image=image_reader), transforms)
+        dataset[0]  # {"image": ...}
+        ```
         """
-        self.readers = readers
+        if not isinstance(readers, Mapping):
+            raise TypeError(
+                "`readers` must be a mapping (e.g. OrderedDict) from key to reader, "
+                f"got {type(readers).__name__}."
+            )
+        if len(readers) == 0:
+            raise ValueError("`readers` must contain at least one reader.")
+        self.readers = OrderedDict(readers)
         self.transforms = transforms
-        self.return_single = return_single
-
-        # ---------------- Parsing readers ----------------
-        if not isinstance(self.readers, Iterable):
-            self.readers = [self.readers]
-        # ---------------- Parsing transforms ----------------
-        # If no transform is provided, use the identity transform.
-        # It will generate a list of None transforms with the same length
-        # as the number of readers.
-        if self.transforms is None:
-            self.transforms = [None] * len(self.readers)
-
-        # If a single transform is provided, use the same transform for all
-        # readers, that is, generate a list of the same transform with the same
-        # length as the number of readers.
-        if not isinstance(self.transforms, Iterable):
-            self.transforms = [self.transforms] * len(self.readers)
-
-        # ---------------- Validating objects ----------------
-        assert len(self.readers) == len(
-            self.transforms
-        ), "The number of readers and transforms must be the same."
-
-        # If return_single is True, there must be only one reader.
-        assert (
-            not self.return_single or len(self.readers) == 1
-        ), "If return_single is True, there must be only one reader."
 
     def __len__(self) -> int:
-        """The length of the dataset is the length of the first reader.
+        """The length of the dataset is the length of the first reader."""
+        return len(next(iter(self.readers.values())))
 
-        Returns
-        -------
-        int
-            The number of samples in the dataset.
-        """
-        return len(self.readers[0])
-
-    def __getitem__(self, idx: int) -> Union[Any, Tuple[Any, ...]]:
-        """Load data from multiple sources and apply specified transforms.
-
-        Parameters
-        ----------
-        idx : int
-            The index of the sample to load.
-
-        Returns
-        -------
-        List[Any]
-            A list of transformed data from each reader.
-        """
-        data = []
-
-        # For each reader and transform, read the data and apply the transform.
-        # Then, append the transformed data to the list of data.
-        for reader, transform in zip(self.readers, self.transforms):
-            sample = reader[idx]
-            # Apply the transform if it is not None
-            if transform is not None:
-                sample = transform(sample)
-            data.append(sample)
-        # Return the list of transformed data or a single sample if return_single
-        # is True and there is only one reader.
-        if self.return_single:
-            return data[0]
-        else:
-            return tuple(data)
+    def __getitem__(self, idx: int) -> "OrderedDict[str, Any]":
+        data = OrderedDict((key, reader[idx]) for key, reader in self.readers.items())
+        if self.transforms is not None:
+            data = self.transforms(data)
+        return data
 
     def __str__(self) -> str:
-        readers = self.readers if isinstance(self.readers, list) else [self.readers]
-        transforms = (
-            self.transforms if isinstance(self.transforms, list) else [self.transforms]
-        )
-
         readers_info = "\n".join(
-            [
-                f"   └── Reader {i}: {reader}\n   │     └── Transform: {transform}"
-                for i, (reader, transform) in enumerate(zip(readers, transforms))
-            ]
+            f"   └── Reader '{key}': {reader}" for key, reader in self.readers.items()
         )
-
         return (
             f"{'=' * 50}\n"
-            f"{'📂 SimpleDataset Information':^50}\n"
+            f"{'📂 MinervaDataset Information':^50}\n"
             f"{'=' * 50}\n"
             f"📌 Dataset Type: {self.__class__.__name__}\n"
             f"{readers_info}\n"
             f"   │\n"
+            f"   └── Transforms: {self.transforms}\n"
             f"   └── Total Readers: {len(self.readers)}\n"
             f"{'=' * 50}"
         )

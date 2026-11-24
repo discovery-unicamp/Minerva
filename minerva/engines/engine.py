@@ -3,6 +3,7 @@ from typing import Any, Union
 import lightning.pytorch as L
 import numpy as np
 import torch
+from minerva.models.batch import get_input_target
 
 
 class _Engine:
@@ -73,7 +74,7 @@ class _Inferencer(L.LightningModule):
         torch.Tensor
             The loss value.
         """
-        x, y = batch
+        x, y = get_input_target(batch)
         y_hat = self.forward(x.float())
         loss = self.model._loss_func(y_hat, y.squeeze(1))
 

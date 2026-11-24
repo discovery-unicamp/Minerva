@@ -13,6 +13,7 @@ from torchmetrics import Metric
 
 from minerva.models.nets.base import SimpleSupervisedModel
 from minerva.models.nets.image.vit import SetrVitBackbone
+from minerva.models.batch import get_input, get_input_target
 
 
 class ConvModule(nn.Module):
@@ -931,8 +932,7 @@ class SETR_PUP(SimpleSupervisedModel):
         return pred_mask
 
     def _eval_step_with_slide(self, batch, step_name: str):
-        img, gt = batch
-
+        img, gt = get_input_target(batch)
         preds = []
         for i in range(img.shape[0]):
             img_np = img[i].permute(1, 2, 0).cpu().numpy()
@@ -1016,7 +1016,7 @@ class SETR_PUP(SimpleSupervisedModel):
         batch_idx: int,
         dataloader_idx: Optional[int] = None,
     ):
-        x, _ = batch
+        x = get_input(batch)
         return self.forward(x)[0]
 
     def load_backbone(self, path: str, freeze: bool = False):

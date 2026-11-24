@@ -1,24 +1,32 @@
-# minerva/transforms/moco_augmentations.py
+from typing import Any, Dict, List
 
-import torch
 from torchvision import transforms
-from PIL import Image
-from typing import Tuple
+
+from .transform import _as_keys, _Transform
 
 
-class MoCoRandomAugmentations:
-    """
-    Default MoCo augmentations.
+class MoCoAugmentationTransform(_Transform):
+    """Default MoCo augmentations applied to every listed PIL image.
 
-    Based on the paper's technical details:
-    - 224×224-pixel crop from a randomly resized image
+    - 224x224 crop from a randomly resized image
     - Random color jittering
-    - Random horizontal flip
     - Random grayscale conversion
+    - Random horizontal flip
+    - ``ToTensor`` and ImageNet normalization
+
+    Each listed key is replaced by its augmented tensor. Keys draw their
+    random parameters independently (the augmentation is torchvision's), so
+    list one image key and use ``MultiViewTransform`` for the two MoCo views.
     """
 
-    def __init__(self):
-        """Initialize MoCo's default augmentation pipeline."""
+    def __init__(self, keys_to_transform: List[str]):
+        """
+        Parameters
+        ----------
+        keys_to_transform : List[str]
+            Keys of the PIL images to augment.
+        """
+        self.keys_to_transform = _as_keys(keys_to_transform)
         self.augment = transforms.Compose(
             [
                 transforms.RandomResizedCrop(224, scale=(0.2, 1.0)),
@@ -34,18 +42,5 @@ class MoCoRandomAugmentations:
             ]
         )
 
-    def __call__(self, image: Image.Image) -> Tuple[torch.Tensor, None]:
-        """
-        Apply MoCo augmentations to a PIL Image.
-
-        Parameters
-        ----------
-        image : PIL.Image.Image
-            Input PIL image
-
-        Returns
-        -------
-        Tuple[torch.Tensor, None]
-            Augmented tensor and None (for compatibility with other augmentation classes)
-        """
-        return self.augment(image), None
+    def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        return self._map_keys(data, self.augment)

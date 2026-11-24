@@ -4,6 +4,7 @@ from torch.optim import Adam
 from minerva.losses.topological_loss import TopologicalLoss
 from typing import Callable, List, Optional
 import torch.nn as nn
+from minerva.models.batch import get_input
 
 
 class TopologicalAutoencoder(L.LightningModule):
@@ -55,7 +56,7 @@ class TopologicalAutoencoder(L.LightningModule):
         return self.decoder(z)
 
     def training_step(self, batch, batch_idx):
-        x, _ = batch
+        x = get_input(batch)
         x_encoded = self.encoder(x)
         x_hat = self.decoder(x_encoded)
         loss = self.reconstruction_loss(
@@ -65,7 +66,7 @@ class TopologicalAutoencoder(L.LightningModule):
         return loss
 
     def validation_step(self, batch, batch_idx):
-        x, _ = batch
+        x = get_input(batch)
         x_encoded = self.encoder(x)
         x_hat = self.decoder(x_encoded)
         loss = self.reconstruction_loss(
