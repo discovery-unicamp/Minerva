@@ -7,6 +7,7 @@ from torch.nn import CrossEntropyLoss
 from torch.optim import Adam
 
 from minerva.schedulers.warmup_cosine_annealing import WarmupCosineAnnealingLR
+from minerva.models.batch import get_input_target
 
 
 class DIET(L.LightningModule):
@@ -124,7 +125,7 @@ class DIET(L.LightningModule):
         """
         A simple training step.
         """
-        x, y = batch
+        x, y = get_input_target(batch)
         y_hat = self(x)
         loss = self.loss(y_hat, y)
         self.log("train_loss", loss, on_epoch=True, on_step=False)

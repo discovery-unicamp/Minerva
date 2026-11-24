@@ -4,6 +4,7 @@ import torch
 from minerva.models.nets.time_series.resnet import _ResNet1D
 
 # CNN encoder for CPC for HAR
+from minerva.models.batch import get_input_target
 
 
 class CNN(L.LightningModule):
@@ -382,7 +383,7 @@ class LinearClassifier(L.LightningModule):
 
     def training_step(self, batch: torch.Tensor, batch_idx: int):
         # Unpack
-        x, y = batch
+        x, y = get_input_target(batch)
         # Forward pass
         logits = self.forward(x)
         # Calculate loss
@@ -395,7 +396,7 @@ class LinearClassifier(L.LightningModule):
 
     def validation_step(self, batch: torch.Tensor, batch_idx: int):
         # Unpack
-        x, y = batch
+        x, y = get_input_target(batch)
         # Forward pass
         logits = self.forward(x)
         # Calculate loss
@@ -413,7 +414,7 @@ class LinearClassifier(L.LightningModule):
 
     def test_step(self, batch: torch.Tensor, batch_idx: int):
         # Unpack
-        x, y = batch
+        x, y = get_input_target(batch)
         # Forward pass
         logits = self.forward(x)
         # Calculate loss

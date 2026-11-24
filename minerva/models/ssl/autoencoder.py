@@ -4,6 +4,7 @@ from torch.optim import Adam
 import torch
 from torch import nn
 from typing import Optional, Callable
+from minerva.models.batch import get_input
 
 
 class Autoencoder(L.LightningModule):
@@ -42,14 +43,14 @@ class Autoencoder(L.LightningModule):
         return self.decoder(z)
 
     def training_step(self, batch, batch_idx):
-        x, _ = batch
+        x = get_input(batch)
         x_hat = self(x)
         loss = self.reconstruction_loss(x, x_hat)
         self.log("train_loss", loss)
         return loss
 
     def validation_step(self, batch, batch_idx):
-        x, _ = batch
+        x = get_input(batch)
         x_hat = self(x)
         loss = self.reconstruction_loss(x, x_hat)
         self.log("val_loss", loss)

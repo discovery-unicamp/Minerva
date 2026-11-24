@@ -1,28 +1,31 @@
+from typing import Any, Dict, List, Union
+
 import numpy as np
 import torch
-from .transform import _Transform
-from typing import Union, Tuple
+
+from .transform import _as_keys, _Transform
 
 
-class TransposeTransform(_Transform):
-    """Exchange two dimensions of a NumPy array or PyTorch tensor."""
+class SwapAxesTransform(_Transform):
+    """Exchange two dimensions of every listed NumPy array or PyTorch tensor.
 
-    def __init__(self, dim0: int, dim1: int):
+    Formerly ``transpose_transform.TransposeTransform``. That name now belongs
+    to :class:`minerva.transforms.transform.TransposeTransform`, which
+    permutes all axes.
+    """
+
+    def __init__(self, keys_to_transform: List[str], dim0: int, dim1: int):
         """
-        A transform that transposes the input data along two dimensions. When applied to a
-        dataset, this transform will swap the specified dimensions.
-
         Parameters
         ----------
+        keys_to_transform : List[str]
+            Keys of the entries to transform.
         dim0 : int
-            The first dimension to transpose.
+            The first dimension to exchange.
         dim1 : int
-            The second dimension to transpose.
+            The second dimension to exchange.
         """
         super().__init__()
-        self.dim0 = dim0
-        self.dim1 = dim1
-
         if dim0 < 0:
             raise ValueError(
                 f"Dimension {dim0} must be a positive integer greater than or equal to 0."
@@ -31,21 +34,11 @@ class TransposeTransform(_Transform):
             raise ValueError(
                 f"Dimension {dim1} must be a positive integer greater than or equal to 0."
             )
+        self.keys_to_transform = _as_keys(keys_to_transform)
+        self.dim0 = dim0
+        self.dim1 = dim1
 
-    def __call__(self, x: Union[np.ndarray, torch.Tensor]) -> Tuple:
-        """
-        Transpose the input data along the specified dimensions.
-
-        Parameters
-        ----------
-        x : Union[np.ndarray, torch.Tensor]
-            The input data to transpose.
-
-        Returns
-        -------
-        Tuple
-            The transposed data.
-        """
+    def _swap(self, x: Union[np.ndarray, torch.Tensor]):
         if not isinstance(x, (np.ndarray, torch.Tensor)):
             raise TypeError(
                 f"Input type {type(x)} must be a numpy array or a Pytorch tensor."
@@ -54,15 +47,11 @@ class TransposeTransform(_Transform):
             raise ValueError(
                 f"Dimensions {self.dim0} and {self.dim1} must be less than {len(x.shape)}."
             )
-        result = None
         if isinstance(x, np.ndarray):
-            dimensions = list(range(x.ndim))
-            dimensions[self.dim0], dimensions[self.dim1] = (
-                dimensions[self.dim1],
-                dimensions[self.dim0],
-            )
-            result = np.transpose(x, dimensions)
+            dims = list(range(x.ndim))
+            dims[self.dim0], dims[self.dim1] = dims[self.dim1], dims[self.dim0]
+            return np.transpose(x, dims)
+        return x.transpose(self.dim0, self.dim1)
 
-        elif isinstance(x, torch.Tensor):
-            result = x.transpose(self.dim0, self.dim1)
-        return result
+    def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        return self._map_keys(data, self._swap)

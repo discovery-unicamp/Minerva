@@ -1,490 +1,240 @@
-from typing import Sequence
-
 import numpy as np
 import pytest
 
 from minerva.transforms import (
-    CastTo,
-    ColorJitter,
-    ContrastiveTransform,
-    Crop,
-    Flip,
-    GrayScale,
-    Identity,
-    Indexer,
-    Normalize,
-    PerlinMasker,
-    Repeat,
-    Rotation,
-    Solarize,
-    Squeeze,
-    TransformPipeline,
-    Transpose,
-    Unsqueeze,
-    GaussianBlur,
-    VerticalPatchSwap,
-    _Transform,
+    CastToTransform,
+    ColorJitterTransform,
+    CropTransform,
+    FlipTransform,
+    GradientTransform,
+    GrayScaleTransform,
+    IdentityTransform,
+    IndexerTransform,
+    NormalizeTransform,
+    PadCropTransform,
+    PaddingTransform,
+    PerlinMaskerTransform,
+    RepeatTransform,
+    ReshapeTransform,
+    ResizeTransform,
+    RotationTransform,
+    SolarizeTransform,
+    SqueezeTransform,
+    TransposeTransform,
+    UnsqueezeTransform,
+    _TransformsPipeline,
+    VerticalPatchSwapTransform,
 )
-from minerva.transforms.random_transform import Identity
 
 
-def test_transform_pipeline():
-    # Define some dummy transforms
-    transforms: Sequence[_Transform] = [
-        Flip(axis=0),
-        Flip(axis=1),
-        Flip(axis=[0, 1]),
-    ]
-    pipeline = TransformPipeline(transforms)
-
-    # Create a dummy input
+def test_pipeline_and_add_radd():
     x = np.random.rand(10, 20)
+    p1 = _TransformsPipeline([FlipTransform(["x"], 0), FlipTransform(["x"], 1)])
+    p2 = _TransformsPipeline([FlipTransform(["x"], [0, 1])])
 
-    # Apply the transform pipeline
-    transformed_x = pipeline(x)
-
-    # Check if the transformed data has the same shape as the input
-    assert transformed_x.shape == x.shape
-
-
-def test_transform_pipeline_add_and_radd():
-    x = np.random.rand(10, 20)
-
-    pipeline_1 = TransformPipeline([Flip(axis=0), Flip(axis=1)])
-    pipeline_2 = TransformPipeline([Flip(axis=[0, 1])])
-
-    pipeline_3 = pipeline_1 + pipeline_2
-    assert len(pipeline_3.transforms) == 3
-    transformed_x = pipeline_3(x)
-    assert transformed_x.shape == x.shape
-
-    pipeline_4 = pipeline_1 + Flip(axis=[0, 1])
-    assert len(pipeline_4.transforms) == 3
-    transformed_x = pipeline_4(x)
-    assert transformed_x.shape == x.shape
-
-    pipeline_1 += Flip(axis=[0, 1])
-    assert len(pipeline_1.transforms) == 3
-    transformed_x = pipeline_1(x)
-    assert transformed_x.shape == x.shape
+    assert len((p1 + p2).transforms) == 3
+    assert len((p1 + FlipTransform(["x"], [0, 1])).transforms) == 3
+    assert len((FlipTransform(["x"], 0) + p2).transforms) == 2
+    out = (p1 + p2)({"x": x})
+    assert out["x"].shape == x.shape
 
 
-def test_flip_single_axis():
-    # Create a dummy input
-    x = np.random.rand(10, 20)
-
-    # Apply the flip transform along the first axis
-    flip_transform = Flip(axis=0)
-    flipped_x = flip_transform(x)
-
-    # Check if the flipped data has the same shape as the input
-    assert flipped_x.shape == x.shape
+def test_pipeline_str():
+    p = _TransformsPipeline([IdentityTransform()])
+    assert str(p).startswith("_TransformsPipeline(transforms=[IdentityTransform(")
 
 
-def test_flip_multiple_axes():
-    # Create a dummy input
-    x = np.random.rand(10, 20, 30)
-
-    # Apply the flip transform along multiple axes
-    flip_transform = Flip(axis=[0, 1])
-    flipped_x = flip_transform(x)
-
-    # Check if the flipped data has the same shape as the input
-    assert flipped_x.shape == x.shape
+def test_flip_single_and_multiple_axes():
+    x = np.random.rand(4, 5, 6)
+    np.testing.assert_array_equal(
+        FlipTransform(["x"], 1)({"x": x})["x"], np.flip(x, axis=1)
+    )
+    np.testing.assert_array_equal(
+        FlipTransform(["x"], [0, 2])({"x": x})["x"], np.flip(x, axis=[0, 2])
+    )
 
 
 def test_flip_invalid_axes():
-    # Create a dummy input
-    x = np.random.rand(10, 20)
-
-    # Apply the flip transform with invalid axes
-    flip_transform = Flip(axis=[0, 1, 2])
-
-    # Check if an AssertionError is raised when applying the transform
     with pytest.raises(AssertionError):
-        flipped_x = flip_transform(x)
+        FlipTransform(["x"], [0, 1, 2])({"x": np.random.rand(10, 20)})
 
 
-def test_flip_str():
-    flip_transform = Flip(axis=[0, 1, 2])
-    assert str(flip_transform) == "Flip(axis=[0, 1, 2])"
-
-
-def test_perlin_masker_invalid_octaves():
-    # Create a dummy input
-    x = np.random.rand(10, 20)
-
-    # Check if a ValueError is raised when using invalid octaves
+@pytest.mark.parametrize("kwargs", [{"octaves": 0}, {"octaves": -1}, {"octaves": 1, "scale": 0}])
+def test_perlin_masker_invalid(kwargs):
     with pytest.raises(ValueError):
-        perlin_masker = PerlinMasker(octaves=-1)
-        masked_x = perlin_masker(x)
+        PerlinMaskerTransform(["x"], **kwargs)
 
 
-def test_perlin_masker_invalid_scale():
-    # Create a dummy input
-    x = np.random.rand(10, 20)
-
-    # Check if a ValueError is raised when using invalid scale
-    with pytest.raises(ValueError):
-        perlin_masker = PerlinMasker(octaves=3, scale=0)
-        masked_x = perlin_masker(x)
+def test_perlin_masker_shares_noise_across_keys():
+    x = np.ones((8, 8))
+    out = PerlinMaskerTransform(["a", "b"], octaves=2)({"a": x, "b": x.copy()})
+    np.testing.assert_array_equal(out["a"], out["b"])
+    assert set(np.unique(out["a"])) <= {0.0, 1.0}
 
 
 def test_transpose():
-    # Create a dummy input
-    x = np.random.rand(3, 2, 5, 4)
-
-    # Apply the transform
-    transpose_transform = Transpose([2, 3, 0, 1])
-    transposed_x = transpose_transform(x)
-
-    # Check if the axes have the correct length
-    assert transposed_x.shape == (5, 4, 3, 2)
+    x = np.random.rand(2, 3, 4)
+    out = TransposeTransform(["x"], (2, 0, 1))({"x": x})["x"]
+    assert out.shape == (4, 2, 3)
 
 
-def test_squeeze():
-    # Create a dummy input with a single-dimensional axis
-    x = np.random.rand(1, 10, 20)
-
-    # Apply the squeeze transform
-    squeeze_transform = Squeeze(axis=0)
-    squeezed_x = squeeze_transform(x)
-
-    # Check if the squeezed data has the correct shape
-    assert squeezed_x.shape == (10, 20)
-
-    # Check if the data content remains unchanged
-    assert np.array_equal(squeezed_x, np.squeeze(x, axis=0))
-
-
-def test_squeeze_invalid_axis():
-    # Create a dummy input without a single-dimensional axis
-    x = np.random.rand(10, 20)
-
-    # Apply the squeeze transform with an invalid axis
-    squeeze_transform = Squeeze(axis=0)
-
-    # Check if an exception is raised
+def test_squeeze_unsqueeze():
+    x = np.random.rand(1, 3)
+    assert SqueezeTransform(["x"], 0)({"x": x})["x"].shape == (3,)
+    assert UnsqueezeTransform(["x"], 1)({"x": x})["x"].shape == (1, 1, 3)
     with pytest.raises(ValueError):
-        squeezed_x = squeeze_transform(x)
+        SqueezeTransform(["x"], 1)({"x": x})
 
 
-def test_unsqueeze():
-    # Create a dummy input
-    x = np.random.rand(10, 20)
-
-    # Apply the unsqueeze transform
-    unsqueeze_transform = Unsqueeze(axis=0)
-    unsqueezed_x = unsqueeze_transform(x)
-
-    # Check if the unsqueezed data has the correct shape
-    assert unsqueezed_x.shape == (1, 10, 20)
-
-    # Check if the data content remains unchanged
-    assert np.array_equal(unsqueezed_x, np.expand_dims(x, axis=0))
-
-
-def test_unsqueeze_invalid_axis():
-    # Create a dummy input
-    x = np.random.rand(10, 20)
-
-    # Apply the unsqueeze transform with an invalid axis
-    unsqueeze_transform = Unsqueeze(axis=3)
-
-    # Check if an exception is raised
-    with pytest.raises(IndexError):
-        unsqueezed_x = unsqueeze_transform(x)
-
-
-def test_squeeze_str():
-    squeeze_transform = Squeeze(axis=0)
-    assert str(squeeze_transform) == "Squeeze(axis=0)"
-
-
-def test_unsqueeze_str():
-    unsqueeze_transform = Unsqueeze(axis=1)
-    assert str(unsqueeze_transform) == "Unsqueeze(axis=1)"
+def test_unsqueeze_only_listed_keys():
+    data = {"image": np.zeros((3, 4)), "label": np.zeros((4,), dtype=np.uint8)}
+    out = UnsqueezeTransform(["label"], 0)(data)
+    assert out["label"].shape == (1, 4)
+    assert out["image"].shape == (3, 4)
 
 
 def test_normalize():
-    # Create a dummy input
     x = np.random.rand(1, 10, 20)
-
-    mean = np.mean(x[0])
-    std = np.std(x[0])
-
-    # Apply the normalize transform
-    normalize_transform = Normalize([mean], [std])
-    normalized_x = normalize_transform(x)
-
-    # Check if the normalized data has the same shape as the input
-    assert normalized_x.shape == x.shape
-
-    # Check if the mean and standard deviation are close to 0 and 1, respectively
-    assert np.allclose(np.mean(normalized_x), 0)
-    assert np.allclose(np.std(normalized_x), 1)
+    out = NormalizeTransform(["x"], [np.mean(x[0])], [np.std(x[0])])({"x": x.copy()})
+    assert np.allclose(out["x"].mean(), 0) and np.allclose(out["x"].std(), 1)
 
 
-def test_contrastive_transform():
-    # Create a dummy input
-    x = np.random.rand(10, 20)
+def test_normalize_does_not_mutate_input_and_skips_unlisted_label():
+    image = np.random.rand(1, 5, 5)
+    label = np.arange(25, dtype=np.uint8).reshape(1, 5, 5)
+    image_copy = image.copy()
+    out = NormalizeTransform(["image"], [0.5], [2.0])({"image": image, "label": label})
+    np.testing.assert_array_equal(image, image_copy)
+    np.testing.assert_array_equal(out["label"], np.arange(25).reshape(1, 5, 5))
 
-    # Apply the contrastive transform
-    contrastive_transform = ContrastiveTransform(Identity())
-    contrastive_x = contrastive_transform(x)
 
-    # Check if the contrastive transform returns a tuple of 2 elements
-    assert isinstance(contrastive_x, tuple)
-    assert len(contrastive_x) == 2
-
-    # Check if the contrastive data has the same shape as the input
-    assert contrastive_x[0].shape == x.shape and contrastive_x[1].shape == x.shape
+def test_normalize_to_rgb():
+    out = NormalizeTransform(["x"], [0] * 3, [1] * 3, to_rgb=True)({"x": np.ones((1, 4, 4))})
+    assert out["x"].shape == (3, 4, 4)
 
 
 def test_identity():
-    # Create a dummy input
-    x = np.random.rand(10, 20)
-
-    # Apply the identity transform
-    identity_transform = Identity()
-    transformed_x = identity_transform(x)
-
-    # Check if the transformed data is identical to the input
-    assert np.array_equal(transformed_x, x)
-
-    # Check the string representation
-    assert str(identity_transform) == "Identity()"
+    data = {"x": np.zeros(3)}
+    assert IdentityTransform()(data) is data
 
 
-def test_indexer():
-    # Create a dummy input with multiple channels
-    x = np.random.rand(3, 10, 20)
-
-    # Apply the indexer transform
-    indexer_transform = Indexer(index=1)
-    indexed_x = indexer_transform(x)
-
-    # Check if the indexed data has the correct shape
-    assert indexed_x.shape == (10, 20)
-
-    # Check if the indexed data matches the expected channel
-    assert np.array_equal(indexed_x, x[1])
-
-    # Check the string representation
-    assert str(indexer_transform) == "Indexer(index=1)"
-
-
-def test_indexer_invalid_index():
-    # Create a dummy input with multiple channels
-    x = np.random.rand(3, 10, 20)
-
-    # Apply the indexer transform with an invalid index
-    indexer_transform = Indexer(index=5)
-
-    # Check if an exception is raised
+def test_indexer_repeat_cast_reshape():
+    x = np.random.rand(3, 4, 5)
+    assert IndexerTransform(["x"], 1)({"x": x})["x"].shape == (4, 5)
+    assert RepeatTransform(["x"], 0, 2)({"x": x})["x"].shape == (6, 4, 5)
+    assert CastToTransform(["x"], np.float32)({"x": x})["x"].dtype == np.float32
+    assert ReshapeTransform(["x"], (12, 5))({"x": x})["x"].shape == (12, 5)
     with pytest.raises(IndexError):
-        indexed_x = indexer_transform(x)
-
-
-def test_repeat():
-    # Create a dummy input
-    x = np.random.rand(10, 20)
-
-    # Apply the repeat transform
-    repeat_transform = Repeat(axis=0, n_repetitions=2)
-    repeated_x = repeat_transform(x)
-
-    # Check if the repeated data has the correct shape
-    assert repeated_x.shape == (20, 20)
-
-    # Check if the repeated data matches the expected output
-    assert np.array_equal(repeated_x, np.repeat(x, 2, axis=0))
-
-    # Check the string representation
-    assert str(repeat_transform) == "Repeat(axis=0, n_repetitions=2)"
-
-
-def test_repeat_invalid_axis():
-    # Create a dummy input
-    x = np.random.rand(10, 20)
-
-    # Apply the repeat transform with an invalid axis
-    repeat_transform = Repeat(axis=2, n_repetitions=2)
-
-    # Check if an exception is raised
+        IndexerTransform(["x"], 5)({"x": x})
     with pytest.raises(IndexError):
-        repeated_x = repeat_transform(x)
+        RepeatTransform(["x"], 5, 2)({"x": x})
 
 
-def test_cast_to():
-    # Create a dummy input
-    x = np.random.rand(10, 20)
-
-    # Apply the CastTo transform to cast to float32
-    cast_to_transform = CastTo(dtype=np.float32)
-    casted_x = cast_to_transform(x)
-
-    # Check if the casted data has the same shape as the input
-    assert casted_x.shape == x.shape
-
-    # Check if the casted data has the correct dtype
-    assert casted_x.dtype == np.float32
-
-    # Check if the data content remains unchanged
-    assert np.allclose(casted_x, x)
-
-    # Check the string representation
-    assert str(cast_to_transform) == "CastTo(dtype=<class 'numpy.float32'>)"
+def test_padding_per_key_value():
+    data = {"image": np.ones((4, 4, 3)), "label": np.ones((4, 4), dtype=np.uint8)}
+    out = PaddingTransform(
+        ["image", "label"], 6, 6, padding_mode="constant", padding_value=[0, 255]
+    )(data)
+    assert out["image"].shape == (6, 6, 3)
+    assert out["label"].shape == (6, 6, 1)
+    assert out["image"][5, 5, 0] == 0
+    assert out["label"][5, 5, 0] == 255
 
 
-def test_cast_to_invalid_dtype():
-    # Create a dummy input
-    x = np.random.rand(10, 20)
-
-    # Apply the CastTo transform with an invalid dtype
-    cast_to_transform = CastTo(dtype="invalid_dtype")
-
-    # Check if an exception is raised
-    with pytest.raises(TypeError):
-        casted_x = cast_to_transform(x)
+def test_padding_reflect_default_and_bad_value_length():
+    out = PaddingTransform(["x"], 6, 6)({"x": np.random.rand(4, 4, 3)})
+    assert out["x"].shape == (6, 6, 3)
+    with pytest.raises(ValueError):
+        PaddingTransform(["a", "b"], 6, 6, padding_value=[0, 1, 2])
 
 
-def test_color_jitter_output_shape_and_effect():
+def test_gradient():
+    out = GradientTransform(["x"], 0)({"x": np.zeros((5, 6))})["x"]
+    assert out.shape == (2, 5, 6)
+    assert out[1, 0, 0] == 0 and out[1, 0, -1] == 1
+    with pytest.raises(AssertionError):
+        GradientTransform(["x"], 2)
+
+
+def test_color_jitter():
     x = np.random.randint(0, 256, size=(100, 100, 3), dtype=np.uint8)
-    transform = ColorJitter(brightness=0.8, contrast=1.2, saturation=1.1, hue=10)
-    y = transform(x)
-
-    assert y.shape == x.shape
-    assert not np.array_equal(x, y)  # Check that the image has changed
+    y = ColorJitterTransform(["x"], 0.8, 1.2, 1.1, 10)({"x": x})["x"]
+    assert y.shape == x.shape and not np.array_equal(x, y)
 
 
-def test_crop_output_shape():
-    # CHW format: (C, H, W)
+def test_crop_chw_2d_padding_and_bbox():
     x = np.random.randint(0, 256, size=(3, 50, 50), dtype=np.uint8)
-    transform = Crop(output_size=(30, 30), coords=(0.5, 0.5))
-    y = transform(x)
+    assert CropTransform(["x"], (30, 30), coords=(0.5, 0.5))({"x": x})["x"].shape == (3, 30, 30)
+    assert CropTransform(["x"], (40, 40))({"x": x[:, :20, :20]})["x"].shape == (3, 40, 40)
+    assert CropTransform(["x"], (30, 30))({"x": x[0]})["x"].shape == (30, 30)
 
-    assert y.shape == (3, 30, 30)
-
-
-def test_crop_with_padding():
-    # CHW format: (C, H, W) — output larger than input triggers padding
-    x = np.random.randint(0, 256, size=(3, 20, 20), dtype=np.uint8)
-    transform = Crop(output_size=(40, 40), coords=(0.0, 0.0))
-    y = transform(x)
-
-    assert y.shape == (3, 40, 40)
+    z = np.zeros((3, 50, 50), dtype=np.uint8)
+    z[:, 10:20, 10:20] = 255
+    y = CropTransform(["x"], (10, 10), bbox=(10, 20, 10, 20))({"x": z})["x"]
+    assert y.shape == (3, 10, 10) and np.all(y == 255)
 
 
-def test_crop_2d_input():
-    # 2D (H, W) arrays should also work
-    x = np.random.randint(0, 256, size=(50, 50), dtype=np.uint8)
-    transform = Crop(output_size=(30, 30), coords=(0.0, 0.0))
-    y = transform(x)
-
-    assert y.shape == (30, 30)
-
-
-def test_crop_bbox():
-    # bbox=(y1, y2, x1, x2) selects that region regardless of coords
-    x = np.zeros((3, 50, 50), dtype=np.uint8)
-    x[:, 10:20, 10:20] = 255
-    transform = Crop(output_size=(10, 10), bbox=(10, 20, 10, 20))
-    y = transform(x)
-
-    assert y.shape == (3, 10, 10)
-    assert np.all(y == 255)
+def test_crop_same_region_for_all_keys():
+    image = np.arange(100).reshape(1, 10, 10)
+    out = CropTransform(["image", "label"], (4, 4), coords=(0.5, 0.5))(
+        {"image": image, "label": image.copy()}
+    )
+    np.testing.assert_array_equal(out["image"], out["label"])
 
 
-def test_grayscale_output():
-    x = np.random.randint(0, 256, size=(100, 100, 3), dtype=np.uint8)
-    transform = GrayScale(method="average")
-    y = transform(x)
-
-    assert y.shape == x.shape
-    assert np.all(y[..., 0] == y[..., 1]) and np.all(y[..., 1] == y[..., 2])
-
-
-def test_solarize_output_shape_and_effect():
-    x = np.random.randint(0, 256, size=(50, 50, 3), dtype=np.uint8)
-    transform = Solarize(threshold=128)
-    y = transform(x)
-
-    assert y.shape == x.shape
-    # Some values should be inverted
-    assert not np.array_equal(x, y)
-
-
-def test_rotation_output_shape_and_visual_change():
-    x = np.random.randint(0, 256, size=(60, 80, 3), dtype=np.uint8)
-    transform = Rotation(degrees=45)
-    y = transform(x)
-
-    assert y.shape == x.shape
-    assert not np.array_equal(x, y)
-
-
-def test_gaussian_blur_output_shape_and_effect():
-    # Create a dummy image
-    x = np.random.randint(0, 256, size=(100, 100, 3), dtype=np.uint8)
-    
-    # Apply Gaussian blur
-    transform = GaussianBlur(kernel_size=5, sigma=1.5)
-    y = transform(x)
-
-    # Check if the output shape is the same as the input
-    assert y.shape == x.shape
-    
-    # Check that the image has been modified (blurred)
-    assert not np.array_equal(x, y)
-
-
-def test_gaussian_blur_tuple_kernel():
-    # Create a dummy 2D image (grayscale)
-    x = np.random.randint(0, 256, size=(50, 50), dtype=np.uint8)
-    
-    # Apply Gaussian blur with a tuple kernel size
-    transform = GaussianBlur(kernel_size=(3, 5))
-    y = transform(x)
-
-    assert y.shape == x.shape
-
-
-def test_gaussian_blur_invalid_kernel():
-    # Check if a ValueError is raised when using an even kernel size
+def test_grayscale_and_solarize():
+    x = np.random.randint(0, 256, size=(40, 40, 3), dtype=np.uint8)
+    g = GrayScaleTransform(["x"], "average")({"x": x})["x"]
+    assert np.all(g[..., 0] == g[..., 1]) and np.all(g[..., 1] == g[..., 2])
+    s = SolarizeTransform(["x"], 128)({"x": x})["x"]
+    assert s.shape == x.shape and not np.array_equal(s, x)
     with pytest.raises(ValueError):
-        transform = GaussianBlur(kernel_size=4)
-        
-    with pytest.raises(ValueError):
-        transform = GaussianBlur(kernel_size=(3, 4))
+        GrayScaleTransform(["x"], "bad")  # type: ignore
 
 
-def test_gaussian_blur_str():
-    transform = GaussianBlur(kernel_size=5, sigma=1.5)
-    assert str(transform) == "GaussianBlur(kernel_size=(5, 5), sigma=1.5)"
+def test_rotation_modes():
+    image = np.random.randint(0, 256, size=(60, 80, 3), dtype=np.uint8)
+    label = np.random.randint(0, 5, size=(60, 80), dtype=np.uint8)
+    out = RotationTransform(["image", "label"], 33, mode=["bilinear", "nearest"])(
+        {"image": image, "label": label}
+    )
+    assert out["image"].shape == image.shape and not np.array_equal(out["image"], image)
+    # nearest never creates new label values
+    assert set(np.unique(out["label"])) <= set(np.unique(label))
 
 
-def test_vertical_patch_swap_shape_and_effect():
-    # Test standard behavior on a 3D (multi-channel) image
-    x = np.random.randint(0, 256, size=(3, 100, 50), dtype=np.uint8)
-    transform = VerticalPatchSwap(patch_height=20, seed=42)
-    y = transform(x)
-
-    assert y.shape == x.shape
-    # Ensure the pixels have actually been shuffled
-    assert not np.array_equal(x, y)
+def test_mode_length_validated():
+    with pytest.raises(ValueError, match="one entry per key"):
+        RotationTransform(["image", "label"], 10, mode=["nearest"])
+    with pytest.raises(ValueError, match="Unknown mode"):
+        ResizeTransform(["image"], 4, 4, mode=["lanczos"])
 
 
-def test_vertical_patch_swap_odd_height():
-    # Test an odd image height that doesn't divide evenly, while simultaneously testing a 2D image
-    x = np.random.randint(0, 256, size=(105, 50), dtype=np.uint8)
-    transform = VerticalPatchSwap(patch_height=30, seed=123)
-    y = transform(x)
+def test_resize_modes_and_aspect_ratio():
+    label = np.random.randint(0, 5, size=(20, 40), dtype=np.uint8)
+    out = ResizeTransform(["image", "label"], 10, 10, mode=["bilinear", "nearest"])(
+        {"image": np.random.rand(20, 40, 3).astype(np.float32), "label": label}
+    )
+    assert out["image"].shape == (10, 10, 3) and out["label"].shape == (10, 10)
+    assert set(np.unique(out["label"])) <= set(np.unique(label))
+    kept = ResizeTransform(["x"], 10, 10, keep_aspect_ratio=True)({"x": np.random.rand(20, 40)})
+    assert kept["x"].shape == (5, 10)
 
-    assert y.shape == x.shape
-    assert not np.array_equal(x, y)
+
+def test_pad_crop_shapes_and_shared_position():
+    image = np.arange(3 * 20 * 20).reshape(3, 20, 20)
+    out = PadCropTransform(["image", "label"], 10, 30)(
+        {"image": image, "label": image.copy()}
+    )
+    assert out["image"].shape == (3, 10, 30)
+    np.testing.assert_array_equal(out["image"], out["label"])
 
 
-def test_vertical_patch_swap_str():
-    transform = VerticalPatchSwap(patch_height=40, seed=1)
-    assert str(transform) == "VerticalPatchSwap(patch_height=40, seed=1)"
+def test_vertical_patch_swap_keeps_image_and_mask_in_sync():
+    mask = np.arange(9 * 6, dtype=np.float32).reshape(9, 6)
+    data = {"image": mask[None].copy(), "mask": mask.copy(), "extra": "unchanged"}
+    out = VerticalPatchSwapTransform(
+        ["image", "mask"], patch_height=4, seed=11
+    )(data)
+    np.testing.assert_array_equal(out["image"][0], out["mask"])
+    assert out["extra"] == "unchanged"

@@ -23,6 +23,7 @@ from minerva.utils.position_embedding import get_2d_sincos_pos_embed
 ############## SETR ###############
 
 ###################################
+from minerva.models.batch import get_input, get_input_target
 
 
 class MMAdaptivePadding(nn.Module):
@@ -1100,7 +1101,7 @@ class MaskedAutoencoderViT(L.LightningModule):
             Dict[str, torch.Tensor]: Dictionary containing the loss value for
             the current step.
         """
-        imgs, _ = batch
+        imgs = get_input(batch)
         loss, _, _ = self(imgs)
         self.log("train_loss", loss)
         return {"loss": loss}
@@ -1118,7 +1119,7 @@ class MaskedAutoencoderViT(L.LightningModule):
             Dict[str, torch.Tensor]: Dictionary containing the loss value for
             the current step.
         """
-        imgs, _ = batch
+        imgs = get_input(batch)
         loss, _, _ = self(imgs)
         self.log("val_loss", loss)
         return {"val_loss": loss}
@@ -1694,7 +1695,7 @@ class SFM_BasePatch16_Downstream(SimpleSupervisedModel):
     def _single_step(
         self, batch: torch.Tensor, batch_idx: int, step_name: str
     ) -> torch.Tensor:
-        x, y = batch
+        x, y = get_input_target(batch)
         x = x.float()
         if x.shape[1] > 1:
             x = x[:, 0:1, :, :]
@@ -1705,7 +1706,7 @@ class SFM_BasePatch16_Downstream(SimpleSupervisedModel):
     def predict_step(
         self, batch: torch.Tensor, batch_idx: int, dataloader_idx: int = 0
     ) -> torch.Tensor:
-        x, _ = batch
+        x = get_input(batch)
         x = x.float()
         if x.shape[1] > 1:
             x = x[:, 0:1, :, :]

@@ -1,429 +1,528 @@
+"""Minerva 1.0 transforms.
+
+Every transform takes a flat ``dict[str, Any]`` and returns a flat dict. A
+transform reads and writes only the keys listed in ``keys_to_transform`` (plus
+any new keys it documents as outputs); every other key passes through
+unchanged. Random transforms draw their parameters once per call (with torch's
+RNG, which ``DataLoader`` seeds per worker) and share them across all listed
+keys. Independent randomness across views comes only from
+:class:`MultiViewTransform`.
+
+A listed key that is missing from the dict raises ``KeyError``. This is not
+settled in the 1.0 standard (open question 3); do not depend on it.
+"""
+
+import copy
+import os
 from itertools import product
-from typing import Any, List, Literal, Optional, Sequence, Tuple, Union
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    Literal,
+    Optional,
+    Sequence,
+    Tuple,
+    Union,
+)
 
 import cv2
 import numpy as np
 import torch
 from perlin_noise import PerlinNoise
 
+_INTERPOLATION = {
+    "nearest": cv2.INTER_NEAREST,
+    "bilinear": cv2.INTER_LINEAR,
+    "linear": cv2.INTER_LINEAR,
+    "bicubic": cv2.INTER_CUBIC,
+    "cubic": cv2.INTER_CUBIC,
+    "area": cv2.INTER_AREA,
+}
 
-class _Transform:
-    """This class is a base class for all transforms. Transforms is just a
-    fancy word for a function that takes an input and returns an output. The
-    input and output can be anything. However, transforms operates over a
-    single sample of data and does not require any additional information to
-    perform the transformation. The __call__ method should be overridden in
-    subclasses to define the transformation logic.
+
+def _as_keys(keys_to_transform: Union[str, Sequence[str]]) -> List[str]:
+    """Normalize ``keys_to_transform`` to a list of keys."""
+    if isinstance(keys_to_transform, str):
+        return [keys_to_transform]
+    return list(keys_to_transform)
+
+
+def _resolve_modes(
+    keys_to_transform: Sequence[str], mode: Optional[Sequence[str]]
+) -> List[str]:
+    """Validate the per-key interpolation ``mode`` of a geometric transform.
+
+    ``mode=None`` means ``"bilinear"`` for every key. Pass ``"nearest"`` for
+    labels and masks, they must never be interpolated like images.
+    """
+    if mode is None:
+        return ["bilinear"] * len(keys_to_transform)
+    if isinstance(mode, str):
+        mode = [mode]
+    mode = list(mode)
+    if len(mode) != len(keys_to_transform):
+        raise ValueError(
+            f"`mode` must have one entry per key in `keys_to_transform`, "
+            f"got {len(mode)} modes for {len(keys_to_transform)} keys."
+        )
+    for m in mode:
+        if m not in _INTERPOLATION:
+            raise ValueError(
+                f"Unknown mode {m!r}. Valid modes: {sorted(_INTERPOLATION)}."
+            )
+    return mode
+
+
+def _interpolation(mode: str) -> int:
+    return _INTERPOLATION[mode]
+
+
+class _RNG:
+    """Torch random source of a random transform.
+
+    With ``seed=None`` it uses torch's global RNG, which ``DataLoader`` seeds
+    differently in every worker. With an integer seed it owns a
+    ``torch.Generator`` that is created lazily in the process that uses it and
+    seeded with ``seed + worker_id``, so runs are reproducible while workers
+    still draw different parameters. The generator is rebuilt after a fork or
+    pickle, so a given worker repeats the same sequence on every run (and in
+    every epoch if workers are recreated each epoch).
     """
 
-    def __call__(self, *args, **kwargs) -> Any:
-        """Implement the transformation logic in this method. Usually, the
-        transformation is applied on a single sample of data.
-        """
+    def __init__(self, seed: Optional[int]):
+        self.seed = seed
+        self._generator: Optional[torch.Generator] = None
+        self._owner: Optional[Tuple[int, int]] = None
+
+    def generator(self) -> Optional[torch.Generator]:
+        if self.seed is None:
+            return None
+        info = torch.utils.data.get_worker_info()
+        worker_id = info.id if info is not None else 0
+        owner = (os.getpid(), worker_id)
+        if self._generator is None or self._owner != owner:
+            self._generator = torch.Generator()
+            self._generator.manual_seed(int(self.seed) + worker_id)
+            self._owner = owner
+        return self._generator
+
+    def __getstate__(self):
+        return {"seed": self.seed, "_generator": None, "_owner": None}
+
+
+def _resize_spatial(x: np.ndarray, height: int, width: int, flag: int) -> np.ndarray:
+    """Resize the last two axes of a (H, W) or (C, H, W) array."""
+    if x.ndim == 2:
+        return cv2.resize(x, (width, height), interpolation=flag)
+    return np.stack(
+        [cv2.resize(c, (width, height), interpolation=flag) for c in x], axis=0
+    )
+
+
+class _Transform:
+    """Base class for all transforms.
+
+    A transform takes a flat dict and returns a flat dict. It reads and writes
+    only the keys in ``keys_to_transform`` (plus documented output keys), keeps
+    every unlisted key unchanged and holds no per-sample state between calls.
+    The dict is updated in place and returned.
+    """
+
+    keys_to_transform: List[str]
+
+    def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Implement the transformation logic in this method."""
         raise NotImplementedError
 
+    def _map_keys(
+        self, data: Dict[str, Any], fn: Callable[[Any], Any]
+    ) -> Dict[str, Any]:
+        for key in self.keys_to_transform:
+            data[key] = fn(data[key])
+        return data
 
-class TransformPipeline(_Transform):
-    """Apply a sequence of transforms to a single sample of data and return the
-    transformed data.
+    def __str__(self) -> str:
+        args = ", ".join(
+            f"{k}={v}" for k, v in vars(self).items() if not k.startswith("_")
+        )
+        return f"{type(self).__name__}({args})"
+
+
+class _RandomTransform(_Transform):
+    """Base class of transforms that draw random parameters.
+
+    Subclasses call ``self._init_rng(seed)`` in their constructor and draw
+    with ``self._rand()``, ``self._uniform()`` and ``self._randint()`` once per
+    call. ``seed=None`` (default) uses torch's global RNG, so
+    ``torch.manual_seed`` also gives reproducible runs. An integer ``seed``
+    makes this transform reproducible on its own (see :class:`_RNG`).
+    """
+
+    seed: Optional[int]
+
+    def _init_rng(self, seed: Optional[int]) -> None:
+        self.seed = seed
+        self._rng = _RNG(seed)
+
+    def _rand(self) -> float:
+        """Uniform float in [0, 1)."""
+        return torch.rand(1, generator=self._rng.generator()).item()
+
+    def _uniform(self, low: float, high: float) -> float:
+        return low + (high - low) * self._rand()
+
+    def _randint(self, low: int, high: int) -> int:
+        """Integer in [low, high)."""
+        return int(torch.randint(low, high, (1,), generator=self._rng.generator()).item())
+
+
+class _TransformsPipeline(_Transform):
+    """Apply a sequence of transforms (dict in, dict out) in order.
+
+    A pipeline is itself a transform, so it can be nested or used as a view
+    sub-pipeline in :class:`MultiViewTransform`.
     """
 
     def __init__(self, transforms: Sequence[_Transform]):
-        """Apply a sequence of transforms to a single sample of data and return
-        the transformed data.
-
+        """
         Parameters
         ----------
-        transforms : List[_Transform]
-            A list of transforms to be applied to the input data.
+        transforms : Sequence[_Transform]
+            The transforms to apply, in order.
         """
         self.transforms = transforms
 
-    def __call__(self, x: Any) -> Any:
-        """Apply a sequence of transforms to a single sample of data and return
-        the transformed data.
-        """
+    def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
         for transform in self.transforms:
-            x = transform(x)
-        return x
+            data = transform(data)
+        return data
 
-    def __add__(self, other: _Transform) -> "TransformPipeline":
-        """Add a transform to the pipeline."""
-        if isinstance(other, TransformPipeline):
-            return TransformPipeline(list(self.transforms) + list(other.transforms))
-        return TransformPipeline(list(self.transforms) + [other])
+    def __add__(self, other: _Transform) -> "_TransformsPipeline":
+        if isinstance(other, _TransformsPipeline):
+            return _TransformsPipeline(list(self.transforms) + list(other.transforms))
+        return _TransformsPipeline(list(self.transforms) + [other])
 
-    def __radd__(self, other: _Transform) -> "TransformPipeline":
-        """Add a transform to the pipeline."""
-        return self.__add__(other)
+    def __radd__(self, other: _Transform) -> "_TransformsPipeline":
+        if isinstance(other, _TransformsPipeline):
+            return _TransformsPipeline(list(other.transforms) + list(self.transforms))
+        return _TransformsPipeline([other] + list(self.transforms))
 
     def __str__(self) -> str:
-        return f"TransformPipeline(transforms=[{', '.join([str(t) for t in self.transforms])}])"
+        return f"_TransformsPipeline(transforms=[{', '.join(str(t) for t in self.transforms)}])"
 
 
-class Flip(_Transform):
-    """Flip the input data along the specified axis."""
+class FlipTransform(_Transform):
+    """Flip every listed key along the given axis."""
 
-    def __init__(self, axis: Union[int, List[int]] = 1):
-        """Flip the input data along the specified axis.
-
+    def __init__(self, keys_to_transform: List[str], axis: Union[int, List[int]] = 1):
+        """
         Parameters
         ----------
+        keys_to_transform : List[str]
+            Keys of the entries to flip.
         axis : int | List[int], optional
-            One or more axis to flip the input data along, by default 1 (horizontal).
-            If a list of axis is provided, the input data is flipped along all the specified axis in the order they are provided.
+            One or more axes to flip along, by default 1. If a list is given,
+            the data is flipped along all of them.
         """
+        self.keys_to_transform = _as_keys(keys_to_transform)
         self.axis = axis
 
-    def __call__(self, x: np.ndarray) -> np.ndarray:
-        """Flip the input data along the specified axis.
-        if axis is an integer, the input data is flipped along the specified axis.
-        if axis is a list of integers, the input data is flipped along all the specified axis in the order they are provided.
-        The input must have the same, or less, number of dimensions as the length of the list of axis.
-        """
-
+    def _flip(self, x: np.ndarray) -> np.ndarray:
         if isinstance(self.axis, list):
-            assert (
-                len(self.axis) <= x.ndim
-            ), "Axis list has more dimensions than input data. The length of axis needs to be less or equal to input dimensions."
-
+            assert len(self.axis) <= x.ndim, (
+                "Axis list has more dimensions than input data. The length of "
+                "axis needs to be less or equal to input dimensions."
+            )
         return np.flip(x, axis=self.axis).copy()
 
-    def __str__(self) -> str:
-        return f"Flip(axis={self.axis})"
+    def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        return self._map_keys(data, self._flip)
 
 
-class PerlinMasker(_Transform):
-    """Zeroes entries of a tensor according to the sign of Perlin noise. Seed for the noise generator given by torch.randint"""
+class PerlinMaskerTransform(_RandomTransform):
+    """Zero entries of every listed key according to the sign of Perlin noise.
 
-    def __init__(self, octaves: int, scale: float = 1):
-        """Zeroes entries of a tensor according to the sign of Perlin noise. Seed for the noise generator given by torch.randint
+    The noise seed is drawn once per call and shared by all listed keys.
+    """
 
+    def __init__(
+        self,
+        keys_to_transform: List[str],
+        octaves: int,
+        scale: float = 1,
+        seed: Optional[int] = None,
+    ):
+        """
         Parameters
         ----------
-        octaves: int
-            Level of detail for the Perlin noise generator
-        scale: float = 1
-            Optionally rescale the Perlin noise. Default is 1 (no rescaling)
+        keys_to_transform : List[str]
+            Keys of the entries to mask.
+        octaves : int
+            Level of detail for the Perlin noise generator.
+        scale : float, optional
+            Rescale the Perlin noise, by default 1 (no rescaling).
+        seed : int, optional
+            Seed for reproducible noise, by default None (torch's global RNG).
         """
         if octaves <= 0:
             raise ValueError(f"Number of octaves must be positive, but got {octaves=}")
         if scale == 0:
-            raise ValueError(f"Scale can't be 0")
+            raise ValueError("Scale can't be 0")
+        self.keys_to_transform = _as_keys(keys_to_transform)
         self.octaves = octaves
         self.scale = scale
+        self._init_rng(seed)
 
-    def __call__(self, x: np.ndarray) -> np.ndarray:
-        """Zeroes entries of a tensor according to the sign of Perlin noise.
+    def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        seed = self._randint(0, 2**32)
+        for key in self.keys_to_transform:
+            x = data[key]
+            mask = np.empty_like(x, dtype=bool)
+            noise = PerlinNoise(self.octaves, seed)
+            denom = self.scale * max(x.shape)
+            for pos in product(*[range(i) for i in mask.shape]):
+                mask[pos] = noise([i / denom for i in pos]) < 0
+            data[key] = x * mask
+        return data
 
-        Parameters
-        ----------
-        x: np.ndarray
-            The tensor whose entries to zero.
+
+class SqueezeTransform(_Transform):
+    """Remove a single-dimensional axis from every listed key."""
+
+    def __init__(self, keys_to_transform: List[str], axis: int):
         """
-
-        mask = np.empty_like(x, dtype=bool)
-        noise = PerlinNoise(self.octaves, torch.randint(0, 2**32, (1,)).item())
-        denom = self.scale * max(x.shape)
-
-        for pos in product(*[range(i) for i in mask.shape]):
-            mask[pos] = noise([i / denom for i in pos]) < 0
-
-        return x * mask
-
-    def __str__(self) -> str:
-        return f"PerlinMasker(octaves={self.octaves}, scale={self.scale})"
-
-
-class Squeeze(_Transform):
-    """Remove single-dimensional entries from the shape of an array."""
-
-    def __init__(self, axis: int):
-        """Remove single-dimensional entries from the shape of an array.
-
         Parameters
         ----------
+        keys_to_transform : List[str]
+            Keys of the entries to squeeze.
         axis : int
             The position of the axis to be removed.
         """
+        self.keys_to_transform = _as_keys(keys_to_transform)
         self.axis = axis
 
-    def __call__(self, x: np.ndarray) -> np.ndarray:
-        """Remove single-dimensional entries from the shape of an array."""
-        return np.squeeze(x, axis=self.axis)
-
-    def __str__(self) -> str:
-        return f"Squeeze(axis={self.axis})"
+    def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        return self._map_keys(data, lambda x: np.squeeze(x, axis=self.axis))
 
 
-class Unsqueeze(_Transform):
-    """Add a new axis to the input data at the specified position."""
+class UnsqueezeTransform(_Transform):
+    """Add a new axis to every listed key.
 
-    def __init__(self, axis: int, label_only: bool = False):
-        """Add a new axis to the input data at the specified position.
+    To unsqueeze only the label, list only the label key.
+    """
 
+    def __init__(self, keys_to_transform: List[str], axis: int):
+        """
         Parameters
         ----------
+        keys_to_transform : List[str]
+            Keys of the entries to unsqueeze.
         axis : int
-            The position of the new axis to be added.
-        label_only : bool, optional
-            If True, the transform will only apply to the label (second element) of the input tuple.
-            If False, it will apply to the entire input data, by default False.
+            The position of the new axis.
         """
+        self.keys_to_transform = _as_keys(keys_to_transform)
         self.axis = axis
-        self.label_only = label_only
 
-    def __call__(self, x: np.ndarray):
-        """Add a new axis to the input data at the specified position."""
-        if self.label_only:
-            # Only apply to the second element (label) of the tuple
-            if np.issubdtype(x.dtype, np.unsignedinteger):
-                return np.expand_dims(x, axis=self.axis)
-            else:
-                return x
-        else:
-            return np.expand_dims(x, axis=self.axis)
-
-    def __str__(self) -> str:
-        return f"Unsqueeze(axis={self.axis})"
+    def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        return self._map_keys(data, lambda x: np.expand_dims(x, axis=self.axis))
 
 
-class Transpose(_Transform):
-    """Reorder the axes of numpy arrays."""
+class TransposeTransform(_Transform):
+    """Reorder the axes of every listed key (``np.transpose``).
 
-    def __init__(self, axes: Sequence[int]):
-        """Reorder the axes of numpy arrays.
+    To exchange just two axes use :class:`SwapAxesTransform`.
+    """
 
+    def __init__(self, keys_to_transform: List[str], axes: Sequence[int]):
+        """
         Parameters
         ----------
-        axes : int
-            The order of the new axes
+        keys_to_transform : List[str]
+            Keys of the entries to transpose.
+        axes : Sequence[int]
+            The order of the new axes.
         """
+        self.keys_to_transform = _as_keys(keys_to_transform)
         self.axes = axes
 
-    def __call__(self, x: np.ndarray) -> np.ndarray:
-        """Reorder the axes of numpy arrays."""
-        return np.transpose(x, self.axes)
-
-    def __str__(self) -> str:
-        return f"Transpose(axes={self.axes})"
+    def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        return self._map_keys(data, lambda x: np.transpose(x, self.axes))
 
 
-class CastTo(_Transform):
-    """Cast the input data to the specified data type."""
+class CastToTransform(_Transform):
+    """Cast every listed key to the given data type."""
 
-    def __init__(self, dtype: Union[type, str]):
-        """Cast the input data to the specified data type.
-
+    def __init__(self, keys_to_transform: List[str], dtype: Union[type, str]):
+        """
         Parameters
         ----------
-        dtype : type
-            The data type to which the input data will be cast.
+        keys_to_transform : List[str]
+            Keys of the entries to cast.
+        dtype : type | str
+            The data type to cast to.
         """
+        self.keys_to_transform = _as_keys(keys_to_transform)
         self.dtype = dtype
 
-    def __call__(self, x: np.ndarray) -> np.ndarray:
-        """Cast the input data to the specified data type."""
-        return x.astype(self.dtype)
-
-    def __str__(self) -> str:
-        return f"CastTo(dtype={self.dtype})"
+    def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        return self._map_keys(data, lambda x: x.astype(self.dtype))
 
 
-class Padding(_Transform):
+class PaddingTransform(_Transform):
+    """Pad every listed key to reach the target height and width.
+
+    Expects (H, W) or (H, W, C) arrays. A 2D input becomes (H, W, 1).
+    """
+
     def __init__(
         self,
+        keys_to_transform: List[str],
         target_h_size: int,
         target_w_size: int,
         padding_mode: str = "reflect",
-        padding_value: int = 0,
-        mask_padding_value: int = 255,
+        padding_value: Union[int, Sequence[int]] = 0,
     ):
         """
-        A transform that pads images and masks to reach target dimensions.
-
-        This transform automatically pads input arrays to the specified target dimensions
-        using different padding strategies. It intelligently determines whether the input
-        is an image or mask based on the data type and applies appropriate padding values.
-        For unsigned integer arrays (typically masks), it uses the mask padding value,
-        while for other arrays (typically images), it uses the regular padding value.
-
         Parameters
         ----------
+        keys_to_transform : List[str]
+            Keys of the entries to pad.
         target_h_size : int
             Target height in pixels after padding.
         target_w_size : int
             Target width in pixels after padding.
-        padding_mode : str, default="reflect"
-            Padding mode to use. Options include "reflect", "constant", "edge", "wrap".
-            When using "constant", the padding values specified below will be used.
-        padding_value : int, default=0
-            Padding value to use for image data when padding_mode is "constant".
-            Only used for non-unsigned integer arrays.
-        mask_padding_value : int, default=255
-            Padding value to use for mask data when padding_mode is "constant".
-            Only used for unsigned integer arrays. Commonly set to 255 to represent
-            ignore class in segmentation masks.
+        padding_mode : str, optional
+            Padding mode ("reflect", "constant", "edge", "wrap"), by default "reflect".
+        padding_value : int | Sequence[int], optional
+            Value used when ``padding_mode="constant"``. Either one value for
+            all keys or one value per key (e.g. 0 for the image and 255 for
+            an ignore-index label), by default 0.
         """
+        self.keys_to_transform = _as_keys(keys_to_transform)
         self.target_h_size = target_h_size
         self.target_w_size = target_w_size
         self.padding_mode = padding_mode
-        self.padding_value = padding_value if padding_mode == "constant" else None
-        self.mask_padding_value = (
-            mask_padding_value if padding_mode == "constant" else None
-        )
+        if isinstance(padding_value, (int, float, np.integer, np.floating)):
+            values = [padding_value] * len(self.keys_to_transform)
+        else:
+            values = list(padding_value)
+            if len(values) != len(self.keys_to_transform):
+                raise ValueError(
+                    "`padding_value` must be a scalar or have one entry per key."
+                )
+        self.padding_value = values
 
-    def __call__(self, x: np.ndarray) -> np.ndarray:
+    def _pad(self, x: np.ndarray, value: Union[int, float]) -> np.ndarray:
         h, w = x.shape[:2]
         pad_h = max(0, self.target_h_size - h)
         pad_w = max(0, self.target_w_size - w)
-        if len(x.shape) == 2:
-            padded = np.pad(
-                x,
-                ((0, pad_h), (0, pad_w)),
-                mode=self.padding_mode,  # type: ignore
-                constant_values=(
-                    self.mask_padding_value
-                    if np.issubdtype(x.dtype, np.unsignedinteger)
-                    else self.padding_value
-                ),
-            )  # type: ignore
+        pad_width = ((0, pad_h), (0, pad_w)) + (((0, 0),) if x.ndim > 2 else ())
+        kwargs = {"constant_values": value} if self.padding_mode == "constant" else {}
+        padded = np.pad(x, pad_width, mode=self.padding_mode, **kwargs)  # type: ignore
+        if x.ndim == 2:
             padded = np.expand_dims(padded, axis=2)
-        else:
-            padded = np.pad(
-                x,
-                ((0, pad_h), (0, pad_w), (0, 0)),
-                mode=self.padding_mode,  # type: ignore
-                constant_values=(
-                    self.mask_padding_value
-                    if np.issubdtype(x.dtype, np.unsignedinteger)
-                    else self.padding_value
-                ),
-            )  # type: ignore
-
         return padded
 
-    def __str__(self) -> str:
-        return f"Padding(target_h_size={self.target_h_size}, target_w_size={self.target_w_size})"
+    def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        for key, value in zip(self.keys_to_transform, self.padding_value):
+            data[key] = self._pad(data[key], value)
+        return data
 
 
-class Gradient(_Transform):
+class GradientTransform(_Transform):
+    """Append a 0-to-1 gradient channel to every listed key."""
+
     directions = {0: "x (width)", 1: "y (height)"}
 
-    def __init__(self, direction: int):
+    def __init__(self, keys_to_transform: List[str], direction: int):
         """
-        direction:
-            0 -> Gradient along the x-axis (width)
-            1 -> Gradient along the y-axis (height)
+        Parameters
+        ----------
+        keys_to_transform : List[str]
+            Keys of the entries to which the gradient channel is appended.
+        direction : int
+            0 for a gradient along x (width), 1 along y (height).
         """
-
         assert direction in [0, 1], "Direction must be 0 (x-axis) or 1 (y-axis)"
+        self.keys_to_transform = _as_keys(keys_to_transform)
         self.direction = direction
 
-    def generate_gradient(self, shape: tuple[int, int]) -> np.ndarray:
-        """
-        Inputs in format (H, W)
-        Outputs a gradient from 0 to 1 in either x or y direction based on the direction parameter
-        """
-
+    def generate_gradient(self, shape: Tuple[int, int]) -> np.ndarray:
+        """Gradient from 0 to 1 for a (H, W) shape along ``direction``."""
         xx, yy = np.meshgrid(np.linspace(0, 1, shape[1]), np.linspace(0, 1, shape[0]))
+        return xx if self.direction == 0 else yy
 
-        if self.direction == 0:  # Gradient along the x-axis
-            return xx
-        elif self.direction == 1:  # Gradient along the y-axis
-            return yy
-
-    def __call__(self, x):
-        if x.ndim == 2:
-            shape = x.shape
-        else:
-            shape = x.shape[1:]
-        gradient = self.generate_gradient(
-            shape
-        )  # Generate gradient in the specified direction
-
+    def _gradient(self, x: np.ndarray) -> np.ndarray:
+        shape = x.shape if x.ndim == 2 else x.shape[1:]
+        gradient = np.expand_dims(self.generate_gradient(shape), axis=0)
         x_expanded = np.expand_dims(x, axis=0) if x.ndim == 2 else x
-        gradient_expanded = np.expand_dims(gradient, axis=0)
-
-        output = np.concatenate([x_expanded, gradient_expanded], axis=0)
-
-        assert output.shape == (
-            x_expanded.shape[0] + 1,
-            shape[0],
-            shape[1],
-        ), f"Output shape {output.shape} does not match expected shape {(shape[0], shape[1], x_expanded.shape[0] + 1)}"
-
+        output = np.concatenate([x_expanded, gradient], axis=0)
+        assert output.shape == (x_expanded.shape[0] + 1, shape[0], shape[1])
         return output
 
-    def __str__(self) -> str:
-        return (
-            f"Gradient(direction={self.direction} - {self.directions[self.direction]})"
-        )
+    def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        return self._map_keys(data, self._gradient)
 
 
-class ColorJitter(_Transform):
+class ColorJitterTransform(_Transform):
+    """Apply fixed brightness, contrast, saturation and hue adjustments.
+
+    Expects uint8 RGB images with shape (H, W, 3). The adjustments are
+    deterministic.
+    """
+
     def __init__(
         self,
+        keys_to_transform: List[str],
         brightness: float = 1.0,
         contrast: float = 1.0,
         saturation: float = 1.0,
         hue: float = 0.0,
     ):
         """
-        Applies fixed adjustments to brightness, contrast, saturation, and hue to an input image.
-
         Parameters
         ----------
+        keys_to_transform : List[str]
+            Keys of the images to adjust.
         brightness : float, optional
-            Fixed factor for brightness adjustment. A value of 1.0 means no change. Defaults to 1.0.
+            Brightness factor, 1.0 means no change.
         contrast : float, optional
-            Fixed factor for contrast adjustment. A value of 1.0 means no change. Defaults to 1.0.
+            Contrast factor, 1.0 means no change.
         saturation : float, optional
-            Fixed factor for saturation adjustment. A value of 1.0 means no change. Defaults to 1.0.
+            Saturation factor, 1.0 means no change.
         hue : float, optional
-            Fixed degree shift for hue adjustment, in the range [-180, 180]. Defaults to 0.0.
-
-        Returns
-        -------
-        np.ndarray
-            The transformed image with fixed brightness, contrast, saturation, and hue adjustments applied.
+            Hue shift in the OpenCV HSV scale, by default 0.0.
         """
+        self.keys_to_transform = _as_keys(keys_to_transform)
         self.brightness = brightness
         self.contrast = contrast
         self.saturation = saturation
         self.hue = hue
 
-    def __call__(self, image: np.ndarray) -> np.ndarray:
-        # Convert to HSV for hue/saturation adjustment
+    def _jitter(self, image: np.ndarray) -> np.ndarray:
         image = cv2.cvtColor(image, cv2.COLOR_RGB2HSV).astype(np.float32)
-
-        # Brightness adjustment
         image[..., 2] = np.clip(image[..., 2] * self.brightness, 0, 255)
-
-        # Saturation adjustment
         image[..., 1] = np.clip(image[..., 1] * self.saturation, 0, 255)
-
-        # Contrast adjustment
         mean = image[..., 2].mean()
         image[..., 2] = np.clip((image[..., 2] - mean) * self.contrast + mean, 0, 255)
-
-        # Hue adjustment
         image[..., 0] = (image[..., 0] + self.hue) % 180
-
         return cv2.cvtColor(image.astype(np.uint8), cv2.COLOR_HSV2RGB)
 
-    def __str__(self) -> str:
-        return f"ColorJitter(brightness={self.brightness}, contrast={self.contrast}, saturation={self.saturation}, hue={self.hue})"
+    def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        return self._map_keys(data, self._jitter)
 
 
-class Crop(_Transform):
-    """Crop an image to a given output size, with optional padding and bounding-box support.
+class CropTransform(_Transform):
+    """Crop every listed key to the same region.
 
-    Expects inputs in CHW (C, H, W) or 2D (H, W) format.
+    Expects (C, H, W) or (H, W) arrays; the last two axes are spatial.
     """
 
     def __init__(
         self,
+        keys_to_transform: List[str],
         output_size: Tuple[int, int],
         pad_mode: str = "reflect",
         coords: Tuple[float, float] = (0, 0),
@@ -432,67 +531,36 @@ class Crop(_Transform):
         """
         Parameters
         ----------
+        keys_to_transform : List[str]
+            Keys of the entries to crop. Unlisted keys pass through unchanged.
         output_size : Tuple[int, int]
             Desired output size as (height, width).
         pad_mode : str, optional
-            Padding mode used if output size is larger than input size. Defaults to 'reflect'.
-            Valid modes include: 'constant', 'edge', 'linear_ramp', 'maximum', 'mean', 'median',
-            'minimum', 'reflect', 'symmetric', 'wrap', 'empty'.
+            Padding mode used if the output size is larger than the input,
+            by default "reflect". Any ``np.pad`` mode.
         coords : Tuple[float, float], optional
-            Top-left coordinates for the crop box as (row, col).
-            Values must go from 0 to 1 indicating the relative position on where the
-            new top-left corner can be set, taking in consideration the new size.
-            Defaults to (0, 0) which corresponds to the top-left corner of the image.
-        bbox : Optional[Tuple[int, int, int, int]], optional
-            If provided, crops the image to the bounding box defined by (y1, y2, x1, x2).
-            If this parameter is set, the `coords` parameter is ignored. Defaults to None.
+            Relative (row, col) position of the crop's top-left corner, each
+            from 0 to 1, by default (0, 0).
+        bbox : Tuple[int, int, int, int], optional
+            If given, crop to (y1, y2, x1, x2) and ignore ``coords``.
         """
+        self.keys_to_transform = _as_keys(keys_to_transform)
         self.output_size = output_size
         self.pad_mode = pad_mode
         self.coords = coords
         self.bbox = bbox
 
-    def __call__(self, image: np.ndarray) -> np.ndarray:
-        """Crop the image to the configured output size.
-
-        Parameters
-        ----------
-        image : np.ndarray
-            Input array in CHW (C, H, W) or 2D (H, W) format.
-
-        Returns
-        -------
-        np.ndarray
-            Cropped array. Shape is (C, new_h, new_w) for 3D input or
-            (new_h, new_w) for 2D input. Padded symmetrically if the
-            output size exceeds the input size.
-        """
-        # Always read spatial dims from the last two axes (consistent with CHW)
+    def _crop(self, image: np.ndarray) -> np.ndarray:
         h, w = image.shape[-2:]
         new_h, new_w = self.output_size
 
-        # Apply padding if output size is larger than input size
         if new_h > h or new_w > w:
             pad_h = max(new_h - h, 0)
             pad_w = max(new_w - w, 0)
-
-            # 3D (C, H, W): pad only H and W, leave C untouched
-            # 2D (H, W): pad both dims directly
-            if len(image.shape) == 3:
-                pad_width = (
-                    (0, 0),
-                    (pad_h // 2, pad_h - pad_h // 2),
-                    (pad_w // 2, pad_w - pad_w // 2),
-                )
-            else:
-                pad_width = (
-                    (pad_h // 2, pad_h - pad_h // 2),
-                    (pad_w // 2, pad_w - pad_w // 2),
-                )
-
-            image = np.pad(image, pad_width, mode=self.pad_mode)
-
-            # Update spatial dims from last two axes after padding (CHW fix)
+            pad_width = ((pad_h // 2, pad_h - pad_h // 2), (pad_w // 2, pad_w - pad_w // 2))
+            if image.ndim == 3:
+                pad_width = ((0, 0),) + pad_width
+            image = np.pad(image, pad_width, mode=self.pad_mode)  # type: ignore
             h, w = image.shape[-2:]
 
         if self.bbox is not None:
@@ -504,511 +572,387 @@ class Crop(_Transform):
         c = int((w - new_w) * col)
         return image[..., r : r + new_h, c : c + new_w]
 
-    def __str__(self) -> str:
-        return f"Crop(output_size={self.output_size}, pad_mode={self.pad_mode}, coords={self.coords})"
+    def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        return self._map_keys(data, self._crop)
 
 
-class GrayScale(_Transform):
-    def __init__(self, method: Literal["average", "luminosity"] = "luminosity"):
+class GrayScaleTransform(_Transform):
+    """Convert every listed RGB image (H, W, 3) to a 3-channel grayscale."""
+
+    def __init__(
+        self,
+        keys_to_transform: List[str],
+        method: Literal["average", "luminosity"] = "luminosity",
+    ):
         """
-        Converts an image to grayscale using the specified method.
-
         Parameters
         ----------
+        keys_to_transform : List[str]
+            Keys of the images to convert.
         method : {'average', 'luminosity'}, optional
-            The method to compute grayscale:
-            - 'average': (R + G + B) / 3
-            - 'luminosity': 0.299R + 0.587G + 0.114B
-            Defaults to 'luminosity'.
+            'average' is (R + G + B) / 3; 'luminosity' is
+            0.299R + 0.587G + 0.114B. By default 'luminosity'.
         """
         if method not in {"average", "luminosity"}:
             raise ValueError("method must be 'average' or 'luminosity'")
+        self.keys_to_transform = _as_keys(keys_to_transform)
         self.method = method
 
-    def __call__(self, image: np.ndarray) -> np.ndarray:
-        """
-        Applies grayscale conversion to the input RGB image.
-
-        Parameters
-        ----------
-        image : np.ndarray
-            Input image in RGB format with shape (H, W, 3).
-
-        Returns
-        -------
-        np.ndarray
-            Grayscale image with shape (H, W, 3) where all channels are equal.
-        """
-        assert (
-            image.ndim == 3 and image.shape[2] == 3
-        ), "Input must have shape (H, W, 3)"
-
+    def _gray(self, image: np.ndarray) -> np.ndarray:
+        assert image.ndim == 3 and image.shape[2] == 3, "Input must have shape (H, W, 3)"
         if self.method == "average":
             gray = image.mean(axis=2)
-        else:  # luminosity
-            weights = np.array([0.299, 0.587, 0.114])
-            gray = np.dot(image[..., :3], weights)
-
+        else:
+            gray = np.dot(image[..., :3], np.array([0.299, 0.587, 0.114]))
         return np.stack([gray, gray, gray], axis=-1).astype(image.dtype)
 
-    def __str__(self) -> str:
-        return f"GrayScale(method='{self.method}')"
+    def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        return self._map_keys(data, self._gray)
 
 
-class Solarize(_Transform):
-    def __init__(self, threshold: int = 128):
+class SolarizeTransform(_Transform):
+    """Invert pixel values at or above a threshold in every listed key."""
+
+    def __init__(self, keys_to_transform: List[str], threshold: int = 128):
         """
-        Solarizes the image by inverting pixel values above a specified threshold.
-
         Parameters
         ----------
+        keys_to_transform : List[str]
+            Keys of the images to solarize.
         threshold : int, optional
-            Intensity threshold for inversion, default is 128.
-
-        Returns
-        -------
-        np.ndarray
-            Solarized image with inverted pixel values above threshold.
+            Intensity threshold for inversion, by default 128.
         """
+        self.keys_to_transform = _as_keys(keys_to_transform)
         self.threshold = threshold
 
-    def __call__(self, image: np.ndarray) -> np.ndarray:
-        if len(image.shape) == 3:  # Color image
-            channels = cv2.split(image)
-            solarized_channels = [
-                np.where(channel < self.threshold, channel, 255 - channel)
-                for channel in channels
+    def _solarize(self, image: np.ndarray) -> np.ndarray:
+        if image.ndim == 3:
+            channels = [
+                np.where(c < self.threshold, c, 255 - c) for c in cv2.split(image)
             ]
-            solarized_image = cv2.merge(solarized_channels)
-        else:  # Grayscale image
-            solarized_image = np.where(image < self.threshold, image, 255 - image)
+            return cv2.merge(channels)
+        return np.where(image < self.threshold, image, 255 - image)
 
-        return solarized_image
-
-    def __str__(self):
-        return f"Solarize(threshold={self.threshold})"
+    def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        return self._map_keys(data, self._solarize)
 
 
-class Rotation(_Transform):
-    def __init__(self, degrees: float):
+class RotationTransform(_Transform):
+    """Rotate every listed key by a fixed angle with reflection padding.
+
+    Accepts (H, W) or (H, W, C) arrays.
+    """
+
+    def __init__(
+        self,
+        keys_to_transform: List[str],
+        degrees: float,
+        mode: Optional[Sequence[str]] = None,
+    ):
         """
-        Rotates an image by a specified angle using reflection padding.
-
         Parameters
         ----------
+        keys_to_transform : List[str]
+            Keys of the entries to rotate.
         degrees : float
-            Angle in degrees to rotate the image counterclockwise.
-
-        Notes
-        -----
-        - Accepts input with shape (H, W) or (H, W, C), where C can be any number of channels.
-        - For multi-channel images, the same transformation is applied to all channels.
-        - Uses OpenCV's warpAffine with reflection padding.
+            Counterclockwise angle in degrees.
+        mode : Sequence[str], optional
+            One interpolation mode per key ("nearest", "bilinear", "bicubic",
+            "area"). Use "nearest" for labels. By default "bilinear" for all.
         """
+        self.keys_to_transform = _as_keys(keys_to_transform)
         self.degrees = degrees
+        self.mode = _resolve_modes(self.keys_to_transform, mode)
 
-    def __call__(self, image: np.ndarray) -> np.ndarray:
+    def _rotate(self, image: np.ndarray, flag_mode: str) -> np.ndarray:
         if image.ndim not in (2, 3):
             raise ValueError(
                 f"Unsupported image shape: {image.shape}. Expected 2D or 3D with channels last."
             )
-
+        flag = _interpolation(flag_mode)
         h, w = image.shape[:2]
-        center = (w // 2, h // 2)
-        rotation_matrix = cv2.getRotationMatrix2D(center, self.degrees, 1.0)
+        matrix = cv2.getRotationMatrix2D((w // 2, h // 2), self.degrees, 1.0)
+
+        def warp(a):
+            return cv2.warpAffine(
+                a, matrix, (w, h), flags=flag, borderMode=cv2.BORDER_REFLECT
+            )
 
         if image.ndim == 2:
-            # Single-channel 2D image
-            return cv2.warpAffine(
-                image, rotation_matrix, (w, h), borderMode=cv2.BORDER_REFLECT
-            )
+            return warp(image)
+        return np.stack([warp(image[:, :, c]) for c in range(image.shape[2])], axis=-1)
 
-        # Multi-channel image (H, W, C)
-        channels = [
-            cv2.warpAffine(
-                image[:, :, c], rotation_matrix, (w, h), borderMode=cv2.BORDER_REFLECT
-            )
-            for c in range(image.shape[2])
-        ]
-        return np.stack(channels, axis=-1)
-
-    def __str__(self) -> str:
-        return f"Rotation(degrees={self.degrees})"
+    def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        for key, m in zip(self.keys_to_transform, self.mode):
+            data[key] = self._rotate(data[key], m)
+        return data
 
 
-class PadCrop(_Transform):
+class PadCropTransform(_RandomTransform):
+    """Pad or crop every listed key to the target size.
+
+    If the target is larger than the input along an axis, that axis is padded
+    symmetrically (the input is centered); otherwise it is cropped from a
+    random position. The crop position is drawn once per call and shared by
+    all listed keys (as relative offsets, so keys of different sizes stay
+    aligned). Expects (C, H, W) or (H, W) arrays.
+    """
+
     def __init__(
         self,
+        keys_to_transform: List[str],
         target_h_size: int,
         target_w_size: int,
         padding_mode: str = "reflect",
-        seed: Optional[int] = None,
         constant_values: int = 0,
+        seed: Optional[int] = None,
     ):
-        """Transforms image and pads or crops it to the target size. If the
-        target size is larger than the input size, the image is padded, else,
-        the image is cropped. The same happens for both height and width.
-        The padding mode can be specified, as well as the seed for the random
-        number generator.
-
-        For padding, the padding is applied symmetrically on both sides of the
-        image, thus, image will be centered in the padded image. For cropping,
-        the crop is applied from a random position in the image.
-
-        Image is expected to be in C x H x W, or H x W format.
-
+        """
         Parameters
         ----------
+        keys_to_transform : List[str]
+            Keys of the entries to pad or crop.
         target_h_size : int
-            Desired height size.
+            Desired height.
         target_w_size : int
-            Desired width size.
+            Desired width.
         padding_mode : str, optional
-            The padding mode to use, by default "reflect"
-        seed : int, optional
-            The seed for the random number generator. It is used to generate
-            the random crop position. By default, None.
+            Padding mode, by default "reflect".
         constant_values : int, optional
-            If padding mode is 'constant', the value to use for padding. By
-            default 0.
+            Padding value when ``padding_mode="constant"``, by default 0.
+        seed : int, optional
+            Seed for a reproducible crop position, by default None.
         """
+        self._init_rng(seed)
+        self.keys_to_transform = _as_keys(keys_to_transform)
         self.target_h_size = target_h_size
         self.target_w_size = target_w_size
         self.padding_mode = padding_mode
-        self.seed = seed
-        self.rng = np.random.default_rng(
-            seed
-        )  # Random number generator with the provided seed
         self.constant_values = constant_values
 
-    def __call__(self, x: np.ndarray) -> np.ndarray:
-        # Input is expected to be in C x H x W format or H x W format
-
-        # If input is in C x H x W format, convert to H x W x C format
-        if len(x.shape) == 3:
+    def _pad_crop(self, x: np.ndarray, frac_h: float, frac_w: float) -> np.ndarray:
+        if x.ndim == 3:
             x = np.transpose(x, (1, 2, 0))
-
-        # Get the height and width of the input image (H and W)
         h, w = x.shape[:2]
 
-        #### HEIGHT ####
-        # Handle height dimension independently: pad if target_h_size > h, else crop
+        def pad(arr, axis, amount):
+            before = amount // 2
+            width = [(0, 0)] * arr.ndim
+            width[axis] = (before, amount - before)
+            kwargs = (
+                {"constant_values": self.constant_values}
+                if self.padding_mode == "constant"
+                else {}
+            )
+            return np.pad(arr, width, mode=self.padding_mode, **kwargs)  # type: ignore
+
         if self.target_h_size > h:
-            pad_h = self.target_h_size - h
-            pad_top = pad_h // 2
-            pad_bottom = pad_h - pad_top
-            pad_args = {
-                "array": x,
-                "pad_width": (
-                    ((pad_top, pad_bottom), (0, 0), (0, 0))
-                    if len(x.shape) == 3
-                    else ((pad_top, pad_bottom), (0, 0))
-                ),
-                "mode": self.padding_mode,
-            }
-            if self.padding_mode == "constant":
-                pad_args["constant_values"] = self.constant_values
-
-            x = np.pad(**pad_args)
-
+            x = pad(x, 0, self.target_h_size - h)
         elif self.target_h_size < h:
-            crop_h_start = self.rng.integers(0, h - self.target_h_size + 1)
-            x = x[crop_h_start : crop_h_start + self.target_h_size, ...]
+            n = h - self.target_h_size
+            start = min(int(frac_h * (n + 1)), n)
+            x = x[start : start + self.target_h_size]
 
-        #### WIDTH ####
-        # Handle width dimension independently: pad if target_w_size > w, else crop
         if self.target_w_size > w:
-            pad_w = self.target_w_size - w
-            pad_left = pad_w // 2
-            pad_right = pad_w - pad_left
-
-            pad_args = {
-                "array": x,
-                "pad_width": (
-                    ((0, 0), (pad_left, pad_right), (0, 0))
-                    if len(x.shape) == 3
-                    else ((0, 0), (pad_left, pad_right))
-                ),
-                "mode": self.padding_mode,
-            }
-
-            if self.padding_mode == "constant":
-                pad_args["constant_values"] = self.constant_values
-
-            x = np.pad(**pad_args)
-
+            x = pad(x, 1, self.target_w_size - w)
         elif self.target_w_size < w:
-            crop_w_start = self.rng.integers(0, w - self.target_w_size + 1)
-            x = x[:, crop_w_start : crop_w_start + self.target_w_size, ...]
+            n = w - self.target_w_size
+            start = min(int(frac_w * (n + 1)), n)
+            x = x[:, start : start + self.target_w_size]
 
-        #  If input is 3D, convert back to C x H x W format
-        if len(x.shape) == 3:
+        if x.ndim == 3:
             x = np.transpose(x, (2, 0, 1))
         return x
 
-    def __str__(self) -> str:
-        return f"PadCrop(target_h_size={self.target_h_size}, target_w_size={self.target_w_size}, padding_mode={self.padding_mode}, constant_values={self.constant_values}, seed={self.seed})"
+    def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        frac_h, frac_w = self._rand(), self._rand()
+        return self._map_keys(data, lambda x: self._pad_crop(x, frac_h, frac_w))
 
 
-class Identity(_Transform):
-    """This class is a dummy transform that does nothing. It is useful when
-    you want to skip a transform in a pipeline.
-    """
+class IdentityTransform(_Transform):
+    """Do nothing. Useful to skip a transform in a pipeline."""
 
-    def __call__(self, x: np.ndarray) -> np.ndarray:
-        return x
-
-    def __str__(self) -> str:
-        return "Identity()"
-
-
-class Indexer(_Transform):
-    def __init__(self, index: int):
-        """This transform extracts a single channel from a multi-channel image.
-
+    def __init__(self, keys_to_transform: Optional[List[str]] = None):
+        """
         Parameters
         ----------
+        keys_to_transform : List[str], optional
+            Ignored; accepted for a uniform constructor.
+        """
+        self.keys_to_transform = _as_keys(keys_to_transform or [])
+
+    def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        return data
+
+
+class IndexerTransform(_Transform):
+    """Extract a single channel (``x[index]``) from every listed key."""
+
+    def __init__(self, keys_to_transform: List[str], index: int):
+        """
+        Parameters
+        ----------
+        keys_to_transform : List[str]
+            Keys of the entries to index.
         index : int
             The index of the channel to extract.
         """
+        self.keys_to_transform = _as_keys(keys_to_transform)
         self.index = index
 
-    def __call__(self, x: np.ndarray) -> np.ndarray:
-        return x[self.index]
-
-    def __str__(self) -> str:
-        return f"Indexer(index={self.index})"
+    def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        return self._map_keys(data, lambda x: x[self.index])
 
 
-class Repeat(_Transform):
-    def __init__(self, axis: int, n_repetitions: int):
-        """This transform repeats the input data along the specified axis.
+class RepeatTransform(_Transform):
+    """Repeat every listed key along an axis."""
 
+    def __init__(self, keys_to_transform: List[str], axis: int, n_repetitions: int):
+        """
         Parameters
         ----------
+        keys_to_transform : List[str]
+            Keys of the entries to repeat.
         axis : int
-            The axis along which to repeat the input data.
+            The axis along which to repeat.
         n_repetitions : int
             The number of repetitions.
         """
+        self.keys_to_transform = _as_keys(keys_to_transform)
         self.axis = axis
         self.n_repetitions = n_repetitions
 
-    def __call__(self, x: np.ndarray) -> np.ndarray:
-        return np.repeat(x, self.n_repetitions, axis=self.axis)
+    def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        return self._map_keys(
+            data, lambda x: np.repeat(x, self.n_repetitions, axis=self.axis)
+        )
 
-    def __str__(self) -> str:
-        return f"Repeat(axis={self.axis}, n_repetitions={self.n_repetitions})"
 
+class NormalizeTransform(_Transform):
+    """Normalize every listed key per channel. Expects (C, H, W) data.
 
-class Normalize(_Transform):
-    def __init__(self, mean, std, to_rgb=False, normalize_labels=False):
+    List only the keys to normalize; labels are normalized only if listed.
+    """
+
+    def __init__(
+        self,
+        keys_to_transform: List[str],
+        mean: Sequence[float],
+        std: Sequence[float],
+        to_rgb: bool = False,
+    ):
         """
-        Normalize the input data using the provided means and standard deviations. I assumes the data shape is (C, H, W)
-
         Parameters
         ----------
-        mean : List[float]
-            List of means for each channel.
-        std : List[float]
-            List of standard deviations for each channel.
+        keys_to_transform : List[str]
+            Keys of the entries to normalize.
+        mean : Sequence[float]
+            Mean of each channel.
+        std : Sequence[float]
+            Standard deviation of each channel.
         to_rgb : bool, optional
-            Convert grayscale images to RGB format, by default False.
-        normalize_labels : bool, optional
-            Normalize label images, by default False.
-
+            Convert single-channel data to 3-channel RGB, by default False.
         """
         assert len(mean) == len(
             std
         ), "Means and standard deviations must have the same length."
+        self.keys_to_transform = _as_keys(keys_to_transform)
         self.mean = mean
         self.std = std
         self.to_rgb = to_rgb
-        self.normalize_labels = normalize_labels
 
-    def __call__(self, data):
+    def _normalize(self, x: np.ndarray) -> np.ndarray:
+        if not np.issubdtype(x.dtype, np.floating):
+            x = x.astype(np.float32)
+        else:
+            x = x.copy()
+        if self.to_rgb and x.shape[0] == 1:
+            x = np.repeat(x, 3, axis=0)
+        assert x.shape[0] == len(
+            self.mean
+        ), f"Number of channels in data does not match the number of provided mean/std. {x.shape}"
+        for i in range(len(self.mean)):
+            x[i, :, :] = (x[i, :, :] - self.mean[i]) / self.std[i]
+        return x
 
-        is_label = np.issubdtype(data.dtype, np.unsignedinteger)
-
-        if (is_label and self.normalize_labels) or not is_label:
-            # Convert from gray scale (1 channel) to RGB (3 channels) if to_rgb is True
-            if self.to_rgb and data.shape[0] == 1:
-                data = np.repeat(data, 3, axis=0)
-                cv2.cvtColor(data, cv2.COLOR_BGR2RGB, data)
-
-            assert data.shape[0] == len(
-                self.mean
-            ), f"Number of channels in data does not match the number of provided mean/std. {data.shape}"
-
-            # Normalize each channel
-            for i in range(len(self.mean)):
-                data[i, :, :] = (data[i, :, :] - self.mean[i]) / self.std[i]
-
-        return data
-
-    def __str__(self) -> str:
-        return f"Normalize(mean={self.mean}, std={self.std}, to_rgb={self.to_rgb}, normalize_labels={self.normalize_labels})"
+    def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        return self._map_keys(data, self._normalize)
 
 
-class ContrastiveTransform(_Transform):
-    def __init__(self, transform: _Transform):
+class ReshapeTransform(_Transform):
+    """Reshape every listed key."""
+
+    def __init__(self, keys_to_transform: List[str], shape: Tuple[int, ...]):
         """
-        A transformation wrapper that applies the same transform twice to create contrastive pairs.
-
-        This transform is commonly used in contrastive learning approaches where you need two
-        different augmented versions of the same input. It takes a base transformation and applies
-        it twice independently to the same input, potentially producing different results if the
-        underlying transform includes randomness.
-
-        Parameters
-        ----------
-        transform : _Transform
-            The base transformation to be applied twice. This should be a callable that takes
-            a numpy array and returns a transformed numpy array.
-        """
-        self.transform = transform
-
-    def __call__(self, x: np.ndarray) -> Tuple:
-        return self.transform(x), self.transform(x)
-
-    def __str__(self) -> str:
-        return f"ContrastiveTransform(transform={self.transform})"
-
-
-class Reshape(_Transform):
-    def __init__(self, shape: Tuple[int, ...]):
-        """Reshape the input data to the specified shape.
-
-        Parameters
-        ----------
-        shape : Tuple[int, ...]
-            The target shape for the input data.
-        """
-        self.shape = shape
-
-    def __call__(self, x: np.ndarray) -> np.ndarray:
-        return x.reshape(self.shape)
-
-    def __str__(self) -> str:
-        return f"Reshape(shape={self.shape})"
-
-
-class Resize(_Transform):
-
-    def __init__(
-        self,
-        target_h_size: int,
-        target_w_size: int,
-        keep_aspect_ratio: bool = False,
-        detect_mask: bool = False,
-    ):
-        """
-        A transformation class for resizing images with optional aspect ratio preservation.
-
-        This transform can resize images to specified target dimensions either by direct resizing
-        or by preserving the aspect ratio. When preserving aspect ratio, the transform scales
-        the image using the smaller of the two scaling factors to ensure the image fits within
-        the target dimensions without distortion.
-
-        Parameters
-        ----------
-        target_h_size : int
-            Target height for the resized image in pixels.
-        target_w_size : int
-            Target width for the resized image in pixels.
-        keep_aspect_ratio : bool, default=False
-            If True, preserves the original aspect ratio by scaling with the smaller
-            scaling factor. If False, directly resizes to target dimensions which
-            may distort the image.
-        detect_mask : bool, default=False
-            If True, uses nearest neighbor interpolation for resizing masks (integer types).
-
-        """
-        self.target_h_size = target_h_size
-        self.target_w_size = target_w_size
-        self.keep_aspect_ratio = keep_aspect_ratio
-        self.detect_mask = detect_mask
-
-    def __call__(self, x: np.ndarray) -> np.ndarray:
-        original_height, original_width = x.shape[:2]
-        width, height = self.target_w_size, self.target_h_size
-
-        if self.keep_aspect_ratio:
-
-            # Calculate scaling factors for both dimensions
-            width_scale = self.target_w_size / original_width
-            height_scale = self.target_h_size / original_height
-
-            # Choose the smaller scale to keep aspect ratio, and round down
-            scale = min(width_scale, height_scale)
-
-            # Compute new dimensions, rounding down to match MMsegmentation's behavior
-            width = int(original_width * scale)
-            height = int(original_height * scale)
-
-        if np.issubdtype(x.dtype, np.unsignedinteger) and self.detect_mask:
-            return cv2.resize(
-                x,
-                (width, height),
-                interpolation=cv2.INTER_NEAREST,
-            )
-
-        return cv2.resize(
-            x,
-            (width, height),
-            interpolation=cv2.INTER_LINEAR,
-        )
-
-
-class GaussianBlurTransform(_Transform):
-    def __init__(
-        self,
-        keys_to_transform: List[str],
-        kernel_size: Union[int, Tuple[int, int]],
-        sigma: float = 0.0,
-    ):
-        """
-        Applies a Gaussian blur to an image using OpenCV.
-
         Parameters
         ----------
         keys_to_transform : List[str]
-            Keys of the entries to blur. Unlisted keys pass through unchanged.
-        kernel_size : Union[int, Tuple[int, int]]
-            Gaussian kernel size. If an int is provided, it is used for both
-            height and width. Both dimensions must be positive, odd integers.
-        sigma : float, optional
-            Gaussian kernel standard deviation in X direction. If set to 0.0, 
-            it is automatically computed from the kernel size. Defaults to 0.0.
+            Keys of the entries to reshape.
+        shape : Tuple[int, ...]
+            The target shape.
         """
-        if isinstance(kernel_size, int):
-            kernel_size = (kernel_size, kernel_size)
+        self.keys_to_transform = _as_keys(keys_to_transform)
+        self.shape = shape
 
-        if len(kernel_size) != 2 or any(size <= 0 for size in kernel_size):
-            raise ValueError("Kernel size dimensions must be positive integers.")
-        if kernel_size[0] % 2 == 0 or kernel_size[1] % 2 == 0:
-            raise ValueError("Kernel size dimensions must be odd integers.")
-            
-        self.keys_to_transform = keys_to_transform
-        self.kernel_size = kernel_size
-        self.sigma = sigma
+    def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        return self._map_keys(data, lambda x: x.reshape(self.shape))
 
-    def __call__(self, data: dict[str, Any]) -> dict[str, Any]:
+
+class ResizeTransform(_Transform):
+    """Resize every listed key to the target size. Expects (H, W[, C]) arrays."""
+
+    def __init__(
+        self,
+        keys_to_transform: List[str],
+        target_h_size: int,
+        target_w_size: int,
+        keep_aspect_ratio: bool = False,
+        mode: Optional[Sequence[str]] = None,
+    ):
         """
-        Apply Gaussian blur to every listed entry.
+        Parameters
+        ----------
+        keys_to_transform : List[str]
+            Keys of the entries to resize.
+        target_h_size : int
+            Target height in pixels.
+        target_w_size : int
+            Target width in pixels.
+        keep_aspect_ratio : bool, optional
+            If True, scale by the smaller scaling factor so the result fits
+            within the target without distortion, by default False.
+        mode : Sequence[str], optional
+            One interpolation mode per key ("nearest", "bilinear", "bicubic",
+            "area"). Use "nearest" for labels and masks. By default
+            "bilinear" for all keys.
         """
-        for key in self.keys_to_transform:
-            data[key] = cv2.GaussianBlur(data[key], self.kernel_size, self.sigma)
+        self.keys_to_transform = _as_keys(keys_to_transform)
+        self.target_h_size = target_h_size
+        self.target_w_size = target_w_size
+        self.keep_aspect_ratio = keep_aspect_ratio
+        self.mode = _resolve_modes(self.keys_to_transform, mode)
+
+    def _resize(self, x: np.ndarray, mode: str) -> np.ndarray:
+        original_height, original_width = x.shape[:2]
+        width, height = self.target_w_size, self.target_h_size
+        if self.keep_aspect_ratio:
+            scale = min(width / original_width, height / original_height)
+            # Round down to match MMsegmentation's behavior.
+            width = int(original_width * scale)
+            height = int(original_height * scale)
+        return cv2.resize(x, (width, height), interpolation=_interpolation(mode))
+
+    def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        for key, m in zip(self.keys_to_transform, self.mode):
+            data[key] = self._resize(data[key], m)
         return data
 
-    def __str__(self) -> str:
-        return f"GaussianBlurTransform(keys_to_transform={self.keys_to_transform}, kernel_size={self.kernel_size}, sigma={self.sigma})"
 
+class VerticalPatchSwapTransform(_RandomTransform):
+    """Shuffle horizontal stripes with one shared permutation per call.
 
-class VerticalPatchSwapTransform(_Transform):
-    """
-    Slices the image horizontally into multiple stripes (patches) of a specified height 
-    and randomly shuffles their vertical order. 
+    Expects (C, H, W) or (H, W) arrays. Every listed key must have matching
+    spatial dimensions so the same stripe permutation preserves alignment.
     """
 
     def __init__(
@@ -1017,56 +961,147 @@ class VerticalPatchSwapTransform(_Transform):
         patch_height: int = 50,
         seed: Optional[int] = None,
     ):
+        """Initialize the vertical patch shuffle.
+
+        Parameters
+        ----------
+        keys_to_transform : List[str]
+            Keys to shuffle together. Unlisted entries pass through unchanged.
+        patch_height : int, optional
+            Height of each horizontal stripe, by default 50.
+        seed : int, optional
+            Seed for reproducible draws, by default None (torch's global RNG).
+        """
+        if patch_height <= 0:
+            raise ValueError("patch_height must be greater than 0.")
+        self._init_rng(seed)
+        self.keys_to_transform = _as_keys(keys_to_transform)
+        self.patch_height = patch_height
+
+    @staticmethod
+    def _apply_permutation(
+        x: np.ndarray, patch_height: int, permutation: np.ndarray
+    ) -> np.ndarray:
+        h = x.shape[-2]
+        patches = [
+            x[..., start : min(start + patch_height, h), :]
+            for start in range(0, h, patch_height)
+        ]
+        return np.concatenate([patches[int(i)] for i in permutation], axis=-2)
+
+    def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        if not self.keys_to_transform:
+            return data
+        first = data[self.keys_to_transform[0]]
+        h, w = first.shape[-2:]
+        permutation = torch.randperm(
+            (h + self.patch_height - 1) // self.patch_height,
+            generator=self._rng.generator(),
+        ).numpy()
+        for key in self.keys_to_transform:
+            value = data[key]
+            if value.shape[-2:] != (h, w):
+                raise ValueError(
+                    "All transformed keys must have matching spatial dimensions."
+                )
+            data[key] = self._apply_permutation(
+                value, self.patch_height, permutation
+            )
+        return data
+
+
+class GaussianBlurTransform(_RandomTransform):
+    """Gaussian-blur every listed key with one random sigma per call.
+
+    Expects (C, H, W) or (H, W) arrays. The decision to blur and the sigma
+    are drawn once per call and shared by all listed keys.
+    """
+
+    def __init__(
+        self,
+        keys_to_transform: List[str],
+        kernel_size: int,
+        sigma: Tuple[float, float] = (0.1, 2.0),
+        prob: float = 1.0,
+        seed: Optional[int] = None,
+    ):
         """
         Parameters
         ----------
         keys_to_transform : List[str]
-            Keys of the entries to transform. Unlisted keys pass through unchanged.
-        patch_height : int, optional
-            The height of each horizontal stripe to be swapped, in pixels. By default 50.
-            If the image height is not perfectly divisible by this value, the final 
-            patch will simply contain the remaining pixels.
-        seed : Optional[int], optional
-            Random seed for reproducible shuffling. If None, uses system randomness.
+            Keys of the images to blur.
+        kernel_size : int
+            Odd kernel size in pixels.
+        sigma : Tuple[float, float], optional
+            Range the standard deviation is drawn uniformly from, by default (0.1, 2.0).
+        prob : float, optional
+            Probability of blurring, by default 1.0.
+        seed : int, optional
+            Seed for reproducible blurs, by default None.
         """
-        if patch_height <= 0:
-            raise ValueError("patch_height must be greater than 0.")
-        self.keys_to_transform = keys_to_transform
-        self.patch_height = patch_height
-        self.seed = seed
-        self.rng = np.random.default_rng(seed)
+        self._init_rng(seed)
+        if kernel_size % 2 == 0:
+            raise ValueError("kernel_size must be odd")
+        assert 0.0 <= prob <= 1.0, "prob must be between 0 and 1"
+        self.keys_to_transform = _as_keys(keys_to_transform)
+        self.kernel_size = kernel_size
+        self.sigma = sigma
+        self.prob = prob
 
-    def _apply_permutation(self, x: np.ndarray, permutation: np.ndarray) -> np.ndarray:
-        h = x.shape[-2]
-        patches = [
-            x[..., start:min(start + self.patch_height, h), :]
-            for start in range(0, h, self.patch_height)
-        ]
-        return np.concatenate([patches[i] for i in permutation], axis=-2)
+    def _blur(self, x: np.ndarray, sigma: float) -> np.ndarray:
+        k = (self.kernel_size, self.kernel_size)
+        if x.ndim == 2:
+            return cv2.GaussianBlur(x, k, sigma)
+        return np.stack([cv2.GaussianBlur(c, k, sigma) for c in x], axis=0)
 
-    def __call__(self, data: dict[str, Any]) -> dict[str, Any]:
-        """
-        Apply vertical patch swapping to the input image.
-        Expects inputs in CHW (C, H, W) or 2D (H, W) format.
-        """
-        if not self.keys_to_transform:
-            return data
-        # Draw one order from the first key and apply it to all listed keys.
-        first = data[self.keys_to_transform[0]]
-        num_patches = (first.shape[-2] + self.patch_height - 1) // self.patch_height
-        permutation = self.rng.permutation(num_patches)
-        for key in self.keys_to_transform:
-            value = data[key]
-            key_num_patches = (value.shape[-2] + self.patch_height - 1) // self.patch_height
-            if key_num_patches != num_patches or value.shape[-2:] != first.shape[-2:]:
-                raise ValueError("All transformed keys must have matching spatial dimensions.")
-            data[key] = self._apply_permutation(value, permutation)
+    def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        do_blur = self._rand() < self.prob
+        sigma = self._uniform(*self.sigma)
+        if do_blur:
+            self._map_keys(data, lambda x: self._blur(x, sigma))
         return data
 
-    def __str__(self) -> str:
-        return f"VerticalPatchSwapTransform(keys_to_transform={self.keys_to_transform}, patch_height={self.patch_height}, seed={self.seed})"
 
-
-# Backwards-compatible names for callers that used the pre-1.0 class names.
+# Shorter aliases for the two requested transforms.
 GaussianBlur = GaussianBlurTransform
 VerticalPatchSwap = VerticalPatchSwapTransform
+
+
+class MultiViewTransform(_Transform):
+    """Create several views of the listed keys, one sub-pipeline per view.
+
+    Each view runs its sub-pipeline on its own deep copy of the keys in
+    ``keys_to_transform``. Within a view the keys share random parameters;
+    across views every view draws fresh parameters, even if two views use the
+    same pipeline. Output keys are named ``{view}_{key}``; the source keys are
+    removed; unlisted keys stay at the top level.
+    """
+
+    def __init__(
+        self,
+        keys_to_transform: List[str],
+        views: Dict[str, _Transform],
+    ):
+        """
+        Parameters
+        ----------
+        keys_to_transform : List[str]
+            Keys copied into each view.
+        views : Dict[str, _Transform]
+            View name to the (sub-)pipeline that builds it. Different
+            pipelines per view give asymmetric augmentation.
+        """
+        self.keys_to_transform = _as_keys(keys_to_transform)
+        self.views = views
+
+    def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        outputs: Dict[str, Any] = {}
+        for view, pipeline in self.views.items():
+            sub = {k: copy.deepcopy(data[k]) for k in self.keys_to_transform}
+            sub = pipeline(sub)
+            for key, value in sub.items():
+                outputs[f"{view}_{key}"] = value
+        for key in self.keys_to_transform:
+            del data[key]
+        data.update(outputs)
+        return data

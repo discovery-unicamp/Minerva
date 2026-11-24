@@ -4,6 +4,7 @@ import lightning as L
 import torch
 from torchmetrics import Metric
 from minerva.models.loaders import LoadableModule
+from minerva.models.batch import get_input, get_input_target
 
 
 class SimpleSupervisedModel(L.LightningModule):
@@ -249,7 +250,7 @@ class SimpleSupervisedModel(L.LightningModule):
         torch.Tensor
             A tensor with the loss value.
         """
-        x, y = batch
+        x, y = get_input_target(batch)
         y_hat = self.forward(x)
         loss = self._loss_func(y_hat, y)
 
@@ -287,7 +288,7 @@ class SimpleSupervisedModel(L.LightningModule):
         return self._single_step(batch, batch_idx, step_name="test")
 
     def predict_step(self, batch, batch_idx, dataloader_idx=None):
-        x, _ = batch
+        x = get_input(batch)
         y_hat = self.forward(x)
         return y_hat
 

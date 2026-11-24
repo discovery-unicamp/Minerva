@@ -7,6 +7,7 @@ from torchmetrics import Accuracy, F1Score, JaccardIndex, Precision, Recall
 from torchvision.models import resnet50, ResNet50_Weights
 from minerva.losses.dice import MultiClassDiceCELoss
 from typing import Any, Callable, Optional, Tuple, Union, List
+from minerva.models.batch import get_input_target
 
 
 class DeepLabV3ResNet50Backbone(nn.Module):
@@ -316,7 +317,7 @@ class LitUNetPlusPlusDeepLabV3(L.LightningModule):
             Index of the current batch.
         """
 
-        imgs, masks = batch
+        imgs, masks = get_input_target(batch)
         preds = self(imgs)
         loss = self.loss_fn(preds, masks)
         self.log("train_loss", loss, prog_bar=True)
@@ -335,7 +336,7 @@ class LitUNetPlusPlusDeepLabV3(L.LightningModule):
             Index of the current batch.
         """
 
-        imgs, masks = batch
+        imgs, masks = get_input_target(batch)
         preds = self(imgs)
         loss = self.loss_fn(preds, masks)
         self.log("val_loss", loss, prog_bar=True)
@@ -354,7 +355,7 @@ class LitUNetPlusPlusDeepLabV3(L.LightningModule):
             Index of the current batch.
         """
 
-        imgs, masks = batch
+        imgs, masks = get_input_target(batch)
         preds = self(imgs)
         if isinstance(preds, list):
             final_preds = preds[-1]

@@ -13,6 +13,7 @@ from minerva.models.nets.time_series.ts_ldm import UNetModel1d
 from minerva.models.loaders import FromPretrained
 
 from typing import Union
+from minerva.models.batch import get_input
 
 
 def exists(val):
@@ -660,7 +661,7 @@ class TSLatentDiffusion(DDPM):
             scale = self.scale_factor
             if self.trainer.is_global_zero:
                 # Handles batches that are just [x] or [x, y]
-                x = batch[0] if isinstance(batch, (list, tuple)) else batch
+                x = get_input(batch)
                 x = x.to(self.device)
                 posterior = self.encode_first_stage(x)
                 z = self.get_first_stage_encoding(posterior).detach()
@@ -731,7 +732,7 @@ class TSLatentDiffusion(DDPM):
         loss_dict : dict
             Dictionary of logged loss values.
         """
-        x = batch[0] if isinstance(batch, (list, tuple)) else batch
+        x = get_input(batch)
 
         # Extract the latent space representation
         encoder_posterior = self.encode_first_stage(x)

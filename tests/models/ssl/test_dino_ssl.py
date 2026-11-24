@@ -364,3 +364,44 @@ def test_dinov3_forward(small_v3_backbone, small_dino_head_v3):
     assert isinstance(loss, torch.Tensor)
     assert torch.isfinite(loss)
     assert isinstance(metrics, dict)
+
+
+def test_dino_wrapper_collate_forward_end_to_end(small_v2_backbone, small_dino_head):
+    """Tuple dataset -> SSLDatasetWrapper(DINOTransform) -> collate -> forward."""
+    from PIL import Image
+    from torch.utils.data import Dataset
+
+    from minerva.data.datasets.wrappers import SSLDatasetWrapper
+
+    class Tuples(Dataset):
+        def __len__(self):
+            return 2
+
+        def __getitem__(self, idx):
+            arr = np.random.randint(0, 256, size=(48, 48, 3), dtype=np.uint8)
+            return Image.fromarray(arr), idx
+
+    model = DINOv2(
+        backbone=small_v2_backbone,
+        learning_rate=1e-3,
+        batch_size=2,
+        epochs=5,
+        iter_per_epoch=10,
+        prediction_head=small_dino_head,
+        crops={
+            "global_crops_size": 32,
+            "local_crops_size": 16,
+            "local_crops_number": 2,
+        },
+        misc={"param_dtype": "fp32"},
+    )
+    model.init_weights()
+
+    dataset = SSLDatasetWrapper(Tuples(), model.default_technique_transforms())
+    sample = dataset[0]
+    assert sample["image_global_crops"].shape[1:] == (3, 32, 32)
+    assert sample["label"] == 0
+
+    batch = model.default_technique_collate_fn()([dataset[0], dataset[1]])
+    loss, _ = model.forward(batch, teacher_temp=0.07)
+    assert torch.isfinite(loss)

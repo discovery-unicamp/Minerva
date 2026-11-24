@@ -9,13 +9,16 @@
 import os
 from enum import Enum
 from io import BytesIO
+from collections import OrderedDict
 from typing import Callable, Optional, Tuple, Union, Literal
 
 import numpy as np
 from PIL import Image
 
-from minerva.data.datasets.base import SimpleDataset
+from minerva.data.datasets.base import MinervaDataset
 from minerva.data.readers.reader import _Reader
+from minerva.transforms.compat import ExternalTransform
+from minerva.transforms.transform import _Transform, _TransformsPipeline
 
 
 class _Split(Enum):
@@ -99,9 +102,12 @@ class _Split(Enum):
         return class_id, actual_index
 
 
-class ImageNet(SimpleDataset):
+class ImageNet(MinervaDataset):
     """
-    ImageNet (ILSVRC 2012) dataset implemented as a Minerva `SimpleDataset`.
+    ImageNet (ILSVRC 2012) dataset implemented as a Minerva `MinervaDataset`.
+
+    Samples are dicts with the keys ``"image"`` (a PIL image) and ``"label"``
+    (an int, or None for the test split).
 
     Parameters
     ----------
@@ -112,9 +118,13 @@ class ImageNet(SimpleDataset):
     extra : str
         Path to the directory containing extra metadata `.npy` entries files.
     transform : callable, optional
-        Transform to apply to input images.
+        Torchvision-style transform applied to the ``"image"`` entry (PIL
+        image in, anything out). Wrapped with ``ExternalTransform``.
     target_transform : callable, optional
-        Transform to apply to class targets.
+        Torchvision-style transform applied to the ``"label"`` entry.
+    transforms : _Transform, optional
+        A dict-in, dict-out transform applied to the whole sample, after
+        ``transform`` and ``target_transform``.
     """
 
     Split = Union[_Split]
@@ -126,14 +136,22 @@ class ImageNet(SimpleDataset):
         extra: str,
         transform: Optional[Callable] = None,
         target_transform: Optional[Callable] = None,
+        transforms: Optional[_Transform] = None,
     ) -> None:
         split = ImageNet.Split(split)
+        steps = []
+        if transform is not None:
+            steps.append(ExternalTransform(["image"], transform))
+        if target_transform is not None:
+            steps.append(ExternalTransform(["label"], target_transform))
+        if transforms is not None:
+            steps.append(transforms)
         super().__init__(
-            readers=[
-                _ImageNetDataReader(root, extra, split),
-                _ImageNetTargetReader(root, extra, split),
-            ],
-            transforms=[transform, target_transform],
+            readers=OrderedDict(
+                image=_ImageNetDataReader(root, extra, split),
+                label=_ImageNetTargetReader(root, extra, split),
+            ),
+            transforms=_TransformsPipeline(steps) if steps else None,
         )
         self.root = root
         self.extra = extra

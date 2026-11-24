@@ -7,6 +7,7 @@ from torch import Tensor
 
 from minerva.losses.xtent_loss import NTXentLoss
 from minerva.optimizers.lars import LARS
+from minerva.models.batch import get_views
 
 
 class SimCLR(L.LightningModule):
@@ -79,7 +80,7 @@ class SimCLR(L.LightningModule):
         Tensor
             Computed loss for the batch.
         """
-        images, _ = batch  # Labels are not used for contrastive loss
+        images = get_views(batch)
         y0, y1 = self.forward(images)
         loss = self.loss(y0, y1)
         return loss
@@ -151,7 +152,7 @@ class SimCLR(L.LightningModule):
         Tensor
             Computed loss for the batch.
         """
-        images, _ = batch
+        images = get_views(batch)
         return self.forward(images)
 
     def configure_optimizers(self) -> torch.optim.Optimizer:
