@@ -1,6 +1,6 @@
 import pytest
 
-from minerva.transforms.split_transform import SplitTransform
+from minerva.transforms import SplitTransform
 
 import numpy as np
 import torch

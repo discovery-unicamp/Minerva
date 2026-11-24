@@ -9,6 +9,7 @@ from minerva.models.nets.base import SimpleSupervisedModel
 from minerva.transforms import (
     MultiViewTransform,
     RandomCropTransform,
+    TransposeTransform,
     _TransformsPipeline,
 )
 
@@ -26,14 +27,20 @@ class _Supervised(Dataset):
 
 class _Views(Dataset):
     def __init__(self):
-        view = _TransformsPipeline([RandomCropTransform(["image"], (8, 8))])
+        # arrays are (H, W, C); the model wants (C, H, W), so transpose last
+        view = _TransformsPipeline(
+            [
+                RandomCropTransform(["image"], (8, 8)),
+                TransposeTransform(["image"], (2, 0, 1)),
+            ]
+        )
         self.transform = MultiViewTransform(["image"], {"view1": view, "view2": view})
 
     def __len__(self):
         return 8
 
     def __getitem__(self, idx):
-        data = {"image": np.random.rand(3, 16, 16).astype(np.float32), "label": idx}
+        data = {"image": np.random.rand(16, 16, 3).astype(np.float32), "label": idx}
         return self.transform(data)
 
 

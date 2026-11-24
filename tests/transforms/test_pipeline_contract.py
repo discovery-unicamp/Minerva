@@ -6,7 +6,6 @@ import torch
 from torch.utils.data import DataLoader, Dataset
 
 from minerva.transforms import (
-    ClassRatioCropTransform,
     CropTransform,
     ExternalTransform,
     FlipTransform,
@@ -20,10 +19,10 @@ from minerva.transforms import (
 
 
 def _sample():
-    image = np.random.rand(3, 32, 32).astype(np.float32)
+    image = np.random.rand(32, 32, 3).astype(np.float32)
     return {
         "image": image,
-        "label": image[0].copy(),
+        "label": image[..., 0].copy(),
         "metadata": {"id": 1},
     }
 
@@ -42,9 +41,6 @@ UNLISTED_PASS_THROUGH = [
 def test_unlisted_keys_pass_through_unchanged(make):
     data = _sample()
     label, metadata = data["label"].copy(), data["metadata"]
-    # ResizeTransform expects HWC; give it that layout
-    if isinstance(make(), ResizeTransform):
-        data["image"] = np.transpose(data["image"], (1, 2, 0))
     out = make()(data)
     np.testing.assert_array_equal(out["label"], label)
     assert out["metadata"] is metadata
@@ -54,19 +50,19 @@ def test_random_params_shared_across_listed_keys():
     t = RandomCropTransform(["image", "label"], (8, 8))
     for _ in range(20):
         out = t(_sample())
-        np.testing.assert_array_equal(out["image"][0], out["label"])
+        np.testing.assert_array_equal(out["image"][..., 0], out["label"])
 
 
 def test_class_ratio_crop_reads_label_and_crops_all_keys():
     label = np.zeros((32, 32), dtype=np.int64)
     label[:, 16:] = 1
-    image = np.broadcast_to(label.astype(np.float32), (3, 32, 32)).copy()
-    t = ClassRatioCropTransform(
-        ["image", "label"], label_key="label", target_size=(16, 16), max_ratio=0.9
+    image = np.repeat(label.astype(np.float32)[..., None], 3, axis=-1)
+    t = RandomCropTransform(
+        ["image", "label"], (16, 16), label_key="label", max_ratio=0.9
     )
     out = t({"image": image, "label": label, "metadata": "m"})
-    assert out["image"].shape == (3, 16, 16) and out["label"].shape == (16, 16)
-    np.testing.assert_array_equal(out["image"][0], out["label"])
+    assert out["image"].shape == (16, 16, 3) and out["label"].shape == (16, 16)
+    np.testing.assert_array_equal(out["image"][..., 0], out["label"])
     assert out["metadata"] == "m"
 
 
@@ -81,7 +77,7 @@ def _views(keys=("image",)):
 
 
 def test_multi_view_output_keys():
-    out = _views()({"image": np.random.rand(1, 32, 32), "metadata": 3})
+    out = _views()({"image": np.random.rand(32, 32, 1), "metadata": 3})
     assert set(out) == {"view1_image", "view2_image", "metadata"}
 
 
@@ -92,7 +88,7 @@ def test_multi_view_views_differ_but_stay_in_sync_within_view():
         out = t(_sample() | {})
         for view in ("view1", "view2"):
             np.testing.assert_array_equal(
-                out[f"{view}_image"][0], out[f"{view}_label"]
+                out[f"{view}_image"][..., 0], out[f"{view}_label"]
             )
         differing += not np.array_equal(out["view1_image"], out["view2_image"])
     assert differing > 0
@@ -121,16 +117,16 @@ class _DictDataset(Dataset):
         return 16
 
     def __getitem__(self, idx):
-        image = np.full((1, 16, 16), idx, dtype=np.float32)
-        image += np.arange(256, dtype=np.float32).reshape(1, 16, 16)
-        return self.transform({"image": image, "label": image[0].copy()})
+        image = np.full((16, 16, 1), idx, dtype=np.float32)
+        image += np.arange(256, dtype=np.float32).reshape(16, 16, 1)
+        return self.transform({"image": image, "label": image[..., 0].copy()})
 
 
 def test_dataloader_with_workers_keeps_image_and_label_in_sync():
     transform = _TransformsPipeline(
         [
             RandomCropTransform(["image", "label"], (8, 8)),
-            RandomFlipTransform(["image", "label"], -1, prob=0.5),
+            RandomFlipTransform(["image", "label"], 1, prob=0.5),  # axis 1 = width for HW and HWC
         ]
     )
     loader = DataLoader(_DictDataset(transform), batch_size=4, num_workers=2)
@@ -138,7 +134,7 @@ def test_dataloader_with_workers_keeps_image_and_label_in_sync():
     for batch in loader:
         assert isinstance(batch, dict)
         np.testing.assert_array_equal(
-            batch["image"][:, 0].numpy(), batch["label"].numpy()
+            batch["image"][..., 0].numpy(), batch["label"].numpy()
         )
         n_batches += 1
     assert n_batches == 4
@@ -167,7 +163,6 @@ import pickle
 
 from minerva.transforms import (
     GaussianBlurTransform,
-    PadCropTransform,
     PerlinMaskerTransform,
     RandomGrayScaleTransform,
     RandomResizeTransform,
@@ -182,8 +177,7 @@ SEEDED = [
     lambda s: RandomRotationTransform(["x"], 40, prob=0.9, seed=s),
     lambda s: RandomResizeTransform(["x"], (10, 10), (0.5, 1.5), seed=s),
     lambda s: GaussianBlurTransform(["x"], 3, seed=s),
-    lambda s: PadCropTransform(["x"], 6, 6, seed=s),
-    lambda s: ClassRatioCropTransform(["x"], "x", (6, 6), seed=s),
+    lambda s: RandomCropTransform(["x"], (6, 6), seed=s, label_key="x", max_ratio=0.5),
 ]
 
 

@@ -96,7 +96,7 @@ def test_dataset_to_trainer_end_to_end():
 def test_dataset_with_multiview_pipeline_gives_view_keys():
     view = _TransformsPipeline([RandomCropTransform(["image"], (2, 2))])
     ds = MinervaDataset(
-        OrderedDict(image=_ArrayReader(np.random.rand(4, 1, 6, 6))),
+        OrderedDict(image=_ArrayReader(np.random.rand(4, 6, 6, 1))),
         _TransformsPipeline([MultiViewTransform(["image"], {"view1": view, "view2": view})]),
     )
     assert set(ds[0]) == {"view1_image", "view2_image"}
