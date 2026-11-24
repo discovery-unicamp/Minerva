@@ -8,6 +8,17 @@ from typing import Any, Dict, List, Union, Tuple, Optional
 from .transform import _as_keys
 
 
+def tfc_augment(transform, x):
+    """Run a TFC transform on one input and return its four tensors.
+
+    ``(x, x_aug, x_freq, x_freq_aug)``. The default :class:`TFCTransform` is
+    used through its ``augment`` method; a custom transform may instead be any
+    callable that takes ``x`` and returns the four tensors.
+    """
+    augment = getattr(transform, "augment", None)
+    return augment(x) if callable(augment) else transform(x)
+
+
 class TFCTransform(_RandomTransform):
     """
     Transformations used in the TFC model.

@@ -214,3 +214,90 @@ def test_random_solarize_float():
     x = np.full((4, 4, 3), 0.8, dtype="float32")
     out = RandomSolarizeTransform(["x"], prob=1.0, seed=0)({"x": x})["x"]
     np.testing.assert_allclose(out, 0.2, atol=1e-6)
+
+
+# ---- round 2 (review feedback) ---------------------------------------------
+def test_resize_keeps_one_channel_axis():
+    from minerva.transforms import RandomResizeTransform, ResizeTransform
+
+    x = np.random.rand(16, 16, 1).astype("float32")
+    assert ResizeTransform(["x"], 8, 8)({"x": x})["x"].shape == (8, 8, 1)
+    assert ResizeTransform(["x"], 8, 8)({"x": x[..., 0]})["x"].shape == (8, 8)
+    out = RandomResizeTransform(["x"], (8, 8), (1.0, 1.0), seed=0)({"x": x})["x"]
+    assert out.shape == (8, 8, 1)
+
+
+def test_random_crop_can_pick_last_legal_position():
+    from minerva.transforms import CropTransform, RandomCropTransform
+
+    base = np.arange(25).reshape(5, 5)
+    t = RandomCropTransform(["x"], (4, 4), seed=0)
+    starts = {int(t({"x": base.copy()})["x"][0, 0]) for _ in range(200)}
+    assert starts == {0, 1, 5, 6}  # offsets (0,0) (0,1) (1,0) (1,1)
+    last = CropTransform(["x"], (4, 4), coords=(1.0, 1.0))({"x": base})["x"]
+    assert last[0, 0] == 6
+
+
+def test_class_ratio_check_does_not_count_padding_as_a_class():
+    from minerva.transforms import RandomCropTransform
+
+    label = np.ones(
+        (2, 4), dtype=np.uint8
+    )  # padded to 4x4, so half the crop is padding
+    # label not cropped itself: padding is ignored, the 8 valid pixels are all class 1
+    t = RandomCropTransform(
+        ["image"], (4, 4), label_key="label", max_ratio=0.75, ignore_index=255, seed=0
+    )
+    assert not t._accepts((0.0, 0.0), label)
+    # label cropped too, constant fill == ignore_index: same answer
+    t2 = RandomCropTransform(
+        ["image", "label"],
+        (4, 4),
+        pad_mode="constant",
+        pad_value=[0, 255],
+        label_key="label",
+        max_ratio=0.75,
+        ignore_index=255,
+        seed=0,
+    )
+    assert not t2._accepts((0.0, 0.0), label)
+
+
+def test_seed_scope_does_not_touch_cuda_rng(monkeypatch):
+    from minerva.transforms import MoCoAugmentationTransform
+
+    def boom(*a, **k):
+        raise AssertionError("torch.manual_seed also reseeds CUDA")
+
+    monkeypatch.setattr(torch, "manual_seed", boom)
+    MoCoAugmentationTransform(["x"], seed=1)({"x": _img()})
+
+
+def test_multiview_nested_keeps_inner_streams_distinct():
+    from minerva.transforms import MultiViewTransform, _TransformsPipeline
+
+    inner = MultiViewTransform(["image"], {"a": _flip_pipe(0), "b": _flip_pipe(0)})
+    outer = MultiViewTransform(
+        ["image"], {"v1": _TransformsPipeline([inner]), "v2": _flip_pipe(0)}
+    )
+    base = np.arange(6, dtype="float32").reshape(1, 6)
+    bits = {k: [] for k in ("v1_a_image", "v1_b_image")}
+    for _ in range(40):
+        out = outer({"image": base.copy()})
+        for k in bits:
+            bits[k].append(int(out[k][0, 0] == 5))
+    assert bits["v1_a_image"] != bits["v1_b_image"]
+
+
+def test_multiview_does_not_reset_the_wrapped_transforms_stream():
+    from minerva.transforms import MultiViewTransform
+
+    base = np.arange(6, dtype="float32").reshape(1, 6)
+
+    def draws(p, n):
+        return [int(p({"image": base.copy()})["image"][0, 0] == 5) for _ in range(n)]
+
+    original, twin = _flip_pipe(0), _flip_pipe(0)
+    draws(original, 3), draws(twin, 3)
+    MultiViewTransform(["image"], {"view1": original, "view2": _flip_pipe(1)})
+    assert draws(original, 20) == draws(twin, 20)  # stream continues, not restarted
