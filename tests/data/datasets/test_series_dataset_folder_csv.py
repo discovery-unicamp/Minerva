@@ -49,7 +49,7 @@ def test_dataset_initialization(sample_data):
     assert isinstance(dataset.features, list)
     assert dataset.label == "class"
     assert dataset.cast_to == "float32"
-    assert dataset.transforms == []
+    assert dataset.transforms is None
 
 
 def test_data_loading(sample_data):
@@ -58,14 +58,15 @@ def test_data_loading(sample_data):
         sample_data, features=["accel-x", "accel-y"], label="class"
     )
 
-    data, label = dataset[0]
-
+    sample = dataset[0]
+    data, label = sample["image"], sample["label"]
     assert isinstance(data, np.ndarray)
     assert isinstance(label, np.ndarray)
     assert data.shape == (2, 3)  # (features, time-steps)
     assert label.shape == (3, 1)  # (time-steps, 1)
 
-    data, label = dataset[1]
+    sample = dataset[1]
+    data, label = sample["image"], sample["label"]
     assert data.shape == (2, 4)  # (features, time-steps)
     assert label.shape == (4, 1)  # (time-steps, 1)
 
@@ -74,15 +75,16 @@ def test_data_loading_single_feature(sample_data):
     """Test that data is correctly loaded and structured."""
     dataset = SeriesFolderCSVDataset(sample_data, features="accel-x", label="class")
 
-    data, label = dataset[0]
-
+    sample = dataset[0]
+    data, label = sample["image"], sample["label"]
     assert isinstance(data, np.ndarray)
     assert isinstance(label, np.ndarray)
     assert data.shape == (1, 3)  # (features, time-steps)
     assert label.shape == (3, 1)  # (time-steps, 1)
     np.testing.assert_allclose(data, np.array([[0.5, 0.68, 0.49]]))
 
-    data, label = dataset[1]
+    sample = dataset[1]
+    data, label = sample["image"], sample["label"]
     assert data.shape == (1, 4)  # (features, time-steps)
     assert label.shape == (4, 1)  # (time-steps, 1)
     np.testing.assert_allclose(data, np.array([[0.5, 0.68, 0.49, 3.14]]))
@@ -94,8 +96,7 @@ def test_data_loading_without_label(sample_data):
         sample_data, features=["accel-x", "accel-y"], label=None
     )
 
-    data = dataset[0]
-
+    data = dataset[0]["image"]
     assert isinstance(data, np.ndarray)
     assert data.shape == (2, 3)  # (features, time-steps)
     np.testing.assert_allclose(data, np.array([[0.5, 0.68, 0.49], [0.02, 0.02, 0.00]]))
@@ -105,8 +106,8 @@ def test_data_loading_without_features(sample_data):
     """Test that data is correctly loaded and structured when no features are specified."""
     dataset = SeriesFolderCSVDataset(sample_data, features=None, label="class")
 
-    data, label = dataset[0]
-
+    sample = dataset[0]
+    data, label = sample["image"], sample["label"]
     assert isinstance(data, np.ndarray)
     assert data.shape == (2, 3)  # (features, time-steps)
     np.testing.assert_allclose(data, np.array([[0.5, 0.68, 0.49], [0.02, 0.02, 0.00]]))
@@ -116,15 +117,14 @@ def test_data_loading_without_features_and_label(sample_data):
     """Test that data is correctly loaded and structured when no features and label are specified."""
     dataset = SeriesFolderCSVDataset(sample_data, features=None, label=None)
 
-    data = dataset[0]
-
+    data = dataset[0]["image"]
     assert isinstance(data, np.ndarray)
     assert data.shape == (3, 3)  # (features, time-steps)
     np.testing.assert_allclose(
         data, np.array([[0.5, 0.68, 0.49], [0.02, 0.02, 0.00], [1, 1, 1]])
     )
 
-    data = dataset[1]
+    data = dataset[1]["image"]
     assert isinstance(data, np.ndarray)
     assert data.shape == (3, 4)  # (features, time-steps)
     np.testing.assert_allclose(
@@ -149,7 +149,8 @@ def test_lazy_loading(sample_data):
     assert dataset._cache is None
 
     # Accessing an item should load data from file
-    data, label = dataset[0]
+    sample = dataset[0]
+    data, label = sample["image"], sample["label"]
     assert data.shape == (2, 3)
     assert label.shape == (3, 1)
 
@@ -161,7 +162,8 @@ def test_padding_functionality(sample_data):
     )
 
     # Shorter sequence (padded to 4 time steps) 3->4 time steps (reflect)
-    data, label = dataset[0]
+    sample = dataset[0]
+    data, label = sample["image"], sample["label"]
     assert data.shape == (2, 4)  # Padded to 4 time steps
     assert label.shape == (4, 1)  # Labels should also be padded
     np.testing.assert_allclose(
@@ -170,7 +172,8 @@ def test_padding_functionality(sample_data):
     np.testing.assert_allclose(label, np.array([[1], [1], [1], [1]]))
 
     # Longer sequence (no padding is needed)
-    data, label = dataset[1]
+    sample = dataset[1]
+    data, label = sample["image"], sample["label"]
     assert data.shape == (2, 4)  # Padded to 4 time steps
     assert label.shape == (4, 1)  # Labels should also be padded
     np.testing.assert_allclose(
@@ -186,8 +189,11 @@ def test_transforms(sample_data):
         def __init__(self, multiplier):
             self.multiplier = multiplier
 
-        def __call__(self, x):
-            return x * self.multiplier
+        keys_to_transform = ["image"]
+
+        def __call__(self, data):
+            data["image"] = data["image"] * self.multiplier
+            return data
 
     dataset = SeriesFolderCSVDataset(
         sample_data,
@@ -196,13 +202,15 @@ def test_transforms(sample_data):
         transforms=[Transform(2)],
     )
 
-    data, label = dataset[0]
+    sample = dataset[0]
+    data, label = sample["image"], sample["label"]
     assert data.shape == (2, 3)  # (features, time-steps)
     np.testing.assert_allclose(
         data, np.array([[0.5, 0.68, 0.49], [0.02, 0.02, 0.00]]) * 2
     )
 
-    data, label = dataset[1]
+    sample = dataset[1]
+    data, label = sample["image"], sample["label"]
     assert data.shape == (2, 4)  # (features, time-steps)
     np.testing.assert_allclose(
         data, np.array([[0.5, 0.68, 0.49, 3.14], [0.02, 0.02, 0.00, 1.41]]) * 2
@@ -216,13 +224,15 @@ def test_transforms(sample_data):
         transforms=Transform(2),
     )
 
-    data, label = dataset[0]
+    sample = dataset[0]
+    data, label = sample["image"], sample["label"]
     assert data.shape == (2, 3)  # (features, time-steps)
     np.testing.assert_allclose(
         data, np.array([[0.5, 0.68, 0.49], [0.02, 0.02, 0.00]]) * 2
     )
 
-    data, label = dataset[1]
+    sample = dataset[1]
+    data, label = sample["image"], sample["label"]
     assert data.shape == (2, 4)  # (features, time-steps)
     np.testing.assert_allclose(
         data, np.array([[0.5, 0.68, 0.49, 3.14], [0.02, 0.02, 0.00, 1.41]]) * 2
@@ -236,13 +246,15 @@ def test_transforms(sample_data):
         transforms=[Transform(2), Transform(3)],
     )
 
-    data, label = dataset[0]
+    sample = dataset[0]
+    data, label = sample["image"], sample["label"]
     assert data.shape == (2, 3)  # (features, time-steps)
     np.testing.assert_allclose(
         data, np.array([[0.5, 0.68, 0.49], [0.02, 0.02, 0.00]]) * 6
     )
 
-    data, label = dataset[1]
+    sample = dataset[1]
+    data, label = sample["image"], sample["label"]
     assert data.shape == (2, 4)  # (features, time-steps)
     np.testing.assert_allclose(
         data, np.array([[0.5, 0.68, 0.49, 3.14], [0.02, 0.02, 0.00, 1.41]]) * 6
@@ -274,3 +286,28 @@ def test_not_directory():
     with NamedTemporaryFile() as tmpfile:
         with pytest.raises(ValueError):
             dataset = SeriesFolderCSVDataset(tmpfile.name)
+
+
+def test_transform_in_place_does_not_corrupt_cached_data(sample_data):
+    """An in-place keyed transform must not change what is cached."""
+
+    class InPlace(_Transform):
+        keys_to_transform = ["image", "label"]
+
+        def __call__(self, data):
+            data["image"][...] = -1
+            data["label"][...] = -1
+            return data
+
+    dataset = SeriesFolderCSVDataset(
+        sample_data,
+        features=["accel-x", "accel-y"],
+        label="class",
+        transforms=InPlace(),
+        lazy=False,
+    )
+    first = dataset[0]
+    second = dataset[0]
+    assert (first["image"] == -1).all() and (second["image"] == -1).all()
+    cached_data, cached_label = dataset._cache[0]
+    assert (cached_data != -1).any() and (cached_label != -1).any()

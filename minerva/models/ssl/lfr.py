@@ -6,10 +6,12 @@ from typing import Optional, Callable
 import numpy as np
 import math
 
-
 # -------------------------------------------------------------------------------------------------
 # This function was extracted from the LFR implementation in
 # https://github.com/layer6ai-labs/lfr/blob/main/utils/dpp.py
+from minerva.models.batch import get_input
+
+
 def dpp(kernel_matrix, max_length, epsilon=1e-10):
     """
     Our proposed fast implementation of the greedy algorithm
@@ -240,8 +242,7 @@ class LearnFromRandomnessModel(L.LightningModule):
         sample_batch = []
         for random_idx in random_idxs:
             random_sample = training_dataset[random_idx]
-            if isinstance(random_sample, (tuple, list)):
-                random_sample = random_sample[0]
+            random_sample = get_input(random_sample)
             sample_batch.append(random_sample)
         sample_batch = np.array(sample_batch)
         sample_batch = torch.from_numpy(sample_batch)
@@ -313,9 +314,7 @@ class LearnFromRandomnessModel(L.LightningModule):
         torch.Tensor
             The loss value for the batch.
         """
-        if isinstance(batch, (tuple, list)):
-            batch = batch[0]
-        x = batch
+        x = get_input(batch)
         y_pred, y_proj = self.forward(x)
         loss = self._loss_from_targets(y_pred=y_pred, y_proj=y_proj)
         self.log(

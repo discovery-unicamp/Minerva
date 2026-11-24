@@ -1,6 +1,6 @@
 from minerva.models.nets.tfc import TFC_Backbone, TFC_PredicionHead, IgnoreWhenBatch1
 import torch
-from minerva.transforms.tfc import TFC_Transforms
+from minerva.transforms.tfc import TFCTransform
 
 
 def test_tfc_backbone_forward_default():
@@ -58,7 +58,7 @@ def test_tfc_prediction_head():
 
 
 def test_transforms_param():
-    transforms = TFC_Transforms()
+    transforms = TFCTransform()
     backbone = TFC_Backbone(
         input_channels=3, TS_length=128, single_encoding_size=128, transform=transforms
     )
@@ -82,7 +82,7 @@ def test_ignore_batch():
 
 
 def test_default_jitter_operations():
-    transforms = TFC_Transforms()
+    transforms = TFCTransform()
     assert (
         transforms.jitter_operation == transforms.proportional_jitter
     ), "Default jitter operation should be proportional_jitter, it is {}".format(
@@ -94,25 +94,25 @@ def test_custom_jitter_operations():
     def custom_jitter(x, ratio):
         return x + ratio
 
-    transforms = TFC_Transforms(jitter_function=custom_jitter)
+    transforms = TFCTransform(jitter_function=custom_jitter)
     assert (
         transforms.jitter_operation == custom_jitter
     ), "Custom jitter operation should be set correctly"
 
 
 def test_default_jitter_ratio():
-    transforms = TFC_Transforms()
-    assert transforms.jitter_ration == 0.08, "Default jitter ratio should be 0.08"
+    transforms = TFCTransform()
+    assert transforms.jitter_ratio == 0.08, "Default jitter ratio should be 0.08"
 
 
 def test_default_params_by_bacbone():
-    transforms = TFC_Transforms()
+    transforms = TFCTransform()
     backbone = TFC_Backbone(
         input_channels=3, TS_length=128, single_encoding_size=128, transform=transforms
     )
     assert backbone is not None
     assert (
-        backbone.transform.jitter_ration == 0.08
+        backbone.transform.jitter_ratio == 0.08
     ), "Default jitter ratio should be 0.08"
     assert (
         backbone.transform.jitter_operation == transforms.proportional_jitter
@@ -125,12 +125,12 @@ def test_custom_params_by_backbone():
     def custom_jitter(x, ratio):
         return x + ratio
 
-    transforms = TFC_Transforms(jitter_ratio=0.1, jitter_function=custom_jitter)
+    transforms = TFCTransform(jitter_ratio=0.1, jitter_function=custom_jitter)
     backbone = TFC_Backbone(
         input_channels=3, TS_length=128, single_encoding_size=128, transform=transforms
     )
     assert backbone is not None
-    assert backbone.transform.jitter_ration == 0.1, "Custom jitter ratio should be 0.1"
+    assert backbone.transform.jitter_ratio == 0.1, "Custom jitter ratio should be 0.1"
     assert (
         backbone.transform.jitter_operation == custom_jitter
     ), "Custom jitter operation should be set correctly"

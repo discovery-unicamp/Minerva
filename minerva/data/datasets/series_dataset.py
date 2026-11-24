@@ -6,7 +6,18 @@ import numpy as np
 import pandas as pd
 from torch.utils.data import Dataset
 
-from minerva.transforms.transform import _Transform
+from minerva.transforms.transform import _Transform, _TransformsPipeline
+
+
+def _as_pipeline(
+    transforms: Optional[Union[_Transform, List[_Transform]]],
+) -> Optional[_Transform]:
+    """Normalize ``transforms`` to a single dict-in, dict-out transform or None."""
+    if transforms is None:
+        return None
+    if isinstance(transforms, (list, tuple)):
+        return _TransformsPipeline(transforms) if len(transforms) else None
+    return transforms
 
 
 class MultiModalSeriesCSVDataset(Dataset):
@@ -19,6 +30,8 @@ class MultiModalSeriesCSVDataset(Dataset):
         cast_to: str = "float32",
         transforms: Optional[Union[_Transform, List[_Transform]]] = None,
         map_labels: Optional[Dict[int, int]] = None,
+        data_key: str = "image",
+        label_key: str = "label",
     ):
         """This datasets assumes that the data is in a single CSV file with
         series of data. Each row is a single sample that can be composed of
@@ -43,8 +56,8 @@ class MultiModalSeriesCSVDataset(Dataset):
         columns will be used as features, except the label column.
         The label column is specified by the ``label`` parameter.
 
-        The dataset will return a 2-element tuple with the data and the label,
-        if the ``label`` parameter is specified, otherwise return only the data.
+        The dataset returns a dict with the data under ``data_key`` and, if the
+        ``label`` parameter is specified, the label under ``label_key``.
 
         If ``features_as_channels`` is ``True``, the data will be returned as a
         vector of shape `(C, T)`, where C is the number of channels (features)
@@ -66,14 +79,18 @@ class MultiModalSeriesCSVDataset(Dataset):
             else the data will be returned as a vector of shape  T*C.
         cast_to: str, optional
             Cast the numpy data to the specified type
-        transforms: Optional[List[Callable]], optional
-            A list of transforms that will be applied to each sample
-            individually. Each transform must be a callable that receives a
-            numpy array and returns a numpy array. The transforms will be
-            applied in the order they are specified.
+        transforms: Optional[_Transform | List[_Transform]], optional
+            Dict-in, dict-out transform(s) applied to each sample, in order.
+            The sample is ``{data_key: data}`` plus ``{label_key: label}`` if
+            a label is specified. A list is wrapped in a
+            ``_TransformsPipeline``.
         map_labels: Optional[Dict[int, int]], optional
             A dictionary to map the labels to a different set of labels. The
             keys are the original labels and the values are the new labels.
+        data_key: str, optional
+            Key of the data in the returned sample dict, by default "image".
+        label_key: str, optional
+            Key of the label in the returned sample dict, by default "label".
 
         Examples
         --------
@@ -117,12 +134,9 @@ class MultiModalSeriesCSVDataset(Dataset):
         self.label = label
         self.cast_to = cast_to
         self.features_as_channels = features_as_channels
-        if transforms is not None:
-            if not isinstance(transforms, list):
-                transforms = [transforms]
-        else:
-            transforms = []
-        self.transforms = transforms
+        self.transforms = _as_pipeline(transforms)
+        self.data_key = data_key
+        self.label_key = label_key
         self.map_labels = map_labels
         self.data, self.labels = self._load_data()
 
@@ -192,19 +206,12 @@ class MultiModalSeriesCSVDataset(Dataset):
     def __len__(self) -> int:
         return len(self.data)
 
-    def __getitem__(
-        self, index: int
-    ) -> Union[Tuple[np.ndarray, np.ndarray], np.ndarray]:
+    def __getitem__(self, index: int) -> Dict[str, np.ndarray]:
         # Get data and apply transforms
-        data = self.data[index]
-        for transform in self.transforms:
-            data = transform(data)
-
-        # Return data and label if specified, else return only the data
+        sample = {self.data_key: self.data[index]}
         if self.label:
-            return data, self.labels[index]  # type: ignore
-        else:
-            return data
+            sample[self.label_key] = self.labels[index]  # type: ignore
+        return self.transforms(sample) if self.transforms is not None else sample
 
     def __str__(self) -> str:
         return f"MultiModalSeriesCSVDataset at {self.data_path} ({len(self)} samples)"
@@ -223,6 +230,8 @@ class SeriesFolderCSVDataset(Dataset):
         cast_to: str = "float32",
         transforms: Optional[Union[_Transform, List[_Transform]]] = None,
         lazy: bool = False,
+        data_key: str = "image",
+        label_key: str = "label",
     ):
         """This dataset assumes that the data is in a folder with multiple CSV
         files. Each CSV file is a single sample that can be composed of
@@ -262,8 +271,8 @@ class SeriesFolderCSVDataset(Dataset):
         The label column is specified by the ``label`` parameter. Note that we
         have one label per time-step and not a single label per sample.
 
-        The dataset will return a 2-element tuple with the data and the label,
-        if the ``label`` parameter is specified, otherwise return only the data.
+        The dataset returns a dict with the data under ``data_key`` and, if the
+        ``label`` parameter is specified, the label under ``label_key``.
 
         Notes
         -----
@@ -305,14 +314,18 @@ class SeriesFolderCSVDataset(Dataset):
             Specify the name of the column with the label of the data
         cast_to: str, optional
             Cast the numpy data to the specified type
-        transforms: Optional[List[Callable]], optional
-            A list of transforms that will be applied to each sample
-            individually. Each transform must be a callable that receives a
-            numpy array and returns a numpy array. The transforms will be
-            applied in the order they are specified.
+        transforms: Optional[_Transform | List[_Transform]], optional
+            Dict-in, dict-out transform(s) applied to each sample, in order.
+            The sample is ``{data_key: data}`` plus ``{label_key: label}`` if
+            a label is specified. A list is wrapped in a
+            ``_TransformsPipeline``.
         lazy: bool, optional
             If True, the data will be loaded lazily (i.e. the CSV files will be
             read only when needed)
+        data_key: str, optional
+            Key of the data in the returned sample dict, by default "image".
+        label_key: str, optional
+            Key of the label in the returned sample dict, by default "label".
         """
         self.data_path = Path(data_path)
         if not self.data_path.exists():
@@ -329,12 +342,9 @@ class SeriesFolderCSVDataset(Dataset):
         self.label = label
         self.pad = pad
         self.cast_to = cast_to
-        if transforms is not None:
-            if not isinstance(transforms, list):
-                transforms = [transforms]
-        else:
-            transforms = []
-        self.transforms = transforms
+        self.transforms = _as_pipeline(transforms)
+        self.data_key = data_key
+        self.label_key = label_key
 
         self._files = self._scan_data()
         if len(self._files) == 0:
@@ -374,7 +384,9 @@ class SeriesFolderCSVDataset(Dataset):
 
         # Iterate
         with self._disable_fix_length():
-            longest_sample_size = max(self[i][0].shape[-1] for i in range(len(self)))
+            longest_sample_size = max(
+                self[i][self.data_key].shape[-1] for i in range(len(self))
+            )
         return longest_sample_size
 
     def _read_csv(self, path: Path) -> Tuple[np.ndarray, Optional[np.ndarray]]:
@@ -457,7 +469,7 @@ class SeriesFolderCSVDataset(Dataset):
         data = np.tile(data, (1, repetitions))[:, : self._longest_sample_size]
         return data
 
-    def __getitem__(self, idx: int) -> Union[Tuple[np.ndarray, np.ndarray], np.ndarray]:
+    def __getitem__(self, idx: int) -> Dict[str, np.ndarray]:
         """Get a single sample from the dataset
 
         Parameters
@@ -467,9 +479,9 @@ class SeriesFolderCSVDataset(Dataset):
 
         Returns
         -------
-        Union[Tuple[np.ndarray, np.ndarray], np.ndarray]
-            A 2-element tuple with the data and the label if the label is
-            specified, otherwise only the data.
+        Dict[str, np.ndarray]
+            The sample dict: the data under ``data_key`` and, if the label is
+            specified, the label under ``label_key``.
         """
         # If the data is not loaded, load it lazily (read the CSV file)
         if self._cache is None:
@@ -477,6 +489,9 @@ class SeriesFolderCSVDataset(Dataset):
         # Else, read from the loaded data
         else:
             data, label = self._cache[idx]
+            # copies: an in-place transform must not change the cache
+            data = np.array(data, copy=True)
+            label = None if label is None else np.array(label, copy=True)
 
         # Pad the data if fix_length is True
         if self.pad:
@@ -486,16 +501,11 @@ class SeriesFolderCSVDataset(Dataset):
                 # dimension is the "time steps"
                 label = self._pad_data(label.T).T
 
-        # Apply transforms
-        for transform in self.transforms:
-            data = transform(data)
-
-        # If label is specified, return the data and the label
+        # Build the sample dict and apply transforms
+        sample = {self.data_key: data}
         if label is not None:
-            return data, label
-        # Else, return only the data
-        else:
-            return data
+            sample[self.label_key] = label
+        return self.transforms(sample) if self.transforms is not None else sample
 
     def __str__(self) -> str:
         return f"SeriesFolderCSVDataset at {self.data_path} ({len(self)} samples)"

@@ -67,19 +67,21 @@ Minerva uses `MinervaDataModule` to allow training and evaluating models, create
 As shown above, this class is instantiated passing the datasets and other configurations.
 The dataset can be any map-style PyTorch dataset, which is a common format for datasets in PyTorch.
 
-Although Minerva supports any map-style dataset, it also provides a custom dataset class called `SimpleDataset` that is designed to be minimal and modular.
-This class is a wrapper around the `torch.utils.data.Dataset` class and allows users to create datasets easily by specifying a list of readers and transformations, as illustrate in the example below.
+Although Minerva supports any map-style dataset, it also provides a custom dataset class called `MinervaDataset` that is designed to be minimal and modular.
+This class is a wrapper around the `torch.utils.data.Dataset` class and allows users to create datasets easily by specifying keyed readers and one transform pipeline, as illustrate in the example below.
 
 ![Dataset and Readers](figures/dataset_readers_2.png)
 
-A Reader can be viewed as a component that loads a single data unit (e.g., an image, label, or time series) from a source (e.g., disk, memory, network, table, table column, numpy array, folder, etc.) in a pre-defined order. In the example above, the `SimpleDataset` class uses two readers: one for loading images (`PNGReader`) and another for the labels (`TiffReader`). Also, each reader can be associated with a transformation (e.g., `ToTensor`, `Normalize`) that is applied to the data unit after it is loaded.
-Once a `__getitem__` method is called, the `SimpleDataset` class will load the data units from the readers in the order specified and apply the transformations to each data unit. Finally, it returns a tuple of the transformed data units.
-Thus, we can instantiate a `SimpleDataset` class by passing a list of readers and transformations, as shown in the example below.
+A Reader can be viewed as a component that loads a single data unit (e.g., an image, label, or time series) from a source (e.g., disk, memory, network, table, table column, numpy array, folder, etc.) in a pre-defined order. In the example above, the `MinervaDataset` class uses two readers: one for loading images (`PNGReader`) and another for the labels (`TiffReader`). Readers are passed in an `OrderedDict`, and each key names the reader's output in the sample.
+Once a `__getitem__` method is called, the `MinervaDataset` class loads the data units from the readers into one flat dict (`{"image": ..., "label": ...}`) and applies **one** transform pipeline to it. Finally, it returns the transformed dict.
+Every transform takes and returns that dict (Minerva 1.0 data pipeline standard). A transform declares the keys it touches in `keys_to_transform`; every other key passes through unchanged. Random transforms draw their parameters once per call and share them across all listed keys, which keeps image and label in sync.
+Thus, we can instantiate a `MinervaDataset` class by passing an `OrderedDict` of readers and a transform pipeline, as shown in the example below.
 
 ```python
-from minerva.data.readers.patched_array_reader import NumpyArrayReader
-from minerva.transforms.transform import Repeat, Squeeze
-from minerva.data.datasets.base import SimpleDataset
+from collections import OrderedDict
+from minerva.data.readers import NumpyArrayReader
+from minerva.transforms import RepeatTransform, _TransformsPipeline
+from minerva.data.datasets import MinervaDataset
 
 root_data_dir = Path("f3/data/")
 
@@ -93,9 +95,11 @@ train_labels_reader = NumpyArrayReader(
     data_shape=(1, 701, 255),
 )
 
-train_dataset = SimpleDataset(
-    readers=[train_data_reader, train_labels_reader],
-    transforms=[Repeat(axis=0, n_repetitions=3), None],
+train_dataset = MinervaDataset(
+    readers=OrderedDict(image=train_data_reader, label=train_labels_reader),
+    transforms=_TransformsPipeline(
+        [RepeatTransform(["image"], axis=0, n_repetitions=3)]
+    ),
 )
 
 print(train_dataset)
@@ -105,32 +109,31 @@ We will get the following output:
 
 ```
 ==================================================
-           📂 SimpleDataset Information            
+           📂 MinervaDataset Information
 ==================================================
-📌 Dataset Type: SimpleDataset
-   └── Reader 0: NumpyArrayReader(samples=401, shape=(1, 701, 255), dtype=float64)
-   │     └── Transform: Repeat(axis=0, n_repetitions=3)
-   └── Reader 1: NumpyArrayReader(samples=401, shape=(1, 701, 255), dtype=uint8)
-   │     └── Transform: None
+📌 Dataset Type: MinervaDataset
+   └── Reader 'image': NumpyArrayReader(samples=401, shape=(1, 701, 255), dtype=float64)
+   └── Reader 'label': NumpyArrayReader(samples=401, shape=(1, 701, 255), dtype=uint8)
    │
+   └── Transforms: _TransformsPipeline(transforms=[RepeatTransform(...)])
    └── Total Readers: 2
 ==================================================
 ```
 
-Thus, in the example above, where we have two readers, the `SimpleDataset` class will load the data units from the first reader (the seismic data) and apply the `Repeat` transformation to it. Then, it will load the data units from the second reader (the labels) without applying any transformation. The resulting dataset will contain tuples of the form `(seismic_data, labels)`. The pseudocode below illustrates how the `SimpleDataset` class works:
+Thus, in the example above, where we have two readers, the `MinervaDataset` class loads the data units from both readers (the seismic data under `"image"` and the labels under `"label"`) and applies the `RepeatTransform` to the `"image"` key only. The resulting dataset contains dicts of the form `{"image": seismic_data, "label": labels}`. The pseudocode below illustrates how the `MinervaDataset` class works:
 
 ```
-1. Load the i-th data unit from first reader
-2. Apply the first list of transformation to the data unit
-3. Load the i-th data unit from second reader
-4. Apply the second list of transformation to the data unit
-5. Return the tuple of the two data units
+1. data = {key: reader[i] for each (key, reader)}
+2. data = transforms(data)    # one pipeline for the whole sample
+3. Return the dict
 ```
 
-> **NOTE**: The `SimpleDataset` class is not mandatory, but it is a good practice to use it for maintainability and flexibility. It allows you to create datasets easily by specifying a list of readers and transformations, making your data pipeline clean and consistent.
+Models read the batch by key (`batch["image"]`, `batch["label"]`; contrastive techniques read `batch["view1_image"]` and `batch["view2_image"]`). Tuple-based PyTorch code interoperates through the `FromTupleDataset` (tuple dataset to dict) and `ToTupleDataset` (dict dataset to `(data, label)`) wrappers.
+
+> **NOTE**: The `MinervaDataset` class is not mandatory, but it is a good practice to use it for maintainability and flexibility. A new task is a new set of readers and transforms, so there is rarely a reason to subclass it.
 
 
-The example above shows how to create a `SimpleDataset` class using two readers, which could be two images, that may be used for training a model for image segmentation, for instance.
+The example above creates a `MinervaDataset` from two readers, which could be two images, that may be used for training a model for image segmentation, for instance.
 However, this is easilly extensible to any other type of data. Minerva provides a set of readers for loading data from different sources, such as:
 - `NumpyArrayReader`: Loads data from a numpy array.
 - `TabularReader`: Loads data from a tabular format with predefined columns, in row-order. 
@@ -138,6 +141,32 @@ However, this is easilly extensible to any other type of data. Minerva provides 
 - `TiffReader`: Loads data from a TIFF file.
 - `PNGReader`: Loads data from a PNG file.
 - Among others.
+
+
+### Transforms
+
+Transforms live in `minerva.transforms` and follow the Minerva 1.0 data pipeline standard:
+
+- Every sample is one flat `dict[str, Any]`; a transform takes a dict and returns a dict.
+- The first constructor argument is `keys_to_transform`. Only those keys are changed; every other key passes through untouched.
+- Random transforms (`RandomFlipTransform`, `RandomCropTransform`, ...) draw their parameters **once per call** and apply them to all listed keys, so an image and its label stay aligned. They accept an optional `seed`: with `seed=None` they use torch's global RNG (which `DataLoader` seeds per worker); with an integer they use a private generator (offset by the worker id) and are reproducible.
+- Arrays use NumPy's layout, which is what the readers return: images are `(H, W)` or `(H, W, C)`, channels last. Spatial transforms (resize, crop, flip, rotate, blur, normalize, ...) work on that layout directly, so nothing needs to be transposed before transforming. Add a `TransposeTransform(['image'], (2, 0, 1))` at the **end** of a pipeline if the model expects channels first.
+- Geometric transforms take a per-key interpolation `mode` (e.g. `mode=["bilinear", "nearest"]` for image and label). Without it, all keys use bilinear interpolation.
+- `MultiViewTransform` runs a separate sub-pipeline per view and writes `{view}_{key}` (e.g. `view1_image`), which is how SSL techniques get independent augmentations. Do not list several view keys on one random transform to get different views. Seeded transforms in different views get distinct random streams automatically, so views built with the same `seed` still differ (and stay reproducible).
+- Generic transforms all live in `minerva.transforms.transform`; technique-specific ones (`DINOTransform`, `TFCTransform`, `MoCoAugmentationTransform`, `ActivityImageTransform`) live next to their technique.
+- One transform per job: `RandomCropTransform` pads when the crop is larger than the input and can pick the position from the label's class ratios (`label_key=`); `TransposeTransform` reorders any axes of arrays or tensors. `PadCropTransform` (now a deterministic centered `CropTransform`), `ClassRatioCropTransform` and `SwapAxesTransform` still work but emit a `FutureWarning` and **will be removed in the next major release**.
+- Pipelines are built with `_TransformsPipeline([...])`. `ExternalTransform(keys, fn)` plugs a third-party callable (torchvision, albumentations) into a pipeline.
+
+```python
+from minerva.transforms import (
+    MultiViewTransform, RandomFlipTransform, RandomResizedCropTransform, _TransformsPipeline,
+)
+
+augment = _TransformsPipeline([
+    RandomResizedCropTransform(["image", "label"], size=(128, 128), mode=["bilinear", "nearest"], seed=0),
+    RandomFlipTransform(["image", "label"], possible_axis=1),  # axis 1 is the width for (H, W, C) and (H, W)
+])
+```
 
 
 ## Models
@@ -186,6 +215,7 @@ Many of these models implement the `SimpleSupervisedModel` interface. While the 
 Minerva also includes a suite of self-supervised learning (SSL) techniques, available in the `minerva.models.ssl` module.
 
 In order to interoperate with Lightning Trainer and other components, all SSL methods are implemented as subclasses of `LightningModule`. Thus, they are all considered models and are compatible with the `MinervaDataModule` class, which is used to load the data for training and evaluation.
+Models read the batch by key through the helpers in `minerva.models.batch` (`get_input`, `get_target`, `get_views`): supervised models use `batch["image"]` and `batch["label"]`, and contrastive techniques (SimCLR, BYOL, SimSiam, BarlowTwins, ...) use `batch["view1_image"]` and `batch["view2_image"]`, which a `MultiViewTransform` produces. Legacy tuple batches are still accepted.
 Wherever possible, SSL models follow a compositional design, allowing users to pass backbone modules during initialization for greater flexibility and reusability, although this is not a strict requirement.
 
 

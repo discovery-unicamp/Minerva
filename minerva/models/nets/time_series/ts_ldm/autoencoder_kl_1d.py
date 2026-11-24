@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import lightning as L
 from typing import Dict, Any
+from minerva.models.batch import get_input
 
 
 def nonlinearity(x):
@@ -826,7 +827,7 @@ class AutoencoderKL1d(L.LightningModule):
             Computed total training loss for optimization.
         """
 
-        x = batch[0] if isinstance(batch, (list, tuple)) else batch
+        x = get_input(batch)
 
         x_rec, posterior = self(x)
 
@@ -854,7 +855,7 @@ class AutoencoderKL1d(L.LightningModule):
             Computed total validation loss.
         """
 
-        x = batch[0] if isinstance(batch, (list, tuple)) else batch
+        x = get_input(batch)
         x_rec, posterior = self(x)
 
         loss, rec_loss, kl_loss, fft_loss = self.get_loss(x, x_rec, posterior)

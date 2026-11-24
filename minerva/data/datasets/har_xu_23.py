@@ -1,5 +1,5 @@
 import os
-from typing import List, Tuple
+from typing import Dict, List, Tuple
 
 import numpy as np
 import torch
@@ -23,8 +23,9 @@ class TNCDataset(Dataset):
         This TNCDataset class is designed to handle time series data for the TNC
         (Temporal Neighborhood Coding) task. It includes methods to load data,
         find close neighbors using ADF testing or cosine similarity, and find
-        distant non-neighbors. The dataset returns a tuple of the central
-        window, close neighbors, and distant non-neighbors for each sample.
+        distant non-neighbors. The dataset returns a dict with the central
+        window (``"anchor"``), close neighbors (``"neighbor"``) and distant
+        non-neighbors (``"non_neighbor"``) for each sample.
 
         The `time_series` input should have the shape
         (n_samples, n_channels, n_timesteps).
@@ -114,7 +115,10 @@ class TNCDataset(Dataset):
         )
 
         # Retrieve a sample from the dataset
-        central_window, close_neighbors, non_neighbors = tnc_dataset[0]
+        sample = tnc_dataset[0]
+        central_window = sample["anchor"]
+        close_neighbors = sample["neighbor"]
+        non_neighbors = sample["non_neighbor"]
 
         print("Central Window Shape:", central_window.shape)  # (window_size,n_channels)
         print("Close Neighbors Shape:", close_neighbors.shape)  # (mc_sample_size,window_size, n_channels, )
@@ -153,8 +157,9 @@ class TNCDataset(Dataset):
 
         Returns
         -------
-        tuple
-            A tuple containing the central window, close neighbors, and distant non-neighbors.
+        dict
+            A dict with the central window (``"anchor"``), close neighbors
+            (``"neighbor"``) and distant non-neighbors (``"non_neighbor"``).
         """
         ind = ind % len(self.time_series)
         t = np.random.randint(2 * self.window_size, self.T - 2 * self.window_size)
@@ -178,7 +183,7 @@ class TNCDataset(Dataset):
             .transpose(-1, -2)
         )
 
-        return x_t, X_close, X_distant
+        return {"anchor": x_t, "neighbor": X_close, "non_neighbor": X_distant}
 
     def _find_neighours(self, x, t):
         """
@@ -386,7 +391,7 @@ class HarDataset(Dataset):
         -------
         __len__() -> int
             Returns the number of samples in the dataset.
-        __getitem__(idx: int) -> Tuple[torch.Tensor, int]
+        __getitem__(idx: int) -> Dict[str, torch.Tensor]
             Retrieves a sample from the dataset.
             - Features shape: [num_timesteps, num_features] if `flatten` is False, otherwise [num_timesteps * num_features].
             - Label shape: Scalar.
@@ -398,7 +403,7 @@ class HarDataset(Dataset):
         >>> len(dataset)
         3178
         >>> sample = dataset[0]
-        >>> features, label = sample
+        >>> features, label = sample["image"], sample["label"]
         >>> features.shape
         torch.Size([128, 6])
         >>> label
@@ -426,7 +431,7 @@ class HarDataset(Dataset):
     def __len__(self):
         return len(self.data)
 
-    def __getitem__(self, idx: int) -> Tuple[torch.Tensor, int]:
+    def __getitem__(self, idx: int) -> Dict[str, torch.Tensor]:
         """
         Get a sample from the dataset.
 
@@ -437,8 +442,8 @@ class HarDataset(Dataset):
 
         Returns
         -------
-        Tuple[torch.Tensor, int]
-            Tuple containing the features and the target label.
+        Dict[str, torch.Tensor]
+            Dict with the features (``"image"``) and the target label (``"label"``).
         """
         data = self.data[idx]
         if self.flatten:
@@ -451,4 +456,4 @@ class HarDataset(Dataset):
         features = torch.FloatTensor(features)
         target = torch.tensor(target, dtype=torch.long)
 
-        return features, target
+        return {"image": features, "label": target}

@@ -9,12 +9,14 @@
 
 import math
 import random
-from typing import Sequence, Tuple
+from typing import Any, Dict, List, Sequence, Tuple
 from torchvision.transforms import v2
 
 import numpy as np
 import torch
 from torch import nn
+
+from .transform import _as_keys, _RandomTransform
 
 
 class GaussianBlur(v2.RandomApply):
@@ -68,12 +70,21 @@ def make_normalize_transform(
 
 
 # TODO Change this to use new Minerva transforms API once it is available
-class DataAugmentationDINO(object):
+class DINOTransform(_RandomTransform):
     """
     Multi-crop data augmentation pipeline for DINO self-supervised learning.
 
+    Called on a dict, each listed key ``k`` is replaced by flat keys holding
+    stacked crops: ``{k}_global_crops`` (n_global, C, H, W),
+    ``{k}_global_crops_teacher`` (n_global, C, H, W), ``{k}_local_crops``
+    (n_local, C, h, w), ``{k}_gram_teacher_crops`` (if enabled) and
+    ``{k}_offsets``. The nested dict of lists consumed by legacy code is
+    returned by :meth:`augment`.
+
     Parameters
     ----------
+    keys_to_transform : List[str]
+        Keys of the raw images to augment.
     global_crops_scale : list of float, default [0.32, 1.0]
         Scale range for global crops.
     local_crops_scale : list of float, default [0.05, 0.32]
@@ -102,10 +113,13 @@ class DataAugmentationDINO(object):
         Normalization RGB mean values.
     std : tuple of float, default IMAGENET_DEFAULT_STD
         Normalization RGB standard deviations.
+    seed : int, optional
+        Seed for reproducible augmentations, by default None (torch's global RNG).
     """
 
     def __init__(
         self,
+        keys_to_transform: List[str],
         global_crops_scale=[0.32, 1.0],
         local_crops_scale=[0.05, 0.32],
         local_crops_number=8,
@@ -120,7 +134,10 @@ class DataAugmentationDINO(object):
         horizontal_flips=True,
         mean=IMAGENET_DEFAULT_MEAN,
         std=IMAGENET_DEFAULT_STD,
+        seed=None,
     ):
+        self._init_rng(seed)
+        self.keys_to_transform = _as_keys(keys_to_transform)
         self.global_crops_scale = global_crops_scale
         self.local_crops_scale = local_crops_scale
         self.local_crops_number = local_crops_number
@@ -267,7 +284,26 @@ class DataAugmentationDINO(object):
                 [color_jittering, local_transfo_extra, self.normalize]
             )
 
-    def __call__(self, image):
+    def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Apply multi-crop augmentations to every listed key (see class docstring)."""
+        for key in self.keys_to_transform:
+            crops = self.augment(data.pop(key))
+            for name in (
+                "global_crops",
+                "global_crops_teacher",
+                "local_crops",
+                "gram_teacher_crops",
+            ):
+                if name in crops:
+                    data[f"{key}_{name}"] = torch.stack(crops[name])
+            data[f"{key}_offsets"] = crops["offsets"]
+        return data
+
+    def augment(self, image):
+        with self._seed_scope():
+            return self._augment(image)
+
+    def _augment(self, image):
         """
         Apply multi-crop augmentations to an input image.
 
@@ -337,10 +373,8 @@ class DataAugmentationDINO(object):
             gs = self.global_crops_size
             ls = self.local_crops_size
             for img in _local_crops:
-                rx, ry = (
-                    np.random.randint(0, (gs - ls) // self.patch_size, 2)
-                    * self.patch_size
-                )
+                rx, ry = torch.randint(0, (gs - ls) // self.patch_size, (2,)).tolist()
+                rx, ry = rx * self.patch_size, ry * self.patch_size
                 local_crops.append(img[:, rx : rx + ls, ry : ry + ls])
                 offsets.append((rx, ry))
 

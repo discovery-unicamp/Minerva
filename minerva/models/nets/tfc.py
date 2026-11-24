@@ -3,7 +3,7 @@ import torch.nn as nn
 from typing import Tuple, Optional
 from typing import Callable
 from minerva.transforms.transform import _Transform
-from minerva.transforms.tfc import TFC_Transforms
+from minerva.transforms.tfc import TFCTransform, tfc_augment
 
 
 class TFC_Backbone(nn.Module):
@@ -80,7 +80,7 @@ class TFC_Backbone(nn.Module):
         - single_encoding_size: int
             The size of the encoding in the latent space of frequency or time domain individually
         - transform: _Transform
-            The transformation to be applied to the input data. If None, a default transformation is applied that includes data augmentation and frequency domain transformation
+            The transformation to be applied to the input data: a `TFCTransform`, or any callable returning the four tensors (x, x_aug, x_freq, x_freq_aug). If None, a default transformation is applied that includes data augmentation and frequency domain transformation
         - time_encoder: Optional[nn.Module]
             The encoder for the time domain. If None, a default encoder is used
         - frequency_encoder: Optional[nn.Module]
@@ -106,7 +106,7 @@ class TFC_Backbone(nn.Module):
         self.transform = transform
 
         if transform is None:
-            self.transform = TFC_Transforms(
+            self.transform = TFCTransform(
                 jitter_ratio=jitter_ratio, jitter_function=jitter_function
             )
 
@@ -163,7 +163,7 @@ class TFC_Backbone(nn.Module):
             A tuple with the features extracted in the time domain and frequency domain, h_time, z_time, h_freq, z_freq respectively
         """
 
-        x_in_t, _, x_in_f, _ = self.transform(x)
+        x_in_t, _, x_in_f, _ = tfc_augment(self.transform, x)
 
         x = self.time_encoder(x_in_t)
         if self.adapter is not None:

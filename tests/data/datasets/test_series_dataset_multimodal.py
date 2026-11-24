@@ -39,7 +39,8 @@ def test_dataset_shape_features_as_channels(sample_csv):
         label="class",
         features_as_channels=True,
     )
-    data, label = dataset[0]
+    sample = dataset[0]
+    data, label = sample["image"], sample["label"]
     assert data.shape == (2, 2)
     assert label == 0
 
@@ -51,7 +52,8 @@ def test_dataset_shape_features_as_vector(sample_csv):
         label="class",
         features_as_channels=False,
     )
-    data, label = dataset[0]
+    sample = dataset[0]
+    data, label = sample["image"], sample["label"]
     assert data.shape == (4,)
     assert label == 0
 
@@ -63,7 +65,7 @@ def test_dataset_without_label(sample_csv):
         label=None,
         features_as_channels=True,
     )
-    data = dataset[0]
+    data = dataset[0]["image"]
     assert data.shape == (2, 2)
 
 
@@ -74,7 +76,7 @@ def test_dataset_without_label_as_vector(sample_csv):
         label=None,
         features_as_channels=False,
     )
-    data = dataset[0]
+    data = dataset[0]["image"]
     assert data.shape == (4,)
 
 
@@ -96,7 +98,8 @@ def test_dataset_with_single_feature(sample_csv):
         label="class",
         features_as_channels=True,
     )
-    data, label = dataset[0]
+    sample = dataset[0]
+    data, label = sample["image"], sample["label"]
     assert data.shape == (1, 1)
     assert label == 0
     np.testing.assert_allclose(data, np.array([[0.502123]]))
@@ -107,7 +110,8 @@ def test_dataset_with_single_feature(sample_csv):
         label="class",
         features_as_channels=True,
     )
-    data, label = dataset[0]
+    sample = dataset[0]
+    data, label = sample["image"], sample["label"]
     assert data.shape == (1, 4)
     assert label == 0
     np.testing.assert_allclose(
@@ -120,7 +124,8 @@ def test_dataset_with_single_feature(sample_csv):
         label="class",
         features_as_channels=True,
     )
-    data, label = dataset[0]
+    sample = dataset[0]
+    data, label = sample["image"], sample["label"]
     assert data.shape == (1, 4)
     assert label == 0
     np.testing.assert_allclose(
@@ -134,7 +139,8 @@ def test_dataset_with_single_feature(sample_csv):
         label="class",
         features_as_channels=False,
     )
-    data, label = dataset[0]
+    sample = dataset[0]
+    data, label = sample["image"], sample["label"]
     assert data.shape == (1,)
     assert label == 0
     np.testing.assert_allclose(data, np.array([0.502123]))
@@ -145,7 +151,8 @@ def test_dataset_with_single_feature(sample_csv):
         label="class",
         features_as_channels=False,
     )
-    data, label = dataset[0]
+    sample = dataset[0]
+    data, label = sample["image"], sample["label"]
     assert data.shape == (4,)
     assert label == 0
     np.testing.assert_allclose(data, np.array([0.502123, 0.02123, 0.502123, 0.502123]))
@@ -156,7 +163,8 @@ def test_dataset_with_single_feature(sample_csv):
         label="class",
         features_as_channels=False,
     )
-    data, label = dataset[0]
+    sample = dataset[0]
+    data, label = sample["image"], sample["label"]
     assert data.shape == (4,)
     assert label == 0
     np.testing.assert_allclose(data, np.array([0.502123, 0.02123, 0.502123, 0.502123]))
@@ -169,7 +177,7 @@ def test_dataset_without_label_and_single_feature(sample_csv):
         label=None,
         features_as_channels=True,
     )
-    data = dataset[0]
+    data = dataset[0]["image"]
     assert data.shape == (1, 1)
     np.testing.assert_allclose(data, np.array([[0.502123]]))
 
@@ -179,7 +187,7 @@ def test_dataset_without_label_and_single_feature(sample_csv):
         label=None,
         features_as_channels=True,
     )
-    data = dataset[0]
+    data = dataset[0]["image"]
     assert data.shape == (1, 4)
     np.testing.assert_allclose(
         data, np.array([[0.502123, 0.02123, 0.502123, 0.502123]])
@@ -191,7 +199,7 @@ def test_dataset_without_label_and_single_feature(sample_csv):
         label=None,
         features_as_channels=True,
     )
-    data = dataset[0]
+    data = dataset[0]["image"]
     assert data.shape == (1, 4)
     np.testing.assert_allclose(
         data, np.array([[0.502123, 0.02123, 0.502123, 0.502123]])
@@ -203,7 +211,7 @@ def test_dataset_without_label_and_single_feature(sample_csv):
         label=None,
         features_as_channels=True,
     )
-    data = dataset[0]
+    data = dataset[0]["image"]
     assert data.shape == (5, 1)
     np.testing.assert_allclose(
         data, np.array([[0.502123], [0.02123], [0.502123], [0.502123], [0]])
@@ -216,7 +224,7 @@ def test_dataset_without_label_and_single_feature(sample_csv):
         label=None,
         features_as_channels=False,
     )
-    data = dataset[0]
+    data = dataset[0]["image"]
     assert data.shape == (1,)
     np.testing.assert_allclose(data, np.array([0.502123]))
 
@@ -226,7 +234,7 @@ def test_dataset_without_label_and_single_feature(sample_csv):
         label=None,
         features_as_channels=False,
     )
-    data = dataset[0]
+    data = dataset[0]["image"]
     assert data.shape == (4,)
     np.testing.assert_allclose(data, np.array([0.502123, 0.02123, 0.502123, 0.502123]))
 
@@ -236,7 +244,7 @@ def test_dataset_without_label_and_single_feature(sample_csv):
         label=None,
         features_as_channels=False,
     )
-    data = dataset[0]
+    data = dataset[0]["image"]
     assert data.shape == (4,)
     np.testing.assert_allclose(data, np.array([0.502123, 0.02123, 0.502123, 0.502123]))
 
@@ -246,7 +254,7 @@ def test_dataset_without_label_and_single_feature(sample_csv):
         label=None,
         features_as_channels=False,
     )
-    data = dataset[0]
+    data = dataset[0]["image"]
     assert data.shape == (5,)
     np.testing.assert_allclose(
         data, np.array([0.502123, 0.02123, 0.502123, 0.502123, 0])
@@ -258,8 +266,11 @@ def test_dataset_with_transform(sample_csv):
         def __init__(self, multiplier: int):
             self.multiplier = multiplier
 
+        keys_to_transform = ["image"]
+
         def __call__(self, data):
-            return data * self.multiplier
+            data["image"] = data["image"] * self.multiplier
+            return data
 
     dataset = MultiModalSeriesCSVDataset(
         data_path=sample_csv,
@@ -268,7 +279,8 @@ def test_dataset_with_transform(sample_csv):
         features_as_channels=True,
         transforms=[Transform(multiplier=2)],
     )
-    data, label = dataset[0]
+    sample = dataset[0]
+    data, label = sample["image"], sample["label"]
     np.testing.assert_allclose(
         data,
         np.array([[0.502123 * 2, 0.02123 * 2], [0.502123 * 2, 0.502123 * 2]]),
@@ -283,7 +295,8 @@ def test_dataset_with_transform(sample_csv):
         features_as_channels=True,
         transforms=Transform(multiplier=2),
     )
-    data, label = dataset[0]
+    sample = dataset[0]
+    data, label = sample["image"], sample["label"]
     np.testing.assert_allclose(
         data,
         np.array([[0.502123 * 2, 0.02123 * 2], [0.502123 * 2, 0.502123 * 2]]),
@@ -298,7 +311,8 @@ def test_dataset_with_transform(sample_csv):
         features_as_channels=True,
         transforms=[Transform(multiplier=2), Transform(multiplier=3)],
     )
-    data, label = dataset[0]
+    sample = dataset[0]
+    data, label = sample["image"], sample["label"]
     np.testing.assert_allclose(
         data,
         np.array([[0.502123 * 6, 0.02123 * 6], [0.502123 * 6, 0.502123 * 6]]),
@@ -315,13 +329,16 @@ def test_dataset_with_map_labels(sample_csv):
         features_as_channels=True,
         map_labels=map_labels,
     )
-    data, label = dataset[0]
+    sample = dataset[0]
+    data, label = sample["image"], sample["label"]
     assert label == 10
 
-    data, label = dataset[1]
+    sample = dataset[1]
+    data, label = sample["image"], sample["label"]
     assert label == 20
 
-    data, label = dataset[2]
+    sample = dataset[2]
+    data, label = sample["image"], sample["label"]
     assert label == 30
 
 
@@ -366,7 +383,7 @@ def test_dataset_with_return_index_as_label(sample_csv):
         features_as_channels=True,
         map_labels={0: 10, 1: 20, 2: 30},
     )
-    labels_from_dataset = dataset[:][1]
+    labels_from_dataset = dataset[:]["label"]
     ground_truth = np.arange(len(dataset))
 
     while sum(abs(labels_from_dataset - ground_truth)) == 0:

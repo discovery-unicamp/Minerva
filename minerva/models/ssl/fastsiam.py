@@ -6,6 +6,7 @@ import lightning as L
 from PIL import Image
 from torchvision import transforms
 from typing import Optional, Any, Callable, Sequence
+from minerva.models.batch import get_input
 
 
 class SimSiamMLPHead(nn.Sequential):
@@ -223,8 +224,7 @@ class FastSiam(L.LightningModule):
 
     def _single_step(self, batch: Any, K: int, log_prefix: str) -> torch.Tensor:
         """Perform a single training, validation, or test step."""
-        images, *_ = batch
-
+        images = get_input(batch)
         # Generate augmented views
         augmented_views = [
             torch.stack([self.ensure_tensor(img)[0] for img in images]).to(self.device)

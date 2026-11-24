@@ -3,6 +3,7 @@ from typing import Optional, Tuple, Any
 from torch import Tensor
 import torch
 import lightning as L
+from minerva.models.batch import get_views
 
 
 class SimSiam(L.LightningModule):
@@ -118,7 +119,7 @@ class SimSiam(L.LightningModule):
         torch.Tensor
             The computed loss for the batch.
         """
-        (x0, x1), _ = batch
+        x0, x1 = get_views(batch)
         z0, p0 = self.forward(x0)
         z1, p1 = self.forward(x1)
         loss = -0.5 * (self.loss_fn(z0, p1).mean() + self.loss_fn(z1, p0).mean())

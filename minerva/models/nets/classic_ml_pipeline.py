@@ -9,6 +9,7 @@ import os
 from minerva.models.loaders import LoadableModule
 from typing import Callable
 import importlib
+from minerva.models.batch import get_input, get_input_target, get_target
 
 
 class ClassicMLModel(L.LightningModule):
@@ -117,16 +118,14 @@ class ClassicMLModel(L.LightningModule):
         if self.current_epoch != 1:
             return self.tensor1
         if self.flatten:
-            features = self.train_data.append(
-                self.backbone(batch[0]).flatten(start_dim=1)
-            )
+            features = self.backbone(get_input(batch)).flatten(start_dim=1)
         else:
-            features = self.backbone(batch[0])
+            features = self.backbone(get_input(batch))
         if self.adapter is not None:
             features = self.adapter(features)
 
         self.train_data.append(features)
-        self.train_y.append(batch[1])
+        self.train_y.append(get_target(batch))
         return self.tensor1
 
     def on_train_epoch_end(self):
@@ -161,21 +160,21 @@ class ClassicMLModel(L.LightningModule):
         if self.current_epoch != 1:
             return self.tensor1
         if self.flatten:
-            features = self.backbone(batch[0]).flatten(start_dim=1)
+            features = self.backbone(get_input(batch)).flatten(start_dim=1)
         else:
-            features = self.backbone(batch[0])
+            features = self.backbone(get_input(batch))
         if self.adapter is not None:
             features = self.adapter(features)
 
         self.val_data.append(features)
-        self.val_y.append(batch[1])
+        self.val_y.append(get_target(batch))
         return self.tensor1
 
     def test_step(self, batch: torch.Tensor, batch_idx: int):
         """
         Test step of the model.
         """
-        x, y = batch
+        x, y = get_input_target(batch)
         y_hat = torch.tensor(self.forward(x)).to(self.device)
         for metric_name, metric in self.test_metrics.items():
             metric_value = metric.to(self.device)(y_hat, y)
@@ -193,7 +192,7 @@ class ClassicMLModel(L.LightningModule):
         """
         Predict step of the model.
         """
-        x, _ = batch
+        x = get_input(batch)
         y_hat = self.forward(x)
         return torch.tensor(y_hat)
 

@@ -4,6 +4,7 @@ from torch import Tensor
 import torch
 import lightning as L
 from minerva.losses.batchwise_barlowtwins_loss import BarlowTwinsLoss
+from minerva.models.batch import get_views
 
 
 class BarlowTwins(L.LightningModule):
@@ -82,7 +83,7 @@ class BarlowTwins(L.LightningModule):
         torch.Tensor
             The computed loss for the batch.
         """
-        (x0, x1), _ = batch
+        x0, x1 = get_views(batch)
         z0 = self.forward(x0)
         z1 = self.forward(x1)
         loss = self.loss_fn(z0, z1)

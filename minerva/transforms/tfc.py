@@ -2,31 +2,61 @@ import numpy as np
 import torch
 import torch.fft as fft
 from torch import nn
-from .transform import _Transform
-from typing import Union, Tuple, Optional
+from .transform import _RandomTransform
+from typing import Any, Dict, List, Union, Tuple, Optional
+
+from .transform import _as_keys
 
 
-class TFC_Transforms(_Transform):
+def tfc_augment(transform, x):
+    """Run a TFC transform on one input and return its four tensors.
+
+    ``(x, x_aug, x_freq, x_freq_aug)``. The default :class:`TFCTransform` is
+    used through its ``augment`` method; a custom transform may instead be any
+    callable that takes ``x`` and returns the four tensors.
+    """
+    augment = getattr(transform, "augment", None)
+    return augment(x) if callable(augment) else transform(x)
+
+
+class TFCTransform(_RandomTransform):
     """
     Transformations used in the TFC model.
     It consists of time and frequency domain data augmentation.
+
+    Called on a dict, each listed key ``k`` is replaced by its float tensor
+    and four-view outputs are written to ``{k}_aug`` (time-domain
+    augmentation), ``{k}_freq`` (frequency version) and ``{k}_freq_aug``
+    (frequency-domain augmentation). The tuple version used by the TFC models
+    is :meth:`augment`.
     """
 
     def __init__(
-        self, jitter_ratio: float = 0.08, jitter_function: Optional[callable] = None
+        self,
+        keys_to_transform: Optional[List[str]] = None,
+        jitter_ratio: float = 0.08,
+        jitter_function: Optional[callable] = None,
+        seed: Optional[int] = None,
     ):
         """
-        Initialize the TFC_Transforms class.
+        Initialize the TFCTransform class.
 
         Parameters
         ----------
+        - keys_to_transform: Optional[List[str]]
+            Keys of the entries to augment when called on a dict. May be
+            omitted when only :meth:`augment` is used.
         - jitter_ratio: float
             The ratio of the jittering transformation. Default is 0.08.
         - jitter_function: Optional[callable]
             A custom jittering function. If None, the default proportional jittering function is used.
+        - seed: Optional[int]
+            Seed for reproducible augmentations, by default None (torch's global RNG).
         """
-        super(TFC_Transforms, self).__init__()
-        self.jitter_ration = jitter_ratio
+        super().__init__()
+        self._init_rng(seed)
+        self.keys_to_transform = _as_keys(keys_to_transform or [])
+        self.jitter_ratio = jitter_ratio
         self.jitter_operation = self.proportional_jitter
         if jitter_function is not None:
             if callable(jitter_function):
@@ -34,7 +64,23 @@ class TFC_Transforms(_Transform):
             else:
                 raise TypeError("The jitter_function must be a callable function")
 
-    def __call__(
+    def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Augment every listed key, see the class docstring for the output keys."""
+        for key in self.keys_to_transform:
+            x, aug, freq, freq_aug = self.augment(data[key])
+            data[key] = x
+            data[f"{key}_aug"] = aug
+            data[f"{key}_freq"] = freq
+            data[f"{key}_freq_aug"] = freq_aug
+        return data
+
+    def augment(
+        self, x: Union[np.ndarray, torch.Tensor], jitter_ratio: Optional[float] = None
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+        with self._seed_scope():
+            return self._augment(x, jitter_ratio)
+
+    def _augment(
         self, x: Union[np.ndarray, torch.Tensor], jitter_ratio: Optional[float] = None
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         """
@@ -64,7 +110,7 @@ class TFC_Transforms(_Transform):
             raise TypeError("The input data must be a numpy array or a torch tensor")
         freq = fft.fft(x).abs()
         y1 = self.DataTransform_TD(
-            x, jitter_ratio=self.jitter_ration if jitter_ratio is None else jitter_ratio
+            x, jitter_ratio=self.jitter_ratio if jitter_ratio is None else jitter_ratio
         )
         y2 = self.DataTransform_FD(freq)
         return (

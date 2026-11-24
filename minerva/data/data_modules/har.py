@@ -12,33 +12,38 @@ from minerva.data.datasets.series_dataset import (
     SeriesFolderCSVDataset,
 )
 from minerva.samplers.domain_sampler import RandomDomainSampler
+from minerva.transforms.transform import _Transform
 from minerva.utils.typing import PathLike
 
 
 def parse_transforms(
-    transforms: Union[List[Callable], Dict[str, List[Callable]]],
-) -> Dict[str, List[Callable]]:
+    transforms: Optional[
+        Union[
+            _Transform, List[_Transform], Dict[str, Union[_Transform, List[_Transform]]]
+        ]
+    ],
+) -> Dict[str, Optional[Union[_Transform, List[_Transform]]]]:
     """Parse the transforms parameter to a dictionary with the split name as
-    key and a list of transforms as value.
+    key and the transform(s) of that split as value. Transforms are dict-in,
+    dict-out (Minerva 1.0): they receive ``{"image": data, "label": label}``.
 
     Parameters
     ----------
-    transforms : Union[List[Callable], Dict[str, List[Callable]]]
+    transforms : _Transform | List[_Transform] | Dict[str, _Transform | List[_Transform]] | None
         This could be:
         - None: No transforms will be applied
-        - List[Callable]: A list of transforms that will be applied to the
+        - _Transform or List[_Transform]: The transform(s) applied to the
             data. The same transforms will be applied to all splits.
-        - Dict[str, List[Callable]]: A dictionary with the split name as
-            key and a list of transforms as value. The split name must be
-            one of: "train", "validation", "test" or "predict".
+        - Dict: A dictionary with the split name as key and a transform or a
+            list of transforms as value. The split name must be one of:
+            "train", "validation", "test" or "predict".
 
     Returns
     -------
-    Dict[str, List[Callable]]
-        A dictionary with the split name as key and a list of transforms as
-        value.
+    Dict[str, _Transform | List[_Transform] | None]
+        A dictionary with the split name as key and the transform(s) as value.
     """
-    if isinstance(transforms, list) or transforms is None:
+    if isinstance(transforms, (list, _Transform)) or transforms is None:
         return {
             "train": transforms,
             "validation": transforms,
@@ -93,7 +98,13 @@ class UserActivityFolderDataModule(L.LightningDataModule):
         ),  # type: ignore
         label: str = "standard activity code",
         pad: bool = False,
-        transforms: Optional[Union[List[Callable], Dict[str, List[Callable]]]] = None,
+        transforms: Optional[
+            Union[
+                _Transform,
+                List[_Transform],
+                Dict[str, Union[_Transform, List[_Transform]]],
+            ]
+        ] = None,
         cast_to: str = "float32",
         # Loader params
         batch_size: int = 1,
@@ -141,8 +152,8 @@ class UserActivityFolderDataModule(L.LightningDataModule):
         The label column is specified by the ``label`` parameter. Note that we
         have one label per time-step and not a single label per sample.
 
-        The dataset will return a 2-element tuple with the data and the label,
-        if the ``label`` parameter is specified, otherwise return only the data.
+        Each sample is a dict with the data under ``"image"`` and, if the
+        ``label`` parameter is specified, the label under ``"label"``.
 
 
         Parameters
@@ -158,10 +169,10 @@ class UserActivityFolderDataModule(L.LightningDataModule):
             and also to the labels if specified.
         label: str, optional
             Specify the name of the column with the label of the data
-        transforms : Union[List[Callable], Dict[str, List[Callable]]], optional
+        transforms : _Transform | List[_Transform] | Dict[str, _Transform | List[_Transform]], optional
             This could be:
             - None: No transforms will be applied
-            - List[Callable]: A list of transforms that will be applied to the
+            - _Transform or List[_Transform]: Dict-in, dict-out transform(s) applied to the
                 data. The same transforms will be applied to all splits.
             - Dict[str, List[Callable]]: A dictionary with the split name as
                 key and a list of transforms as value. The split name must be
@@ -310,7 +321,13 @@ class MultiModalHARSeriesDataModule(L.LightningDataModule):
         ),  # type: ignore
         label: str = "standard activity code",
         features_as_channels: bool = True,
-        transforms: Optional[Union[List[Callable], Dict[str, List[Callable]]]] = None,
+        transforms: Optional[
+            Union[
+                _Transform,
+                List[_Transform],
+                Dict[str, Union[_Transform, List[_Transform]]],
+            ]
+        ] = None,
         cast_to: str = "float32",
         # Loader params
         batch_size: int = 1,
@@ -350,8 +367,8 @@ class MultiModalHARSeriesDataModule(L.LightningDataModule):
         columns will be used as features, except the label column.
         The label column is specified by the ``label`` parameter.
 
-        The dataset will return a 2-element tuple with the data and the label,
-        if the ``label`` parameter is specified, otherwise return only the data.
+        Each sample is a dict with the data under ``"image"`` and, if the
+        ``label`` parameter is specified, the label under ``"label"``.
 
         If ``features_as_channels`` is ``True``, the data will be returned as a
         vector of shape `(C, T)`, where C is the number of channels (features)
@@ -374,10 +391,10 @@ class MultiModalHARSeriesDataModule(L.LightningDataModule):
             else the data will be returned as a vector of shape  T*C.
         cast_to: str, optional
             Cast the numpy data to the specified type
-        transforms : Union[List[Callable], Dict[str, List[Callable]]], optional
+        transforms : _Transform | List[_Transform] | Dict[str, _Transform | List[_Transform]], optional
             This could be:
             - None: No transforms will be applied
-            - List[Callable]: A list of transforms that will be applied to the
+            - _Transform or List[_Transform]: Dict-in, dict-out transform(s) applied to the
                 data. The same transforms will be applied to all splits.
             - Dict[str, List[Callable]]: A dictionary with the split name as
                 key and a list of transforms as value. The split name must be
@@ -514,7 +531,7 @@ class MultiModalHARSeriesDataModule(L.LightningDataModule):
             # Group indices by class (note that are shuffled before!)
             # Thus, each list in class_indices will contain indices of samples (shuffled)
             for idx in dset_indices:
-                label = dataset[idx][1]
+                label = dataset[idx]["label"]
                 class_indices[label].append(idx)
 
             sampled_indices = []

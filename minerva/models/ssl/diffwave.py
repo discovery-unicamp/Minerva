@@ -6,6 +6,7 @@ import torch.nn as nn
 import lightning as L
 from typing import Optional
 from minerva.models.nets.time_series.diffwave import Conv, ZeroConv1d, ResidualGroup
+from minerva.models.batch import get_input_target
 
 
 class DiffWave(L.LightningModule):
@@ -139,7 +140,7 @@ class DiffWave(L.LightningModule):
 
     def training_step(self, batch, batch_idx):
         """Compute and log noise-prediction loss for a signal-label batch."""
-        X, Y = batch
+        X, Y = get_input_target(batch)
         X = X.to(self.device, non_blocking=True)
         Y = Y.to(self.device, non_blocking=True)
         optimizer = self.optimizers()

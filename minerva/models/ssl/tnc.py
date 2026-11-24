@@ -1,5 +1,6 @@
 import lightning as L
 import torch
+from minerva.models.batch import get_many
 
 
 class TNC(L.LightningModule):
@@ -95,8 +96,9 @@ class TNC(L.LightningModule):
             Calculated contrastive loss for the current batch.
         """
         # print(f'batch: {batch}\n batch[0]: {batch[0]}\n batch size: batch.size\n batch[0] shape: {batch[0].shape}\n')
-        x_t, X_close, X_distant = batch
-
+        x_t, X_close, X_distant = get_many(
+            batch, ("anchor", "neighbor", "non_neighbor")
+        )
         # print(x_t.shape)
         batch_size = x_t.size(0)
 
@@ -130,7 +132,9 @@ class TNC(L.LightningModule):
         - val_loss (torch.Tensor):
             Calculated contrastive loss for the current batch.
         """
-        x_t, X_close, X_distant = batch
+        x_t, X_close, X_distant = get_many(
+            batch, ("anchor", "neighbor", "non_neighbor")
+        )
         batch_size = x_t.size(0)
 
         neighbors = torch.ones((batch_size * self.mc_sample_size), device=self.device)

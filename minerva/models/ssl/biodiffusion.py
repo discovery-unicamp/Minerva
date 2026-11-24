@@ -8,6 +8,7 @@ from tqdm import tqdm
 from typing import Optional
 import lightning as L
 from minerva.models.nets.time_series.biodiffusion import Unet1D_cls_free
+from minerva.models.batch import get_input_target
 
 
 class BioDiffusion(L.LightningModule):
@@ -145,7 +146,7 @@ class BioDiffusion(L.LightningModule):
 
     def training_step(self, batch):
         """Train on randomly noised signals using noise-prediction MSE."""
-        inputs, labels = batch
+        inputs, labels = get_input_target(batch)
         bs = inputs.shape[0]
         device = inputs.device
 

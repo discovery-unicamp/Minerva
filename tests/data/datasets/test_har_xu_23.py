@@ -53,7 +53,12 @@ def test_len_tnc_dataset(tnc_dataset):
 
 
 def test_getitem_tnc_dataset(tnc_dataset):
-    central_window, close_neighbors, non_neighbors = tnc_dataset[0]
+    sample = tnc_dataset[0]
+    central_window, close_neighbors, non_neighbors = (
+        sample["anchor"],
+        sample["neighbor"],
+        sample["non_neighbor"],
+    )
     assert central_window.shape == (128, 6)
     assert close_neighbors.shape == (5, 128, 6)
     assert non_neighbors.shape == (5, 128, 6)
@@ -63,13 +68,23 @@ def test_getitem_tnc_dataset_error_correlation(tnc_dataset):
     # this should trick adf test to return a correlation error
     # The data is only zeros, so the correlation is not defined
     tnc_dataset.time_series = np.zeros_like(tnc_dataset.time_series)
-    central_window, close_neighbors, non_neighbors = tnc_dataset[0]
+    sample = tnc_dataset[0]
+    central_window, close_neighbors, non_neighbors = (
+        sample["anchor"],
+        sample["neighbor"],
+        sample["non_neighbor"],
+    )
     assert central_window.shape == (128, 6)
     assert close_neighbors.shape == (5, 128, 6)
     assert non_neighbors.shape == (5, 128, 6)
 
     tnc_dataset.time_series = np.ones_like(tnc_dataset.time_series)
-    central_window, close_neighbors, non_neighbors = tnc_dataset[0]
+    sample = tnc_dataset[0]
+    central_window, close_neighbors, non_neighbors = (
+        sample["anchor"],
+        sample["neighbor"],
+        sample["non_neighbor"],
+    )
     assert central_window.shape == (128, 6)
     assert close_neighbors.shape == (5, 128, 6)
     assert non_neighbors.shape == (5, 128, 6)
@@ -107,7 +122,7 @@ def test_tnc_dataset_identical_samples(tnc_dataset):
     a diverse set of neighbors.
     """
     tnc_dataset.time_series = np.ones_like(tnc_dataset.time_series)
-    _, close_neighbors, _ = tnc_dataset[0]
+    close_neighbors = tnc_dataset[0]["neighbor"]
 
     assert close_neighbors.shape == (5, 128, 6)
     assert not np.allclose(
@@ -148,7 +163,8 @@ def test_len_har_dataset(har_dataset):
 
 
 def test_getitem_har_dataset(har_dataset):
-    features, label = har_dataset[0]
+    sample = har_dataset[0]
+    features, label = sample["image"], sample["label"]
     assert features.shape == (128, 6)
     assert isinstance(label, torch.Tensor)
     assert label.dtype == torch.long
@@ -157,7 +173,8 @@ def test_getitem_har_dataset(har_dataset):
 def test_getitem_har_dataset_flatten(har_dataset_params):
     data_path, annotate = har_dataset_params
     dataset = HarDataset(data_path=data_path, annotate=annotate, flatten=True)
-    features, label = dataset[0]
+    sample = dataset[0]
+    features, label = sample["image"], sample["label"]
     assert features.shape == (128 * 6,)
     assert isinstance(label, torch.Tensor)
     assert label.dtype == torch.long
@@ -189,14 +206,16 @@ def test_har_dataset_different_annotate(har_dataset_params):
     data_path, _ = har_dataset_params
     dataset = HarDataset(data_path=data_path, annotate="val")
     assert len(dataset) == 100
-    features, label = dataset[0]
+    sample = dataset[0]
+    features, label = sample["image"], sample["label"]
     assert features.shape == (128, 6)
     assert isinstance(label, torch.Tensor)
     assert label.dtype == torch.long
 
     dataset = HarDataset(data_path=data_path, annotate="test")
     assert len(dataset) == 100
-    features, label = dataset[0]
+    sample = dataset[0]
+    features, label = sample["image"], sample["label"]
     assert features.shape == (128, 6)
     assert isinstance(label, torch.Tensor)
     assert label.dtype == torch.long

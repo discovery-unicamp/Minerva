@@ -2,7 +2,7 @@ import torch
 from torch import nn
 import lightning as pl
 from typing import List, Tuple, Union, Optional, Dict
-from minerva.transforms.tfc import TFC_Transforms
+from minerva.transforms.tfc import TFCTransform, tfc_augment
 from minerva.models.nets.tfc import TFC_Backbone, TFC_PredicionHead
 from minerva.losses.ntxent_loss_poly import NTXentLoss_poly
 from minerva.transforms.transform import _Transform
@@ -11,6 +11,7 @@ from torch.optim import Optimizer
 from torchmetrics import F1Score, Accuracy
 from minerva.models.loaders import LoadableModule
 from torchmetrics import Metric
+from minerva.models.batch import get_input, get_target
 
 
 class TFC_Model(pl.LightningModule):
@@ -72,7 +73,7 @@ class TFC_Model(pl.LightningModule):
         - learning_rate: float
             The learning rate of the optimizer
         - transform: _Transform
-            The transformation to be applied to the input data. If None, a default transformation is applied that includes data augmentation and frequency domain transformation
+            The transformation to be applied to the input data: a `TFCTransform`, or any callable returning the four tensors (x, x_aug, x_freq, x_freq_aug). If None, a default transformation is applied that includes data augmentation and frequency domain transformation
         - device: str
             The device to be used in the training of the model, default is 'cuda'
         - batch_size: int
@@ -101,7 +102,7 @@ class TFC_Model(pl.LightningModule):
             that the model is not adapted to work with batch size 1.
         - jitter_ratio: float
             The ratio of the jittering transformation. Default is 0.08.
-            This parameter is used in the TFC_Transforms class to apply data augmentation.
+            This parameter is used in the TFCTransform class to apply data augmentation.
         - jitter_function: Optional[callable]
             A custom jittering function. If None, the default proportional jittering function is used.
         """
@@ -176,7 +177,7 @@ class TFC_Model(pl.LightningModule):
         if transform:
             self.transform = transform
         else:
-            self.transform = TFC_Transforms(
+            self.transform = TFCTransform(
                 jitter_ratio=jitter_ratio, jitter_function=jitter_function
             )
 
@@ -265,10 +266,10 @@ class TFC_Model(pl.LightningModule):
         - loss
             The loss of the model in this training step
         """
-        x = batch[0]
+        x = get_input(batch)
         x = x.to(self.device)
-        labels = batch[1]
-        data, aug1, data_f, aug1_f = self.transform(x)
+        labels = get_target(batch)
+        data, aug1, data_f, aug1_f = tfc_augment(self.transform, x)
         if self.pred_head:
             pred = self.forward(data)
             labels = labels.long()
@@ -314,10 +315,10 @@ class TFC_Model(pl.LightningModule):
 
 
         """
-        x = batch[0]
+        x = get_input(batch)
         x = x.to(self.device)
-        labels = batch[1]
-        data, aug1, data_f, aug1_f = self.transform(x)
+        labels = get_target(batch)
+        data, aug1, data_f, aug1_f = tfc_augment(self.transform, x)
         if self.pred_head:
             pred = self.forward(data)
             labels = labels.long()
@@ -364,10 +365,10 @@ class TFC_Model(pl.LightningModule):
 
 
         """
-        x = batch[0]
+        x = get_input(batch)
         x = x.to(self.device)
-        labels = batch[1]
-        data, aug1, data_f, aug1_f = self.transform(x)
+        labels = get_target(batch)
+        data, aug1, data_f, aug1_f = tfc_augment(self.transform, x)
 
         f1, acc = None, None
         if self.pred_head:
@@ -418,9 +419,9 @@ class TFC_Model(pl.LightningModule):
 
 
         """
-        x = batch[0]
+        x = get_input(batch)
         x = x.to(self.device)
-        data, _, data_f, _ = self.transform(x)
+        data, _, data_f, _ = tfc_augment(self.transform, x)
 
         if self.pred_head:
             pred = self.forward(data)
