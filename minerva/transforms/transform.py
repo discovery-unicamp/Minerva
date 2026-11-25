@@ -883,6 +883,9 @@ class NormalizeTransform(_Transform):
 class AmplitudeScalingTransform(_Transform):
     """Multiply each listed signal by a fixed amplitude factor.
 
+    This supports deterministic gain adjustment while preserving the signal's
+    temporal pattern.
+
     List only continuous signal/data keys. Leave categorical labels and masks
     unlisted because multiplying their class IDs changes their meaning.
     """

@@ -154,6 +154,29 @@ Transforms live in `minerva.transforms` and follow the Minerva 1.0 data pipeline
 - `MultiViewTransform` runs a separate sub-pipeline per view and writes `{view}_{key}` (e.g. `view1_image`), which is how SSL techniques get independent augmentations. Do not list several view keys on one random transform to get different views.
 - Pipelines are built with `_TransformsPipeline([...])`. `ExternalTransform(keys, fn)` plugs a third-party callable (torchvision, albumentations) into a pipeline.
 
+Signal and image augmentations use the same keyed contract. `GaussianBlurTransform` changes only the listed image keys; leave masks and categorical labels out. `VerticalPatchSwapTransform` shuffles stripes using one shared order across the listed data and mask keys, which must have matching spatial dimensions. `AmplitudeScalingTransform` applies a fixed scalar, while `RandomAmplitudeScalingTransform` samples one scalar per call. Amplitude scaling changes signal values, so list only continuous data keys and leave masks and class labels out.
+
+```python
+from minerva.transforms import (
+    AmplitudeScalingTransform,
+    GaussianBlurTransform,
+    RandomAmplitudeScalingTransform,
+    VerticalPatchSwapTransform,
+    _TransformsPipeline,
+)
+
+image_pipeline = _TransformsPipeline([
+    GaussianBlurTransform(["image"], kernel_size=5, prob=0.5),
+    RandomAmplitudeScalingTransform(["signal"], scale_range=(0.8, 1.2)),
+])
+segmentation_pipeline = VerticalPatchSwapTransform(
+    ["image", "mask"], patch_height=16
+)
+fixed_signal_transform = AmplitudeScalingTransform(
+    ["signal"], scale_factor=0.9
+)
+```
+
 ```python
 from minerva.transforms import (
     MultiViewTransform, RandomFlipTransform, RandomResizedCropTransform, _TransformsPipeline,

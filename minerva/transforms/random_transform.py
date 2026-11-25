@@ -75,6 +75,9 @@ class RandomFlipTransform(_RandomTransform):
 class RandomAmplitudeScalingTransform(_RandomTransform):
     """Scale listed continuous signals by one random factor per call.
 
+    This simulates variation in sensor gain without changing the timing or
+    shape of the signal pattern.
+
     Categorical masks and labels should be left out of ``keys_to_transform``;
     scaling their integer class values would corrupt their meaning.
     """
@@ -94,7 +97,7 @@ class RandomAmplitudeScalingTransform(_RandomTransform):
             Continuous signal keys to scale. All listed keys share one factor;
             unlisted entries, including masks, pass through unchanged.
         scale_range : Tuple[float, float], optional
-            Inclusive bounds for the uniform factor, by default (0.8, 1.2).
+            Bounds for the uniformly sampled factor, by default (0.8, 1.2).
         prob : float, optional
             Probability of scaling, by default 1.0.
         seed : int, optional
@@ -102,7 +105,9 @@ class RandomAmplitudeScalingTransform(_RandomTransform):
         """
         low, high = scale_range
         if not math.isfinite(low) or not math.isfinite(high) or low < 0 or low > high:
-            raise ValueError("scale_range must be finite, non-negative, and increasing.")
+            raise ValueError(
+                "scale_range must be finite, non-negative, and ordered."
+            )
         if not 0.0 <= prob <= 1.0:
             raise ValueError("prob must be between 0 and 1.")
         self._init_rng(seed)
