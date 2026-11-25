@@ -6,7 +6,6 @@ from typing import Optional, Callable
 import numpy as np
 import math
 
-
 # -------------------------------------------------------------------------------------------------
 # This function was extracted from the LFR implementation in
 # https://github.com/layer6ai-labs/lfr/blob/main/utils/dpp.py
@@ -243,8 +242,7 @@ class LearnFromRandomnessModel(L.LightningModule):
         sample_batch = []
         for random_idx in random_idxs:
             random_sample = training_dataset[random_idx]
-            if isinstance(random_sample, (tuple, list)):
-                random_sample = random_sample[0]
+            random_sample = get_input(random_sample)
             sample_batch.append(random_sample)
         sample_batch = np.array(sample_batch)
         sample_batch = torch.from_numpy(sample_batch)

@@ -18,7 +18,9 @@ from minerva.utils.typing import PathLike
 
 def parse_transforms(
     transforms: Optional[
-        Union[_Transform, List[_Transform], Dict[str, Union[_Transform, List[_Transform]]]]
+        Union[
+            _Transform, List[_Transform], Dict[str, Union[_Transform, List[_Transform]]]
+        ]
     ],
 ) -> Dict[str, Optional[Union[_Transform, List[_Transform]]]]:
     """Parse the transforms parameter to a dictionary with the split name as
@@ -96,7 +98,13 @@ class UserActivityFolderDataModule(L.LightningDataModule):
         ),  # type: ignore
         label: str = "standard activity code",
         pad: bool = False,
-        transforms: Optional[Union[_Transform, List[_Transform], Dict[str, Union[_Transform, List[_Transform]]]]] = None,
+        transforms: Optional[
+            Union[
+                _Transform,
+                List[_Transform],
+                Dict[str, Union[_Transform, List[_Transform]]],
+            ]
+        ] = None,
         cast_to: str = "float32",
         # Loader params
         batch_size: int = 1,
@@ -313,7 +321,13 @@ class MultiModalHARSeriesDataModule(L.LightningDataModule):
         ),  # type: ignore
         label: str = "standard activity code",
         features_as_channels: bool = True,
-        transforms: Optional[Union[_Transform, List[_Transform], Dict[str, Union[_Transform, List[_Transform]]]]] = None,
+        transforms: Optional[
+            Union[
+                _Transform,
+                List[_Transform],
+                Dict[str, Union[_Transform, List[_Transform]]],
+            ]
+        ] = None,
         cast_to: str = "float32",
         # Loader params
         batch_size: int = 1,

@@ -79,7 +79,7 @@ Thus, we can instantiate a `MinervaDataset` class by passing an `OrderedDict` of
 
 ```python
 from collections import OrderedDict
-from minerva.data.readers.patched_array_reader import NumpyArrayReader
+from minerva.data.readers import NumpyArrayReader
 from minerva.transforms import RepeatTransform, _TransformsPipeline
 from minerva.data.datasets import MinervaDataset
 
@@ -150,8 +150,11 @@ Transforms live in `minerva.transforms` and follow the Minerva 1.0 data pipeline
 - Every sample is one flat `dict[str, Any]`; a transform takes a dict and returns a dict.
 - The first constructor argument is `keys_to_transform`. Only those keys are changed; every other key passes through untouched.
 - Random transforms (`RandomFlipTransform`, `RandomCropTransform`, ...) draw their parameters **once per call** and apply them to all listed keys, so an image and its label stay aligned. They accept an optional `seed`: with `seed=None` they use torch's global RNG (which `DataLoader` seeds per worker); with an integer they use a private generator (offset by the worker id) and are reproducible.
+- Arrays use NumPy's layout, which is what the readers return: images are `(H, W)` or `(H, W, C)`, channels last. Spatial transforms (resize, crop, flip, rotate, blur, normalize, ...) work on that layout directly, so nothing needs to be transposed before transforming. Add a `TransposeTransform(['image'], (2, 0, 1))` at the **end** of a pipeline if the model expects channels first.
 - Geometric transforms take a per-key interpolation `mode` (e.g. `mode=["bilinear", "nearest"]` for image and label). Without it, all keys use bilinear interpolation.
-- `MultiViewTransform` runs a separate sub-pipeline per view and writes `{view}_{key}` (e.g. `view1_image`), which is how SSL techniques get independent augmentations. Do not list several view keys on one random transform to get different views.
+- `MultiViewTransform` runs a separate sub-pipeline per view and writes `{view}_{key}` (e.g. `view1_image`), which is how SSL techniques get independent augmentations. Do not list several view keys on one random transform to get different views. Seeded transforms in different views get distinct random streams automatically, so views built with the same `seed` still differ (and stay reproducible).
+- Generic transforms all live in `minerva.transforms.transform`; technique-specific ones (`DINOTransform`, `TFCTransform`, `MoCoAugmentationTransform`, `ActivityImageTransform`) live next to their technique.
+- One transform per job: `RandomCropTransform` pads when the crop is larger than the input and can pick the position from the label's class ratios (`label_key=`); `TransposeTransform` reorders any axes of arrays or tensors. `PadCropTransform` (now a deterministic centered `CropTransform`), `ClassRatioCropTransform` and `SwapAxesTransform` still work but emit a `FutureWarning` and **will be removed in the next major release**.
 - Pipelines are built with `_TransformsPipeline([...])`. `ExternalTransform(keys, fn)` plugs a third-party callable (torchvision, albumentations) into a pipeline.
 
 Signal and image augmentations use the same keyed contract. `GaussianBlurTransform` changes only the listed image keys; leave masks and categorical labels out. `VerticalPatchSwapTransform` shuffles stripes using one shared order across the listed data and mask keys, which must have matching spatial dimensions. `AmplitudeScalingTransform` applies a fixed scalar, while `RandomAmplitudeScalingTransform` samples one scalar per call. Amplitude scaling changes signal values, so list only continuous data keys and leave masks and class labels out.
@@ -184,7 +187,7 @@ from minerva.transforms import (
 
 augment = _TransformsPipeline([
     RandomResizedCropTransform(["image", "label"], size=(128, 128), mode=["bilinear", "nearest"], seed=0),
-    RandomFlipTransform(["image", "label"], possible_axis=-1),
+    RandomFlipTransform(["image", "label"], possible_axis=1),  # axis 1 is the width for (H, W, C) and (H, W)
 ])
 ```
 

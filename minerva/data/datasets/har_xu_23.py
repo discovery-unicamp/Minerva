@@ -23,8 +23,9 @@ class TNCDataset(Dataset):
         This TNCDataset class is designed to handle time series data for the TNC
         (Temporal Neighborhood Coding) task. It includes methods to load data,
         find close neighbors using ADF testing or cosine similarity, and find
-        distant non-neighbors. The dataset returns a tuple of the central
-        window, close neighbors, and distant non-neighbors for each sample.
+        distant non-neighbors. The dataset returns a dict with the central
+        window (``"anchor"``), close neighbors (``"neighbor"``) and distant
+        non-neighbors (``"non_neighbor"``) for each sample.
 
         The `time_series` input should have the shape
         (n_samples, n_channels, n_timesteps).
@@ -114,7 +115,10 @@ class TNCDataset(Dataset):
         )
 
         # Retrieve a sample from the dataset
-        central_window, close_neighbors, non_neighbors = tnc_dataset[0]
+        sample = tnc_dataset[0]
+        central_window = sample["anchor"]
+        close_neighbors = sample["neighbor"]
+        non_neighbors = sample["non_neighbor"]
 
         print("Central Window Shape:", central_window.shape)  # (window_size,n_channels)
         print("Close Neighbors Shape:", close_neighbors.shape)  # (mc_sample_size,window_size, n_channels, )
@@ -399,7 +403,7 @@ class HarDataset(Dataset):
         >>> len(dataset)
         3178
         >>> sample = dataset[0]
-        >>> features, label = sample
+        >>> features, label = sample["image"], sample["label"]
         >>> features.shape
         torch.Size([128, 6])
         >>> label

@@ -17,7 +17,7 @@ from PIL import Image
 
 from minerva.data.datasets.base import MinervaDataset
 from minerva.data.readers.reader import _Reader
-from minerva.transforms.compat import ExternalTransform
+from minerva.transforms import ExternalTransform
 from minerva.transforms.transform import _Transform, _TransformsPipeline
 
 

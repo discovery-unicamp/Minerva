@@ -1,26 +1,16 @@
 from .activity_image import ActivityImageTransform
-from .compat import ExternalTransform
-from .context_transform import ClassRatioCropTransform
 from .dino import DINOTransform
 from .moco_augmentations import MoCoAugmentationTransform
-from .random_transform import (
-    RandomAmplitudeScalingTransform,
-    RandomCropTransform,
-    RandomFlipTransform,
-    RandomGrayScaleTransform,
-    RandomResizedCropTransform,
-    RandomResizeTransform,
-    RandomRotationTransform,
-    RandomSolarizeTransform,
-    RandomVerticalPatchSwapTransform,
-)
-from .split_transform import SplitTransform
 from .tfc import TFCTransform
 from .transform import (
+    _Transform,
+    _TransformsPipeline,
     AmplitudeScalingTransform,
     CastToTransform,
+    ClassRatioCropTransform,
     ColorJitterTransform,
     CropTransform,
+    ExternalTransform,
     FlipTransform,
     GaussianBlurTransform,
     GradientTransform,
@@ -32,19 +22,27 @@ from .transform import (
     PadCropTransform,
     PaddingTransform,
     PerlinMaskerTransform,
+    RandomAmplitudeScalingTransform,
+    RandomCropTransform,
+    RandomFlipTransform,
+    RandomGrayScaleTransform,
+    RandomResizedCropTransform,
+    RandomResizeTransform,
+    RandomRotationTransform,
+    RandomSolarizeTransform,
+    RandomVerticalPatchSwapTransform,
     RepeatTransform,
     ReshapeTransform,
     ResizeTransform,
     RotationTransform,
     SolarizeTransform,
+    SplitTransform,
     SqueezeTransform,
+    SwapAxesTransform,
     TransposeTransform,
     UnsqueezeTransform,
     VerticalPatchSwapTransform,
-    _Transform,
-    _TransformsPipeline,
 )
-from .transpose_transform import SwapAxesTransform
 
 __all__ = [
     "_Transform",
@@ -69,8 +67,8 @@ __all__ = [
     "PadCropTransform",
     "PaddingTransform",
     "PerlinMaskerTransform",
-    "RandomCropTransform",
     "RandomAmplitudeScalingTransform",
+    "RandomCropTransform",
     "RandomFlipTransform",
     "RandomGrayScaleTransform",
     "RandomResizedCropTransform",

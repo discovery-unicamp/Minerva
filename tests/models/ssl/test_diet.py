@@ -219,3 +219,37 @@ def test_diet_with_wrong_linear(num_samples, batch_size):
         match=f"Number of samples\\({num_samples}\\) and output of linear head\\({linear_head.out_features}\\) do not match.",
     ):
         trainer.fit(model=model, datamodule=datamodule)
+
+
+def test_diet_without_linear_head_on_dict_samples():
+    class DictDataset(torch.utils.data.Dataset):
+        def __len__(self):
+            return 20
+
+        def __getitem__(self, idx):
+            return {"image": torch.rand(50), "label": idx}
+
+    model = DIET(
+        backbone=torch.nn.Linear(50, 10),
+        linear_head=None,
+        num_data=None,
+        flatten=True,
+        adapter=None,
+        loss=None,
+        learning_rate=3e-4,
+        weight_decay=3e-4,
+        wca_scheduler_total_epochs=None,
+    )
+    trainer = L.Trainer(
+        max_epochs=1,
+        enable_progress_bar=False,
+        enable_model_summary=False,
+        logger=False,
+        accelerator="cpu",
+        devices=1,
+        enable_checkpointing=False,
+    )
+    trainer.fit(
+        model=model, datamodule=MyDataModule(dataset=DictDataset(), batch_size=4)
+    )
+    assert model.linear_head.in_features == 10

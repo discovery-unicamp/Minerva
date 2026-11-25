@@ -73,7 +73,8 @@ def test_from_tuple_dataset():
 
 def test_ssl_wrapper_bridges_tuple_dataset_to_dict():
     wrapped = SSLDatasetWrapper(
-        _TupleDataset(), _TransformsPipeline([ExternalTransform(["image"], lambda a: a * 2)])
+        _TupleDataset(),
+        _TransformsPipeline([ExternalTransform(["image"], lambda a: a * 2)]),
     )
     sample = wrapped[2]
     np.testing.assert_array_equal(sample["image"], np.full(3, 4))
@@ -96,7 +97,9 @@ def test_dataset_to_trainer_end_to_end():
 def test_dataset_with_multiview_pipeline_gives_view_keys():
     view = _TransformsPipeline([RandomCropTransform(["image"], (2, 2))])
     ds = MinervaDataset(
-        OrderedDict(image=_ArrayReader(np.random.rand(4, 1, 6, 6))),
-        _TransformsPipeline([MultiViewTransform(["image"], {"view1": view, "view2": view})]),
+        OrderedDict(image=_ArrayReader(np.random.rand(4, 6, 6, 1))),
+        _TransformsPipeline(
+            [MultiViewTransform(["image"], {"view1": view, "view2": view})]
+        ),
     )
     assert set(ds[0]) == {"view1_image", "view2_image"}

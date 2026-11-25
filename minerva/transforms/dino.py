@@ -16,7 +16,7 @@ import numpy as np
 import torch
 from torch import nn
 
-from .transform import _as_keys, _Transform
+from .transform import _as_keys, _RandomTransform
 
 
 class GaussianBlur(v2.RandomApply):
@@ -70,7 +70,7 @@ def make_normalize_transform(
 
 
 # TODO Change this to use new Minerva transforms API once it is available
-class DINOTransform(_Transform):
+class DINOTransform(_RandomTransform):
     """
     Multi-crop data augmentation pipeline for DINO self-supervised learning.
 
@@ -113,6 +113,8 @@ class DINOTransform(_Transform):
         Normalization RGB mean values.
     std : tuple of float, default IMAGENET_DEFAULT_STD
         Normalization RGB standard deviations.
+    seed : int, optional
+        Seed for reproducible augmentations, by default None (torch's global RNG).
     """
 
     def __init__(
@@ -132,7 +134,9 @@ class DINOTransform(_Transform):
         horizontal_flips=True,
         mean=IMAGENET_DEFAULT_MEAN,
         std=IMAGENET_DEFAULT_STD,
+        seed=None,
     ):
+        self._init_rng(seed)
         self.keys_to_transform = _as_keys(keys_to_transform)
         self.global_crops_scale = global_crops_scale
         self.local_crops_scale = local_crops_scale
@@ -296,6 +300,10 @@ class DINOTransform(_Transform):
         return data
 
     def augment(self, image):
+        with self._seed_scope():
+            return self._augment(image)
+
+    def _augment(self, image):
         """
         Apply multi-crop augmentations to an input image.
 
@@ -365,9 +373,7 @@ class DINOTransform(_Transform):
             gs = self.global_crops_size
             ls = self.local_crops_size
             for img in _local_crops:
-                rx, ry = (
-                    torch.randint(0, (gs - ls) // self.patch_size, (2,)).tolist()
-                )
+                rx, ry = torch.randint(0, (gs - ls) // self.patch_size, (2,)).tolist()
                 rx, ry = rx * self.patch_size, ry * self.patch_size
                 local_crops.append(img[:, rx : rx + ls, ry : ry + ls])
                 offsets.append((rx, ry))

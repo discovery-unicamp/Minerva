@@ -118,9 +118,7 @@ class ClassicMLModel(L.LightningModule):
         if self.current_epoch != 1:
             return self.tensor1
         if self.flatten:
-            features = self.train_data.append(
-                self.backbone(get_input(batch)).flatten(start_dim=1)
-            )
+            features = self.backbone(get_input(batch)).flatten(start_dim=1)
         else:
             features = self.backbone(get_input(batch))
         if self.adapter is not None:

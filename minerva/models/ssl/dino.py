@@ -2121,9 +2121,7 @@ def _sample_crops(sample, image_key: str) -> Dict[str, Any]:
     if isinstance(sample, dict):
         names = ("global_crops", "local_crops", "gram_teacher_crops")
         return {
-            n: sample[f"{image_key}_{n}"]
-            for n in names
-            if f"{image_key}_{n}" in sample
+            n: sample[f"{image_key}_{n}"] for n in names if f"{image_key}_{n}" in sample
         }
     return sample[0]
 

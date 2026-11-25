@@ -206,9 +206,7 @@ class MultiModalSeriesCSVDataset(Dataset):
     def __len__(self) -> int:
         return len(self.data)
 
-    def __getitem__(
-        self, index: int
-    ) -> Dict[str, np.ndarray]:
+    def __getitem__(self, index: int) -> Dict[str, np.ndarray]:
         # Get data and apply transforms
         sample = {self.data_key: self.data[index]}
         if self.label:
@@ -491,6 +489,9 @@ class SeriesFolderCSVDataset(Dataset):
         # Else, read from the loaded data
         else:
             data, label = self._cache[idx]
+            # copies: an in-place transform must not change the cache
+            data = np.array(data, copy=True)
+            label = None if label is None else np.array(label, copy=True)
 
         # Pad the data if fix_length is True
         if self.pad:
