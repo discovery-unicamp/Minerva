@@ -1092,11 +1092,6 @@ class GaussianBlurTransform(_RandomTransform):
         return data
 
 
-# Shorter aliases for the two requested transforms.
-GaussianBlur = GaussianBlurTransform
-VerticalPatchSwap = VerticalPatchSwapTransform
-
-
 class MultiViewTransform(_Transform):
     """Create several views of the listed keys, one sub-pipeline per view.
 

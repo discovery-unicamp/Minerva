@@ -23,7 +23,6 @@ from .transform import (
     CropTransform,
     FlipTransform,
     GaussianBlurTransform,
-    GaussianBlur,
     GradientTransform,
     GrayScaleTransform,
     IdentityTransform,
@@ -42,7 +41,6 @@ from .transform import (
     TransposeTransform,
     UnsqueezeTransform,
     VerticalPatchSwapTransform,
-    VerticalPatchSwap,
     _Transform,
     _TransformsPipeline,
 )
@@ -61,7 +59,6 @@ __all__ = [
     "ExternalTransform",
     "FlipTransform",
     "GaussianBlurTransform",
-    "GaussianBlur",
     "GradientTransform",
     "GrayScaleTransform",
     "IdentityTransform",
@@ -93,5 +90,4 @@ __all__ = [
     "TransposeTransform",
     "UnsqueezeTransform",
     "VerticalPatchSwapTransform",
-    "VerticalPatchSwap",
 ]
