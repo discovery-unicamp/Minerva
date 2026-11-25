@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 
 from minerva.transforms import (
+    AmplitudeScalingTransform,
     CastToTransform,
     ColorJitterTransform,
     CropTransform,
@@ -97,6 +98,21 @@ def test_normalize():
     x = np.random.rand(1, 10, 20)
     out = NormalizeTransform(["x"], [np.mean(x[0])], [np.std(x[0])])({"x": x.copy()})
     assert np.allclose(out["x"].mean(), 0) and np.allclose(out["x"].std(), 1)
+
+
+def test_amplitude_scaling_scales_listed_signal_and_preserves_mask():
+    signal = np.arange(12, dtype=np.float32).reshape(3, 4)
+    mask = np.array([[0, 1], [2, 255]], dtype=np.uint8)
+    data = {"signal": signal.copy(), "mask": mask.copy(), "metadata": "keep"}
+    out = AmplitudeScalingTransform(["signal"], 2.5)(data)
+    np.testing.assert_array_equal(out["signal"], signal * 2.5)
+    np.testing.assert_array_equal(out["mask"], mask)
+    assert out["metadata"] == "keep"
+
+
+def test_amplitude_scaling_rejects_non_finite_factor():
+    with pytest.raises(ValueError, match="finite"):
+        AmplitudeScalingTransform(["signal"], float("inf"))
 
 
 def test_normalize_does_not_mutate_input_and_skips_unlisted_label():
@@ -238,3 +254,10 @@ def test_vertical_patch_swap_keeps_image_and_mask_in_sync():
     )(data)
     np.testing.assert_array_equal(out["image"][0], out["mask"])
     assert out["extra"] == "unchanged"
+
+
+def test_vertical_patch_swap_rejects_mismatched_spatial_shapes():
+    with pytest.raises(ValueError, match="matching spatial dimensions"):
+        VerticalPatchSwapTransform(
+            ["image", "mask"], patch_height=2, seed=11
+        )({"image": np.zeros((1, 8, 6)), "mask": np.zeros((7, 6))})

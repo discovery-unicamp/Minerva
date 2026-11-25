@@ -4,6 +4,7 @@ from .context_transform import ClassRatioCropTransform
 from .dino import DINOTransform
 from .moco_augmentations import MoCoAugmentationTransform
 from .random_transform import (
+    RandomAmplitudeScalingTransform,
     RandomCropTransform,
     RandomFlipTransform,
     RandomGrayScaleTransform,
@@ -16,6 +17,7 @@ from .random_transform import (
 from .split_transform import SplitTransform
 from .tfc import TFCTransform
 from .transform import (
+    AmplitudeScalingTransform,
     CastToTransform,
     ColorJitterTransform,
     CropTransform,
@@ -50,6 +52,7 @@ __all__ = [
     "_Transform",
     "_TransformsPipeline",
     "ActivityImageTransform",
+    "AmplitudeScalingTransform",
     "CastToTransform",
     "ClassRatioCropTransform",
     "ColorJitterTransform",
@@ -70,6 +73,7 @@ __all__ = [
     "PaddingTransform",
     "PerlinMaskerTransform",
     "RandomCropTransform",
+    "RandomAmplitudeScalingTransform",
     "RandomFlipTransform",
     "RandomGrayScaleTransform",
     "RandomResizedCropTransform",

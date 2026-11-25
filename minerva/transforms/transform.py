@@ -13,6 +13,7 @@ settled in the 1.0 standard (open question 3); do not depend on it.
 """
 
 import copy
+import math
 import os
 from itertools import product
 from typing import (
@@ -879,6 +880,32 @@ class NormalizeTransform(_Transform):
         return self._map_keys(data, self._normalize)
 
 
+class AmplitudeScalingTransform(_Transform):
+    """Multiply each listed signal by a fixed amplitude factor.
+
+    List only continuous signal/data keys. Leave categorical labels and masks
+    unlisted because multiplying their class IDs changes their meaning.
+    """
+
+    def __init__(self, keys_to_transform: List[str], scale_factor: float):
+        """Initialize fixed amplitude scaling.
+
+        Parameters
+        ----------
+        keys_to_transform : List[str]
+            Signal keys to scale. Unlisted entries, including masks, pass through.
+        scale_factor : float
+            Scalar multiplier applied to every listed signal.
+        """
+        if not math.isfinite(scale_factor) or scale_factor < 0:
+            raise ValueError("scale_factor must be finite and non-negative.")
+        self.keys_to_transform = _as_keys(keys_to_transform)
+        self.scale_factor = scale_factor
+
+    def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        return self._map_keys(data, lambda x: x * self.scale_factor)
+
+
 class ReshapeTransform(_Transform):
     """Reshape every listed key."""
 
@@ -1040,9 +1067,12 @@ class GaussianBlurTransform(_RandomTransform):
             Seed for reproducible blurs, by default None.
         """
         self._init_rng(seed)
-        if kernel_size % 2 == 0:
-            raise ValueError("kernel_size must be odd")
-        assert 0.0 <= prob <= 1.0, "prob must be between 0 and 1"
+        if kernel_size <= 0 or kernel_size % 2 == 0:
+            raise ValueError("kernel_size must be a positive odd integer")
+        if not 0.0 <= sigma[0] <= sigma[1]:
+            raise ValueError("sigma must be a non-negative increasing range")
+        if not 0.0 <= prob <= 1.0:
+            raise ValueError("prob must be between 0 and 1")
         self.keys_to_transform = _as_keys(keys_to_transform)
         self.kernel_size = kernel_size
         self.sigma = sigma

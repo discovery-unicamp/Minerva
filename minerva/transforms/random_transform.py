@@ -7,6 +7,7 @@ list several view keys on one random transform to get different augmentations
 per view; use :class:`~minerva.transforms.transform.MultiViewTransform`.
 """
 
+import math
 from typing import Any, Dict, List, Literal, Optional, Sequence, Tuple, Union
 
 import numpy as np
@@ -14,6 +15,7 @@ import torch
 
 from minerva.transforms.transform import (
     CropTransform,
+    AmplitudeScalingTransform,
     FlipTransform,
     GrayScaleTransform,
     ResizeTransform,
@@ -68,6 +70,52 @@ class RandomFlipTransform(_RandomTransform):
         if axis is not None:
             FlipTransform(self.keys_to_transform, axis=axis)(data)
         return data
+
+
+class RandomAmplitudeScalingTransform(_RandomTransform):
+    """Scale listed continuous signals by one random factor per call.
+
+    Categorical masks and labels should be left out of ``keys_to_transform``;
+    scaling their integer class values would corrupt their meaning.
+    """
+
+    def __init__(
+        self,
+        keys_to_transform: List[str],
+        scale_range: Tuple[float, float] = (0.8, 1.2),
+        prob: float = 1.0,
+        seed: Optional[int] = None,
+    ):
+        """Initialize random amplitude scaling.
+
+        Parameters
+        ----------
+        keys_to_transform : List[str]
+            Continuous signal keys to scale. All listed keys share one factor;
+            unlisted entries, including masks, pass through unchanged.
+        scale_range : Tuple[float, float], optional
+            Inclusive bounds for the uniform factor, by default (0.8, 1.2).
+        prob : float, optional
+            Probability of scaling, by default 1.0.
+        seed : int, optional
+            Seed for reproducible draws, by default None (torch's global RNG).
+        """
+        low, high = scale_range
+        if not math.isfinite(low) or not math.isfinite(high) or low < 0 or low > high:
+            raise ValueError("scale_range must be finite, non-negative, and increasing.")
+        if not 0.0 <= prob <= 1.0:
+            raise ValueError("prob must be between 0 and 1.")
+        self._init_rng(seed)
+        self.keys_to_transform = _as_keys(keys_to_transform)
+        self.scale_range = scale_range
+        self.prob = prob
+
+    def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        if self._rand() < self.prob:
+            factor = self._uniform(*self.scale_range)
+            AmplitudeScalingTransform(self.keys_to_transform, factor)(data)
+        return data
+
 
 class RandomCropTransform(_RandomTransform):
     """Crop every listed key at the same random position."""
@@ -370,5 +418,3 @@ class RandomVerticalPatchSwapTransform(_RandomTransform):
                 value, self.patch_height, permutation
             )
         return data
-
-
