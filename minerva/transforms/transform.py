@@ -903,7 +903,7 @@ class AmplitudeScalingTransform(_Transform):
         if not math.isfinite(scale_factor) or scale_factor < 0:
             raise ValueError("scale_factor must be finite and non-negative.")
         self.keys_to_transform = _as_keys(keys_to_transform)
-        self.scale_factor = scale_factor
+        self.scale_factor = float(scale_factor)
 
     def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
         return self._map_keys(data, lambda x: x * self.scale_factor)

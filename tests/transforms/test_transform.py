@@ -115,6 +115,19 @@ def test_amplitude_scaling_rejects_non_finite_factor():
         AmplitudeScalingTransform(["signal"], float("inf"))
 
 
+def test_amplitude_scaling_normalizes_integer_factor_before_multiplication():
+    signal = np.array([20000], dtype=np.int16)
+    integer_factor = AmplitudeScalingTransform(["signal"], 2)({"signal": signal})[
+        "signal"
+    ]
+    float_factor = AmplitudeScalingTransform(["signal"], 2.0)({"signal": signal})[
+        "signal"
+    ]
+
+    np.testing.assert_array_equal(integer_factor, np.array([40000.0]))
+    np.testing.assert_array_equal(integer_factor, float_factor)
+
+
 def test_normalize_does_not_mutate_input_and_skips_unlisted_label():
     image = np.random.rand(1, 5, 5)
     label = np.arange(25, dtype=np.uint8).reshape(1, 5, 5)
