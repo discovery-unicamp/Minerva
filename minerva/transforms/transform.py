@@ -19,6 +19,7 @@ settled in the 1.0 standard (open question 3); do not depend on it.
 
 import contextlib
 import copy
+import math
 import os
 import random
 import warnings
@@ -960,6 +961,80 @@ class NormalizeTransform(_Transform):
         return self._map_keys(data, self._normalize)
 
 
+class AmplitudeScalingTransform(_Transform):
+    """Multiply each listed signal by a fixed amplitude factor.
+
+    This supports deterministic gain adjustment while preserving the signal's
+    temporal pattern.
+
+    List only continuous signal/data keys. Leave categorical labels and masks
+    unlisted because multiplying their class IDs changes their meaning.
+    """
+
+    def __init__(self, keys_to_transform: List[str], scale_factor: float):
+        """Initialize fixed amplitude scaling.
+
+        Parameters
+        ----------
+        keys_to_transform : List[str]
+            Signal keys to scale. Unlisted entries, including masks, pass through.
+        scale_factor : float
+            Scalar multiplier applied to every listed signal.
+        """
+        if not math.isfinite(scale_factor) or scale_factor < 0:
+            raise ValueError("scale_factor must be finite and non-negative.")
+        self.keys_to_transform = _as_keys(keys_to_transform)
+        self.scale_factor = float(scale_factor)
+
+    def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        return self._map_keys(data, lambda x: x * self.scale_factor)
+
+
+class RandomAmplitudeScalingTransform(_RandomTransform):
+    """Scale listed continuous signals by one random factor per call.
+
+    This simulates sensor gain variation without changing signal timing or
+    pattern. Leave categorical labels and masks unlisted.
+    """
+
+    def __init__(
+        self,
+        keys_to_transform: List[str],
+        scale_range: Tuple[float, float] = (0.8, 1.2),
+        prob: float = 1.0,
+        seed: Optional[int] = None,
+    ):
+        """Initialize random amplitude scaling.
+
+        Parameters
+        ----------
+        keys_to_transform : List[str]
+            Continuous signal keys to scale. All listed keys share one factor;
+            unlisted entries, including masks, pass through unchanged.
+        scale_range : Tuple[float, float], optional
+            Bounds for the uniformly sampled factor, by default (0.8, 1.2).
+        prob : float, optional
+            Probability of scaling, by default 1.0.
+        seed : int, optional
+            Seed for reproducible draws, by default None (torch's global RNG).
+        """
+        low, high = scale_range
+        if not math.isfinite(low) or not math.isfinite(high) or low < 0 or low > high:
+            raise ValueError("scale_range must be finite, non-negative, and ordered.")
+        if not 0.0 <= prob <= 1.0:
+            raise ValueError("prob must be between 0 and 1.")
+        self._init_rng(seed)
+        self.keys_to_transform = _as_keys(keys_to_transform)
+        self.scale_range = scale_range
+        self.prob = prob
+
+    def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        if self._rand() < self.prob:
+            factor = self._uniform(*self.scale_range)
+            AmplitudeScalingTransform(self.keys_to_transform, factor)(data)
+        return data
+
+
 class ReshapeTransform(_Transform):
     """Reshape every listed key."""
 
@@ -1029,6 +1104,121 @@ class ResizeTransform(_Transform):
         return data
 
 
+class VerticalPatchSwapTransform(_RandomTransform):
+    """Shuffle horizontal stripes with one shared permutation per call.
+
+    Expects (H, W, C) or (H, W) arrays. Every listed key must have matching
+    spatial dimensions so the same stripe permutation preserves alignment.
+    """
+
+    def __init__(
+        self,
+        keys_to_transform: List[str],
+        patch_height: int = 50,
+        seed: Optional[int] = None,
+    ):
+        """Initialize the vertical patch shuffle.
+
+        Parameters
+        ----------
+        keys_to_transform : List[str]
+            Keys to shuffle together. Unlisted entries pass through unchanged.
+        patch_height : int, optional
+            Height of each horizontal stripe, by default 50.
+        seed : int, optional
+            Seed for reproducible draws, by default None (torch's global RNG).
+        """
+        if patch_height <= 0:
+            raise ValueError("patch_height must be greater than 0.")
+        self._init_rng(seed)
+        self.keys_to_transform = _as_keys(keys_to_transform)
+        self.patch_height = patch_height
+
+    @staticmethod
+    def _apply_permutation(
+        x: np.ndarray, patch_height: int, permutation: np.ndarray
+    ) -> np.ndarray:
+        h = x.shape[0]
+        patches = [
+            x[start : min(start + patch_height, h), ...]
+            for start in range(0, h, patch_height)
+        ]
+        return np.concatenate([patches[int(i)] for i in permutation], axis=0)
+
+    def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        if not self.keys_to_transform:
+            return data
+        first = data[self.keys_to_transform[0]]
+        h, w = first.shape[:2]
+        permutation = torch.randperm(
+            (h + self.patch_height - 1) // self.patch_height,
+            generator=self._rng.generator(),
+        ).numpy()
+        for key in self.keys_to_transform:
+            value = data[key]
+            if value.shape[:2] != (h, w):
+                raise ValueError(
+                    "All transformed keys must have matching spatial dimensions."
+                )
+            data[key] = self._apply_permutation(
+                value, self.patch_height, permutation
+            )
+        return data
+
+
+class RandomVerticalPatchSwapTransform(_RandomTransform):
+    """Shuffle stripes with one shared order when a random decision succeeds."""
+
+    def __init__(
+        self,
+        keys_to_transform: List[str],
+        patch_height: int = 50,
+        prob: float = 0.5,
+        seed: Optional[int] = None,
+    ):
+        """Initialize random vertical patch swapping.
+
+        Parameters
+        ----------
+        keys_to_transform : List[str]
+            Keys to shuffle together. Unlisted entries pass through unchanged.
+        patch_height : int, optional
+            Height of each horizontal stripe, by default 50.
+        prob : float, optional
+            Probability of shuffling, by default 0.5.
+        seed : int, optional
+            Seed for reproducible draws, by default None (torch's global RNG).
+        """
+        if patch_height <= 0:
+            raise ValueError("patch_height must be greater than 0.")
+        if not 0.0 <= prob <= 1.0:
+            raise ValueError("prob must be between 0 and 1.")
+        self._init_rng(seed)
+        self.keys_to_transform = _as_keys(keys_to_transform)
+        self.patch_height = patch_height
+        self.prob = prob
+
+    def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        if self._rand() >= self.prob or not self.keys_to_transform:
+            return data
+        first = data[self.keys_to_transform[0]]
+        height, width = first.shape[:2]
+        permutation = torch.randperm(
+            (height + self.patch_height - 1) // self.patch_height,
+            generator=self._rng.generator(),
+        ).numpy()
+        for key in self.keys_to_transform:
+            value = data[key]
+            if value.shape[:2] != (height, width):
+                raise ValueError(
+                    "All transformed keys must have matching spatial dimensions."
+                )
+            data[key] = VerticalPatchSwapTransform._apply_permutation(
+                value, self.patch_height, permutation
+            )
+        return data
+
+
 class GaussianBlurTransform(_RandomTransform):
     """Gaussian-blur every listed key with one random sigma per call.
 
@@ -1059,9 +1249,12 @@ class GaussianBlurTransform(_RandomTransform):
             Seed for reproducible blurs, by default None.
         """
         self._init_rng(seed)
-        if kernel_size % 2 == 0:
-            raise ValueError("kernel_size must be odd")
-        assert 0.0 <= prob <= 1.0, "prob must be between 0 and 1"
+        if kernel_size <= 0 or kernel_size % 2 == 0:
+            raise ValueError("kernel_size must be a positive odd integer")
+        if not 0.0 <= sigma[0] <= sigma[1]:
+            raise ValueError("sigma must be a non-negative increasing range")
+        if not 0.0 <= prob <= 1.0:
+            raise ValueError("prob must be between 0 and 1")
         self.keys_to_transform = _as_keys(keys_to_transform)
         self.kernel_size = kernel_size
         self.sigma = sigma

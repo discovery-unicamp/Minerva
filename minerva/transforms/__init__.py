@@ -5,6 +5,7 @@ from .tfc import TFCTransform
 from .transform import (
     _Transform,
     _TransformsPipeline,
+    AmplitudeScalingTransform,
     CastToTransform,
     ClassRatioCropTransform,
     ColorJitterTransform,
@@ -21,6 +22,7 @@ from .transform import (
     PadCropTransform,
     PaddingTransform,
     PerlinMaskerTransform,
+    RandomAmplitudeScalingTransform,
     RandomCropTransform,
     RandomFlipTransform,
     RandomGrayScaleTransform,
@@ -28,6 +30,7 @@ from .transform import (
     RandomResizeTransform,
     RandomRotationTransform,
     RandomSolarizeTransform,
+    RandomVerticalPatchSwapTransform,
     RepeatTransform,
     ReshapeTransform,
     ResizeTransform,
@@ -38,12 +41,14 @@ from .transform import (
     SwapAxesTransform,
     TransposeTransform,
     UnsqueezeTransform,
+    VerticalPatchSwapTransform,
 )
 
 __all__ = [
     "_Transform",
     "_TransformsPipeline",
     "ActivityImageTransform",
+    "AmplitudeScalingTransform",
     "CastToTransform",
     "ClassRatioCropTransform",
     "ColorJitterTransform",
@@ -62,6 +67,7 @@ __all__ = [
     "PadCropTransform",
     "PaddingTransform",
     "PerlinMaskerTransform",
+    "RandomAmplitudeScalingTransform",
     "RandomCropTransform",
     "RandomFlipTransform",
     "RandomGrayScaleTransform",
@@ -69,6 +75,7 @@ __all__ = [
     "RandomResizeTransform",
     "RandomRotationTransform",
     "RandomSolarizeTransform",
+    "RandomVerticalPatchSwapTransform",
     "RepeatTransform",
     "ReshapeTransform",
     "ResizeTransform",
@@ -80,4 +87,5 @@ __all__ = [
     "TFCTransform",
     "TransposeTransform",
     "UnsqueezeTransform",
+    "VerticalPatchSwapTransform",
 ]

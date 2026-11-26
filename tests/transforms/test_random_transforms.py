@@ -3,6 +3,7 @@ import pytest
 import torch
 
 from minerva.transforms import (
+    RandomAmplitudeScalingTransform,
     RandomCropTransform,
     RandomFlipTransform,
     RandomGrayScaleTransform,
@@ -11,6 +12,7 @@ from minerva.transforms import (
     RandomRotationTransform,
     RandomSolarizeTransform,
     GaussianBlurTransform,
+    RandomVerticalPatchSwapTransform,
 )
 
 
@@ -21,6 +23,56 @@ def _seg_sample(h=40, w=40):
 
 def _in_sync(out):
     return np.array_equal(out["image"][..., 0], out["label"])
+
+
+def test_random_amplitude_scaling_shares_factor_and_leaves_mask_unchanged():
+    signal = np.arange(12, dtype=np.float32).reshape(3, 4)
+    mask = np.array([[0, 1], [2, 255]], dtype=np.uint8)
+    out = RandomAmplitudeScalingTransform(
+        ["signal_a", "signal_b"], scale_range=(0.5, 1.5), seed=7
+    )(
+        {
+            "signal_a": signal.copy(),
+            "signal_b": (signal * 3).copy(),
+            "mask": mask.copy(),
+        }
+    )
+    np.testing.assert_allclose(out["signal_b"], out["signal_a"] * 3)
+    np.testing.assert_array_equal(out["mask"], mask)
+
+
+def test_random_amplitude_scaling_probability_and_seeded_draws():
+    signal = np.ones((2, 16), dtype=np.float32)
+    skipped = RandomAmplitudeScalingTransform(
+        ["signal"], scale_range=(2.0, 3.0), prob=0.0, seed=4
+    )({"signal": signal.copy()})["signal"]
+    np.testing.assert_array_equal(skipped, signal)
+
+    def draw_sequence():
+        transform = RandomAmplitudeScalingTransform(
+            ["signal"], scale_range=(0.5, 1.5), seed=23
+        )
+        return [transform({"signal": signal.copy()})["signal"] for _ in range(4)]
+
+    first, second = draw_sequence(), draw_sequence()
+    for a, b in zip(first, second):
+        np.testing.assert_array_equal(a, b)
+    factors = [float(x[0, 0]) for x in first]
+    assert all(0.5 <= factor <= 1.5 for factor in factors)
+    assert len(set(factors)) > 1
+
+
+@pytest.mark.parametrize(
+    "kwargs",
+    [
+        {"scale_range": (-0.1, 1.0)},
+        {"scale_range": (1.2, 1.0)},
+        {"prob": 1.1},
+    ],
+)
+def test_random_amplitude_scaling_rejects_invalid_parameters(kwargs):
+    with pytest.raises(ValueError):
+        RandomAmplitudeScalingTransform(["signal"], **kwargs)
 
 
 def test_random_flip_prob_extremes():
@@ -134,3 +186,76 @@ def test_gaussian_blur():
     )
     with pytest.raises(ValueError):
         GaussianBlurTransform(["x"], kernel_size=4)
+
+
+def test_gaussian_blur_only_changes_listed_data_key_and_shares_sigma():
+    image = np.random.default_rng(5).random((1, 24, 24), dtype=np.float32)
+    mask = image[0].copy()
+    data = {"image": image.copy(), "mask": mask.copy(), "metadata": "keep"}
+    out = GaussianBlurTransform(["image"], 5, prob=1.0, seed=9)(data)
+    assert not np.array_equal(out["image"], image)
+    np.testing.assert_array_equal(out["mask"], mask)
+    assert out["metadata"] == "keep"
+
+    paired = GaussianBlurTransform(["image", "mask"], 5, prob=1.0, seed=9)(
+        {"image": image.copy(), "mask": mask.copy()}
+    )
+    np.testing.assert_array_equal(paired["image"][0], paired["mask"])
+
+
+def test_gaussian_blur_random_draws_repeat_with_seed_and_change_across_calls():
+    image = np.zeros((1, 25, 25), dtype=np.float32)
+    image[:, 12, 12] = 1.0
+
+    def run_sequence():
+        transform = GaussianBlurTransform(["image"], 9, sigma=(0.1, 3.0), seed=17)
+        return [transform({"image": image.copy()})["image"] for _ in range(4)]
+
+    first, second = run_sequence(), run_sequence()
+    for a, b in zip(first, second):
+        np.testing.assert_array_equal(a, b)
+    assert any(not np.array_equal(first[0], result) for result in first[1:])
+
+
+def test_random_vertical_patch_swap_keeps_image_and_label_in_sync():
+    label = np.arange(8 * 6, dtype=np.float32).reshape(8, 6)
+    data = {"image": label[None].copy(), "label": label.copy(), "meta": "keep"}
+    out = RandomVerticalPatchSwapTransform(
+        ["image", "label"], patch_height=2, prob=1.0, seed=42
+    )(data)
+    np.testing.assert_array_equal(out["image"][0], out["label"])
+    assert out["meta"] == "keep"
+
+
+def test_random_vertical_patch_swap_prob_zero_is_identity():
+    image = np.arange(8 * 6).reshape(1, 8, 6)
+    label = image[0].copy()
+    out = RandomVerticalPatchSwapTransform(
+        ["image", "label"], patch_height=2, prob=0.0
+    )({"image": image.copy(), "label": label.copy()})
+    np.testing.assert_array_equal(out["image"], image)
+    np.testing.assert_array_equal(out["label"], label)
+
+
+def test_random_vertical_patch_swap_changes_per_call_and_repeats_with_seed():
+    image = np.arange(12 * 4).reshape(1, 12, 4)
+    transform = RandomVerticalPatchSwapTransform(
+        ["image"], patch_height=3, prob=1.0, seed=41
+    )
+    outputs = [transform({"image": image.copy()})["image"] for _ in range(3)]
+    assert any(not np.array_equal(outputs[0], output) for output in outputs[1:])
+
+    repeated = RandomVerticalPatchSwapTransform(
+        ["image"], patch_height=3, prob=1.0, seed=41
+    )
+    for expected in outputs:
+        np.testing.assert_array_equal(
+            repeated({"image": image.copy()})["image"], expected
+        )
+
+
+def test_random_vertical_patch_swap_rejects_mismatched_spatial_shapes():
+    with pytest.raises(ValueError, match="matching spatial dimensions"):
+        RandomVerticalPatchSwapTransform(
+            ["image", "label"], patch_height=2, prob=1.0, seed=2
+        )({"image": np.zeros((1, 8, 6)), "label": np.zeros((7, 6))})
