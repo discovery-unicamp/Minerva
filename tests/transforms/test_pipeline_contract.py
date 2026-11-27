@@ -165,6 +165,7 @@ import pickle
 
 from minerva.transforms import (
     GaussianBlurTransform,
+    RandomGaussianBlurTransform,
     PerlinMaskerTransform,
     RandomGrayScaleTransform,
     RandomResizeTransform,
@@ -178,7 +179,7 @@ SEEDED = [
     lambda s: RandomResizedCropTransform(["x"], (6, 6), seed=s),
     lambda s: RandomRotationTransform(["x"], 40, prob=0.9, seed=s),
     lambda s: RandomResizeTransform(["x"], (10, 10), (0.5, 1.5), seed=s),
-    lambda s: GaussianBlurTransform(["x"], 3, seed=s),
+    lambda s: RandomGaussianBlurTransform(["x"], 3, seed=s),
     lambda s: RandomCropTransform(["x"], (6, 6), seed=s, label_key="x", max_ratio=0.5),
 ]
 

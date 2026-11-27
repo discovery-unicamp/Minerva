@@ -272,11 +272,15 @@ def test_random_crop_pads_when_too_small_and_shares_position():
 
 def test_vertical_patch_swap_keeps_image_and_mask_in_sync():
     mask = np.arange(9 * 6, dtype=np.float32).reshape(9, 6)
-    data = {"image": mask[None].copy(), "mask": mask.copy(), "extra": "unchanged"}
+    data = {
+        "image": mask[..., None].copy(),
+        "mask": mask.copy(),
+        "extra": "unchanged",
+    }
     out = VerticalPatchSwapTransform(
         ["image", "mask"], patch_height=4, seed=11
     )(data)
-    np.testing.assert_array_equal(out["image"][0], out["mask"])
+    np.testing.assert_array_equal(out["image"][..., 0], out["mask"])
     assert out["extra"] == "unchanged"
 
 

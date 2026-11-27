@@ -1219,20 +1219,18 @@ class RandomVerticalPatchSwapTransform(_RandomTransform):
         return data
 
 
-class GaussianBlurTransform(_RandomTransform):
-    """Gaussian-blur every listed key with one random sigma per call.
+class GaussianBlurTransform(_Transform):
+    """Apply a Gaussian blur with a fixed sigma to every listed image key.
 
-    Expects (H, W) or (H, W, C) arrays. The decision to blur and the sigma
-    are drawn once per call and shared by all listed keys.
+    Leave masks and categorical labels unlisted. For a random decision or
+    random sigma, use :class:`RandomGaussianBlurTransform`.
     """
 
     def __init__(
         self,
         keys_to_transform: List[str],
         kernel_size: int,
-        sigma: Tuple[float, float] = (0.1, 2.0),
-        prob: float = 1.0,
-        seed: Optional[int] = None,
+        sigma: float = 0.0,
     ):
         """
         Parameters
@@ -1241,40 +1239,82 @@ class GaussianBlurTransform(_RandomTransform):
             Keys of the images to blur.
         kernel_size : int
             Odd kernel size in pixels.
-        sigma : Tuple[float, float], optional
-            Range the standard deviation is drawn uniformly from, by default (0.1, 2.0).
-        prob : float, optional
-            Probability of blurring, by default 1.0.
-        seed : int, optional
-            Seed for reproducible blurs, by default None.
+        sigma : float, optional
+            Fixed standard deviation. OpenCV derives it from the kernel when
+            zero, by default 0.0.
         """
-        self._init_rng(seed)
         if kernel_size <= 0 or kernel_size % 2 == 0:
             raise ValueError("kernel_size must be a positive odd integer")
-        if not 0.0 <= sigma[0] <= sigma[1]:
-            raise ValueError("sigma must be a non-negative increasing range")
-        if not 0.0 <= prob <= 1.0:
-            raise ValueError("prob must be between 0 and 1")
+        if not math.isfinite(sigma) or sigma < 0:
+            raise ValueError("sigma must be finite and non-negative")
         self.keys_to_transform = _as_keys(keys_to_transform)
         self.kernel_size = kernel_size
         self.sigma = sigma
-        self.prob = prob
 
-    def _blur(self, x: np.ndarray, sigma: float) -> np.ndarray:
+    def _blur(self, x: np.ndarray) -> np.ndarray:
         k = (self.kernel_size, self.kernel_size)
 
         def blur(a: np.ndarray) -> np.ndarray:
-            return _cv2_safe(a, lambda b: cv2.GaussianBlur(b, k, sigma))
+            return _cv2_safe(
+                a, lambda b: cv2.GaussianBlur(b, k, self.sigma)
+            )
 
         if x.ndim == 2:
             return blur(x)
         return np.stack([blur(x[..., c]) for c in range(x.shape[-1])], axis=-1)
 
     def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        do_blur = self._rand() < self.prob
-        sigma = self._uniform(*self.sigma)
-        if do_blur:
-            self._map_keys(data, lambda x: self._blur(x, sigma))
+        return self._map_keys(data, self._blur)
+
+
+class RandomGaussianBlurTransform(_RandomTransform):
+    """Optionally blur listed image keys with one random sigma per call.
+
+    Leave masks and categorical labels unlisted.
+    """
+
+    def __init__(
+        self,
+        keys_to_transform: List[str],
+        kernel_size: int,
+        sigma_range: Tuple[float, float] = (0.1, 2.0),
+        prob: float = 1.0,
+        seed: Optional[int] = None,
+    ):
+        """Initialize random Gaussian blur.
+
+        Parameters
+        ----------
+        keys_to_transform : List[str]
+            Image keys to blur. All listed keys share one decision and sigma.
+        kernel_size : int
+            Positive odd kernel size in pixels.
+        sigma_range : Tuple[float, float], optional
+            Bounds for the uniformly sampled sigma, by default (0.1, 2.0).
+        prob : float, optional
+            Probability of applying blur, by default 1.0.
+        seed : int, optional
+            Seed for reproducible draws, by default None (torch's global RNG).
+        """
+        low, high = sigma_range
+        if kernel_size <= 0 or kernel_size % 2 == 0:
+            raise ValueError("kernel_size must be a positive odd integer")
+        if not math.isfinite(low) or not math.isfinite(high) or low < 0 or low > high:
+            raise ValueError("sigma_range must be finite, non-negative, and ordered")
+        if not 0.0 <= prob <= 1.0:
+            raise ValueError("prob must be between 0 and 1")
+        self._init_rng(seed)
+        self.keys_to_transform = _as_keys(keys_to_transform)
+        self.kernel_size = kernel_size
+        self.sigma_range = sigma_range
+        self.prob = prob
+
+    def __call__(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        if self._rand() < self.prob:
+            sigma = self._uniform(*self.sigma_range)
+            GaussianBlurTransform(
+                self.keys_to_transform, self.kernel_size, sigma
+            )(data)
         return data
 
 
