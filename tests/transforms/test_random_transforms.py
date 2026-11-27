@@ -7,6 +7,7 @@ from minerva.transforms import (
     RandomCropTransform,
     RandomFlipTransform,
     RandomGrayScaleTransform,
+    RandomGaussianBlurTransform,
     RandomResizedCropTransform,
     RandomResizeTransform,
     RandomRotationTransform,
@@ -179,28 +180,33 @@ def test_random_resized_crop_same_box_for_image_and_label():
 
 def test_gaussian_blur():
     x = np.random.rand(16, 16, 3).astype(np.float32)
-    blurred = GaussianBlurTransform(["x"], kernel_size=5, prob=1.0)({"x": x})["x"]
+    blurred = GaussianBlurTransform(["x"], kernel_size=5, sigma=1.0)({"x": x})[
+        "x"
+    ]
     assert blurred.shape == x.shape and not np.array_equal(blurred, x)
     np.testing.assert_array_equal(
-        GaussianBlurTransform(["x"], kernel_size=5, prob=0.0)({"x": x})["x"], x
+        GaussianBlurTransform(["x"], kernel_size=5, sigma=1.0)({"x": x})["x"],
+        blurred,
     )
     with pytest.raises(ValueError):
         GaussianBlurTransform(["x"], kernel_size=4)
 
 
 def test_gaussian_blur_only_changes_listed_data_key_and_shares_sigma():
-    image = np.random.default_rng(5).random((1, 24, 24), dtype=np.float32)
-    mask = image[0].copy()
+    image = np.random.default_rng(5).random((24, 24, 1), dtype=np.float32)
+    mask = image[..., 0].copy()
     data = {"image": image.copy(), "mask": mask.copy(), "metadata": "keep"}
-    out = GaussianBlurTransform(["image"], 5, prob=1.0, seed=9)(data)
+    out = GaussianBlurTransform(["image"], 5, sigma=1.1)(data)
     assert not np.array_equal(out["image"], image)
     np.testing.assert_array_equal(out["mask"], mask)
     assert out["metadata"] == "keep"
 
-    paired = GaussianBlurTransform(["image", "mask"], 5, prob=1.0, seed=9)(
+    paired = RandomGaussianBlurTransform(
+        ["image", "mask"], 5, sigma_range=(1.1, 1.1), seed=9
+    )(
         {"image": image.copy(), "mask": mask.copy()}
     )
-    np.testing.assert_array_equal(paired["image"][0], paired["mask"])
+    np.testing.assert_array_equal(paired["image"][..., 0], paired["mask"])
 
 
 def test_gaussian_blur_random_draws_repeat_with_seed_and_change_across_calls():
@@ -208,7 +214,9 @@ def test_gaussian_blur_random_draws_repeat_with_seed_and_change_across_calls():
     image[:, 12, 12] = 1.0
 
     def run_sequence():
-        transform = GaussianBlurTransform(["image"], 9, sigma=(0.1, 3.0), seed=17)
+        transform = RandomGaussianBlurTransform(
+            ["image"], 9, sigma_range=(0.1, 3.0), seed=17
+        )
         return [transform({"image": image.copy()})["image"] for _ in range(4)]
 
     first, second = run_sequence(), run_sequence()
@@ -217,19 +225,31 @@ def test_gaussian_blur_random_draws_repeat_with_seed_and_change_across_calls():
     assert any(not np.array_equal(first[0], result) for result in first[1:])
 
 
+def test_random_gaussian_blur_probability_zero_is_identity():
+    image = np.random.rand(16, 16, 3).astype(np.float32)
+    out = RandomGaussianBlurTransform(
+        ["image"], kernel_size=5, prob=0.0, seed=3
+    )({"image": image.copy()})["image"]
+    np.testing.assert_array_equal(out, image)
+
+
 def test_random_vertical_patch_swap_keeps_image_and_label_in_sync():
     label = np.arange(8 * 6, dtype=np.float32).reshape(8, 6)
-    data = {"image": label[None].copy(), "label": label.copy(), "meta": "keep"}
+    data = {
+        "image": label[..., None].copy(),
+        "label": label.copy(),
+        "meta": "keep",
+    }
     out = RandomVerticalPatchSwapTransform(
         ["image", "label"], patch_height=2, prob=1.0, seed=42
     )(data)
-    np.testing.assert_array_equal(out["image"][0], out["label"])
+    np.testing.assert_array_equal(out["image"][..., 0], out["label"])
     assert out["meta"] == "keep"
 
 
 def test_random_vertical_patch_swap_prob_zero_is_identity():
-    image = np.arange(8 * 6).reshape(1, 8, 6)
-    label = image[0].copy()
+    image = np.arange(8 * 6).reshape(8, 6, 1)
+    label = image[..., 0].copy()
     out = RandomVerticalPatchSwapTransform(
         ["image", "label"], patch_height=2, prob=0.0
     )({"image": image.copy(), "label": label.copy()})
@@ -238,7 +258,7 @@ def test_random_vertical_patch_swap_prob_zero_is_identity():
 
 
 def test_random_vertical_patch_swap_changes_per_call_and_repeats_with_seed():
-    image = np.arange(12 * 4).reshape(1, 12, 4)
+    image = np.arange(12 * 4).reshape(12, 4, 1)
     transform = RandomVerticalPatchSwapTransform(
         ["image"], patch_height=3, prob=1.0, seed=41
     )

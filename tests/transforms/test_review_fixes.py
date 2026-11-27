@@ -36,8 +36,8 @@ def test_int64_label_stays_int64_for_cross_entropy():
 
 
 def test_blur_int64_does_not_crash():
-    x = np.ones((3, 8, 8), "int64") * 5
-    out = GaussianBlurTransform(["x"], 3, seed=1)({"x": x})["x"]
+    x = np.ones((8, 8, 3), "int64") * 5
+    out = GaussianBlurTransform(["x"], 3)({"x": x})["x"]
     assert out.dtype == np.int64 and (out == 5).all()
 
 
